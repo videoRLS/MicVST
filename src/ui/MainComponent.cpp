@@ -9,7 +9,7 @@ namespace
             "How to use MicVST\n"
             "\n"
             "1)  Install a virtual audio cable\n"
-            "    VB-Cable (free) is recommended (link below). MicVST detects it automatically.\n"
+            "    VB-Cable (free) is recommended: vb-audio.com/Cable. MicVST detects it automatically.\n"
             "\n"
             "2)  Pick your devices (top of the window)\n"
             "    Input   =  your microphone\n"
@@ -32,15 +32,12 @@ namespace
             "    tray (right-click the tray icon for options). Enable \"Run at startup\" to launch\n"
             "    it silently on boot.\n"
             "\n"
-            "Auto-Update-Check\n"
-            "    With \"Auto-Update-Check\" enabled, MicVST asks GitHub once on each start whether a\n"
-            "    newer version exists. No data is collected and there is no auto-installer - if an\n"
-            "    update is found, the version number turns into a link to the download.";
+            "Privacy\n"
+            "    MicVST never accesses the internet: no update check, no telemetry, no web links.";
     }
 
-    const char* const kRepoUrl = "https://github.com/philipz794/MicVST";
-
-    // Inhalt des How-To-Fensters: Anleitungstext + klickbare Links (VB-Cable, GitHub).
+    // Inhalt des How-To-Fensters: nur Anleitungstext (keine klickbaren Links mehr - MicVST
+    // öffnet keine Webseiten).
     class HowToContent : public juce::Component
     {
     public:
@@ -57,33 +54,12 @@ namespace
             body.setFont (juce::Font (juce::FontOptions (15.0f)));
             body.setText (howToText(), false);
             addAndMakeVisible (body);
-
-            setupLink (vbCable, "Download VB-Cable  (vb-audio.com/Cable)", "https://vb-audio.com/Cable/");
-            setupLink (github,  "Check for updates on GitHub", kRepoUrl);
         }
 
-        void resized() override
-        {
-            auto r = getLocalBounds().reduced (12);
-            github.setBounds (r.removeFromBottom (22));
-            r.removeFromBottom (6);
-            vbCable.setBounds (r.removeFromBottom (22));
-            r.removeFromBottom (10);
-            body.setBounds (r);
-        }
+        void resized() override { body.setBounds (getLocalBounds().reduced (12)); }
 
     private:
-        void setupLink (juce::HyperlinkButton& b, const juce::String& text, const juce::String& url)
-        {
-            b.setButtonText (text);
-            b.setURL (juce::URL (url));
-            b.setJustificationType (juce::Justification::centredLeft);
-            b.setColour (juce::HyperlinkButton::textColourId, juce::Colours::orange);
-            addAndMakeVisible (b);
-        }
-
         juce::TextEditor body;
-        juce::HyperlinkButton vbCable, github;
     };
 
     // Eigenes Fenster mit der Anleitung. Schließen versteckt nur (Instanz bleibt zum Wieder-Öffnen).
@@ -122,31 +98,21 @@ MainComponent::MainComponent (AudioEngine& e) : engine (e)
     howToBtn.setTooltip ("Quick setup guide");
     howToBtn.onClick = [this] { showHowTo(); };
 
-    currentVersion = juce::JUCEApplication::getInstance()->getApplicationVersion();
-    versionLink.setButtonText ("v" + currentVersion);
-    versionLink.setURL (juce::URL (kRepoUrl));
-    versionLink.setTooltip ("MicVST on GitHub");
-    versionLink.setJustificationType (juce::Justification::centredLeft);
-    versionLink.setColour (juce::HyperlinkButton::textColourId, juce::Colours::grey);
-    addAndMakeVisible (versionLink);
-
-    updateToggle.setTooltip ("Check GitHub on startup whether a newer version exists (opt-in, no data collected)");
-    updateToggle.onClick = [this]
-    {
-        const bool on = updateToggle.getToggleState();
-        if (onUpdateCheckToggled) onUpdateCheckToggled (on);
-        if (on) startUpdateCheck();
-    };
-    addAndMakeVisible (updateToggle);
+    versionLabel.setText ("v" + juce::JUCEApplication::getInstance()->getApplicationVersion(), juce::dontSendNotification);
+    versionLabel.setColour (juce::Label::textColourId, juce::Colours::grey);
+    versionLabel.setTooltip ("MicVST works fully offline (no network access)");
+    versionLabel.setJustificationType (juce::Justification::centredLeft);
+    addAndMakeVisible (versionLabel);
 
     addAndMakeVisible (autostartToggle);
     autostartToggle.setTooltip ("Launch MicVST silently into the tray when Windows starts");
     autostartToggle.setToggleState (AutostartRegistry::isEnabled(), juce::dontSendNotification);
     autostartToggle.onClick = [this] { AutostartRegistry::setEnabled (autostartToggle.getToggleState()); };
 
-    cableHint.setColour (juce::HyperlinkButton::textColourId, juce::Colours::orange);
+    cableHint.setText ("No virtual audio cable found - install VB-Cable (vb-audio.com/Cable) and restart MicVST",
+                       juce::dontSendNotification);
+    cableHint.setColour (juce::Label::textColourId, juce::Colours::orange);
     cableHint.setJustificationType (juce::Justification::centredLeft);
-    cableHint.setTooltip ("https://vb-audio.com/Cable/");
     addChildComponent (cableHint);   // Sichtbarkeit steuert updateCableHint()
 
     engine.onStatusChanged = [this] { updateCableHint(); };
@@ -178,36 +144,6 @@ void MainComponent::showHowTo()
     howToWindow->toFront (true);
 }
 
-void MainComponent::setUpdateCheckEnabled (bool on, bool runIfOn)
-{
-    updateToggle.setToggleState (on, juce::dontSendNotification);
-    if (on && runIfOn) startUpdateCheck();
-}
-
-void MainComponent::startUpdateCheck()
-{
-    // SafePointer: falls die Komponente vor dem (asynchronen) Ergebnis zerstört wird,
-    // läuft der Callback ins Leere statt in einen Dangling-this.
-    juce::Component::SafePointer<MainComponent> safe (this);
-    updateChecker.start (currentVersion, [safe] (UpdateChecker::Result r)
-    {
-        if (auto* self = safe.getComponent())
-        {
-            self->showUpdateAvailable (r.latestVersion, r.releaseUrl);
-            if (self->onUpdateFound) self->onUpdateFound (r.latestVersion, r.releaseUrl);
-        }
-    });
-}
-
-void MainComponent::showUpdateAvailable (const juce::String& latestVersion, const juce::String& url)
-{
-    versionLink.setButtonText ("v" + currentVersion + " > Update available!");
-    versionLink.setURL (juce::URL (url));
-    versionLink.setTooltip ("MicVST " + latestVersion + " is available on GitHub - click to open");
-    versionLink.setColour (juce::HyperlinkButton::textColourId, juce::Colours::orange);
-    resized();   // Text ist breiter -> Layout der unteren Leiste auffrischen
-}
-
 void MainComponent::updateCableHint()
 {
     // Hinweis nur zeigen, wenn KEIN virtuelles Kabel installiert ist. Wird bei Geräte-
@@ -224,16 +160,11 @@ void MainComponent::resized()
 {
     auto r = getLocalBounds().reduced (8);
     auto bottomRow = r.removeFromBottom (24);
-    // Rechts, von außen nach innen: Run at startup (Rand) | Auto-Update-Check | How To.
+    // Rechts, von außen nach innen: Run at startup (Rand) | How To. Links die Version.
     autostartToggle.setBounds (bottomRow.removeFromRight (120));
     bottomRow.removeFromRight (6);
-    updateToggle.setBounds (bottomRow.removeFromRight (150));
-    bottomRow.removeFromRight (6);
     howToBtn.setBounds (bottomRow.removeFromRight (80));
-    // Links die klickbare Version: Breite an den Text anpassen, sonst ist der leere Reserve-
-    // Platz (für "> Update available!") mit-klickbar.
-    versionLink.setBounds (bottomRow);
-    versionLink.changeWidthToFitText();
+    versionLabel.setBounds (bottomRow);
     r.removeFromBottom (4);
 
     // Horizontale Meter: In-Zeile, Out-Zeile, gemeinsame dB-Skala darunter.

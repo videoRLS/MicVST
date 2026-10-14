@@ -4,7 +4,6 @@ namespace ids
 {
     const juce::Identifier root ("MicVST"), inDev ("inputDevice"), outDev ("outputDevice"),
         sr ("sampleRate"), userBuf ("userBufferSize"), folders ("pluginFolders"), window ("windowState"),
-        updEnabled ("updateCheckEnabled"), updAsked ("updateCheckAsked"), updLast ("lastNotifiedVersion"),
         plugins ("plugins"), plugin ("plugin"), fileId ("fileOrId"), byp ("bypassed"), blob ("state");
 }
 
@@ -17,9 +16,6 @@ juce::ValueTree toValueTree (const MicVSTState& s)
     t.setProperty (ids::userBuf, s.bufferSize, nullptr);
     t.setProperty (ids::folders, s.pluginFolders.joinIntoString ("\n"), nullptr);
     t.setProperty (ids::window, s.windowState, nullptr);
-    t.setProperty (ids::updEnabled, s.updateCheckEnabled, nullptr);
-    t.setProperty (ids::updAsked, s.updateCheckAsked, nullptr);
-    t.setProperty (ids::updLast, s.lastNotifiedVersion, nullptr);
 
     juce::ValueTree list (ids::plugins);
     for (auto& p : s.plugins)
@@ -48,9 +44,6 @@ MicVSTState fromValueTree (const juce::ValueTree& t)
         if (f.isNotEmpty()) { s.pluginFolders.addLines (f); s.pluginFolders.removeEmptyStrings(); }
     }
     s.windowState = t.getProperty (ids::window).toString();
-    s.updateCheckEnabled  = t.getProperty (ids::updEnabled, false);
-    s.updateCheckAsked    = t.getProperty (ids::updAsked, false);
-    s.lastNotifiedVersion = t.getProperty (ids::updLast).toString();
 
     auto list = t.getChildWithName (ids::plugins);
     for (auto pt : list)

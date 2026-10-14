@@ -118,9 +118,6 @@ struct PersistenceTest : juce::UnitTest
         s.sampleRate = 48000.0; s.bufferSize = 128;
         s.pluginFolders.add ("C:/My VST3");
         s.windowState = "0 0 600 480";
-        s.updateCheckEnabled = true;
-        s.updateCheckAsked = true;
-        s.lastNotifiedVersion = "1.0.3";
 
         PluginEntryState p;
         p.fileOrId = "C:/VST3/Pro-Q 3.vst3";
@@ -139,13 +136,26 @@ struct PersistenceTest : juce::UnitTest
         expectEquals (r.pluginFolders.size(), 1);
         expectEquals (r.pluginFolders[0], juce::String ("C:/My VST3"));
         expectEquals (r.windowState, juce::String ("0 0 600 480"));
-        expect (r.updateCheckEnabled == true);
-        expect (r.updateCheckAsked == true);
-        expectEquals (r.lastNotifiedVersion, juce::String ("1.0.3"));
         expectEquals (r.plugins.size(), 1);
         expectEquals (r.plugins[0].fileOrId, p.fileOrId);
         expect (r.plugins[0].bypassed == true);
         expect (r.plugins[0].state == p.state);
+
+        beginTest ("1.1.1 config loads: old update-check keys are ignored");
+        {
+            juce::ValueTree old ("MicVST");
+            old.setProperty ("inputDevice", "Mic", nullptr);
+            old.setProperty ("outputDevice", "CABLE Input (VB-Audio Virtual Cable)", nullptr);
+            old.setProperty ("userBufferSize", 0, nullptr);
+            old.setProperty ("updateCheckEnabled", true, nullptr);
+            old.setProperty ("updateCheckAsked", true, nullptr);
+            old.setProperty ("lastNotifiedVersion", "1.1.0", nullptr);
+            const auto o = fromValueTree (old);
+            expectEquals (o.inputDevice, juce::String ("Mic"));
+            const auto written = toValueTree (o);
+            expect (! written.hasProperty ("updateCheckEnabled"), "no update keys are written any more");
+            expect (! written.hasProperty ("lastNotifiedVersion"));
+        }
     }
 };
 static PersistenceTest persistenceTest;

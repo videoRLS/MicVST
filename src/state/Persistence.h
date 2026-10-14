@@ -17,11 +17,8 @@ struct MicVSTState
     juce::Array<PluginEntryState> plugins;
     juce::StringArray pluginFolders;   // zusätzliche VST3-Suchordner
     juce::String windowState;          // DocumentWindow::getWindowStateAsString() (Größe/Position)
-
-    // Opt-in Auto-Update-Check (siehe UpdateChecker). Default: aus, nie gefragt.
-    bool updateCheckEnabled = false;   // Checkbox-Zustand
-    bool updateCheckAsked   = false;   // Erststart-Popup schon gezeigt?
-    juce::String lastNotifiedVersion;  // letzte per Tray-Bubble gemeldete Version (Dedup)
+    // (Kein Update-Check mehr: MicVST 1.2 hat keinerlei Netzwerkzugriff. Die alten Felder
+    //  updateCheckEnabled/-Asked/lastNotifiedVersion in bestehenden config.xml werden ignoriert.)
 };
 
 juce::ValueTree  toValueTree (const MicVSTState&);

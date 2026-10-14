@@ -38,7 +38,7 @@ class MicVSTApplication : public juce::JUCEApplication
 {
 public:
     const juce::String getApplicationName() override    { return "MicVST"; }
-    const juce::String getApplicationVersion() override { return "1.1.1"; }
+    const juce::String getApplicationVersion() override { return MICVST_VERSION_STRING; }   // aus CMake project(VERSION)
 
     // Kind-Scanprozesse (--scan) laufen parallel zur Haupt-Instanz und dürfen nicht
     // von der Single-Instance-Logik weggefangen werden.
@@ -101,6 +101,8 @@ public:
         logFile.getParentDirectory().createDirectory();
         logger.reset (new juce::FileLogger (logFile, "MicVST Log"));
         juce::Logger::setCurrentLogger (logger.get());
+        juce::Logger::writeToLog ("MicVST " + getApplicationVersion() + " (" + juce::SystemStats::getJUCEVersion()
+                                  + ", no network access)");
 
         const bool silent = commandLine.contains ("--tray");
 
@@ -111,11 +113,6 @@ public:
         // eine bewusst auf "none" gesetzte Output-Auswahl beim Neustart wieder überschrieben.
         const bool firstRun = ! configFile().existsAsFile();
         MicVSTState state = loadState();
-
-        // Auto-Update-Check-Zustand übernehmen (Default: aus, nie gefragt).
-        updateCheckEnabled  = state.updateCheckEnabled;
-        updateCheckAsked    = state.updateCheckAsked;
-        lastNotifiedVersion = state.lastNotifiedVersion;
 
         // Custom-VST3-Ordner übernehmen, dann Cache laden (vor applyState und vor der UI).
         engine->setPluginFolders (state.pluginFolders);
@@ -162,28 +159,10 @@ public:
         // damit In-/Output-Auswahl gemerkt wird — auch ohne sauberes Beenden (X versteckt nur).
         engine->onDeviceChanged = [this] { persistState(); };
         // UI-Änderungen (Plugin-Kette, Ordner) persistieren ebenfalls den Gesamtzustand —
-        // ein direktes saveState(captureState()) in der UI würde windowState/Update-Check resetten.
+        // ein direktes saveState(captureState()) in der UI würde windowState resetten.
         engine->onStateChanged  = [this] { persistState(); };
 
         engine->onFactoryResetRequested = [this] { factoryReset(); };
-
-        // --- Auto-Update-Check verdrahten ---
-        if (auto* mc = mainWindow->getContent())
-        {
-            mc->onUpdateCheckToggled = [this] (bool on) { updateCheckEnabled = on; persistState(); };
-            mc->onUpdateFound = [this] (const juce::String& latestVersion, const juce::String&)
-            {
-                // Tray-Bubble nur EINMAL pro neuer Version (der Fenster-Hinweis bleibt sowieso).
-                if (latestVersion == lastNotifiedVersion) return;
-                lastNotifiedVersion = latestVersion;
-                persistState();
-                if (tray != nullptr)
-                    tray->showInfoBubble ("Update available",
-                        "MicVST " + latestVersion + " is available - click the version number to update.");
-            };
-            // Bei aktivem Check sofort einen Lauf starten (auch im stillen Autostart -> Tray-Bubble).
-            mc->setUpdateCheckEnabled (updateCheckEnabled, true);
-        }
 
         // Altes Dead-Man's-Pedal aufräumen (ersetzt durch Skip-Liste im plugin_cache.xml).
         juce::File::getSpecialLocation (juce::File::userApplicationDataDirectory)
@@ -191,10 +170,6 @@ public:
 
         // Fenster + Tray stehen -> jetzt (und erst jetzt) im Hintergrund scannen.
         engine->startBackgroundScan();
-
-        // Erststart: einmalig nach Zustimmung fragen (nur mit sichtbarem Fenster).
-        if (! silent && ! updateCheckAsked)
-            askUpdateConsent();
     }
 
     void anotherInstanceStarted (const juce::String&) override
@@ -218,15 +193,12 @@ public:
     }
 
 private:
-    // Engine-Zustand (Geräte/Plugins) + Fenstergröße/-position + Update-Check-Zustand speichern.
+    // Engine-Zustand (Geräte/Plugins) + Fenstergröße/-position speichern.
     void persistState()
     {
         if (suppressPersist || engine == nullptr) return;
         auto s = engine->captureState();
         if (mainWindow != nullptr) s.windowState = mainWindow->getWindowStateAsString();
-        s.updateCheckEnabled  = updateCheckEnabled;
-        s.updateCheckAsked    = updateCheckAsked;
-        s.lastNotifiedVersion = lastNotifiedVersion;
         saveState (s);
     }
 
@@ -243,30 +215,6 @@ private:
             .getChildFile ("MicVST").getChildFile ("tray_hint_shown").deleteFile();
         juce::Logger::writeToLog ("Factory-Reset: Daten gelöscht, App beendet sich");
         systemRequestedQuit();
-    }
-
-    // Einmaliges Erststart-Popup: Zustimmung zum Update-Check einholen. Egal wie der Nutzer
-    // entscheidet -> "gefragt" wird gemerkt, also kommt der Dialog nie wieder.
-    void askUpdateConsent()
-    {
-        updateCheckAsked = true;
-        persistState();
-        juce::NativeMessageBox::showYesNoBox (
-            juce::MessageBoxIconType::QuestionIcon,
-            "Check for updates?",
-            "Should MicVST check GitHub for a newer version on startup?\n\n"
-            "Only a single request is sent to GitHub - no data is collected and there is no "
-            "auto-installer. You can change this anytime with the \"Auto-Update-Check\" box.",
-            nullptr,
-            juce::ModalCallbackFunction::create ([this] (int result)
-            {
-                const bool yes = (result == 1);
-                updateCheckEnabled = yes;
-                persistState();
-                if (mainWindow != nullptr)
-                    if (auto* mc = mainWindow->getContent())
-                        mc->setUpdateCheckEnabled (yes, true);   // bei Ja: gleich prüfen
-            }));
     }
 
     void toggleWindow()
@@ -323,11 +271,6 @@ private:
     std::unique_ptr<AudioEngine> engine;
     std::unique_ptr<MainWindow> mainWindow;
     std::unique_ptr<TrayIcon> tray;
-
-    // Auto-Update-Check-Zustand (in config.xml persistiert, siehe persistState()).
-    bool updateCheckEnabled = false;
-    bool updateCheckAsked   = false;
-    juce::String lastNotifiedVersion;
     bool suppressPersist = false;   // Factory-Reset: nichts darf die gelöschte Config neu anlegen
 };
 

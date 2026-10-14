@@ -48,6 +48,7 @@ target_link_libraries(MicVSTCore PUBLIC
 juce_add_gui_app(MicVST
     PRODUCT_NAME "MicVST"
     COMPANY_NAME "MicVST"
+    VERSION      ${PROJECT_VERSION}
     ICON_BIG   "${CMAKE_CURRENT_SOURCE_DIR}/resources/iconDarkMode.png"
     ICON_SMALL "${CMAKE_CURRENT_SOURCE_DIR}/resources/iconDarkMode.png"
 )
@@ -71,12 +72,14 @@ target_sources(MicVST PRIVATE
     src/state/AutostartRegistry.cpp
 )
 target_compile_definitions(MicVST PRIVATE
+    MICVST_VERSION_STRING="${PROJECT_VERSION}"
     JUCE_WASAPI=1
     JUCE_DIRECTSOUND=0
     JUCE_ASIO=0
     JUCE_PLUGINHOST_VST3=1
     JUCE_USE_CURL=0
     JUCE_WEB_BROWSER=0
+    JUCE_USE_WIN_WEBVIEW2=0
 )
 target_link_libraries(MicVST PRIVATE
     MicVSTCore
@@ -98,6 +101,7 @@ target_sources(MicVSTTests PRIVATE
 )
 target_compile_definitions(MicVSTTests PRIVATE
     JUCE_PLUGINHOST_VST3=1
+    JUCE_USE_CURL=0
 )
 target_link_libraries(MicVSTTests PRIVATE
     MicVSTCore
