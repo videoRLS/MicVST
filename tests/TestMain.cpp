@@ -118,6 +118,7 @@ struct PersistenceTest : juce::UnitTest
         s.sampleRate = 48000.0; s.bufferSize = 128;
         s.pluginFolders.add ("C:/My VST3");
         s.windowState = "0 0 600 480";
+        s.safetyBufferMs = 20;
 
         PluginEntryState p;
         p.fileOrId = "C:/VST3/Pro-Q 3.vst3";
@@ -136,12 +137,13 @@ struct PersistenceTest : juce::UnitTest
         expectEquals (r.pluginFolders.size(), 1);
         expectEquals (r.pluginFolders[0], juce::String ("C:/My VST3"));
         expectEquals (r.windowState, juce::String ("0 0 600 480"));
+        expectEquals (r.safetyBufferMs, 20);
         expectEquals (r.plugins.size(), 1);
         expectEquals (r.plugins[0].fileOrId, p.fileOrId);
         expect (r.plugins[0].bypassed == true);
         expect (r.plugins[0].state == p.state);
 
-        beginTest ("1.1.1 config loads: old update-check keys are ignored");
+        beginTest ("1.1.1 config loads: old update-check keys ignored, safety buffer defaults to Auto");
         {
             juce::ValueTree old ("MicVST");
             old.setProperty ("inputDevice", "Mic", nullptr);
@@ -152,6 +154,7 @@ struct PersistenceTest : juce::UnitTest
             old.setProperty ("lastNotifiedVersion", "1.1.0", nullptr);
             const auto o = fromValueTree (old);
             expectEquals (o.inputDevice, juce::String ("Mic"));
+            expectEquals (o.safetyBufferMs, 0);
             const auto written = toValueTree (o);
             expect (! written.hasProperty ("updateCheckEnabled"), "no update keys are written any more");
             expect (! written.hasProperty ("lastNotifiedVersion"));

@@ -18,10 +18,13 @@ jobs:
         run: cmake -S . -B build -A x64
 
       - name: Build
-        run: cmake --build build --config Release --target MicVST MicVSTTests
+        run: cmake --build build --config Release --target MicVST MicVSTTests MicVSTStress
 
-      - name: Test
+      - name: Unit tests
         run: ./build/MicVSTTests_artefacts/Release/MicVSTTests.exe
+
+      - name: Audio path measurements (quick)
+        run: ./build/MicVSTStress_artefacts/Release/MicVSTStress.exe --quick
 
       - name: Closed box - no networking library in the exe
         shell: pwsh

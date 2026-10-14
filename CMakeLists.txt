@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(MicVST VERSION 1.1.1 LANGUAGES C CXX)
+project(MicVST VERSION 1.2.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -17,17 +17,23 @@ endif()
 # (Callback konnte nach stop() noch laufen), VST3-Hosting-Fixes, Härtung gegen fehlerhafte
 # String-Eingaben. Das mitgelieferte VST3 SDK ist 3.8.0 - warum es nicht gegen 3.8.1 getauscht
 # wird, steht in docs/RAPOR.md.
+# cmake/PatchJuce.cmake setzt drei kleine Echtzeit-Fixes im WASAPI-Backend von JUCE ein und bricht
+# das Konfigurieren ab, falls sich JUCE ändert (statt stillschweigend ungepatcht zu bauen).
 include(FetchContent)
 FetchContent_Declare(
     JUCE
     GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
     GIT_TAG        9.0.4
     GIT_SHALLOW    TRUE
+    PATCH_COMMAND  ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/PatchJuce.cmake
+    UPDATE_DISCONNECTED TRUE
 )
 FetchContent_MakeAvailable(JUCE)
 
 # --- Shared logic library (engine, state, audio helpers) ---
 add_library(MicVSTCore STATIC
+    src/audio/AudioBridge.cpp
+    src/audio/RealtimeSupport.cpp
     src/audio/Metering.cpp
     src/audio/GraphConnections.cpp
     src/audio/ScanCoordinator.cpp
@@ -98,7 +104,9 @@ target_sources(MicVSTTests PRIVATE
     tests/TestMain.cpp
     tests/ScanTests.cpp
     tests/PickerTests.cpp
+    tests/BridgeTests.cpp
 )
+target_include_directories(MicVSTTests PRIVATE tests)
 target_compile_definitions(MicVSTTests PRIVATE
     JUCE_PLUGINHOST_VST3=1
     JUCE_USE_CURL=0
@@ -107,6 +115,19 @@ target_link_libraries(MicVSTTests PRIVATE
     MicVSTCore
     juce::juce_audio_processors
     juce::juce_core
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_warning_flags
+)
+
+# --- Measurements: old vs. new audio path (simulation) + real-thread scheduling on Windows ---
+juce_add_console_app(MicVSTStress PRODUCT_NAME "MicVSTStress")
+target_sources(MicVSTStress PRIVATE tests/StressMain.cpp)
+target_include_directories(MicVSTStress PRIVATE tests)
+target_compile_definitions(MicVSTStress PRIVATE JUCE_USE_CURL=0)
+target_link_libraries(MicVSTStress PRIVATE
+    MicVSTCore
+    juce::juce_core
+    juce::juce_audio_basics
     juce::juce_recommended_config_flags
     juce::juce_recommended_warning_flags
 )

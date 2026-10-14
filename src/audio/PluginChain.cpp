@@ -147,16 +147,31 @@ void PluginChain::movePlugin (int from, int to)
 void PluginChain::setBypass (int index, bool b)
 {
     if (! juce::isPositiveAndBelow (index, (int) chain.size())) return;
+    const bool wasBypassed = chain[(size_t) index].bypassed;
     chain[(size_t) index].bypassed = b;
     if (auto* node = graph.getNodeForId (chain[(size_t) index].node))
+    {
         node->setBypassed (b);
+        auto* proc = node->getProcessor();
+        // Gebypasste Glieder sind ohnehin aus der Verdrahtung genommen (rebuildConnections);
+        // ohne suspend würde der Graph sie trotzdem jeden Block mit Stille rechnen lassen
+        // (unnötige CPU-Last im Audio-Thread). Beim Wieder-Einschalten zuerst den eingefrorenen
+        // Zustand (Hall-/Delay-Reste) löschen - solange das Glied noch suspendiert ist, läuft
+        // dabei kein processBlock parallel.
+        if (wasBypassed && ! b)
+            proc->reset();
+        proc->suspendProcessing (b);
+    }
 }
 
 void PluginChain::rebuildConnections()
 {
-    // Alle bestehenden Verbindungen lösen, dann kanalbewusst neu setzen.
+    using UK = juce::AudioProcessorGraph::UpdateKind;
+
+    // Alle bestehenden Verbindungen lösen, dann kanalbewusst neu setzen - ohne Zwischen-
+    // Umbauten (UpdateKind::none), am Ende genau ein rebuild().
     for (auto& c : graph.getConnections())
-        graph.removeConnection (c);
+        graph.removeConnection (c, UK::none);
 
     auto channelsOf = [this] (NodeID id) -> NodeChannels
     {
@@ -172,7 +187,14 @@ void PluginChain::rebuildConnections()
         if (! e.bypassed) seq.push_back (channelsOf (e.node));   // gebypasste Glieder überspringen
     seq.push_back (channelsOf (outputNode));
 
+    int channelsIntoOutput = 0;
     for (auto& cc : computeChainConnections (seq))
+    {
         graph.addConnection ({ { cc.sourceNode, cc.sourceChannel },
-                               { cc.destNode,   cc.destChannel } });
+                               { cc.destNode,   cc.destChannel } }, UK::none);
+        if (cc.destNode == outputNode) ++channelsIntoOutput;
+    }
+
+    outputMono.store (channelsIntoOutput == 1, std::memory_order_relaxed);
+    graph.rebuild();
 }

@@ -87,8 +87,7 @@ void PluginListView::Row::paint (juce::Graphics& g)
     if (auto* node = owner.engine.getGraph().getNodeForId (e.node))
         if (auto* proc = node->getProcessor())
         {
-            auto* dev = owner.engine.getDeviceManager().getCurrentAudioDevice();
-            const double sr = dev != nullptr ? dev->getCurrentSampleRate() : 48000.0;
+            const double sr = owner.engine.getProcessingSampleRate();   // Kette läuft mit der Mikrofon-Rate
             const double ms = sr > 0.0 ? (double) proc->getLatencySamples() / sr * 1000.0 : 0.0;
             latText = juce::String (ms, 1) + " ms";
         }
@@ -337,10 +336,9 @@ void PluginListView::addFromPicker (const juce::PluginDescription& desc)
         return;
     }
 
-    double sr = engine.getDeviceManager().getCurrentAudioDevice() != nullptr
-              ? engine.getDeviceManager().getCurrentAudioDevice()->getCurrentSampleRate() : 48000.0;
     juce::String err;
-    if (engine.getChain().addPlugin (engine.getFormatManager(), desc, sr, 128, err))
+    if (engine.getChain().addPlugin (engine.getFormatManager(), desc, engine.getProcessingSampleRate(),
+                                     engine.getProcessingBlockSize(), err))
         commitChange();
     else
         juce::Logger::writeToLog ("Plugin-Load: " + err);
@@ -446,7 +444,13 @@ void PluginListView::openEditor (int row)
     if (proc == nullptr || ! proc->hasEditor()) return;
 
     auto* w = new EditorWindow (proc->getName(),
-                                [this] (EditorWindow* self) { editorWindows.removeObject (self); });
+                                [this] (EditorWindow* self)
+                                {
+                                    editorWindows.removeObject (self);
+                                    // Parameter-Änderungen im Editor sofort sichern (1.1.1: erst beim
+                                    // Verstecken/Beenden -> nach Absturz/Stromausfall verloren).
+                                    engine.requestPersist();
+                                });
     w->setUsingNativeTitleBar (true);
     w->setContentOwned (proc->createEditorAndMakeActive(), true);
     w->centreWithSize (w->getWidth(), w->getHeight());

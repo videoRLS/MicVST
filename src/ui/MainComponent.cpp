@@ -19,7 +19,8 @@ namespace
             "    - \"+ Plugin\" opens a searchable list (grouped by manufacturer) of all VST3 effects\n"
             "      and built-in nodes. Add effects you like (EQ, de-noise, compressor, ...).\n"
             "    - Insert \"Mono -> Stereo\" where you want stereo (before it the chain runs\n"
-            "      mono = less CPU). \"Stereo -> Mono\" is available too.\n"
+            "      mono = less CPU). \"Stereo -> Mono\" is available too. A chain that ends mono is\n"
+            "      sent to both cable channels automatically.\n"
             "    - Drag the handle on the left to reorder; the trash icon removes (with a prompt).\n"
             "    - Double-click a plugin to open its editor.\n"
             "    - \"Manage VST3 Folders\" adds plugins from other locations.\n"
@@ -27,7 +28,13 @@ namespace
             "4)  Use it in any app\n"
             "    In Discord / OBS / Zoom / ..., select \"CABLE Output\" as the microphone.\n"
             "\n"
-            "5)  That's it\n"
+            "5)  Stability\n"
+            "    Microphone and cable run on separate realtime threads with a small safety buffer\n"
+            "    between them. \"Safety\" = Auto raises the buffer by itself if the output ever runs\n"
+            "    dry (e.g. while a heavy game starts). The status lines show the latency, the CPU\n"
+            "    load of your plugin chain and every dropout.\n"
+            "\n"
+            "6)  That's it\n"
             "    Settings are saved automatically. Closing the window keeps MicVST running in the\n"
             "    tray (right-click the tray icon for options). Enable \"Run at startup\" to launch\n"
             "    it silently on boot.\n"
@@ -73,7 +80,7 @@ namespace
             setUsingNativeTitleBar (true);
             setContentOwned (new HowToContent(), false);
             setResizable (true, false);
-            centreWithSize (560, 560);
+            centreWithSize (580, 600);
         }
         void closeButtonPressed() override { setVisible (false); }
     };
@@ -132,8 +139,14 @@ void MainComponent::timerCallback()
 {
     inMeter.setLevel (engine.inputLevel());
     outMeter.setLevel (engine.outputLevel());
-    // Mit der Registry synchron halten (z. B. wenn der Tray den Autostart umschaltet).
-    autostartToggle.setToggleState (AutostartRegistry::isEnabled(), juce::dontSendNotification);
+
+    // Mit der Registry synchron halten (z. B. wenn der Tray den Autostart umschaltet) - einmal
+    // pro Sekunde reicht (1.1.1 las die Registry 30-mal pro Sekunde).
+    if (++timerTicks >= 30)
+    {
+        timerTicks = 0;
+        autostartToggle.setToggleState (AutostartRegistry::isEnabled(), juce::dontSendNotification);
+    }
 }
 
 void MainComponent::showHowTo()
@@ -187,8 +200,8 @@ void MainComponent::resized()
         r.removeFromTop (4);
     }
 
-    // DevicePanel meldet seine Höhe selbst (3 Zeilen, +1 wenn die Buffer-Zeile sichtbar
-    // ist); die Plugin-Liste bekommt den ganzen Rest.
+    // DevicePanel meldet seine Höhe selbst (Input/Output/Safety, +1 wenn die Buffer-Zeile
+    // sichtbar ist, plus zwei Statuszeilen); die Plugin-Liste bekommt den ganzen Rest.
     devicePanel->setBounds (r.removeFromTop (devicePanel->preferredHeight()));
     r.removeFromTop (8);
     pluginList->setBounds (r);

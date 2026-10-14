@@ -31,4 +31,5 @@ private:
     juce::ToggleButton autostartToggle { "Run at startup" };
     juce::Label cableHint;               // VB-Cable-Hinweis (reiner Text, kein Link)
     juce::TooltipWindow tooltipWindow { nullptr, 100 };   // Hover-Tooltips, fast instant (100 ms)
+    int timerTicks = 0;                  // Registry-Abgleich nur jede Sekunde
 };

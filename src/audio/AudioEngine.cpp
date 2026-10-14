@@ -1,51 +1,107 @@
 #include "audio/AudioEngine.h"
+#include "audio/RealtimeSupport.h"
 using IOProc = juce::AudioProcessorGraph::AudioGraphIOProcessor;
+
+namespace
+{
+    juce::AudioDeviceManager::AudioDeviceSetup inputOnlySetup (juce::AudioDeviceManager& dm,
+                                                               const juce::String& input,
+                                                               double sampleRate, int bufferSize)
+    {
+        auto setup = dm.getAudioDeviceSetup();
+        setup.inputDeviceName  = input;
+        setup.outputDeviceName = {};
+        // Channels EXPLICITLY: without deviceManager.initialise() the "default" channel ranges
+        // would be empty.
+        setup.useDefaultInputChannels  = false;
+        setup.useDefaultOutputChannels = false;
+        setup.inputChannels.clear();
+        setup.inputChannels.setRange (0, 2, true);   // up to 2 mic channels (mono uses ch0)
+        setup.outputChannels.clear();
+        setup.sampleRate = sampleRate;               // shared mode may force the device mix rate
+        if (bufferSize > 0) setup.bufferSize = bufferSize;
+        return setup;
+    }
+
+    juce::AudioDeviceManager::AudioDeviceSetup outputOnlySetup (juce::AudioDeviceManager& dm,
+                                                                const juce::String& output,
+                                                                double sampleRate, int bufferSize)
+    {
+        auto setup = dm.getAudioDeviceSetup();
+        setup.inputDeviceName  = {};
+        setup.outputDeviceName = output;
+        setup.useDefaultInputChannels  = false;
+        setup.useDefaultOutputChannels = false;
+        setup.inputChannels.clear();
+        setup.outputChannels.clear();
+        setup.outputChannels.setRange (0, 2, true);
+        setup.sampleRate = sampleRate;   // any mismatch with the microphone is resampled by the bridge
+        if (bufferSize > 0) setup.bufferSize = bufferSize;
+        return setup;
+    }
+
+    juce::String describe (juce::AudioIODevice* d)
+    {
+        if (d == nullptr) return "(none)";
+        return "'" + d->getName() + "' " + juce::String (d->getCurrentSampleRate(), 0) + " Hz, buffer "
+             + juce::String (d->getCurrentBufferSizeSamples());
+    }
+}
 
 AudioEngine::AudioEngine()
 {
-    // WICHTIG: erzwingt das Erstellen + Scannen der Geräte-Typen. Ohne diesen Aufruf
-    // ist availableDeviceTypes leer, getCurrentDeviceTypeObject() liefert nullptr und
-    // setCurrentAudioDeviceType()/setAudioDeviceSetup() sowie die Device-Suche tun nichts.
-    deviceManager.getAvailableDeviceTypes();
-    deviceManager.addChangeListener (this);
+    // IMPORTANT: forces creating + scanning the device types. Without this,
+    // getCurrentDeviceTypeObject() is nullptr and setAudioDeviceSetup()/device lookup do nothing.
+    inputDevices.getAvailableDeviceTypes();
+    outputDevices.getAvailableDeviceTypes();
+    inputDevices.addChangeListener (this);
+    outputDevices.addChangeListener (this);
+    bridge.setSafety (AudioBridge::autoStartMs, true);
+    startTimer (1000);
 }
 
 AudioEngine::~AudioEngine()
 {
-    deviceManager.removeChangeListener (this);
-    deviceManager.removeAudioCallback (this);
-    deviceManager.closeAudioDevice();
-    player.setProcessor (nullptr);
+    stopTimer();
+    inputDevices.removeChangeListener (this);
+    outputDevices.removeChangeListener (this);
+    inputDevices.removeAudioCallback (&inputSide);
+    outputDevices.removeAudioCallback (&outputSide);
+    inputDevices.closeAudioDevice();
+    outputDevices.closeAudioDevice();
+    graph.releaseResources();
 }
 
 bool AudioEngine::isRunning() const
 {
-    auto* dev = deviceManager.getCurrentAudioDevice();
-    return dev != nullptr && dev->isPlaying();
+    auto* in = inputDevices.getCurrentAudioDevice();
+    const bool inputOk = in != nullptr && in->isPlaying();
+    const bool outputSelected = outputDevices.getAudioDeviceSetup().outputDeviceName.isNotEmpty();
+    auto* out = outputDevices.getCurrentAudioDevice();
+    const bool outputOk = ! outputSelected || (out != nullptr && out->isPlaying());
+    return inputOk && outputOk;
 }
 
 void AudioEngine::changeListenerCallback (juce::ChangeBroadcaster*)
 {
-    // Device kam/ging: AudioDeviceManager stellt das gespeicherte Setup selbst
-    // wieder her (namensbasiert). Wir spiegeln nur den Status nach außen.
-    juce::Logger::writeToLog (isRunning() ? "Audio: läuft"
-                                          : "Audio: idle (Device getrennt?)");
+    // A device came or went: AudioDeviceManager restores the stored setup by name itself.
+    juce::Logger::writeToLog (isRunning() ? "Audio: running" : "Audio: idle (device disconnected?)");
     if (onStatusChanged) onStatusChanged();
-    if (onDeviceChanged) onDeviceChanged();   // Geräte-Einstellungen persistieren
+    if (onDeviceChanged) onDeviceChanged();
 }
 
 juce::String AudioEngine::detectCableOutput()
 {
-    // Render-Endpunkte bekannter virtueller Kabel, nach Priorität (VB-Cable zuerst).
+    // Render endpoints of known virtual cables, by priority (VB-Cable first).
     static const char* const cablePatterns[] = {
-        "CABLE Input",          // VB-Audio Virtual Cable (empfohlen)
-        "VB-Audio",             // weitere VB-Audio-Kabel (Hi-Fi Cable etc.)
+        "CABLE Input",          // VB-Audio Virtual Cable (recommended)
+        "VB-Audio",             // other VB-Audio cables (Hi-Fi Cable etc.)
         "VoiceMeeter Input",    // VoiceMeeter VAIO/Aux
         "Virtual Audio Cable"   // VAC ("Line 1 (Virtual Audio Cable)")
     };
 
-    deviceManager.setCurrentAudioDeviceType (deviceManager.preferredTypeName(), true);
-    if (auto* type = deviceManager.getCurrentDeviceTypeObject())
+    outputDevices.setCurrentAudioDeviceType (outputDevices.preferredTypeName(), true);
+    if (auto* type = outputDevices.getCurrentDeviceTypeObject())
     {
         type->scanForDevices();
         auto outs = type->getDeviceNames (false /* output */);
@@ -57,80 +113,67 @@ juce::String AudioEngine::detectCableOutput()
     return {};
 }
 
+//==============================================================================
+void AudioEngine::openDevices (const juce::String& input, const juce::String& output, int bufferSize)
+{
+    // Names VERBATIM, also empty: an empty output deliberately means "no output" ("none").
+    const auto inErr = inputDevices.setAudioDeviceSetup (
+        inputOnlySetup (inputDevices, input, preferredInputRate, bufferSize), true);
+    const auto outErr = outputDevices.setAudioDeviceSetup (
+        outputOnlySetup (outputDevices, output, preferredInputRate, bufferSize), true);
+
+    juce::Logger::writeToLog ("Setup: input " + describe (inputDevices.getCurrentAudioDevice())
+                              + (inErr.isNotEmpty() ? " [" + inErr + "]" : juce::String())
+                              + " | output " + describe (outputDevices.getCurrentAudioDevice())
+                              + (outErr.isNotEmpty() ? " [" + outErr + "]" : juce::String()));
+}
+
 juce::String AudioEngine::initialise (const juce::String& inputDeviceName,
                                       const juce::String& outputDeviceName)
 {
-    deviceManager.removeAudioCallback (this);   // idempotent: doppelte Registrierung vermeiden
-    deviceManager.closeAudioDevice();
-    deviceManager.setCurrentAudioDeviceType (deviceManager.preferredTypeName(), true);
+    inputDevices.removeAudioCallback (&inputSide);    // idempotent: no double registration
+    outputDevices.removeAudioCallback (&outputSide);
+    inputDevices.closeAudioDevice();
+    outputDevices.closeAudioDevice();
+    inputDevices.setCurrentAudioDeviceType (inputDevices.preferredTypeName(), true);
+    outputDevices.setCurrentAudioDeviceType (outputDevices.preferredTypeName(), true);
 
-    juce::AudioDeviceManager::AudioDeviceSetup setup;
-    deviceManager.getAudioDeviceSetup (setup);
-    // Namen VERBATIM übernehmen — auch leer. Ein leerer Output-Name bedeutet bewusst
-    // "kein Host-Output" ("none"); der Input-WASAPI-Callback treibt die Engine dann allein.
-    // Würden wir leer überspringen, bliebe das alte Default-Gerät stehen und "none"
-    // ließe sich nicht speichern.
-    setup.inputDeviceName  = inputDeviceName;
-    setup.outputDeviceName = outputDeviceName;
-    if (preferredBufferSize > 0)
-        setup.bufferSize = preferredBufferSize;   // 0 = Auto: Geräte-Default nicht anfassen
-    // Kanäle EXPLIZIT aktivieren. Auf useDefault* darf man sich nicht verlassen:
-    // ohne deviceManager.initialise(numIn,numOut,...) ist numInputChansNeeded=0,
-    // wodurch die "Default"-Input-Kanäle auf [0,0) = KEINE gesetzt würden.
-    setup.useDefaultInputChannels  = false;
-    setup.useDefaultOutputChannels = false;
-    setup.inputChannels.clear();
-    setup.inputChannels.setRange (0, 2, true);    // bis zu 2 Mic-Kanäle (mono nutzt nur ch0)
-    setup.outputChannels.clear();
-    setup.outputChannels.setRange (0, 2, true);
-    setup.sampleRate = 48000.0;   // bevorzugt; WASAPI shared kann die Mix-Rate des Geräts erzwingen
-
-    // Fehler NICHT früh zurückgeben: Graph/Chain müssen immer existieren,
-    // auch wenn (noch) kein Device offen ist (z. B. Gerät noch nicht da / Reconnect).
-    const juce::String err = deviceManager.setAudioDeviceSetup (setup, true);
-
-    if (auto* d = deviceManager.getCurrentAudioDevice())
-        juce::Logger::writeToLog ("Setup: in=" + setup.inputDeviceName
-            + " out=" + setup.outputDeviceName
-            + " sr=" + juce::String (d->getCurrentSampleRate(), 0)
-            + " buf=" + juce::String (d->getCurrentBufferSizeSamples()));
-    else
-        juce::Logger::writeToLog ("Setup: kein Device offen (" + err + ")");
+    // Errors do NOT return early: graph + chain must always exist, even without an open device
+    // (device not there yet / reconnect).
+    openDevices (inputDeviceName, outputDeviceName, preferredBufferSize);
 
     graph.clear();
     auto inNode  = graph.addNode (std::make_unique<IOProc> (IOProc::audioInputNode));
     auto outNode = graph.addNode (std::make_unique<IOProc> (IOProc::audioOutputNode));
-
     pluginChain = std::make_unique<PluginChain> (graph, inNode->nodeID, outNode->nodeID);
-    rebuildGraph();   // leere Kette: in -> out (inkl. Mono→Stereo-Fanout)
-
-    // Eigenen "spielenden" Playhead setzen, BEVOR der Player seinen (ohne isPlaying)
-    // installiert. Der Player nutzt seinen nur, wenn der Graph keinen hat.
-    if (auto* d = deviceManager.getCurrentAudioDevice())
-        playHead.sampleRate.store (d->getCurrentSampleRate());
     graph.setPlayHead (&playHead);
+    rebuildGraph();
 
-    player.setProcessor (&graph);
-    deviceManager.addAudioCallback (this);
+    // Registering the callbacks prepares the graph (inputAboutToStart) and starts processing.
+    inputDevices.addAudioCallback (&inputSide);
+    outputDevices.addAudioCallback (&outputSide);
+
+    juce::String err;
+    if (inputDevices.getCurrentAudioDevice() == nullptr && inputDeviceName.isNotEmpty())
+        err = "Couldn't open the input device '" + inputDeviceName + "'";
+    if (outputDevices.getCurrentAudioDevice() == nullptr && outputDeviceName.isNotEmpty())
+        err << (err.isEmpty() ? "" : " / ") << "Couldn't open the output device '" << outputDeviceName << "'";
     return err;
 }
 
 void AudioEngine::setDeviceConfig (const juce::String& input, const juce::String& output,
-                                  double sampleRate, int bufferSize)
+                                   double sampleRate, int bufferSize)
 {
-    auto setup = deviceManager.getAudioDeviceSetup();
-    setup.inputDeviceName  = input;
-    setup.outputDeviceName = output;
-    if (sampleRate > 0.0) setup.sampleRate = sampleRate;
-    if (bufferSize > 0)   setup.bufferSize = bufferSize;
-    // Kanäle EXPLIZIT (wie in initialise) — sonst droht 0 aktive Input-Kanäle.
-    setup.useDefaultInputChannels  = false;
-    setup.useDefaultOutputChannels = false;
-    setup.inputChannels.clear();  setup.inputChannels.setRange (0, 2, true);
-    setup.outputChannels.clear(); setup.outputChannels.setRange (0, 2, true);
+    if (sampleRate > 0.0) preferredInputRate = sampleRate;
+    openDevices (input, output, bufferSize);
+    rebuildGraph();   // the input node's channel count may have changed
+}
 
-    deviceManager.setAudioDeviceSetup (setup, true);
-    rebuildGraph();   // IO-Knoten-Kanalzahl kann sich geändert haben -> neu verdrahten
+void AudioEngine::setSafetyBufferMs (int ms)
+{
+    safetyBufferMs = ms > 0 ? ms : 0;
+    if (safetyBufferMs == 0) bridge.setSafety (AudioBridge::autoStartMs, true);
+    else                     bridge.setSafety ((double) safetyBufferMs, false);
 }
 
 void AudioEngine::rebuildGraph()
@@ -139,6 +182,225 @@ void AudioEngine::rebuildGraph()
         pluginChain->rebuildConnections();
 }
 
+//==============================================================================
+double AudioEngine::nowSeconds() noexcept
+{
+    return juce::Time::getMillisecondCounterHiRes() * 0.001;   // QueryPerformanceCounter on Windows
+}
+
+void AudioEngine::inputAboutToStart (juce::AudioIODevice* device)
+{
+    const double sr  = device->getCurrentSampleRate();
+    const int    bs  = juce::jmax (1, device->getCurrentBufferSizeSamples());
+    const int    ins = juce::jlimit (1, 2, device->getActiveInputChannels().countNumberOfSetBits());
+
+    // Prepare everything here (message thread, before the first callback) - never on the
+    // audio thread.
+    graph.setPlayConfigDetails (ins, 2, sr, bs);
+    graph.prepareToPlay (sr, bs);
+    workBuffer.setSize (2, bs, false, true, false);
+    midiBuffer.ensureSize (2048);
+    playHead.sampleRate.store (sr);
+    bridge.setInputRate (sr);
+    inputRateNow.store (sr);
+    inputBlockNow.store (bs);
+    dspPeakWindow = dspSumWindow = 0.0;
+    dspCountWindow = 0;
+    rebuildGraph();   // IO node channel count may have changed (mono <-> stereo microphone)
+    inputRunningFlag.store (true);
+
+    juce::Logger::writeToLog ("Input start: " + describe (device) + " | channels " + juce::String (ins)
+                              + " of [" + device->getInputChannelNames().joinIntoString (", ") + "]");
+}
+
+void AudioEngine::inputStopped()
+{
+    inputRunningFlag.store (false);
+    graph.releaseResources();
+}
+
+void AudioEngine::outputAboutToStart (juce::AudioIODevice* device)
+{
+    const double sr = device->getCurrentSampleRate();
+    bridge.setOutputRate (sr);
+    bridge.setConsumerActive (true);
+    outputRateNow.store (sr);
+    outputBlockNow.store (device->getCurrentBufferSizeSamples());
+    outputRunningFlag.store (true);
+    juce::Logger::writeToLog ("Output start: " + describe (device) + " | channels "
+                              + juce::String (device->getActiveOutputChannels().countNumberOfSetBits()));
+}
+
+void AudioEngine::outputStopped()
+{
+    outputRunningFlag.store (false);
+    bridge.setConsumerActive (false);
+}
+
+void AudioEngine::processInput (const float* const* in, int numIn, int numSamples) noexcept
+{
+    rt::configureAudioThread();
+    const juce::ScopedNoDenormals noDenormals;   // plug-in tails decaying into denormals = CPU spikes
+    const auto startTicks = juce::Time::getHighResolutionTicks();
+
+    playHead.samples.fetch_add (numSamples, std::memory_order_relaxed);
+    inputBeats.fetch_add (1, std::memory_order_relaxed);
+
+    const int capacity = workBuffer.getNumSamples();
+    if (capacity <= 0 || workBuffer.getNumChannels() < 2)
+        return;
+
+    const bool mono = pluginChain != nullptr && pluginChain->isOutputMono();
+
+    for (int offset = 0; offset < numSamples; offset += capacity)
+    {
+        const int len = juce::jmin (capacity, numSamples - offset);
+        juce::AudioBuffer<float> block (workBuffer.getArrayOfWritePointers(), 2, len);
+
+        for (int ch = 0; ch < 2; ++ch)
+        {
+            if (ch < numIn && in[ch] != nullptr)
+                juce::FloatVectorOperations::copy (block.getWritePointer (ch), in[ch] + offset, len);
+            else
+                juce::FloatVectorOperations::clear (block.getWritePointer (ch), len);
+        }
+
+        {
+            const juce::AudioBuffer<float> inView (workBuffer.getArrayOfWritePointers(), juce::jlimit (1, 2, numIn), len);
+            inputMeter.process (inView);
+        }
+
+        midiBuffer.clear();
+        {
+            // Never block the audio thread: if the message thread holds the graph lock right
+            // now (rare: suspend/prepare), output one silent block instead of waiting.
+            const juce::ScopedTryLock sl (graph.getCallbackLock());
+            if (sl.isLocked() && ! graph.isSuspended())
+                graph.processBlock (block, midiBuffer);
+            else
+                block.clear();
+        }
+
+        if (mono)   // chain ends mono: the voice belongs on both cable channels
+            juce::FloatVectorOperations::copy (block.getWritePointer (1), block.getReadPointer (0), len);
+
+        outputMeter.process (block);
+
+        const float* chans[] = { block.getReadPointer (0), block.getReadPointer (1) };
+        bridge.push (chans, 2, len, nowSeconds());
+    }
+
+    // DSP load = processing time / real time of the block.
+    const double sr = juce::jmax (1.0, inputRateNow.load (std::memory_order_relaxed));
+    const double used = juce::Time::highResolutionTicksToSeconds (juce::Time::getHighResolutionTicks() - startTicks);
+    const double load = used / ((double) numSamples / sr);
+
+    if (load > 1.0) overloads.fetch_add (1, std::memory_order_relaxed);
+    dspPeakWindow = juce::jmax (dspPeakWindow, load);
+    dspSumWindow += load;
+
+    if (++dspCountWindow >= juce::jmax (1, (int) (sr / juce::jmax (1, numSamples))))   // ~1 s
+    {
+        dspPeakPublished.store (dspPeakWindow, std::memory_order_relaxed);
+        dspAvgPublished.store (dspSumWindow / dspCountWindow, std::memory_order_relaxed);
+        dspPeakWindow = dspSumWindow = 0.0;
+        dspCountWindow = 0;
+    }
+}
+
+void AudioEngine::processOutput (float* const* out, int numOut, int numSamples) noexcept
+{
+    rt::configureAudioThread();
+    const juce::ScopedNoDenormals noDenormals;
+    outputBeats.fetch_add (1, std::memory_order_relaxed);
+    bridge.pull (out, numOut, numSamples, nowSeconds());
+}
+
+//==============================================================================
+AudioEngine::Diagnostics AudioEngine::getDiagnostics()
+{
+    Diagnostics d;
+    auto* in  = inputDevices.getCurrentAudioDevice();
+    auto* out = outputDevices.getCurrentAudioDevice();
+
+    d.inputRunning   = in != nullptr && in->isPlaying() && inputRunningFlag.load();
+    d.outputRunning  = out != nullptr && out->isPlaying() && outputRunningFlag.load();
+    d.outputSelected = outputDevices.getAudioDeviceSetup().outputDeviceName.isNotEmpty();
+    d.inputRate      = inputRateNow.load();
+    d.outputRate     = outputRateNow.load();
+    d.inputBlock     = inputBlockNow.load();
+    d.outputBlock    = outputBlockNow.load();
+    d.dspLoadPercent = 100.0 * dspAvgPublished.load();
+    d.dspPeakPercent = 100.0 * dspPeakPublished.load();
+    d.overloads      = overloads.load();
+    d.inputDeviceXruns = in != nullptr ? juce::jmax (0, in->getXRunCount()) : 0;
+    d.watchdogRestarts = watchdogRestarts.load();
+    d.bridge = bridge.getStats();
+
+    if (in != nullptr && d.inputRate > 0.0)
+    {
+        double ms = 1000.0 * (in->getInputLatencyInSamples() + graph.getLatencySamples()
+                              + bridge.getResamplerDelayFrames()) / d.inputRate;
+        if (d.outputSelected && out != nullptr && d.outputRate > 0.0)
+            ms += d.bridge.bufferedMs + 1000.0 * out->getOutputLatencyInSamples() / d.outputRate;
+        d.latencyMs = ms;
+    }
+    return d;
+}
+
+void AudioEngine::timerCallback()
+{
+    // --- watchdog: an open device that delivered no callback for 3 s gets reopened ---------
+    auto check = [] (juce::AudioDeviceManager& dm, uint64_t beats, uint64_t& last, int& stalled)
+    {
+        auto* d = dm.getCurrentAudioDevice();
+        if (d != nullptr && d->isOpen() && beats == last) ++stalled; else stalled = 0;
+        last = beats;
+    };
+    check (inputDevices,  inputBeats.load(),  lastInputBeats,  inputStallSeconds);
+    const bool outputSelected = outputDevices.getAudioDeviceSetup().outputDeviceName.isNotEmpty();
+    if (outputSelected) check (outputDevices, outputBeats.load(), lastOutputBeats, outputStallSeconds);
+    else                outputStallSeconds = 0;
+
+    const auto nowMs = juce::Time::getMillisecondCounter();
+    const auto backoffMs = (juce::uint32) juce::jmin<int64_t> (60000, (int64_t) 10000 << juce::jmin<uint64_t> (3, watchdogRestarts.load()));
+
+    auto restart = [&] (MicVSTDeviceManager& dm, const char* which)
+    {
+        juce::Logger::writeToLog (juce::String ("Watchdog: ") + which + " device delivered no audio for 3 s - reopening it");
+        const auto setup = dm.getAudioDeviceSetup();
+        dm.closeAudioDevice();
+        dm.setAudioDeviceSetup (setup, true);
+        watchdogRestarts.fetch_add (1);
+        lastRestartMs = nowMs;
+    };
+
+    if (nowMs - lastRestartMs > backoffMs)
+    {
+        if (inputStallSeconds >= 3)       { restart (inputDevices, "input");   inputStallSeconds = 0; }
+        else if (outputStallSeconds >= 3) { restart (outputDevices, "output"); outputStallSeconds = 0; }
+    }
+
+    // --- log realtime events once (from the message thread, never from the audio threads) --
+    const auto st = bridge.getStats();
+    if (st.underruns != lastLoggedStats.underruns)
+        juce::Logger::writeToLog ("Bridge: output ran dry " + juce::String ((int) (st.underruns - lastLoggedStats.underruns))
+                                  + "x (faded gap). Safety buffer now " + juce::String (st.safetyMs, 0) + " ms");
+    if (st.droppedBlocks != lastLoggedStats.droppedBlocks)
+        juce::Logger::writeToLog ("Bridge: " + juce::String ((int) (st.droppedBlocks - lastLoggedStats.droppedBlocks))
+                                  + " input block(s) dropped (output stalled)");
+    if (st.resyncs != lastLoggedStats.resyncs)
+        juce::Logger::writeToLog ("Bridge: latency trimmed back to target (" + juce::String ((int) st.resyncs) + " total)");
+    const auto ov = overloads.load();
+    if (ov != lastLoggedOverloads)
+        juce::Logger::writeToLog ("DSP: " + juce::String ((int) (ov - lastLoggedOverloads))
+                                  + " block(s) took longer than real time (peak load "
+                                  + juce::String (100.0 * dspPeakPublished.load(), 0) + " %)");
+    lastLoggedStats = st;
+    lastLoggedOverloads = ov;
+}
+
+//==============================================================================
 juce::File AudioEngine::pluginCacheFile()
 {
     return juce::File::getSpecialLocation (juce::File::userApplicationDataDirectory)
@@ -281,15 +543,15 @@ void AudioEngine::removePluginFolder (const juce::String& folder)
     startBackgroundScan();
 }
 
+//==============================================================================
 MicVSTState AudioEngine::captureState()
 {
     MicVSTState s;
-    juce::AudioDeviceManager::AudioDeviceSetup setup;
-    deviceManager.getAudioDeviceSetup (setup);
-    s.inputDevice  = setup.inputDeviceName;
-    s.outputDevice = setup.outputDeviceName;
-    s.sampleRate   = setup.sampleRate;
-    s.bufferSize   = preferredBufferSize;
+    s.inputDevice   = inputDevices.getAudioDeviceSetup().inputDeviceName;
+    s.outputDevice  = outputDevices.getAudioDeviceSetup().outputDeviceName;
+    s.sampleRate    = preferredInputRate;
+    s.bufferSize    = preferredBufferSize;
+    s.safetyBufferMs = safetyBufferMs;
     s.pluginFolders = pluginFolders;
 
     // Ketten-Restore steht noch aus -> gemerkten Zustand verbatim zurückgeben,
@@ -302,12 +564,14 @@ MicVSTState AudioEngine::captureState()
         PluginEntryState p;
         p.fileOrId = e.fileOrId;
         p.bypassed = e.bypassed;
+        // Bewusst OHNE Callback-Lock (1.1.1 hielt ihn): der Graph nimmt in jedem Block den
+        // Callback-Lock jedes Plugins. Solange ein Plugin hier seinen Zustand serialisierte,
+        // stand der Audio-Thread still - und unter Last kann der (normal priorisierte)
+        // Message-Thread mitten darin verdrängt werden (Prioritätsinversion -> Aussetzer).
+        // VST3 definiert getState() als Message-Thread-Aufruf, der auch während process()
+        // erlaubt ist; JUCEs eigener AudioPluginHost speichert genauso.
         if (auto* node = graph.getNodeForId (e.node))
-        {
-            auto* proc = node->getProcessor();
-            const juce::ScopedLock sl (proc->getCallbackLock());   // gegen Race mit processBlock
-            proc->getStateInformation (p.state);
-        }
+            node->getProcessor()->getStateInformation (p.state);
         s.plugins.add (p);
     }
     return s;
@@ -316,6 +580,8 @@ MicVSTState AudioEngine::captureState()
 void AudioEngine::applyState (const MicVSTState& s)
 {
     setPreferredBufferSize (s.bufferSize);
+    if (s.sampleRate > 0.0) preferredInputRate = s.sampleRate;
+    setSafetyBufferMs (s.safetyBufferMs);
     initialise (s.inputDevice, s.outputDevice);
 
     // Kette nur wiederherstellen, wenn alle Nicht-Builtin-Plugins im Cache auflösbar sind.
@@ -334,8 +600,8 @@ void AudioEngine::applyState (const MicVSTState& s)
 
 void AudioEngine::restoreChain (const juce::Array<PluginEntryState>& plugins)
 {
-    double sr = deviceManager.getCurrentAudioDevice() != nullptr
-              ? deviceManager.getCurrentAudioDevice()->getCurrentSampleRate() : 48000.0;
+    const double sr = getProcessingSampleRate();
+    const int    bs = getProcessingBlockSize();
 
     for (auto& p : plugins)
     {
@@ -350,7 +616,7 @@ void AudioEngine::restoreChain (const juce::Array<PluginEntryState>& plugins)
         auto type = knownPlugins.getTypeForFile (p.fileOrId);
         if (type == nullptr) { juce::Logger::writeToLog ("Plugin fehlt: " + p.fileOrId); continue; }
         juce::String err;
-        if (pluginChain->addPlugin (formatManager, *type, sr, 128, err))
+        if (pluginChain->addPlugin (formatManager, *type, sr, bs, err))
         {
             const int idx = (int) pluginChain->entries().size() - 1;
             if (auto* node = graph.getNodeForId (pluginChain->entries()[(size_t) idx].node))
@@ -360,49 +626,4 @@ void AudioEngine::restoreChain (const juce::Array<PluginEntryState>& plugins)
         else juce::Logger::writeToLog ("Plugin-Load: " + err);
     }
     rebuildGraph();
-}
-
-void AudioEngine::audioDeviceAboutToStart (juce::AudioIODevice* device)
-{
-    // Geöffnete Geräte-/Kanalkonfiguration ins Log (hilft beim Diagnostizieren von Audio-Problemen).
-    juce::Logger::writeToLog ("Device start: '" + device->getName() + "'"
-        + " | inCh aktiv=" + juce::String (device->getActiveInputChannels().countNumberOfSetBits())
-        + " von [" + device->getInputChannelNames().joinIntoString (", ") + "]"
-        + " | outCh aktiv=" + juce::String (device->getActiveOutputChannels().countNumberOfSetBits())
-        + " | sr=" + juce::String (device->getCurrentSampleRate(), 0)
-        + " | buf=" + juce::String (device->getCurrentBufferSizeSamples()));
-    player.audioDeviceAboutToStart (device);
-}
-
-void AudioEngine::audioDeviceStopped()
-{
-    player.audioDeviceStopped();
-}
-
-void AudioEngine::audioDeviceIOCallbackWithContext (const float* const* inputChannelData,
-                                                    int numInputChannels,
-                                                    float* const* outputChannelData,
-                                                    int numOutputChannels,
-                                                    int numSamples,
-                                                    const juce::AudioIODeviceCallbackContext& context)
-{
-    playHead.samples.fetch_add (numSamples, std::memory_order_relaxed);   // Transport voranschieben
-
-    if (numInputChannels > 0)
-    {
-        juce::AudioBuffer<float> inView (const_cast<float* const*> (inputChannelData),
-                                         numInputChannels, numSamples);
-        inputMeter.process (inView);
-    }
-
-    // Graph verarbeiten (Input -> Kette -> Output).
-    player.audioDeviceIOCallbackWithContext (inputChannelData, numInputChannels,
-                                             outputChannelData, numOutputChannels,
-                                             numSamples, context);
-
-    if (numOutputChannels > 0)
-    {
-        juce::AudioBuffer<float> outView (outputChannelData, numOutputChannels, numSamples);
-        outputMeter.process (outView);
-    }
 }

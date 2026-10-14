@@ -1,5 +1,6 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "audio/AudioEngine.h"
+#include "audio/RealtimeSupport.h"
 #include "state/Persistence.h"
 #include "state/AutostartRegistry.h"
 #include "ui/MainComponent.h"
@@ -57,6 +58,9 @@ public:
         // eine kaputte Plugin-DLL soll still als Fehler enden, nicht als Modal-Dialog.
         SetErrorMode (kSemFailCriticalErrors | kSemNoGpFaultErrorBox | kSemNoOpenFileErrorBox);
        #endif
+        // Scans laufen parallel zum Audio: niedrige Priorität + EcoQoS, damit ein schwerer
+        // Plugin-Scan nie mit den Audio-Threads um CPU konkurriert.
+        rt::configureBackgroundProcess();
 
         auto args = juce::JUCEApplicationBase::getCommandLineParameterArray();
         juce::String pluginPath, outPath;
@@ -104,6 +108,13 @@ public:
         juce::Logger::writeToLog ("MicVST " + getApplicationVersion() + " (" + juce::SystemStats::getJUCEVersion()
                                   + ", no network access)");
 
+        // Echtzeit-Prozess: Windows darf den (oft nur im Tray laufenden) Audio-Prozess nicht als
+        // Hintergrundarbeit drosseln (EcoQoS / Timer-Drosselung), Priorität "über normal".
+        const auto rtSetup = rt::configureRealtimeProcess();
+        juce::Logger::writeToLog (juce::String ("Process: priority above normal ") + (rtSetup.priorityRaised ? "ok" : "FAILED")
+                                  + ", power throttling off " + (rtSetup.executionThrottlingOff ? "ok" : "n/a")
+                                  + ", timer throttling off " + (rtSetup.timerThrottlingOff ? "ok" : "n/a"));
+
         const bool silent = commandLine.contains ("--tray");
 
         engine = std::make_unique<AudioEngine>();
@@ -128,7 +139,7 @@ public:
                 : "Host output (cable) = " + state.outputDevice);
 
             // Input: System-Standardmikrofon, sonst erstes verfügbares Eingangsgerät.
-            auto& dm = engine->getDeviceManager();
+            auto& dm = engine->getInputDeviceManager();
             dm.setCurrentAudioDeviceType (dm.preferredTypeName(), true);
             if (auto* type = dm.getCurrentDeviceTypeObject())
             {
@@ -251,14 +262,14 @@ private:
             content = new MainComponent (engine);
             setContentOwned (content, false);
             setResizable (true, false);
-            // Mindestgröße = Startgröße (600x480); zusätzliche Höhe verlängert die Plugin-Liste.
-            setResizeLimits (600, 480, 1600, 1400);
+            // Mindestgröße = Startgröße (600x560); zusätzliche Höhe verlängert die Plugin-Liste.
+            setResizeLimits (600, 560, 1600, 1400);
             // Letzte Größe/Position wiederherstellen (innerhalb der Resize-Limits), sonst zentriert
             // auf Startgröße. restoreWindowStateFromString respektiert die gesetzten Limits.
             if (windowState.isNotEmpty())
                 restoreWindowStateFromString (windowState);
             else
-                centreWithSize (600, 480);
+                centreWithSize (600, 560);
         }
         std::function<void()> onHide;
         void closeButtonPressed() override { setVisible (false); if (onHide) onHide(); }

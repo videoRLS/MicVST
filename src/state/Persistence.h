@@ -14,6 +14,7 @@ struct MicVSTState
     juce::String inputDevice, outputDevice;
     double sampleRate = 48000.0;
     int    bufferSize = 0;   // Buffer-Wunsch in Samples; 0 = Auto (Geräte-Default)
+    int    safetyBufferMs = 0;   // Sicherheitspuffer Mikro -> Kabel in ms; 0 = Auto (adaptiv)
     juce::Array<PluginEntryState> plugins;
     juce::StringArray pluginFolders;   // zusätzliche VST3-Suchordner
     juce::String windowState;          // DocumentWindow::getWindowStateAsString() (Größe/Position)
