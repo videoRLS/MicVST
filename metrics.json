@@ -1,0 +1,10 @@
+{
+  "configure_seconds": 116.0,
+  "build_seconds": 517.6,
+  "build_ok": true,
+  "warnings_micvst": 0,
+  "warnings_juce": 0,
+  "errors": 0,
+  "exe_bytes": 11490304,
+  "exe_sha256": "1AC4570F0B887BD76D643ABB6BBA2B816DF8EB35A9B71AEF8ABDCCF2DF2EA08F"
+}
