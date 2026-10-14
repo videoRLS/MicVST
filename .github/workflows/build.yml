@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Kein Generator gepinnt: windows-latest wechselt die VS-Version (aktuell VS2026);
       # CMake nimmt automatisch das installierte Visual Studio des Runner-Images.
@@ -24,7 +24,7 @@ jobs:
         run: ./build/MicVSTTests_artefacts/Release/MicVSTTests.exe
 
       - name: Upload exe
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: MicVST
           path: build/MicVST_artefacts/Release/MicVST.exe

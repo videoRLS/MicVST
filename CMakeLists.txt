@@ -13,11 +13,15 @@ if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
+# JUCE 9.0.4 (12.10.2026, aktuelle stabile Version): u. a. Fix für ein WASAPI-Start/Stop-Race
+# (Callback konnte nach stop() noch laufen), VST3-Hosting-Fixes, Härtung gegen fehlerhafte
+# String-Eingaben. Das mitgelieferte VST3 SDK ist 3.8.0 - warum es nicht gegen 3.8.1 getauscht
+# wird, steht in docs/RAPOR.md.
 include(FetchContent)
 FetchContent_Declare(
     JUCE
     GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
-    GIT_TAG        8.0.13
+    GIT_TAG        9.0.4
     GIT_SHALLOW    TRUE
 )
 FetchContent_MakeAvailable(JUCE)
