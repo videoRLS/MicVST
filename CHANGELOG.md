@@ -4,6 +4,46 @@ All notable changes to MicVST are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project follows [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] - Unreleased
+
+Focus: no more crackles under heavy load, and a fully offline app.
+
+### Changed
+- New audio engine: microphone and cable run on two separate realtime threads (input-only and
+  output-only WASAPI devices) instead of one shared device. Between them a lock-free safety buffer
+  with a high-quality resampler absorbs processing spikes and continuously compensates the clock
+  drift of the two devices. 1.1.1 filled every input shortfall with silence and never compensated
+  drift, which produced periodic clicks and crackles under load.
+- New "Safety" row: "Auto (recommended)" starts at 10 ms and adds 5 ms whenever the output runs
+  dry (max. 80 ms); fixed values 5-80 ms are available. Costs roughly 10-20 ms of latency in Auto.
+- Realtime priority: the audio threads use MMCSS "Pro Audio" priority HIGH (was NORMAL) and opt
+  out of Windows power throttling; the process runs "above normal" and opts out of EcoQoS/timer
+  throttling. Plugin scan processes run "below normal" with EcoQoS.
+- JUCE 8.0.13 -> 9.0.4 (WASAPI start/stop race fix, VST3 hosting fixes) plus a small patch for
+  JUCE's WASAPI backend (input-only devices drain a backlog immediately and survive timeouts, no
+  busy spinning while a session restarts).
+- Second status line: CPU load of the plugin chain, safety buffer, clock drift and a dropout
+  counter (orange with a cause breakdown in the tooltip).
+
+### Removed
+- All network code: the opt-in update check (WinINet request to GitHub), the consent dialog, the
+  update tray bubble and all clickable web links. Old config files load fine; the update keys are
+  ignored. `tools/firewall-block.ps1` optionally blocks the whole process (incl. plugins) in the
+  Windows Firewall.
+
+### Fixed
+- Saving the state held every plugin's audio lock while the plugin serialised itself - the audio
+  thread could stall behind the UI thread (priority inversion).
+- No denormal protection on the audio thread (decaying plugin tails could cause CPU spikes).
+- Changing the chain rebuilt the audio graph once per connection; the audio thread could hit
+  intermediate states without connections (short silence/clicks). Now one rebuild per change.
+- Bypassed plugins were still processed every block (CPU); they are now suspended and start with
+  a clean state when switched back on.
+- A chain that ends mono was sent to the left cable channel only.
+- Microphone and cable at different sample rates (e.g. 44.1 kHz mic, 48 kHz cable) now work.
+- Plugin editor changes are saved when the editor closes; the autostart toggle no longer reads
+  the registry 30 times per second.
+
 ## [1.1.1] - 2026-07-27
 
 ### Added
