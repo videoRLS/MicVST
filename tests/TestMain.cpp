@@ -1,5 +1,6 @@
 #include <juce_core/juce_core.h>
 #include "audio/Metering.h"
+#include <cstdio>
 
 // Smoke-Test: beweist, dass der UnitTestRunner läuft.
 struct SmokeTest : juce::UnitTest
@@ -163,8 +164,22 @@ struct PersistenceTest : juce::UnitTest
 };
 static PersistenceTest persistenceTest;
 
+// Ohne gesetzten Logger schreibt juce::Logger unter Windows nur nach OutputDebugString - in der
+// CI-Konsole wären Testnamen und Messwerte unsichtbar. Daher explizit auf stdout.
+struct StdoutLogger : juce::Logger
+{
+    void logMessage (const juce::String& message) override
+    {
+        std::fputs ((message + "\n").toRawUTF8(), stdout);
+        std::fflush (stdout);
+    }
+};
+
 int main (int, char**)
 {
+    StdoutLogger logger;
+    juce::Logger::setCurrentLogger (&logger);
+
     juce::UnitTestRunner runner;
     runner.setAssertOnFailure (false);
     runner.runAllTests();
@@ -174,10 +189,10 @@ int main (int, char**)
         failures += runner.getResult (i)->failures;
 
     if (failures > 0)
-    {
         juce::Logger::writeToLog ("TESTS FAILED: " + juce::String (failures));
-        return 1;
-    }
-    juce::Logger::writeToLog ("All tests completed successfully");
-    return 0;
+    else
+        juce::Logger::writeToLog ("All tests completed successfully");
+
+    juce::Logger::setCurrentLogger (nullptr);
+    return failures > 0 ? 1 : 0;
 }

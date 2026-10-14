@@ -8,6 +8,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # korrekt parsen und vermeidet C4819-Warnungen.
 if(MSVC)
     add_compile_options(/utf-8)
+    # Funktionsweise COMDATs (/Gy) + der Linker entfernt Unreferenziertes (/OPT:REF, /OPT:ICF).
+    # Nötig, weil JUCEs juce_recommended_config_flags "/Ox" setzen: das tritt im generierten
+    # Projekt an die Stelle von CMakes "/O2" - und /Ox enthält, anders als /O2, kein /Gy. Ohne /Gy
+    # blieb toter Code im exe, u. a. JUCEs komplette WinINet- (WebInputStream) und Winsock-
+    # Implementierung, die MicVST nie aufruft (siehe Kapalı-kutu-Prüfung, docs/RAPOR.md).
+    add_compile_options(/Gy)
+    add_link_options($<$<NOT:$<CONFIG:Debug>>:/OPT:REF> $<$<NOT:$<CONFIG:Debug>>:/OPT:ICF>)
     # Statische MSVC-Runtime -> voll-portable exe ohne VC++-Redistributable-Abhängigkeit.
     # Gilt auch für JUCE, weil vor FetchContent gesetzt (CMP0091/NEW ab CMake 3.15).
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")

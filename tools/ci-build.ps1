@@ -9,8 +9,19 @@ param(
 $ErrorActionPreference = "Stop"
 New-Item -ItemType Directory -Force $Out | Out-Null
 
-$cfg = Measure-Command { cmake -S $Source -B $Build -A x64 2>&1 | Tee-Object -FilePath "$Out/configure.log" | Out-Host }
+# FETCHCONTENT_QUIET=OFF: the JUCE download/patch output (cmake/PatchJuce.cmake) lands in configure.log.
+$cfg = Measure-Command { cmake -S $Source -B $Build -A x64 -DFETCHCONTENT_QUIET=OFF 2>&1 | Tee-Object -FilePath "$Out/configure.log" | Out-Host }
 if ($LASTEXITCODE -ne 0) { throw "configure failed" }
+
+# Which JUCE was fetched, and does its WASAPI backend carry the MicVST realtime patch?
+$juceSrc = Join-Path $Build "_deps/juce-src"
+$juceVersion = ""
+if (Test-Path "$juceSrc/CMakeLists.txt") {
+    $mv = Select-String -Path "$juceSrc/CMakeLists.txt" -Pattern "project\(JUCE VERSION ([0-9.]+)" | Select-Object -First 1
+    if ($mv) { $juceVersion = $mv.Matches[0].Groups[1].Value }
+}
+$wasapi = "$juceSrc/modules/juce_audio_devices/native/juce_WASAPI_windows.cpp"
+$patchMarkers = if (Test-Path $wasapi) { @(Select-String -Path $wasapi -Pattern "MicVST patch").Count } else { -1 }
 
 $targetArgs = @()
 foreach ($t in $Targets.Split(" ", [StringSplitOptions]::RemoveEmptyEntries)) { $targetArgs += @("--target", $t) }
@@ -28,6 +39,8 @@ $errors | Set-Content -Encoding utf8 "$Out/errors.txt"
 
 $exe = Join-Path $Build "MicVST_artefacts/Release/MicVST.exe"
 $m = [ordered]@{
+    juce_version      = $juceVersion
+    juce_patch_markers = $patchMarkers
     configure_seconds = [math]::Round($cfg.TotalSeconds, 1)
     build_seconds     = [math]::Round($bld.TotalSeconds, 1)
     build_ok          = $buildOk
