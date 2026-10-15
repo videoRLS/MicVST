@@ -48,6 +48,7 @@ namespace
    #endif
 
     void pr (const juce::String& s) { std::printf ("%s\n", s.toRawUTF8()); std::fflush (stdout); }
+    bool envSet (const char* name) { return juce::SystemStats::getEnvironmentVariable (name, {}).isNotEmpty(); }
 
     double threadCpuMs()
     {
@@ -203,7 +204,7 @@ namespace
     void raiseEngineThreads()
     {
        #if ! JUCE_WINDOWS
-        if (std::getenv ("ETEST_NO_RT") != nullptr) return;   // sanitizer runs (see VirtualDevices.h)
+        if (envSet ("ETEST_NO_RT")) return;   // sanitizer runs (see VirtualDevices.h)
         if (DIR* d = opendir ("/proc/self/task"))
         {
             while (auto* e = readdir (d))
@@ -223,15 +224,15 @@ namespace
 
     juce::File outDir()
     {
-        const auto* env = std::getenv ("MICVST_TEST_OUT");
-        auto d = env != nullptr ? juce::File (juce::String (env)) : juce::File::getCurrentWorkingDirectory().getChildFile ("engine-test");
+        const auto env = juce::SystemStats::getEnvironmentVariable ("MICVST_TEST_OUT", {});
+        auto d = env.isNotEmpty() ? juce::File (env) : juce::File::getCurrentWorkingDirectory().getChildFile ("engine-test");
         d.createDirectory();
         return d;
     }
 
     juce::String vst3Bundle()
     {
-        if (const auto* env = std::getenv ("MICVST_TEST_VST3")) return juce::String (env);
+        if (const auto env = juce::SystemStats::getEnvironmentVariable ("MICVST_TEST_VST3", {}); env.isNotEmpty()) return env;
        #if JUCE_WINDOWS
         return "C:\\Program Files\\Common Files\\VST3\\lsp-plugins.vst3";
        #else
@@ -1174,7 +1175,7 @@ int main (int argc, char** argv)
     {
         void logMessage (const juce::String& m) override
         {
-            if (std::getenv ("ETEST_LOG") != nullptr) std::printf ("  [log] %s\n", m.toRawUTF8());
+            if (envSet ("ETEST_LOG")) std::printf ("  [log] %s\n", m.toRawUTF8());
         }
     } logger;
     juce::Logger::setCurrentLogger (&logger);
@@ -1265,7 +1266,7 @@ int main (int argc, char** argv)
             during (run);
             rtprobe::disarm();
             report (what);
-            if (std::getenv ("PROBE_STACKS") != nullptr) rtprobe::printSamples (2);
+            if (envSet ("PROBE_STACKS")) rtprobe::printSamples (2);
         };
         scenario ("empty chain", [] (EngineRun&) {}, [] (EngineRun&) { pump (20.0); });
         scenario ("gain + delay 240 + load 30 %", [] (EngineRun& r) { r.add (testDesc ("TestGain", 0.5)); r.add (testDesc ("TestDelay", 240)); r.add (testDesc ("TestLoad", 0.3)); },

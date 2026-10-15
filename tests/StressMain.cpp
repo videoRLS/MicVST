@@ -717,7 +717,7 @@ namespace
         double hourStart = 0.0;
         int hourIndex = 0;
 
-        auto near = [] (const std::vector<int64_t>& v, int64_t at, int64_t before, int64_t after)
+        auto nearAny = [] (const std::vector<int64_t>& v, int64_t at, int64_t before, int64_t after)   // ("near" is a macro in windows.h)
         {
             for (auto it = v.rbegin(); it != v.rend() && *it > at - before - 200000; ++it)
                 if (at >= *it - before && at <= *it + after) return true;
@@ -737,7 +737,7 @@ namespace
             trim (inevitable); trim (atMicVST);
         };
 
-        const bool trace = std::getenv ("MICVST_DAY_TRACE") != nullptr;   // one line per simulated minute (diagnosis)
+        const bool trace = juce::SystemStats::getEnvironmentVariable ("MICVST_DAY_TRACE", {}).isNotEmpty();   // one line per simulated minute (diagnosis)
         double nextTrace = 0.0;
         Push nextPush;
         mic.next (nextPush, inBuf.data());
@@ -784,8 +784,8 @@ namespace
                 {
                     if (recorded - lastClick > (int64_t) (0.01 * rate))
                     {
-                        if (near (inevitable, recorded, 2400, 24000)) ++h.clkInev;
-                        else if (near (atMicVST, recorded, 2400, 24000)) ++h.clkMic;
+                        if (nearAny (inevitable, recorded, 2400, 24000)) ++h.clkInev;
+                        else if (nearAny (atMicVST, recorded, 2400, 24000)) ++h.clkMic;
                         else ++h.clkOther;
                     }
                     lastClick = recorded;
