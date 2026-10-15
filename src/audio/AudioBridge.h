@@ -85,6 +85,7 @@ private:
     std::array<std::vector<float>, maxChannels> ring;
     std::atomic<int64_t> writeIndex { 0 };     // producer-owned
     std::atomic<int64_t> releaseIndex { 0 };   // consumer-owned: frames before this may be overwritten
+    std::atomic<int64_t> discontinuityIndex { -1 };   // producer: last input drop (audio jumps here)
 
     // Last push (frames written + timestamp), published with a seqlock so the consumer always
     // reads a consistent pair.

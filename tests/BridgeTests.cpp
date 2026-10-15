@@ -194,6 +194,39 @@ struct BridgeStreamTest : juce::UnitTest
             expect (r.outputRunningAtEnd);
         }
 
+        beginTest ("output stalls longer than the ring right after an underrun: recovers, no deadlock");
+        {
+            // Producer stall -> underrun (priming); the output thread then freezes for 2 s while the
+            // producer keeps pushing: the ring (1.36 s) would overflow during priming.
+            Scenario sc;
+            sc.seconds = 30.0;
+            sc.stalls = { { 10.0, 0.060 } };
+            sc.consumerStalls = { { 10.04, 2.0 } };
+            const auto r = runBridge (sc);
+            logMessage ("  " + r.describe());
+            expectGreaterOrEqual ((int) r.underruns, 1);
+            expectEquals ((int) r.clicksAfterStart, 0);   // silent while priming, fresh audio fades in
+            expect (r.outputRunningAtEnd, "audio flows again after the stall");
+            expect (r.finalMarginMs < 25.0, "latency back at the target");
+        }
+
+        beginTest ("output stalls longer than the ring while running: no click at the dropped input");
+        {
+            // The ring overflows and input blocks are dropped; afterwards the queued audio jumps at
+            // the drop point - that jump must not be heard. The device gap itself clicks at both
+            // edges (output froze mid-signal; on resume the device first plays the block it had
+            // taken before freezing): 2 + 2 samples, nothing else.
+            Scenario sc;
+            sc.seconds = 30.0;
+            sc.consumerStalls = { { 10.0, 2.0 } };
+            const auto r = runBridge (sc);
+            logMessage ("  " + r.describe());
+            expectGreaterThan ((int) r.droppedBlocks, 0);
+            expectLessOrEqual ((int) r.clicksAfterStart, 4);
+            expect (r.outputRunningAtEnd, "audio flows again after the stall");
+            expect (r.finalMarginMs < 25.0, "latency back at the target");
+        }
+
         beginTest ("consumer stall: queue overflow is trimmed back (resync), no underrun");
         {
             Scenario sc;

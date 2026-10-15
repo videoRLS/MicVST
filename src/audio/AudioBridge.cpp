@@ -215,6 +215,9 @@ void AudioBridge::push (const float* const* data, int numChannels, int numFrames
     if (numFrames > ringCapacity || w + numFrames - rel > ringCapacity)
     {
         droppedBlocks.fetch_add (1, std::memory_order_relaxed);   // consumer stalled / gone
+        // The queued audio now jumps at w (this block is lost): the consumer must not play
+        // across that point without a fade.
+        discontinuityIndex.store (w, std::memory_order_release);
         return;
     }
 
@@ -434,6 +437,25 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
         const double need0 = (double) (framesNeeded (0.0, step0, numFrames) + reserveFor (step0));
         const double target = need0 + safetyFrames + blockIn - extrap;
 
+        // While priming the output is silent and older audio is stale anyway: keep only what the
+        // start needs. Otherwise a long output stall during priming lets the ring fill up, the
+        // producer's pushes (and with them its timestamps) are dropped, "producer alive" turns
+        // false and priming would wait forever.
+        const auto keep = (int64_t) std::ceil (target + blockIn);
+        if (avail > keep)
+        {
+            readIndex = w - keep;
+            avail = keep;
+        }
+
+        // Input was dropped (ring overflow): only audio after the gap is usable.
+        const int64_t disc = discontinuityIndex.load (std::memory_order_acquire);
+        if (disc > readIndex)
+        {
+            readIndex = disc;
+            avail = w - disc;
+        }
+
         if (! producerAlive || (double) avail < target)
         {
             clearFrom (0);
@@ -460,6 +482,30 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
     //--------------------------------------------------------------------------- running
     double step = nominal * (1.0 + correction);
     int64_t need = framesNeeded (frac, step, numFrames) + reserveFor (step);
+
+    // Input blocks were dropped while the output stalled for longer than the ring lasts: the
+    // queued audio jumps at the drop point. Fade out now and re-prime from the audio after it
+    // (the stall itself was an audible gap anyway; this avoids a click on top of it).
+    if (discontinuityIndex.load (std::memory_order_acquire) > readIndex)
+    {
+        // (The device usually continues with the block it had already taken before freezing, so
+        // the stale audio is faded out rather than cut.)
+        const int k = avail < need ? 0 : juce::jmin (numFrames, fadeLen);
+        if (k > 0)
+        {
+            render (out, numCh, k, readIndex, frac, step);
+            applyFadeIn (k, fadeLen);
+            for (int c = 0; c < numCh; ++c)
+                if (out[c] != nullptr)
+                    for (int i = 0; i < k; ++i)
+                        out[c][i] *= 1.0f - (float) (i + 1) / (float) k;
+        }
+        clearFrom (k);
+        state = State::priming;
+        runningAtomic.store (false, std::memory_order_relaxed);
+        publishRelease();
+        return;
+    }
 
     if (avail < need)
     {
