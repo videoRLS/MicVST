@@ -1,0 +1,42 @@
+-- Building for: Visual Studio 18 2026
+-- The C compiler identification is MSVC 19.51.36260.0
+-- The CXX compiler identification is MSVC 19.51.36260.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: C:/Program Files/Microsoft Visual Studio/18/Enterprise/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: C:/Program Files/Microsoft Visual Studio/18/Enterprise/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Populating juce
+-- Configuring done (0.5s)
+-- Generating done (0.0s)
+-- Build files have been written to: D:/a/MicVST/MicVST/build-base/_deps/juce-subbuild
+MSBuild version 18.10.1-1.26427.6+3cd27c13e for .NET Framework
+
+  1>Checking Build System
+  1>Creating directories for 'juce-populate'
+  Performing download step (git clone) for 'juce-populate'
+  Cloning into 'juce-src'...
+  HEAD is now at 7c9d3783b JUCE version 8.0.13
+  Building Custom Rule D:/a/MicVST/MicVST/build-base/_deps/juce-subbuild/CMakeLists.txt
+  Performing update step for 'juce-populate'
+  -- Already at requested tag: 8.0.13
+  No patch step for 'juce-populate'
+  No configure step for 'juce-populate'
+  No build step for 'juce-populate'
+  No install step for 'juce-populate'
+  No test step for 'juce-populate'
+  Completed 'juce-populate'
+  Building Custom Rule D:/a/MicVST/MicVST/build-base/_deps/juce-subbuild/CMakeLists.txt
+-- Configuring juceaide
+-- Building juceaide
+-- Exporting juceaide
+-- Testing juceaide
+-- Finished setting up juceaide
+-- Configuring done (127.7s)
+-- Generating done (0.1s)
+-- Build files have been written to: D:/a/MicVST/MicVST/build-base
