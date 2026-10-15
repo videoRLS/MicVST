@@ -52,9 +52,13 @@ not be tested: [docs/TEST_RAPORU_1.2.1.md](docs/TEST_RAPORU_1.2.1.md) (Turkish).
 - A plugin that outputs NaN, infinite or absurd values (> +24 dBFS) no longer reaches the cable
   (or crashes the next plugin): the whole block is silenced and the sound fades in again (2 ms)
   once the plugin recovers; counted in the dropout tooltip and the log. A plugin that throws an
-  exception costs one silent block. The silenced block does not start with a jump to zero either:
-  the last good sample is ramped down over 2 ms (the engine test on Windows had counted 4 clicks
-  there).
+  exception costs one silent block. Neither starts or ends with a step: the output fades out from
+  the valid audio still buffered and, once valid audio returns, refills and fades in (about 50 ms
+  of faded silence for a single bad block; no underrun is counted and the safety buffer stays).
+  The engine test had found clicks at both ends of such a block.
+- A plugin that hangs for more than ~1.3 s: the microphone audio captured meanwhile is dropped
+  (the input queue is full); the audio after the drop used to follow the old audio without a
+  fade (a click). Now the queue never plays across that point and the output fades there.
 - Clicks when the chain is edited during playback (add, remove, move, bypass): the output fades
   out (5 ms), the graph switches while muted, then fades in. Measured on virtual devices: 1.2.0
   clicked on 11 of 13 edits, 1.2.1 on none.

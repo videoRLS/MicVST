@@ -344,7 +344,8 @@ namespace
 
     struct Discontinuities { int events = 0, samples = 0; };
 
-    Discontinuities clicks (const std::vector<float>& y, size_t from, size_t to, double amp, double cyclesPerSample, size_t spacing = 480)
+    Discontinuities clicks (const std::vector<float>& y, size_t from, size_t to, double amp, double cyclesPerSample, size_t spacing = 480,
+                            std::vector<size_t>* where = nullptr)
     {
         Discontinuities d;
         const double limit = 3.0 * amp * std::pow (twoPi * cyclesPerSample, 2.0) + 2.0e-4;
@@ -352,7 +353,7 @@ namespace
         for (size_t i = std::max<size_t> (from, 1); i + 1 < std::min (to, y.size()); ++i)
             if (std::abs ((double) y[i + 1] - 2.0 * y[i] + y[i - 1]) > limit)
             {
-                if (d.samples == 0 || i - last > spacing) ++d.events;
+                if (d.samples == 0 || i - last > spacing) { ++d.events; if (where != nullptr) where->push_back (i); }
                 last = i; ++d.samples;
             }
         return d;
@@ -892,8 +893,11 @@ namespace
             const std::lock_guard<std::mutex> g (lock);
             if (pending.size() + (size_t) n <= pending.capacity()) pending.insert (pending.end(), l, l + n);
         };
-        struct Mark { int64_t at; juce::String what; };
-        std::vector<Mark> marks;              // MicVST events and planned changes, cable timeline
+        // MicVST events and planned changes on the cable timeline. A counter seen changed at a poll
+        // changed somewhere since the previous poll: [from, at] (the main thread can be busy with the
+        // per-minute analysis for seconds - the event is then not pinned to the late poll's time).
+        struct Mark { int64_t at; juce::String what; int64_t from = -1; int64_t lo() const { return from >= 0 ? from : at; } };
+        std::vector<Mark> marks;
         int64_t analysed = 0;                 // cable samples analysed so far
         float p1 = 0, p2 = 0;                 // last two samples of the previous chunk
         bool audioStarted = false; int64_t skipUntil = 0;
@@ -920,11 +924,12 @@ namespace
                 if (at >= m - (int64_t) (0.06 * fs) && at <= m + (int64_t) (0.2 * fs)) return "mic packet lost (test machine)";
             }
             for (auto& mk : marks)
-                if (at >= mk.at - (int64_t) (0.4 * fs) && at <= mk.at + (int64_t) (0.4 * fs)) return mk.what;
+                if (at >= mk.lo() - (int64_t) (0.4 * fs) && at <= mk.at + (int64_t) (0.4 * fs)) return mk.what;
             return {};
         };
         // For an unexplained finding: what was nearest (to find causes the test does not record)
         std::vector<int64_t> deviceChanges;   // cable index after each planned device change
+        juce::String lastChangeKind = "none";
         auto context = [&] (int64_t at) -> juce::String
         {
             auto sec = [&] (int64_t d) { return juce::String ((double) d / fs, 3) + " s"; };
@@ -932,9 +937,18 @@ namespace
             int64_t lastDev = -1;
             for (auto d : deviceChanges) if (d <= at) lastDev = d;
             if (lastDev >= 0) r << "; " << sec (at - lastDev) << " after a device change";
+            r << "; last chain change: " << lastChangeKind;
             const Mark* best = nullptr;
-            for (auto& mk : marks) if (best == nullptr || std::abs (mk.at - at) < std::abs (best->at - at)) best = &mk;
-            if (best != nullptr) r << "; nearest event: " << best->what << " at " << sec (best->at - at);
+            auto dist = [at] (const Mark& mk) { return at < mk.lo() ? mk.lo() - at : (at > mk.at ? at - mk.at : (int64_t) 0); };
+            auto describeMark = [&] (const Mark& mk) { return mk.what + " at " + sec (mk.lo() - at) + (mk.from >= 0 ? " .. " + sec (mk.at - at) : juce::String()); };
+            juce::StringArray close;
+            for (auto& mk : marks)
+            {
+                if (best == nullptr || dist (mk) < dist (*best)) best = &mk;
+                if (dist (mk) <= (int64_t) (0.5 * fs)) close.add (describeMark (mk));
+            }
+            if (! close.isEmpty())   r << "; events within 0.5 s: " << close.joinIntoString (", ");
+            else if (best != nullptr) r << "; nearest event: " << describeMark (*best);
             int64_t g = INT64_MAX;
             for (int i = 0; i < rec.gapCount.load (std::memory_order_acquire); ++i)
                 if (std::abs (rec.gapEvents[(size_t) i].first - at) < std::abs (g)) g = rec.gapEvents[(size_t) i].first - at;
@@ -964,7 +978,7 @@ namespace
                 if (m >= a && m <= b) return true;
             }
             for (auto& mk : marks)
-                if (mk.at >= a && mk.at <= b) return true;
+                if (mk.at >= a && mk.lo() <= b) return true;
             return false;
         };
 
@@ -985,7 +999,12 @@ namespace
                             ++tot.clicks; ++minuteClicks;
                             const auto c = causeOf (at);
                             if (c.isEmpty()) { ++tot.clicksUnexplained; ++minuteClicksU; pr ("  unexplained click at " + juce::String ((double) at / fs, 3) + " s" + context (at)); }
-                            else ++causes["click: " + c];
+                            else
+                            {
+                                ++causes["click: " + c];
+                                if (c == "planned change")   // must be click-free (fades): show where exactly
+                                    pr ("  click at " + juce::String ((double) at / fs, 3) + " s near a planned change" + context (at));
+                            }
                         }
                         lastClick = at;
                     }
@@ -997,7 +1016,12 @@ namespace
                             ++tot.gaps; ++minuteGaps; tot.gapMs += 1000.0 * zeros / fs;
                             const auto c = causeOf (zeroStart);
                             if (c.isEmpty()) { ++tot.gapsUnexplained; ++minuteGapsU; pr ("  unexplained gap at " + juce::String ((double) zeroStart / fs, 3) + " s, " + juce::String (1000.0 * zeros / fs, 1) + " ms" + context (zeroStart)); }
-                            else ++causes["gap: " + c];
+                            else
+                            {
+                                ++causes["gap: " + c];
+                                if (c.contains ("silence") || c.contains ("graph busy") || c.contains ("restarted") || c.contains ("invalid"))
+                                    pr ("  gap at " + juce::String ((double) zeroStart / fs, 3) + " s, " + juce::String (1000.0 * zeros / fs, 1) + " ms: " + c + context (zeroStart));
+                            }
                         }
                         zeros = 0;
                     }
@@ -1022,6 +1046,7 @@ namespace
             const double changeEvery = juce::jmax (2.0, juce::SystemStats::getEnvironmentVariable ("ETEST_CHANGE_EVERY", "20").getDoubleValue());
             const double deviceEvery = juce::jmax (5.0, juce::SystemStats::getEnvironmentVariable ("ETEST_DEVICE_EVERY", "300").getDoubleValue());
             double lastCpu = processCpuSeconds(), lastT = start, nextMinute = start + 60.0, nextChange = start + changeEvery, nextDevice = start + deviceEvery;
+            double lastPoll = start;
             auto d0 = e.getDiagnostics();
             int change = 0;
             juce::String err;
@@ -1030,7 +1055,7 @@ namespace
                 pump (0.1);
                 const double t = juce::Time::getMillisecondCounterHiRes() * 0.001;
                 const auto d1 = e.getDiagnostics();
-                auto note = [&] (const char* kind, uint64_t a, uint64_t b) { if (b > a) marks.push_back ({ cableIndex (t), juce::String ("MicVST ") + kind }); };
+                auto note = [&] (const char* kind, uint64_t a, uint64_t b) { if (b > a) marks.push_back ({ cableIndex (t), juce::String ("MicVST ") + kind, cableIndex (lastPoll) }); };
                 note ("underrun", d0.bridge.underruns, d1.bridge.underruns);
                 note ("trim", d0.bridge.resyncs, d1.bridge.resyncs);
                 note ("ring drop", d0.bridge.droppedBlocks, d1.bridge.droppedBlocks);
@@ -1040,14 +1065,16 @@ namespace
                #endif
                 note ("device reopened by the watchdog", d0.watchdogRestarts, d1.watchdogRestarts);
                 note ("graph busy (silent block)", d0.graphBusyBlocks, d1.graphBusyBlocks);
-                if (d1.bridge.starts > d0.bridge.starts && d1.bridge.underruns == d0.bridge.underruns && d1.bridge.droppedBlocks == d0.bridge.droppedBlocks)
-                    marks.push_back ({ cableIndex (t), "MicVST bridge restarted (no underrun)" });
+                note ("chain added silence to a block", d0.chainSilentBlocks, d1.chainSilentBlocks);
                 note ("invalid plug-in output", d0.invalidBlocks, d1.invalidBlocks);
                 d0 = d1;
+                lastPoll = t;
 
                 if (chaos && t >= nextChange)
                 {
                     nextChange += changeEvery;
+                    static const char* const kinds[] = { "bypass on", "bypass off", "add plug-in", "move plug-in", "remove plug-in", "safety 40 ms / Auto" };
+                    lastChangeKind = kinds[change % 6];
                     marks.push_back ({ cableIndex (t), "planned change" });
                     switch (change++ % 6)
                     {
@@ -1059,16 +1086,17 @@ namespace
                         case 4: { const AudioEngine::ChainEdit ce (e); e.getChain().removePlugin (0); e.rebuildGraph(); } break;
                         case 5: e.setSafetyBufferMs ((change / 6) % 2 == 0 ? 40 : 0); break;   // fixed 40 ms <-> Auto
                     }
+                    marks.back().from = marks.back().at;   // the whole change: start .. end
                     marks.back().at = cableIndex (juce::Time::getMillisecondCounterHiRes() * 0.001);
                 }
                 if (chaos && t >= nextDevice)
                 {
                     nextDevice += deviceEvery;
-                    marks.push_back ({ cableIndex (t), "planned change" });
+                    const auto from = cableIndex (t);
                     static const int sizes[] = { 960, 256, 480 };
                     e.setDeviceConfig ("VMic", "VCable", 48000.0, sizes[(int) std::lround ((t - start) / deviceEvery) % 3]);
                     raiseEngineThreads();
-                    marks.push_back ({ cableIndex (juce::Time::getMillisecondCounterHiRes() * 0.001), "planned change" });
+                    marks.push_back ({ cableIndex (juce::Time::getMillisecondCounterHiRes() * 0.001), "planned change", from });
                     deviceChanges.push_back (marks.back().at);
                 }
 
@@ -1124,7 +1152,7 @@ namespace
                     pr ("| " + juce::String ((t - start) / 60.0, 1) + " | " + juce::String (rss, 1) + " | " + juce::String (100.0 * (cpu - lastCpu) / (t - lastT), 1)
                         + " | " + juce::String (minuteClicks) + " (" + juce::String (minuteClicksU) + ") | " + juce::String (minuteGaps) + " (" + juce::String (minuteGapsU)
                         + ") | " + (clean > 0 ? db (thd) + " / " + db (thdWorst) + " (" + juce::String (clean) + ")" : juce::String ("-"))
-                        + " | " + (clean > 0 ? juce::String (speedPp, 0) : juce::String ("-")) + " | " + (clean > 0 ? juce::String (level, 3) : juce::String ("-"))
+                        + " | " + (clean > 0 ? juce::String (juce::roundToInt (speedPp)) : juce::String ("-")) + " | " + (clean > 0 ? juce::String (level, 3) : juce::String ("-"))
                         + " | " + diagLine (e) + " |");
                     lastCpu = cpu; lastT = t;
                 }
@@ -1143,7 +1171,7 @@ namespace
             slope = (n * sxy - sx * sy) / std::max (1e-12, n * sxx - sx * sx);
         }
         pr ("recorded " + juce::String ((double) analysed / fs / 60.0, 1) + " min: clicks " + juce::String (tot.clicks) + " (unexplained " + juce::String (tot.clicksUnexplained)
-            + "), gaps " + juce::String (tot.gaps) + " (" + juce::String (tot.gapMs, 0) + " ms; unexplained " + juce::String (tot.gapsUnexplained) + "), worst THD+N in a 43 ms window of an event-free slice " + db (worstThd)
+            + "), gaps " + juce::String (tot.gaps) + " (" + juce::String (juce::roundToInt (tot.gapMs)) + " ms; unexplained " + juce::String (tot.gapsUnexplained) + "), worst THD+N in a 43 ms window of an event-free slice " + db (worstThd)
             + ", RSS " + (rssSeries.empty() ? juce::String ("?") : juce::String (rssSeries.front().second, 1) + " -> " + juce::String (rssSeries.back().second, 1)) + " MB (slope over the second half "
             + juce::String (slope, 2) + " MB/h)");
         for (auto& [k, v] : causes) pr ("  " + k + ": " + juce::String (v));
@@ -1267,7 +1295,14 @@ int main (int argc, char** argv)
     {
         void logMessage (const juce::String& m) override
         {
-            if (envSet ("ETEST_LOG")) std::printf ("  [log] %s\n", m.toRawUTF8());
+            // with the cable-timeline time when a recording runs (to line log lines up with findings)
+            const double t0 = vdev::recorder().outputStart.load();
+            if (envSet ("ETEST_LOG"))
+            {
+                if (t0 > 0.0) std::printf ("  [log %.3f s] %s\n", juce::Time::getMillisecondCounterHiRes() * 0.001 - t0, m.toRawUTF8());
+                else          std::printf ("  [log] %s\n", m.toRawUTF8());
+                std::fflush (stdout);
+            }
         }
     } logger;
     juce::Logger::setCurrentLogger (&logger);
@@ -1398,6 +1433,69 @@ int main (int argc, char** argv)
     }
    #endif
    #if MICVST_NEW_ENGINE
+    else if (mode == "msgblock")
+    {
+        // The message (UI) thread blocked for a while - with or without a device change just before
+        // (a plug-in editor or a slow system can do that). Every exact-zero run on the cable is listed
+        // with its time relative to the change and to the moment the thread was free again.
+        const bool withDevice = argc > 2 && juce::String (argv[2]).getIntValue() != 0;
+        const int blockMs = argc > 3 ? juce::String (argv[3]).getIntValue() : 3000;
+        const int rounds = argc > 4 ? juce::String (argv[4]).getIntValue() : 9;
+        auto& cfg = vdev::config();
+        sineConfig (997.0, 0.5, 48000);
+        const double fs = cfg.cableRate;
+        pr ("## Message thread blocked " + juce::String (blockMs) + " ms" + (withDevice ? " right after a device buffer change" : " (no device change)")
+            + ", " + juce::String (rounds) + " rounds; chain gain 0.5 + delay 240 smp + load 30 %, 997 Hz");
+        struct Ev { double change, changed, freed; };
+        std::vector<Ev> evs;
+        {
+            EngineRun run (480, rounds * (6.0 + blockMs / 1000.0) + 10.0);
+            auto& e = *run.engine;
+            run.add (testDesc ("TestGain", 0.5));
+            run.add (testDesc ("TestDelay", 240));
+            run.add (testDesc ("TestLoad", 0.3));
+            pump (3.0);
+            static const int sizes[] = { 960, 256, 480 };
+            for (int i = 0; i < rounds; ++i)
+            {
+                Ev ev {};
+                ev.change = juce::Time::getMillisecondCounterHiRes() * 0.001;
+                if (withDevice) { e.setDeviceConfig ("VMic", "VCable", 48000.0, sizes[i % 3]); raiseEngineThreads(); }
+                ev.changed = juce::Time::getMillisecondCounterHiRes() * 0.001;
+                juce::Thread::sleep (blockMs);   // the message thread does not run
+                ev.freed = juce::Time::getMillisecondCounterHiRes() * 0.001;
+                evs.push_back (ev);
+                pump (6.0);
+            }
+            pr ("  " + diagLine (e) + ", graph busy " + juce::String ((int) e.getDiagnostics().graphBusyBlocks)
+                + ", chain silence " + juce::String ((int) e.getDiagnostics().chainSilentBlocks) + ", bridge starts " + juce::String ((int) e.getDiagnostics().bridge.starts));
+        }
+        const auto& L = vdev::recorder().left;
+        const auto& rec = vdev::recorder();
+        const double t0 = rec.outputStart.load();
+        const size_t from = firstAudio (L) + 4800;
+        int zeros = 0, listed = 0;
+        for (size_t i = from; i < L.size(); ++i)
+        {
+            if (L[i] == 0.0f) { ++zeros; continue; }
+            if (zeros > 48)
+            {
+                const size_t s0 = i - (size_t) zeros;
+                const double at = t0 + (double) s0 / fs;
+                juce::String rel = "before the first round";
+                for (auto& ev : evs)
+                    if (ev.change <= at + 0.5) rel = "change +" + juce::String (at - ev.change, 3) + " s, changed +" + juce::String (at - ev.changed, 3)
+                                                     + " s, thread free again " + juce::String (at - ev.freed, 3) + " s";
+                juce::String cause;
+                for (int g = 0; g < rec.gapCount.load(); ++g)
+                    if ((int64_t) s0 >= rec.gapEvents[(size_t) g].first - 960 && (int64_t) s0 <= rec.gapEvents[(size_t) g].first + rec.gapEvents[(size_t) g].second + 2880) cause = " [cable late]";
+                pr ("  zeros at " + juce::String ((double) s0 / fs, 3) + " s: " + juce::String (1000.0 * zeros / fs, 1) + " ms; " + rel + cause);
+                ++listed;
+            }
+            zeros = 0;
+        }
+        pr ("  zero runs > 1 ms: " + juce::String (listed) + "; cable late " + juce::String (rec.gapCount.load()) + " times; mic packets lost " + juce::String (vdev::stats().lostCount.load()));
+    }
     else if (mode == "faults")
     {
         // Faulty plug-ins while audio plays. Output analysed per phase on the cable timeline.
@@ -1413,6 +1511,8 @@ int main (int argc, char** argv)
                 + juce::String (b > a ? 100.0 * (double) zeros / (double) (b - a) : 0.0, 1) + " % |");
         };
         auto now = [] { return juce::Time::getMillisecondCounterHiRes() * 0.001; };
+        std::vector<std::pair<double, juce::String>> phases;   // start time (s, now() clock) and name: where the clicks are
+        auto phase = [&] (const juce::String& what) { phases.push_back ({ now(), what }); };
         pr ("## Faulty plug-ins during playback (997 Hz -6 dBFS)");
         pr ("| Phase | Output finite | Peak | Silent samples |");
         pr ("|---|---|---:|---:|");
@@ -1427,18 +1527,18 @@ int main (int argc, char** argv)
             pump (3.0);
             double t = now(); pump (2.0); analyse (t, now(), "normal");
 
-            t = now(); addP ("TestNaN", 50); pump (3.0); analyse (t + 0.8, now(), "plug-in outputs NaN from block 50 on");
+            phase ("NaN plug-in added"); t = now(); addP ("TestNaN", 50); pump (3.0); analyse (t + 0.8, now(), "plug-in outputs NaN from block 50 on");
             auto d = e.getDiagnostics(); pr ("  invalid blocks counted: " + juce::String ((int) d.invalidBlocks));
-            removeLast(); t = now(); pump (2.0); analyse (t + 0.2, now(), "NaN plug-in removed");
+            phase ("NaN plug-in removed"); removeLast(); t = now(); pump (2.0); analyse (t + 0.2, now(), "NaN plug-in removed");
 
-            t = now(); addP ("TestHuge", 50); pump (3.0); analyse (t + 0.8, now(), "plug-in outputs 1e30 (unstable)");
-            removeLast(); t = now(); pump (2.0); analyse (t + 0.2, now(), "huge plug-in removed");
+            phase ("huge plug-in added"); t = now(); addP ("TestHuge", 50); pump (3.0); analyse (t + 0.8, now(), "plug-in outputs 1e30 (unstable)");
+            phase ("huge plug-in removed"); removeLast(); t = now(); pump (2.0); analyse (t + 0.2, now(), "huge plug-in removed");
 
-            t = now(); addP ("TestThrow", 100); pump (3.0); analyse (t + 0.3, now(), "plug-in throws an exception once");
+            phase ("throwing plug-in added"); t = now(); addP ("TestThrow", 100); pump (3.0); analyse (t + 0.3, now(), "plug-in throws an exception once");
             removeLast(); pump (1.0);
 
             const auto before = e.getDiagnostics();
-            t = now(); addP ("TestHang", 100); pump (6.0);
+            phase ("hanging plug-in added"); t = now(); addP ("TestHang", 100); pump (6.0);
             const auto after = e.getDiagnostics();
             analyse (t + 4.0, now(), "after a 1.5 s hang inside the plug-in (last 2 s)");
             pr ("  hang: underruns +" + juce::String ((int) (after.bridge.underruns - before.bridge.underruns)) + ", queue overflows +"
@@ -1446,7 +1546,7 @@ int main (int argc, char** argv)
             removeLast(); pump (1.0);
 
             // a plug-in whose preparation takes 400 ms, added during playback
-            t = now(); addP ("TestSlowPrepare", 400);
+            phase ("slow-prepare plug-in added"); t = now(); addP ("TestSlowPrepare", 400);
             const double addSeconds = now() - t;
             pump (2.0);
             {
@@ -1467,7 +1567,27 @@ int main (int argc, char** argv)
         }
         const auto& L = vdev::recorder().left;
         const size_t start = firstAudio (L) + 4800;
-        pr ("whole run: click events " + juce::String (clicks (L, start, L.size(), 0.5, 997.0 / 48000.0).events));
+        std::vector<size_t> where;
+        pr ("whole run: click events " + juce::String (clicks (L, start, L.size(), 0.5, 997.0 / 48000.0, 480, &where).events));
+        const double t0 = vdev::recorder().outputStart.load();
+        for (auto i : where)
+        {
+            const double at = t0 + (double) i / 48000.0;
+            juce::String in = "before the first phase";
+            for (auto& [ts, what] : phases) if (ts <= at) in = what + " +" + juce::String (at - ts, 3) + " s";
+            // the test machine's own stalls (not MicVST): the cable played silence / a mic packet was lost
+            juce::String machine;
+            const auto& rec = vdev::recorder();
+            for (int g = 0; g < rec.gapCount.load(); ++g)
+                if ((int64_t) i >= rec.gapEvents[(size_t) g].first - 960 && (int64_t) i <= rec.gapEvents[(size_t) g].first + rec.gapEvents[(size_t) g].second + 2880)
+                    machine = " [cable late: test machine stall]";
+            for (int k = 0; k < vdev::stats().lostCount.load(); ++k)
+            {
+                const double lt = vdev::stats().lostTimes[(size_t) k] - t0 + 0.06;
+                if (std::abs ((double) i / 48000.0 - lt) < 0.25) machine = " [mic packet lost: test machine stall]";
+            }
+            pr ("  click at " + juce::String ((double) i / 48000.0, 3) + " s (cable timeline): " + in + machine);
+        }
     }
    #endif
     else if (mode == "hotplug")

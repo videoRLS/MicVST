@@ -440,7 +440,8 @@ void AudioEngine::processQueuedInput() noexcept
         const auto times0 = rt::threadTimes();
 
         float* const dst[] = { workBuffer.getWritePointer (0), workBuffer.getWritePointer (1) };
-        const int64_t skipped = inputQueue.readBlock (dst, bs, maxBacklog, InputQueue::alignRange (sr));
+        bool inputJumped = false;
+        const int64_t skipped = inputQueue.readBlock (dst, bs, maxBacklog, InputQueue::alignRange (sr), &inputJumped);
         if (skipped < 0)
             return;
         if (skipped > 0)
@@ -459,6 +460,14 @@ void AudioEngine::processQueuedInput() noexcept
         juce::AudioBuffer<float> block (workBuffer.getArrayOfWritePointers(), 2, bs);
         midiBuffer.clear();
         bool threwException = false, silenced = false;
+        // diagnostics (chainSilentBlocks): exact zeros the chain adds to a block
+        auto zerosIn = [&block, bs]
+        {
+            int z = 0;
+            for (const float* x = block.getReadPointer (0), *e = x + bs; x != e; ++x) z += (*x == 0.0f) ? 1 : 0;
+            return z;
+        };
+        const int inputZeros = zerosIn();
         {
             // Never block: if the message thread holds the graph lock right now (rare:
             // suspend/prepare), output one silent block instead of waiting.
@@ -469,6 +478,9 @@ void AudioEngine::processQueuedInput() noexcept
                 // function is noexcept): silence the block instead and count it.
                 try { graph.processBlock (block, midiBuffer); }
                 catch (...) { threwException = true; invalidBlocks.fetch_add (1, std::memory_order_relaxed); }
+                if (! threwException && chainEditDepth.load (std::memory_order_relaxed) == 0
+                     && zerosIn() >= inputZeros + juce::jmin (48, bs / 2))
+                    chainSilentBlocks.fetch_add (1, std::memory_order_relaxed);
             }
             else
             {
@@ -482,39 +494,31 @@ void AudioEngine::processQueuedInput() noexcept
 
         // A plug-in that produces NaN/infinity (an unstable filter, a bug) or absurd levels would
         // otherwise poison the resampler and everything downstream (OBS, Discord): such a block
-        // is silenced as a whole (counted, logged once per second); when valid audio returns it
-        // fades in over 2 ms instead of starting with a jump.
+        // is silenced as a whole (counted, logged once per second). The bridge is told to hold:
+        // it fades out from the valid audio it still has (a silenced block itself would start
+        // with a step or a kink) and, once valid audio returns, re-primes from it and fades in.
         if (! silenced && (threwException || ! isValidAudio (block)))
         {
             if (! threwException)
                 invalidBlocks.fetch_add (1, std::memory_order_relaxed);
             silenced = true;
         }
-        const int fade = juce::jmin (bs, juce::jmax (1, (int) (0.002 * sr)));
         if (silenced)
         {
-            // The first silent block does not drop to zero at once (a step = a click): the last
-            // output value is ramped down over 2 ms.
             block.clear();
             if (! outputWasInvalid)
-                for (int c = 0; c < block.getNumChannels(); ++c)
-                {
-                    float* d = block.getWritePointer (c);
-                    for (int i = 0; i < fade; ++i)
-                        d[i] = lastOutput[(size_t) c] * (1.0f - (float) (i + 1) / (float) fade);
-                }
+                bridge.holdInput();
             outputWasInvalid = true;
         }
         else if (outputWasInvalid)
         {
             outputWasInvalid = false;
-            for (int c = 0; c < block.getNumChannels(); ++c)
-                block.applyGainRamp (c, 0, fade, 0.0f, 1.0f);
+            bridge.releaseInput();
         }
+        if (inputJumped && ! silenced)
+            bridge.markDiscontinuity();   // the input queue lost audio here (plug-in thread stuck > 1 s)
 
         applyEditFade (block, sr);
-        for (int c = 0; c < block.getNumChannels(); ++c)
-            lastOutput[(size_t) c] = block.getSample (c, bs - 1);
         outputMeter.process (block);
 
         const float* chans[] = { block.getReadPointer (0), block.getReadPointer (1) };
@@ -669,6 +673,7 @@ AudioEngine::Diagnostics AudioEngine::getDiagnostics()
     d.inputQueueOverflows = inputQueue.getOverflows();
     d.invalidBlocks  = invalidBlocks.load();
     d.graphBusyBlocks = graphBusyBlocks.load();
+    d.chainSilentBlocks = chainSilentBlocks.load();
     d.inputDeviceXruns = in != nullptr ? juce::jmax (0, in->getXRunCount()) : 0;
     d.watchdogRestarts = watchdogRestarts.load();
     d.bridge = bridge.getStats();

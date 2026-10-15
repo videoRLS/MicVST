@@ -3,6 +3,7 @@
 #include "audio/InputQueue.h"
 #include "BridgeSim.h"
 #include <atomic>
+#include <limits>
 #include <cmath>
 #include <thread>
 #include <vector>
@@ -391,6 +392,59 @@ struct BridgeStreamTest : juce::UnitTest
             expectEquals ((int) b.getStats().underruns, 0);   // a requested pause is not an underrun
         }
 
+        beginTest ("input held (invalid plug-in output), then valid audio with a jump: faded, no click, no underrun");
+        {
+            AudioBridge b;
+            b.setConsumerActive (true);
+            const double cps = 997.0 / 48000.0;
+            auto tone = sine (48000 * 6, cps);
+            std::vector<float> y, block (480), silent (480, 0.0f);
+            const double lim = 3.0 * 0.5 * std::pow (juce::MathConstants<double>::twoPi * cps, 2.0) + 2.0e-4;
+            for (int k = 0; k < 500; ++k)
+            {
+                const bool invalid = (k >= 200 && k < 203) || (k >= 300 && k < 301);   // 3 blocks, then 1 block
+                if (invalid) b.holdInput();
+                else         b.releaseInput();
+                // after the gap the tone continues 37 samples off: a jump if it were played across
+                const float* in[] = { invalid ? silent.data() : tone.data() + (size_t) k * 480 + (k >= 203 ? 37 : 0) };
+                b.push (in, 1, 480, k * 0.01);
+                float* out[] = { block.data() };
+                b.pull (out, 1, 480, k * 0.01 + 0.001);
+                y.insert (y.end(), block.begin(), block.end());
+            }
+            int clicks = 0;
+            for (size_t i = 4800; i + 1 < y.size(); ++i)
+                if (std::abs ((double) y[i + 1] - 2.0 * y[i] + y[i - 1]) > lim) ++clicks;
+            expectEquals (clicks, 0);
+            expectEquals ((int) b.getStats().underruns, 0);   // not an underrun: the safety margin stays
+            float after = 0.0f;
+            for (size_t i = 400 * 480; i < y.size(); ++i) after = std::max (after, std::abs (y[i]));
+            expectGreaterThan (after, 0.45f, "audio again after the invalid blocks");
+        }
+
+        beginTest ("discontinuity marked by the producer: the output fades there instead of jumping");
+        {
+            AudioBridge b;
+            b.setConsumerActive (true);
+            const double cps = 997.0 / 48000.0;
+            auto tone = sine (48000 * 6, cps);
+            std::vector<float> y, block (480);
+            const double lim = 3.0 * 0.5 * std::pow (juce::MathConstants<double>::twoPi * cps, 2.0) + 2.0e-4;
+            for (int k = 0; k < 400; ++k)
+            {
+                if (k == 200) b.markDiscontinuity();
+                const float* in[] = { tone.data() + (size_t) k * 480 + (k >= 200 ? 211 : 0) };
+                b.push (in, 1, 480, k * 0.01);
+                float* out[] = { block.data() };
+                b.pull (out, 1, 480, k * 0.01 + 0.001);
+                y.insert (y.end(), block.begin(), block.end());
+            }
+            int clicks = 0;
+            for (size_t i = 4800; i + 1 < y.size(); ++i)
+                if (std::abs ((double) y[i + 1] - 2.0 * y[i] + y[i - 1]) > lim) ++clicks;
+            expectEquals (clicks, 0);
+        }
+
         beginTest ("inactive consumer: push is a no-op (nothing queued, nothing counted)");
         {
             AudioBridge b;
@@ -582,6 +636,42 @@ struct InputQueueTest : juce::UnitTest
             double t = 0.0;
             expect (q.lastReadCaptureTime (48000.0, t));
             expectWithinAbsoluteError (t, 2.02 - 960.0 / 48000.0, 1.0e-9);   // two blocks are newer
+        }
+
+        beginTest ("after dropped blocks the queue never plays across the jump");
+        {
+            InputQueue q;
+            const double cps = 997.0 / 48000.0;
+            auto tone = sine (48000 * 4, cps);
+            const int B = 480;
+            int64_t written = 0;   // tone position of the next block
+            auto put = [&] { const float* ch[] = { tone.data() + (size_t) written }; const bool ok = q.write (ch, 1, B, 0.0); written += B; return ok; };
+            // consumer stuck: the queue fills up, then blocks are dropped
+            int dropped = 0;
+            for (int k = 0; k < InputQueue::capacity / B + 20; ++k) dropped += put() ? 0 : 1;
+            expectGreaterThan (dropped, 10);
+            std::vector<float> l ((size_t) B), r ((size_t) B), y;
+            float* dst[] = { l.data(), r.data() };
+            int jumps = 0;
+            for (int k = 0; k < 60; ++k)
+            {
+                bool jumped = false;
+                if (q.readBlock (dst, B, InputQueue::backlogLimit (48000.0, B), InputQueue::alignRange (48000.0), &jumped) >= 0)
+                {
+                    if (jumped) { ++jumps; y.push_back (std::numeric_limits<float>::quiet_NaN()); }   // a fade point for the caller
+                    y.insert (y.end(), l.begin(), l.end());
+                }
+                put();   // the producer continues (after the drop)
+            }
+            expectEquals (jumps, 1);
+            // apart from the marked point (and the crossfaded skip) the audio is continuous: no jump
+            // from the old into the new audio inside a block
+            const double lim = secondDifferenceLimit (0.5, cps) * 4.0;   // crossfades allowed, steps not
+            int steps = 0;
+            for (size_t i = 1; i + 1 < y.size(); ++i)
+                if (std::isfinite (y[i - 1]) && std::isfinite (y[i]) && std::isfinite (y[i + 1])
+                     && std::abs ((double) y[i + 1] - 2.0 * y[i] + y[i - 1]) > lim) ++steps;
+            expectEquals (steps, 0);
         }
 
         beginTest ("consumer stuck: the producer drops (counted) instead of overwriting");

@@ -58,6 +58,18 @@ public:
     void fadeOutAndHold() noexcept;
     void resume() noexcept;
 
+    // Producer side (plug-in thread). holdInput(): the input has no usable audio for a while (a
+    // plug-in returned invalid samples or threw, the graph was busy): the output fades out from
+    // the audio it still has and stays silent - no underrun is counted, the safety margin stays.
+    // releaseInput(): the next pushed frame is a new start - the output re-primes from there and
+    // fades in, so it never jumps across the gap (a silenced block followed by valid audio
+    // would otherwise start and end with a step).
+    void holdInput() noexcept;
+    void releaseInput() noexcept;
+    // Producer side: what is pushed next does not continue what was pushed before (input lost or
+    // skipped upstream): the output fades out at this point and re-primes from the new audio.
+    void markDiscontinuity() noexcept;
+
     // Safety buffer = minimum margin of buffered audio kept in front of the output (ms).
     // autoMode: start at 'ms' and raise by autoStepMs after every underrun (up to autoMaxMs).
     // A larger margin while running takes effect at once (short fade-out, refill, fade-in); a
@@ -186,6 +198,7 @@ private:
     std::vector<float> alignRef, alignCand;                  // preallocated (splice alignment)
     std::atomic<bool> reprimeRequested { false };
     std::atomic<bool> holdRequested { false };
+    std::atomic<bool> inputHeld { false };       // producer: no usable input (see holdInput)
 
     void pullBlock (float* const* out, int numOutChannels, int numFrames, double timeSeconds) noexcept;
     int64_t alignedSkip (int64_t desired, int64_t lo, int64_t hi, int len, double& rho) noexcept;

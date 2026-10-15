@@ -63,6 +63,9 @@ public:
         stampEnd.store (0, std::memory_order_relaxed);
         stampTime.store (0.0, std::memory_order_relaxed);
         lastReadEnd = 0;
+        dropping = false;
+        discontinuity.store (-1, std::memory_order_relaxed);
+        handledDiscontinuity = -1;
     }
 
     //==============================================================================
@@ -79,7 +82,13 @@ public:
         if (numFrames > capacity || w + numFrames - r > capacity)
         {
             overflows.fetch_add (1, std::memory_order_relaxed);
+            dropping = true;
             return false;
+        }
+        if (dropping)   // audio was dropped before this block: it does not continue the queued audio
+        {
+            discontinuity.store (w, std::memory_order_relaxed);   // published with writeIndex below
+            dropping = false;
         }
 
         const int pos   = (int) (w & mask);
@@ -127,14 +136,28 @@ public:
     // (or up to alignFrames before it, where the waveform matches best) and everything in between
     // is dropped. Returns the number of frames skipped that way (0 = ordinary read), or -1 if
     // fewer than numFrames are queued.
-    int64_t readBlock (float* const* dst, int numFrames, int64_t maxBacklog, int alignFrames = 0) noexcept
+    // After an overflow (blocks dropped) the audio jumps where writing resumed: a block never
+    // straddles that point (the old audio before it is skipped), and *jumped is set for the first
+    // block after it - the caller fades there (AudioBridge::markDiscontinuity).
+    int64_t readBlock (float* const* dst, int numFrames, int64_t maxBacklog, int alignFrames = 0, bool* jumped = nullptr) noexcept
     {
         const int64_t w = writeIndex.load (std::memory_order_acquire);
-        const int64_t r = readIndex.load (std::memory_order_relaxed);
-        const int64_t avail = w - r;
+        int64_t r = readIndex.load (std::memory_order_relaxed);
+        const int64_t r0 = r;
 
-        if (numFrames <= 0 || numFrames > capacity / 2 || avail < numFrames)
+        if (numFrames <= 0 || numFrames > capacity / 2 || w - r < numFrames)
             return -1;
+
+        const int64_t d = discontinuity.load (std::memory_order_relaxed);   // acquired with writeIndex
+        if (d > handledDiscontinuity && d >= r && d < r + numFrames)
+        {
+            if (w - d < numFrames)
+                return -1;          // wait until a whole block after the jump is there
+            r = d;                  // the old audio up to the jump is dropped
+            handledDiscontinuity = d;
+            if (jumped != nullptr) *jumped = true;
+        }
+        const int64_t avail = w - r;
 
         if (avail <= std::max<int64_t> (maxBacklog, 2 * (int64_t) numFrames))
         {
@@ -143,12 +166,18 @@ public:
 
             readIndex.store (r + numFrames, std::memory_order_release);
             lastReadEnd = r + numFrames;
-            return 0;
+            return r - r0;
         }
 
         // The chain fell behind by more than maxBacklog: splice to the newest block - or a little
         // before it, where the new audio continues the old waveform best.
-        const int64_t newest = w - numFrames;
+        int64_t newest = w - numFrames;
+        if (d > handledDiscontinuity && d >= r + numFrames)
+        {
+            if (d <= newest) handledDiscontinuity = d;   // the skip jumps over it (crossfaded)
+            else newest = d - numFrames;                 // no whole block after it yet: splice to the audio
+                                                         // just before it; the next read starts at the jump
+        }
         int64_t from = newest;
         bool equalGain = false;
         const auto range = std::min<int64_t> (alignFrames, newest - (r + numFrames));   // stays after the old block
@@ -175,7 +204,7 @@ public:
 
         readIndex.store (from + numFrames, std::memory_order_release);
         lastReadEnd = from + numFrames;
-        return from - r;
+        return from - r0;
     }
 
     // Capture time (producer clock) of the newest frame returned by the last readBlock(): the
@@ -227,6 +256,9 @@ private:
     std::atomic<double>   stampTime { 0.0 };
 
     std::atomic<uint64_t> overflows { 0 };
+    bool dropping = false;                        // producer: the last block did not fit
+    std::atomic<int64_t> discontinuity { -1 };    // producer -> consumer: first frame written after a drop
+    int64_t handledDiscontinuity = -1;            // consumer
     int64_t lastReadEnd = 0;                 // consumer only
     std::vector<float> alignRef, alignCand;  // consumer only, preallocated
 };

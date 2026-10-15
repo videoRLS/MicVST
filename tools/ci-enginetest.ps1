@@ -115,6 +115,7 @@ Remove-Item Env:ETEST_LOG
 Run-Test "devices" @("devices") 180
 Run-Test "hotplug" @("hotplug") 300
 Run-Test "faults"  @("faults")  300
+Run-Test "msgblock" @("msgblock", "1", "3000", "6") 300   # UI thread blocked 3 s right after each device change
 Run-Test "latency" @("latency") 300
 Run-Test "buffers" @("buffers") 600
 Run-Test "mono"    @("mono")    120

@@ -222,6 +222,25 @@ void AudioBridge::resume() noexcept
         restartRequested.store (true, std::memory_order_release);
 }
 
+void AudioBridge::holdInput() noexcept
+{
+    inputHeld.store (true, std::memory_order_release);
+}
+
+void AudioBridge::releaseInput() noexcept
+{
+    if (inputHeld.load (std::memory_order_relaxed))
+    {
+        markDiscontinuity();   // first: a consumer that sees the hold released also sees where to restart
+        inputHeld.store (false, std::memory_order_release);
+    }
+}
+
+void AudioBridge::markDiscontinuity() noexcept
+{
+    discontinuityIndex.store (writeIndex.load (std::memory_order_relaxed), std::memory_order_release);
+}
+
 void AudioBridge::setSafety (double ms, bool autoMode) noexcept
 {
     ms = juce::jlimit (minSafetyMs, autoMaxMs * 2.0, ms);
@@ -535,7 +554,7 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
     // out smoothly (avail shrinks by at most one block per pull) - never a hard cut to zero.
     auto reserveFor = [&] (double st) { return (int64_t) std::ceil ((double) fadeLen * st) + 2; };
 
-    const bool hold = holdRequested.load (std::memory_order_acquire);
+    const bool hold = holdRequested.load (std::memory_order_acquire) || inputHeld.load (std::memory_order_acquire);
 
     //--------------------------------------------------------------------------- priming
     if (state == State::priming)
@@ -598,7 +617,13 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
     // audio jumps (input dropped) and when a larger safety margin was chosen.
     auto fadeOutAndReprime = [&]
     {
-        const int k = avail < need ? 0 : juce::jmin (numFrames, fadeLen);
+        // As much as is left (up to one fade length) - never past a discontinuity: the audio
+        // after it does not continue this waveform.
+        int64_t usable = avail;
+        const int64_t discAt = discontinuityIndex.load (std::memory_order_acquire);
+        if (discAt > readIndex) usable = juce::jmin (usable, discAt - readIndex);
+        const double room = (double) usable - (double) h - 1.0 - frac;
+        const int k = room < 0.0 ? 0 : juce::jmin (numFrames, fadeLen, (int) std::floor (room / step) + 1);
         if (k > 0)
         {
             renderOut (k, step);
