@@ -65,6 +65,7 @@ jobs:
         run: |
           $targets = "MicVST MicVSTTests"
           if (Test-Path tests/StressMain.cpp) { $targets += " MicVSTStress" }
+          if (Test-Path tests/SnapshotMain.cpp) { $targets += " MicVSTSnapshot" }
           ./tools/ci-build.ps1 -Source . -Build build -Targets $targets -Out results
 
       - name: Unit tests
@@ -87,6 +88,11 @@ jobs:
         if: ${{ !cancelled() && steps.build.outcome == 'success' && hashFiles('tests/StressMain.cpp') != '' }}
         shell: pwsh
         run: ./build/MicVSTStress_artefacts/Release/MicVSTStress.exe results/measurements.md
+
+      - name: UI snapshots (Turkish texts with the Windows fonts)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && hashFiles('tests/SnapshotMain.cpp') != '' }}
+        shell: pwsh
+        run: ./build/MicVSTSnapshot_artefacts/Release/MicVSTSnapshot.exe results/ui
 
       - name: Publish
         if: ${{ !cancelled() }}

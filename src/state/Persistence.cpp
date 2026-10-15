@@ -5,7 +5,8 @@ namespace ids
     const juce::Identifier root ("MicVST"), inDev ("inputDevice"), outDev ("outputDevice"),
         sr ("sampleRate"), userBuf ("userBufferSize"), safety ("safetyBufferMs"), folders ("pluginFolders"),
         window ("windowState"),
-        plugins ("plugins"), plugin ("plugin"), fileId ("fileOrId"), byp ("bypassed"), blob ("state");
+        plugins ("plugins"), plugin ("plugin"), fileId ("fileOrId"), byp ("bypassed"), blob ("state"),
+        pluginId ("pluginId"), pluginName ("pluginName"), pluginUid ("pluginUid");
 }
 
 juce::ValueTree toValueTree (const MicVSTState& s)
@@ -26,6 +27,12 @@ juce::ValueTree toValueTree (const MicVSTState& s)
         pt.setProperty (ids::fileId, p.fileOrId, nullptr);
         pt.setProperty (ids::byp, p.bypassed, nullptr);
         pt.setProperty (ids::blob, p.state.toBase64Encoding(), nullptr);
+        if (p.pluginId.isNotEmpty())
+        {
+            pt.setProperty (ids::pluginId, p.pluginId, nullptr);
+            pt.setProperty (ids::pluginName, p.pluginName, nullptr);
+            pt.setProperty (ids::pluginUid, p.pluginUid, nullptr);
+        }
         list.appendChild (pt, nullptr);
     }
     t.appendChild (list, nullptr);
@@ -55,6 +62,9 @@ MicVSTState fromValueTree (const juce::ValueTree& t)
         p.fileOrId = pt.getProperty (ids::fileId);
         p.bypassed = pt.getProperty (ids::byp, false);
         p.state.fromBase64Encoding (pt.getProperty (ids::blob).toString());
+        p.pluginId   = pt.getProperty (ids::pluginId).toString();
+        p.pluginName = pt.getProperty (ids::pluginName).toString();
+        p.pluginUid  = (int) pt.getProperty (ids::pluginUid, 0);
         s.plugins.add (p);
     }
     return s;

@@ -1,4 +1,5 @@
 #include "audio/AudioBridge.h"
+#include "audio/SpliceAlign.h"
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -13,14 +14,41 @@ namespace
     constexpr double kp = 0.2;
     constexpr double ki = 0.005;
     constexpr double maxCorrection  = 0.005;   // +-0.5 %: far beyond real clock drift (~+-100 ppm)
-    constexpr double levelTau       = 0.3;     // seconds, smoothing of the measured level
+    // The proportional part only moves the level back to the target (the integral carries the
+    // real clock drift). Bounded to +-0.05 % (0.9 cent, well below the ~0.2 % pitch difference
+    // limen): after a disturbance the latency returns slowly instead of the pitch bending audibly
+    // (up to 1.2.0: 200 ppm per ms of excess, i.e. 0.5 % for seconds after an output stall).
+    constexpr double maxProportional = 0.0005;
+    constexpr double levelTau       = 0.3;     // seconds, smoothing of the measured level ...
+    // ... and a second stage for the speed correction itself. The measured level jitters by about
+    // a millisecond from pull to pull (thread wake-ups); through the proportional term every pull
+    // then changed the playback speed by a few ppm - phase noise on every tone, rising with its
+    // frequency (about -84 dB at 1 kHz, -60 dB at 10 kHz in 43 ms windows). Two stages
+    // (0.3 s + 2 s) leave changes far below 0.1 ppm per pull; the loop (time constant ~5 s) keeps
+    // a phase margin of > 60 degrees.
+    constexpr double errorTau       = 2.0;
     constexpr double fadeSeconds    = 0.002;   // fade-out / fade-in around gaps
-    constexpr double resyncSeconds  = 0.040;   // excess latency that triggers a crossfaded trim
-    constexpr int    resyncPulls    = 50;      // ... if it persists for this many output blocks
+    // Larger excess (an output stall: the device played silence while the input kept coming) is
+    // trimmed at once: if the level stayed > 20 ms above the target for 150 ms, the read position
+    // jumps by the smallest excess seen in that time, crossfaded over 10 ms at the splice point
+    // that matches the waveform best (searched +-6 ms around the ideal one).
+    constexpr double trimExcessSeconds  = 0.020;
+    constexpr double trimHoldSeconds    = 0.150;
+    constexpr double spliceSeconds      = 0.010;
+    constexpr double spliceShiftSeconds = 0.006;
+    constexpr int    maxAlignFrames     = 16384;   // scratch size for the alignment search
     constexpr double producerTimeout = 0.5;    // no push for this long = producer not running
-    constexpr double integrateBelow  = 0.003;  // anti-windup: only small errors teach the drift
+    constexpr double integrateBelow  = 0.003;  // anti-windup: only small errors teach the drift ...
     constexpr double settleSeconds   = 1.5;    // no drift learning right after a (re-)prime or trim:
                                                // the catch-up after a stall is not clock drift
+    // ... and none after a disturbance (start, trim, a sudden level step of > 3 ms within a second)
+    // until the level has been back within 0.5 ms of the target or has stopped moving (< 0.1 ms in
+    // a second): playing off an excess is not clock drift either. A larger error is learned only once it has not shrunk for 3 s in a row
+    // (a clock that differs by more than the proportional range, > ~500 ppm): then up to 20 ms
+    // of it count.
+    constexpr double recoveredBelow  = 0.0005;
+    constexpr double jumpSeconds     = 0.003;
+    constexpr double integrateLimit  = 0.020;
 
     double besselI0 (double x) noexcept
     {
@@ -101,7 +129,8 @@ AudioBridge::AudioBridge()
 {
     for (auto& r : ring)     r.assign ((size_t) ringCapacity * 2, 0.0f);
     for (auto& s : scratchA) s.assign ((size_t) maxBlockFrames, 0.0f);
-    for (auto& s : scratchB) s.assign ((size_t) maxBlockFrames, 0.0f);
+    alignRef.assign ((size_t) maxAlignFrames, 0.0f);
+    alignCand.assign ((size_t) maxAlignFrames, 0.0f);
     table.assign ((size_t) (phases + 1) * (size_t) (2 * maxHalfTaps), 0.0f);
     designFilter (0.485, 32);
 }
@@ -172,16 +201,37 @@ void AudioBridge::setOutputRate (double hz)
 
 void AudioBridge::setConsumerActive (bool isActive) noexcept
 {
-    if (isActive) restartRequested.store (true, std::memory_order_release);
+    if (isActive)
+    {
+        holdRequested.store (false, std::memory_order_release);
+        restartRequested.store (true, std::memory_order_release);
+    }
     consumerActive.store (isActive, std::memory_order_release);
+}
+
+void AudioBridge::fadeOutAndHold() noexcept
+{
+    holdRequested.store (true, std::memory_order_release);
+}
+
+void AudioBridge::resume() noexcept
+{
+    if (holdRequested.exchange (false, std::memory_order_acq_rel))
+        restartRequested.store (true, std::memory_order_release);
 }
 
 void AudioBridge::setSafety (double ms, bool autoMode) noexcept
 {
     ms = juce::jlimit (minSafetyMs, autoMaxMs * 2.0, ms);
+    const double before = currentSafetyMs();
     safetyMsSetting.store (ms, std::memory_order_relaxed);
     autoSafetyMs.store (ms, std::memory_order_relaxed);
     autoSafety.store (autoMode, std::memory_order_relaxed);
+
+    // A clearly larger margin: refill now (fade-out, short silence, fade-in) - the slow level
+    // correction would need about 2 s per ms.
+    if (currentSafetyMs() > before + 2.0)
+        reprimeRequested.store (true, std::memory_order_release);
 }
 
 double AudioBridge::currentSafetyMs() const noexcept
@@ -200,7 +250,8 @@ void AudioBridge::recordUnderrun() noexcept
 }
 
 //==============================================================================
-void AudioBridge::push (const float* const* data, int numChannels, int numFrames, double timeSeconds) noexcept
+void AudioBridge::push (const float* const* data, int numChannels, int numFrames, double timeSeconds,
+                        double arrivalSeconds) noexcept
 {
     if (numFrames <= 0 || numChannels <= 0 || ! consumerActive.load (std::memory_order_acquire))
         return;
@@ -242,24 +293,37 @@ void AudioBridge::push (const float* const* data, int numChannels, int numFrames
 
     writeIndex.store (w + numFrames, std::memory_order_release);
 
-    // seqlock publish of (end index, time)
+    // Normal delay between capture and arrival (plug-in thread wake-up + processing): the
+    // smallest of the last 16 blocks, so that a block arriving that much after its capture time
+    // is not taken for a late one (see the extrapolation in pullBlock). The smallest, because a
+    // backlog (plug-ins slower than real time) is real lateness, not the pipeline's normal delay.
+    lagHistory[(size_t) lagCursor] = arrivalSeconds >= timeSeconds ? juce::jmin (0.5, arrivalSeconds - timeSeconds) : 0.0;
+    lagCursor = (lagCursor + 1) % (int) lagHistory.size();
+    lagCount = juce::jmin (lagCount + 1, (int) lagHistory.size());
+    const double lag = *std::min_element (lagHistory.begin(), lagHistory.begin() + lagCount);
+
+    // seqlock publish of (end index, time, lag)
     const auto seq = pushSeq.load (std::memory_order_relaxed);
     pushSeq.store (seq + 1, std::memory_order_relaxed);
     std::atomic_thread_fence (std::memory_order_release);
     pushEndIndex.store (w + numFrames, std::memory_order_relaxed);
     pushTime.store (timeSeconds, std::memory_order_relaxed);
+    pushArrival.store (arrivalSeconds >= timeSeconds ? arrivalSeconds : timeSeconds, std::memory_order_relaxed);
+    pushLag.store (lag, std::memory_order_relaxed);
     lastPushFrames.store (numFrames, std::memory_order_relaxed);
     pushSeq.store (seq + 2, std::memory_order_release);
 }
 
-bool AudioBridge::readLastPush (int64_t& endIndex, double& time) const noexcept
+bool AudioBridge::readLastPush (LastPush& p) const noexcept
 {
     for (int attempt = 0; attempt < 4; ++attempt)
     {
         const auto s1 = pushSeq.load (std::memory_order_acquire);
         if ((s1 & 1u) != 0 || s1 == 0) continue;
-        endIndex = pushEndIndex.load (std::memory_order_relaxed);
-        time     = pushTime.load (std::memory_order_relaxed);
+        p.endIndex = pushEndIndex.load (std::memory_order_relaxed);
+        p.time     = pushTime.load (std::memory_order_relaxed);
+        p.arrival  = pushArrival.load (std::memory_order_relaxed);
+        p.lag      = pushLag.load (std::memory_order_relaxed);
         std::atomic_thread_fence (std::memory_order_acquire);
         if (pushSeq.load (std::memory_order_relaxed) == s1)
             return true;
@@ -383,6 +447,32 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
         fadeInRemaining -= fl;
     };
 
+    // Renders n samples at the read position; while a trim is in progress, crossfaded from the
+    // audio before the splice point (spliceOffset frames earlier, same fractional position).
+    auto renderOut = [&] (int n, double st)
+    {
+        render (out, numCh, n, readIndex, frac, st);
+        if (spliceRemaining <= 0 || n <= 0)
+            return;
+
+        const int m = juce::jmin (n, spliceRemaining);
+        std::array<float*, maxChannels> old {};
+        for (int c = 0; c < numCh; ++c)
+            old[(size_t) c] = scratchA[(size_t) c].data();
+        render (old.data(), numCh, m, readIndex - spliceOffset, frac, st);
+
+        const int done = spliceLength - spliceRemaining;
+        for (int i = 0; i < m; ++i)
+        {
+            float gOld = 0.0f, gNew = 1.0f;
+            splice::gains ((double) (done + i + 1) / (double) (spliceLength + 1), spliceEqualGain, gOld, gNew);
+            for (int c = 0; c < numCh; ++c)
+                if (out[c] != nullptr)
+                    out[c][i] = gOld * old[(size_t) c][i] + gNew * out[c][i];
+        }
+        spliceRemaining -= m;
+    };
+
     const RealtimeScope scope (gate);
     if (! scope.entered)
     {
@@ -404,35 +494,48 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
         frac = 0.0;
         correction = integral;
         levelEmaValid = false;
-        excessCount = 0;
+        excessHeldSeconds = 0.0;
+        spliceRemaining = 0;
+        resetTrend();
+        reprimeRequested.store (false, std::memory_order_relaxed);
     }
 
     auto publishRelease = [&]
     {
-        releaseIndex.store (readIndex - (int64_t) h - 1, std::memory_order_release);
+        const int64_t oldest = spliceRemaining > 0 ? readIndex - spliceOffset : readIndex;
+        releaseIndex.store (oldest - (int64_t) h - 1, std::memory_order_release);
     };
 
     const double safetyFrames = currentSafetyMs() * inHz / 1000.0;
     const double blockIn = (double) lastPushFrames.load (std::memory_order_relaxed);
     int64_t avail = w - readIndex;
 
-    // Time-continuous view of the producer: frames written by its last push plus the frames that
-    // have arrived at the input device since then (at most one block). Unlike the raw fill level,
-    // this does not jump by a whole block whenever the two device clocks change their phase.
-    int64_t lastEnd = 0;
-    double  lastTime = 0.0;
-    const bool havePush = readLastPush (lastEnd, lastTime);
-    const bool producerAlive = havePush && (timeSeconds - lastTime) < producerTimeout;
-    const double extrap = havePush ? juce::jlimit (0.0, blockIn, (timeSeconds - lastTime) * inHz) : 0.0;
+    // Time-continuous view of the producer: frames written by its last push plus the frames
+    // captured since then. Those are counted from the push's ARRIVAL plus the normal capture ->
+    // arrival delay of the pipeline (the plug-in thread), and at most one block plus that delay
+    // (beyond, the producer is late). So the estimate does not jump by a whole block whenever the
+    // two device clocks change their phase, does not dip during the pipeline's normal delay
+    // (counted from the capture time with a one-block limit, it did: as the clock phases slid,
+    // that read as a slow level change - a speed wander of up to 0.04 %), and does not count
+    // audio still waiting in a backlog in front of the plug-ins - that arrives late.
+    LastPush last;
+    const bool havePush = readLastPush (last);
+    const int64_t lastEnd = last.endIndex;
+    const bool producerAlive = havePush && (timeSeconds - last.arrival) < producerTimeout;
+    const double lagFrames = havePush ? juce::jmin (blockIn, last.lag * inHz) : 0.0;
+    const double extrap = havePush ? juce::jlimit (0.0, blockIn + lagFrames, (timeSeconds - last.arrival) * inHz + lagFrames) : 0.0;
 
     // Fade reserve: a block is only rendered normally if, after it, at least one fade length of
     // audio is left. When the queue runs dry, the last rendered block can therefore always fade
     // out smoothly (avail shrinks by at most one block per pull) - never a hard cut to zero.
     auto reserveFor = [&] (double st) { return (int64_t) std::ceil ((double) fadeLen * st) + 2; };
 
+    const bool hold = holdRequested.load (std::memory_order_acquire);
+
     //--------------------------------------------------------------------------- priming
     if (state == State::priming)
     {
+        reprimeRequested.store (false, std::memory_order_relaxed);   // priming uses the new margin anyway
         const double step0 = nominal * (1.0 + integral);
         const double need0 = (double) (framesNeeded (0.0, step0, numFrames) + reserveFor (step0));
         const double target = need0 + safetyFrames + blockIn - extrap;
@@ -456,7 +559,7 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
             avail = w - disc;
         }
 
-        if (! producerAlive || (double) avail < target)
+        if (hold || ! producerAlive || (double) avail < target)
         {
             clearFrom (0);
             runningAtomic.store (false, std::memory_order_relaxed);
@@ -472,8 +575,10 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
         frac = 0.0;
         correction = integral;
         levelEmaValid = false;
-        excessCount = 0;
+        excessHeldSeconds = 0.0;
+        spliceRemaining = 0;
         sinceStartSeconds = 0.0;
+        resetTrend();
         fadeInRemaining = fadeLen;
         state = State::running;
         runningAtomic.store (true, std::memory_order_relaxed);
@@ -483,27 +588,46 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
     double step = nominal * (1.0 + correction);
     int64_t need = framesNeeded (frac, step, numFrames) + reserveFor (step);
 
-    // Input blocks were dropped while the output stalled for longer than the ring lasts: the
-    // queued audio jumps at the drop point. Fade out now and re-prime from the audio after it
-    // (the stall itself was an audible gap anyway; this avoids a click on top of it).
-    if (discontinuityIndex.load (std::memory_order_acquire) > readIndex)
+    // Fades out over (at most) one fade length and restarts with priming: used when the queued
+    // audio jumps (input dropped) and when a larger safety margin was chosen.
+    auto fadeOutAndReprime = [&]
     {
-        // (The device usually continues with the block it had already taken before freezing, so
-        // the stale audio is faded out rather than cut.)
         const int k = avail < need ? 0 : juce::jmin (numFrames, fadeLen);
         if (k > 0)
         {
-            render (out, numCh, k, readIndex, frac, step);
+            renderOut (k, step);
             applyFadeIn (k, fadeLen);
             for (int c = 0; c < numCh; ++c)
                 if (out[c] != nullptr)
                     for (int i = 0; i < k; ++i)
                         out[c][i] *= 1.0f - (float) (i + 1) / (float) k;
+
+            const double pos = frac + (double) k * step;   // played (faded out): not again after the refill
+            const auto consumed = (int64_t) std::floor (pos);
+            readIndex += consumed;
+            frac = pos - (double) consumed;
         }
         clearFrom (k);
+        spliceRemaining = 0;
         state = State::priming;
         runningAtomic.store (false, std::memory_order_relaxed);
         publishRelease();
+    };
+
+    // Input blocks were dropped while the output stalled for longer than the ring lasts: the
+    // queued audio jumps at the drop point. Fade out now and re-prime from the audio after it
+    // (the stall itself was an audible gap anyway; this avoids a click on top of it).
+    // (The device usually continues with the block it had already taken before freezing, so
+    // the stale audio is faded out rather than cut.)
+    if (discontinuityIndex.load (std::memory_order_acquire) > readIndex)
+    {
+        fadeOutAndReprime();
+        return;
+    }
+
+    if (hold || reprimeRequested.exchange (false, std::memory_order_acq_rel))
+    {
+        fadeOutAndReprime();   // on hold, priming then stays silent
         return;
     }
 
@@ -518,7 +642,7 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
 
         if (k > 0)
         {
-            render (out, numCh, k, readIndex, frac, step);
+            renderOut (k, step);
             applyFadeIn (k, fadeLen);   // starved again right after a re-prime: keep the ramp
             const int fl = juce::jmin (k, fadeLen);
             for (int c = 0; c < numCh; ++c)
@@ -533,6 +657,7 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
         }
 
         clearFrom (k);
+        spliceRemaining = 0;
         state = State::priming;
         runningAtomic.store (false, std::memory_order_relaxed);
         recordUnderrun();
@@ -552,14 +677,51 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
         const double dt     = (double) numFrames / outHz;
         const double alpha  = 1.0 - std::exp (-dt / levelTau);
 
-        levelEma = levelEmaValid ? levelEma + alpha * ((level - target) - levelEma) : (level - target);
+        const double alpha2 = 1.0 - std::exp (-dt / errorTau);
+        if (levelEmaValid)
+        {
+            levelEma += alpha * ((level - target) - levelEma);
+            errorSmooth += alpha2 * (levelEma - errorSmooth);
+        }
+        else
+        {
+            levelEma = errorSmooth = level - target;
+        }
         levelEmaValid = true;
         sinceStartSeconds += dt;
 
-        const double err = levelEma / inHz;   // seconds; > 0 = more queued than needed
-        if (sinceStartSeconds >= settleSeconds && std::abs (err) < integrateBelow)
-            integral = juce::jlimit (-maxCorrection, maxCorrection, integral + ki * err * dt);
-        const double newCorrection = juce::jlimit (-maxCorrection, maxCorrection, kp * err + integral);
+        const double err  = errorSmooth / inHz;   // seconds; > 0 = more queued than needed
+        const double fast = levelEma / inHz;      // the same, less smoothed: shows what the level does now
+
+        // Disturbance / drift classification on the less smoothed error (the strongly smoothed
+        // one still rises for seconds after a step - that must not look like a drifting clock).
+        if (std::abs (fast) < recoveredBelow)
+            recovered = true;
+
+        trendSeconds += dt;
+        if (trendSeconds >= 1.0)
+        {
+            if (std::abs (fast - trendFast) < 0.0001)
+                recovered = true;                                             // settled (with drift: off target)
+            if (std::abs (fast - trendFast) > jumpSeconds)
+                recovered = false;                                            // a step: a disturbance
+            const bool persists = std::abs (fast) > std::abs (trendFast) - 0.0002   // not being played off
+                                    && (fast > 0.0) == (trendFast > 0.0);
+            persistingSeconds = persists ? persistingSeconds + trendSeconds : 0.0;
+            trendFast = fast;
+            trendSeconds = 0.0;
+        }
+
+        if (recovered && sinceStartSeconds >= settleSeconds)
+        {
+            if (std::abs (err) < integrateBelow)
+                integral += ki * err * dt;
+            else if (persistingSeconds >= 3.0)
+                integral += ki * juce::jlimit (-integrateLimit, integrateLimit, err) * dt;
+            integral = juce::jlimit (-maxCorrection, maxCorrection, integral);
+        }
+        const double proportional = juce::jlimit (-maxProportional, maxProportional, kp * err);
+        const double newCorrection = juce::jlimit (-maxCorrection, maxCorrection, proportional + integral);
         const double newStep = nominal * (1.0 + newCorrection);
         const auto newNeed = framesNeeded (frac, newStep, numFrames) + reserveFor (newStep);
 
@@ -570,45 +732,60 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
             need = newNeed;
         }
 
-        bufferedFrames.store (level - blockIn * 0.5, std::memory_order_relaxed);
+        // Mean time a frame spends in the ring (Little's law): the level minus the frames still
+        // on their way in (half a block plus the pipeline delay on average) minus half an output
+        // block (the ring drops by one at every pull).
+        bufferedFrames.store (level - blockIn * 0.5 - lagFrames - 0.5 * (double) numFrames * step, std::memory_order_relaxed);
 
-        // Persistent excess (e.g. the output stalled while the input kept coming): trim the
-        // latency back to the target right away with a crossfade instead of draining it slowly.
-        const double resyncThreshold = juce::jmax (resyncSeconds * inHz, 2.0 * blockIn);
-        excessCount = levelEma > resyncThreshold ? excessCount + 1 : 0;
+        // Excess that does not go away (the output stalled while the input kept coming): trim it
+        // once it has stayed above the threshold for trimHoldSeconds - by the smallest excess
+        // seen meanwhile (the instantaneous level, not the lagging average; a burst cannot
+        // make the trim too large).
+        const double excess = level - target;
+        if (spliceRemaining == 0 && excess > trimExcessSeconds * inHz)
+        {
+            excessMinFrames = excessHeldSeconds > 0.0 ? juce::jmin (excessMinFrames, excess) : excess;
+            excessHeldSeconds += dt;
+        }
+        else
+        {
+            excessHeldSeconds = 0.0;
+        }
 
-        if (excessCount >= resyncPulls)
-            skip = juce::jlimit ((int64_t) 0, avail - need, (int64_t) (level - target));   // instantaneous, not the lagging average
+        if (excessHeldSeconds >= trimHoldSeconds)
+            skip = (int64_t) std::floor (excessMinFrames);
     }
 
     if (skip > 0)
     {
-        std::array<float*, maxChannels> a {}, b {};
-        for (int c = 0; c < numCh; ++c) { a[(size_t) c] = scratchA[(size_t) c].data(); b[(size_t) c] = scratchB[(size_t) c].data(); }
+        // Splice point: within +-6 ms of the ideal skip (never more than half the safety margin
+        // too far, and the new position must have all frames of this block).
+        const auto shift = (int64_t) (spliceShiftSeconds * inHz);
+        const int outLen = juce::jmax (1, (int) std::lround (spliceSeconds * outHz));
+        const int len = juce::jmax (8, (int) std::ceil ((double) outLen * step));
+        const int64_t lo = juce::jmax ((int64_t) 1, skip - shift);
+        const int64_t hi = juce::jmin (juce::jmin (avail - need, avail - (int64_t) len),   // compared audio is all there
+                                       skip + juce::jmin (shift, (int64_t) (0.5 * safetyFrames)));
 
-        render (a.data(), numCh, numFrames, readIndex,        frac, step);
-        render (b.data(), numCh, numFrames, readIndex + skip, frac, step);
-
-        for (int i = 0; i < numFrames; ++i)
+        if (hi >= lo)
         {
-            const double th = juce::MathConstants<double>::halfPi * (double) (i + 1) / (double) numFrames;
-            const float ga = (float) std::cos (th), gb = (float) std::sin (th);
-            for (int c = 0; c < numCh; ++c)
-                if (out[c] != nullptr)
-                    out[c][i] = ga * a[(size_t) c][i] + gb * b[(size_t) c][i];
+            double rho = 0.0;
+            const auto s = alignedSkip (juce::jlimit (lo, hi, skip), lo, hi, len, rho);
+
+            readIndex += s;
+            spliceOffset = s;
+            spliceLength = spliceRemaining = outLen;
+            spliceEqualGain = rho >= splice::equalGainFrom;
+            resyncs.fetch_add (1, std::memory_order_relaxed);
         }
 
-        readIndex += skip;
         levelEmaValid = false;   // restart the average from the trimmed level
-        excessCount = 0;
+        excessHeldSeconds = 0.0;
         sinceStartSeconds = 0.0;
-        resyncs.fetch_add (1, std::memory_order_relaxed);
-    }
-    else
-    {
-        render (out, numCh, numFrames, readIndex, frac, step);
+        resetTrend();
     }
 
+    renderOut (numFrames, step);
     applyFadeIn (numFrames, fadeLen);
 
     const double pos = frac + (double) numFrames * step;
@@ -621,6 +798,25 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
     driftAtomic.store (integral, std::memory_order_relaxed);
 }
 
+int64_t AudioBridge::alignedSkip (int64_t desired, int64_t lo, int64_t hi, int len, double& rho) noexcept
+{
+    // Mono (sum of both channels) of the audio that would play next and of the candidates.
+    rho = 0.0;
+    const int64_t span = hi - lo + len;
+    if (len > maxAlignFrames || span > maxAlignFrames || hi < lo)
+        return desired;
+
+    const float* l = ring[0].data();
+    const float* r = ring[1].data();
+    const int64_t a = readIndex & ringMask, b = (readIndex + lo) & ringMask;   // mirrored ring: contiguous
+    float* ref  = alignRef.data();
+    float* cand = alignCand.data();
+    for (int i = 0; i < len; ++i)            ref[i]  = l[a + i] + r[a + i];
+    for (int64_t i = 0; i < span; ++i)       cand[i] = l[b + i] + r[b + i];
+
+    return lo + splice::bestOffset (ref, cand, (int) (hi - lo), len, (int) (desired - lo), rho);
+}
+
 //==============================================================================
 AudioBridge::Stats AudioBridge::getStats() const noexcept
 {
@@ -631,6 +827,7 @@ AudioBridge::Stats AudioBridge::getStats() const noexcept
     s.safetyMs      = currentSafetyMs();
     s.bufferedMs    = bufferedFrames.load (std::memory_order_relaxed) * 1000.0
                         / juce::jmax (1.0, inputRate.load (std::memory_order_relaxed));
+    s.inputDelayMs  = pushLag.load (std::memory_order_relaxed) * 1000.0;
     s.correctionPpm = correctionAtomic.load (std::memory_order_relaxed) * 1.0e6;
     s.driftPpm      = driftAtomic.load (std::memory_order_relaxed) * 1.0e6;
     s.running       = runningAtomic.load (std::memory_order_relaxed);

@@ -2,22 +2,26 @@
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "audio/AudioBridge.h"
+#include "audio/InputQueue.h"
 #include "audio/Metering.h"
 #include "audio/PluginChain.h"
 #include "audio/MicVSTDeviceManager.h"
+#include "audio/RealtimeSupport.h"
 #include "audio/ScanCoordinator.h"
 #include "state/Persistence.h"
 
 // Owns the two audio devices, the plug-in graph and the bridge between them.
 //
-//   microphone (input-only WASAPI device, own MMCSS thread)
-//        -> plug-in chain (AudioProcessorGraph, processed on the microphone's thread)
+//   microphone (input-only WASAPI device, own MMCSS thread: only copies each block)
+//        -> InputQueue (lock-free FIFO, bounded backlog)
+//        -> plug-in thread (MicVST's own MMCSS thread: AudioProcessorGraph)
 //        -> AudioBridge (lock-free FIFO + drift-compensating resampler)
 //   virtual cable (output-only WASAPI device, own MMCSS thread) <- AudioBridge
 //
 // MicVST <= 1.1.1 drove both devices from ONE JUCE device (one thread, output clock): input
 // shortfalls were zero-padded, clock drift was never compensated and a processing spike went
-// straight into the output. See AudioBridge.h.
+// straight into the output. See AudioBridge.h. In 1.2.0 the plug-ins still ran on the capture
+// thread, so slow plug-in blocks overflowed Windows' small capture buffer; see InputQueue.h.
 class AudioEngine : private juce::ChangeListener,
                     private juce::Timer
 {
@@ -103,6 +107,21 @@ public:
 
     void rebuildGraph();
 
+    // Every change of the plug-in chain while audio runs (add, remove, move, bypass, restore)
+    // happens inside one of these: the processed audio fades out (5 ms), the graph is switched
+    // while the output is silent, then it fades back in. Without it the sudden jump between the
+    // old and the new sound - or a block of silence from a half-rewired graph - is a click.
+    // Message thread only; nesting is fine.
+    class ChainEdit
+    {
+    public:
+        explicit ChainEdit (AudioEngine& e) : engine (e) { engine.beginChainEdit(); }
+        ~ChainEdit() { engine.endChainEdit(); }
+    private:
+        AudioEngine& engine;
+        JUCE_DECLARE_NON_COPYABLE (ChainEdit)
+    };
+
     // Live diagnostics (UI status line, log).
     struct Diagnostics
     {
@@ -111,7 +130,11 @@ public:
         int    inputBlock = 0, outputBlock = 0;
         double dspLoadPercent = 0.0;      // average plug-in chain load (share of the block time)
         double dspPeakPercent = 0.0;      // worst block during the last second
-        uint64_t overloads = 0;           // blocks that took longer than real time
+        double backlogMs = 0.0;           // most audio waiting for the plug-ins during the last second
+        uint64_t overloads = 0;           // blocks that took longer than real time (absorbed by the queue)
+        uint64_t inputSkips = 0;          // chain fell behind > 120 ms: oldest input skipped (crossfaded)
+        double skippedMs = 0.0;
+        uint64_t inputQueueOverflows = 0; // plug-in thread stuck for > 1 s: captured blocks dropped
         int    inputDeviceXruns = 0;      // WASAPI capture discontinuities
         uint64_t watchdogRestarts = 0;
         double latencyMs = 0.0;           // estimated microphone -> cable latency
@@ -150,10 +173,10 @@ private:
         explicit InputSide (AudioEngine& e) : engine (e) {}
         void audioDeviceIOCallbackWithContext (const float* const* in, int numIn, float* const*, int,
                                                int numSamples, const juce::AudioIODeviceCallbackContext&) override
-            { engine.processInput (in, numIn, numSamples); }
+            { engine.captureInput (in, numIn, numSamples); }
         void audioDeviceAboutToStart (juce::AudioIODevice* d) override { engine.inputAboutToStart (d); }
         void audioDeviceStopped() override                             { engine.inputStopped(); }
-        void audioDeviceError (const juce::String& e) override         { juce::Logger::writeToLog ("Input device error: " + e); }
+        void audioDeviceError (const juce::String& e) override         { juce::Logger::writeToLog (juce::String::fromUTF8 ("Giriş cihazı hatası: ") + e); }
         AudioEngine& engine;
     };
     struct OutputSide final : juce::AudioIODeviceCallback
@@ -164,12 +187,27 @@ private:
             { engine.processOutput (out, numOut, numSamples); }
         void audioDeviceAboutToStart (juce::AudioIODevice* d) override { engine.outputAboutToStart (d); }
         void audioDeviceStopped() override                             { engine.outputStopped(); }
-        void audioDeviceError (const juce::String& e) override         { juce::Logger::writeToLog ("Output device error: " + e); }
+        void audioDeviceError (const juce::String& e) override         { juce::Logger::writeToLog (juce::String::fromUTF8 ("Çıkış cihazı hatası: ") + e); }
         AudioEngine& engine;
     };
 
-    void processInput (const float* const* in, int numIn, int numSamples) noexcept;
+    // MicVST's plug-in thread (MMCSS "Pro Audio", one step below the device threads).
+    struct ProcessingThread final : juce::Thread
+    {
+        explicit ProcessingThread (AudioEngine& e) : juce::Thread ("MicVST plug-in chain"), engine (e) {}
+        void run() override { engine.processingLoop(); }
+        AudioEngine& engine;
+    };
+
+    void captureInput (const float* const* in, int numIn, int numSamples) noexcept;   // capture thread
+    void processingLoop();                                                             // plug-in thread
+    void processQueuedInput() noexcept;                                                // plug-in thread
     void processOutput (float* const* out, int numOut, int numSamples) noexcept;
+    void startProcessing();
+    void stopProcessing();
+    void applyEditFade (juce::AudioBuffer<float>& block, double sampleRate) noexcept;   // plug-in thread
+    void beginChainEdit();
+    void endChainEdit();
     void inputAboutToStart (juce::AudioIODevice*);
     void inputStopped();
     void outputAboutToStart (juce::AudioIODevice*);
@@ -178,12 +216,15 @@ private:
     void changeListenerCallback (juce::ChangeBroadcaster*) override;
     void timerCallback() override;   // watchdog + diagnostics log (1 Hz)
     void openDevices (const juce::String& input, const juce::String& output, int bufferSize);
+    bool fadeOutOutput();   // before stopping/switching devices; true = the bridge now holds silence
     static double nowSeconds() noexcept;
 
     MicVSTDeviceManager inputDevices, outputDevices;
     InputSide  inputSide  { *this };
     OutputSide outputSide { *this };
     AudioBridge bridge;
+    InputQueue inputQueue;                 // capture thread -> plug-in thread
+    rt::WakeEvent processingWake;
 
     juce::AudioProcessorGraph graph;
     std::unique_ptr<PluginChain> pluginChain;
@@ -203,10 +244,25 @@ private:
     std::atomic<double>   inputRateNow { 0.0 }, outputRateNow { 0.0 };
     std::atomic<int>      inputBlockNow { 0 }, outputBlockNow { 0 };
     std::atomic<uint64_t> inputBeats { 0 }, outputBeats { 0 };
-    std::atomic<uint64_t> overloads { 0 };
-    std::atomic<double>   dspPeakPublished { 0.0 }, dspAvgPublished { 0.0 };
-    double  dspPeakWindow = 0.0, dspSumWindow = 0.0;   // input thread only
-    int     dspCountWindow = 0;                         // input thread only
+    std::atomic<uint64_t> overloads { 0 }, processedBlocks { 0 };
+    std::atomic<uint64_t> inputSkips { 0 }, skippedFrames { 0 };
+    std::atomic<double>   dspPeakPublished { 0.0 }, dspAvgPublished { 0.0 }, backlogMsPublished { 0.0 };
+    double  dspPeakWindow = 0.0, dspSumWindow = 0.0, backlogWindowMs = 0.0;   // plug-in thread only
+    int     dspCountWindow = 0;                                               // plug-in thread only
+    // For the log (cumulative, read as differences once per second by the timer)
+    std::atomic<uint64_t> busyNanos { 0 }, audioNanos { 0 };       // plug-in time / audio time processed
+    std::atomic<uint64_t> threadWallTicks { 0 }, threadCpuTicks { 0 };
+    std::atomic<double>   logPeakLoad { 0.0 }, logPeakBacklogMs { 0.0 };   // max since the last log line
+    std::atomic<bool>     processingMmcss { false };
+
+    // Chain edits (see ChainEdit)
+    static constexpr double editFadeSeconds = 0.005;
+    std::atomic<int>      chainEditDepth { 0 };
+    std::atomic<uint32_t> chainEditGeneration { 0 };
+    std::atomic<bool>     outputMutedForEdit { false };
+    float    editGain = 1.0f;          // plug-in thread only
+    int      editSettleBlocks = 0;     // plug-in thread only
+    uint32_t seenEditGeneration = 0;   // plug-in thread only
     std::atomic<uint64_t> watchdogRestarts { 0 };
 
     // Watchdog / logging state (message thread)
@@ -214,7 +270,13 @@ private:
     int      inputStallSeconds = 0, outputStallSeconds = 0;
     juce::uint32 lastRestartMs = 0;
     AudioBridge::Stats lastLoggedStats;
-    uint64_t lastLoggedOverloads = 0;
+    uint64_t lastLoggedOverloads = 0, lastLoggedBlocks = 0, lastLoggedSkips = 0, lastLoggedSkippedFrames = 0;
+    uint64_t lastLoggedQueueOverflows = 0, lastBusyNanos = 0, lastAudioNanos = 0;
+    uint64_t lastWallTicks = 0, lastCpuTicks = 0;
+    int      processingStallSeconds = 0;
+    bool     processingThreadLogged = false;
+
+    ProcessingThread processingThread { *this };   // stopped before anything above is destroyed
 
     std::unique_ptr<ScanCoordinator> scanner;
     bool rescanQueued = false;
@@ -223,6 +285,7 @@ private:
     juce::StringArray scanRoots() const;
     juce::StringArray listVst3Files() const;
     void restoreChain (const juce::Array<PluginEntryState>& plugins);
+    std::unique_ptr<juce::PluginDescription> findPluginType (const PluginEntryState&, bool warnIfAmbiguous) const;
     void handleScanFinished (const ScanOutcome&);
     void pruneOutsideFolders();
 

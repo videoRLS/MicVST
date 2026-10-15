@@ -160,6 +160,38 @@ struct PersistenceTest : juce::UnitTest
             expect (! written.hasProperty ("updateCheckEnabled"), "no update keys are written any more");
             expect (! written.hasProperty ("lastNotifiedVersion"));
         }
+
+        beginTest ("plug-in identity inside a multi-plug-in file survives a round trip");
+        {
+            // A WaveShell or an LSP bundle holds many plug-ins in ONE file; up to 1.2.0 only the
+            // file was stored and every such entry came back as the same plug-in.
+            MicVSTState m;
+            for (auto* name : { "CLA-2A Mono", "SSL E-Channel Mono" })
+            {
+                PluginEntryState e;
+                e.fileOrId = "C:/Program Files/Common Files/VST3/WaveShell1-VST3 17.4_x64.vst3";
+                e.pluginName = name;
+                e.pluginId = juce::String ("VST3-") + name + "-1a2b3c4d-5e6f7a8b";
+                e.pluginUid = juce::String (name).hashCode();
+                m.plugins.add (e);
+            }
+            const auto back = fromValueTree (juce::ValueTree::fromXml (*toValueTree (m).createXml()));
+            expectEquals (back.plugins.size(), 2);
+            for (int i = 0; i < 2; ++i)
+            {
+                expectEquals (back.plugins[i].pluginName, m.plugins[i].pluginName);
+                expectEquals (back.plugins[i].pluginId, m.plugins[i].pluginId);
+                expectEquals (back.plugins[i].pluginUid, m.plugins[i].pluginUid);
+            }
+
+            juce::ValueTree legacy ("MicVST"), list ("plugins"), entry ("plugin");   // 1.2.0 config
+            entry.setProperty ("fileOrId", "C:/VST3/Pro-Q 4.vst3", nullptr);
+            list.appendChild (entry, nullptr);
+            legacy.appendChild (list, nullptr);
+            const auto l = fromValueTree (legacy);
+            expectEquals (l.plugins.size(), 1);
+            expect (l.plugins[0].pluginId.isEmpty() && l.plugins[0].pluginName.isEmpty(), "old configs: identity empty");
+        }
     }
 };
 static PersistenceTest persistenceTest;

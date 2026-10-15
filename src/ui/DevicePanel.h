@@ -46,13 +46,13 @@ private:
     void applySafety();    // Safety-Combo -> AudioEngine (ohne Geräte-Neustart)
 
     AudioEngine& engine;
-    juce::Label    inLabel  { {}, "Input" },  outLabel { {}, "Output" };
+    juce::Label    inLabel, outLabel;     // Texte im Konstruktor (UTF-8, siehe Text.h)
     InfoIcon       inInfo, outInfo;
     juce::ComboBox inBox, outBox;
-    juce::Label    bufLabel { {}, "Buffer" };
+    juce::Label    bufLabel;
     InfoIcon       bufInfo;
     juce::ComboBox bufBox;
-    juce::Label    safetyLabel { {}, "Safety" };
+    juce::Label    safetyLabel;
     InfoIcon       safetyInfo;
     juce::ComboBox safetyBox;
     juce::Label    statusLabel;   // Active / Geräte / Latenz (immer sichtbar)

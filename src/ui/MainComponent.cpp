@@ -1,46 +1,53 @@
 #include "ui/MainComponent.h"
 #include "audio/PluginChain.h"
+#include "Text.h"
+
+using micvst::tr;
 
 namespace
 {
     juce::String howToText()
     {
-        return
-            "How to use MicVST\n"
+        return tr (
+            "MicVST nasıl kullanılır\n"
             "\n"
-            "1)  Install a virtual audio cable\n"
-            "    VB-Cable (free) is recommended: vb-audio.com/Cable. MicVST detects it automatically.\n"
+            "1)  Sanal ses kablosu kurun\n"
+            "    Ücretsiz VB-Cable önerilir: vb-audio.com/Cable. MicVST onu kendiliğinden bulur.\n"
             "\n"
-            "2)  Pick your devices (top of the window)\n"
-            "    Input   =  your microphone\n"
-            "    Output  =  the virtual cable (e.g. \"CABLE Input\")\n"
+            "2)  Cihazları seçin (pencerenin üstünde)\n"
+            "    Giriş  =  mikrofonunuz\n"
+            "    Çıkış  =  sanal kablo (ör. \"CABLE Input\")\n"
             "\n"
-            "3)  Build your plugin chain\n"
-            "    - \"+ Plugin\" opens a searchable list (grouped by manufacturer) of all VST3 effects\n"
-            "      and built-in nodes. Add effects you like (EQ, de-noise, compressor, ...).\n"
-            "    - Insert \"Mono -> Stereo\" where you want stereo (before it the chain runs\n"
-            "      mono = less CPU). \"Stereo -> Mono\" is available too. A chain that ends mono is\n"
-            "      sent to both cable channels automatically.\n"
-            "    - Drag the handle on the left to reorder; the trash icon removes (with a prompt).\n"
-            "    - Double-click a plugin to open its editor.\n"
-            "    - \"Manage VST3 Folders\" adds plugins from other locations.\n"
+            "3)  Eklenti zincirinizi kurun\n"
+            "    - \"+ Eklenti\" tüm VST3 efektlerini ve dahili araçları üreticiye göre gruplu,\n"
+            "      aranabilir bir listede açar. İstediğiniz efektleri ekleyin (EQ, gürültü\n"
+            "      giderme, kompresör...).\n"
+            "    - Stereo istediğiniz yere \"Mono -> Stereo\" ekleyin; ondan önceki kısım mono\n"
+            "      çalışır (daha az işlemci). \"Stereo -> Mono\" da vardır. Mono biten zincir\n"
+            "      kablonun iki kanalına da gönderilir.\n"
+            "    - Sıralamak için soldaki tutamağı sürükleyin; çöp kutusu siler (onay sorar).\n"
+            "    - Eklentinin penceresini açmak için adına çift tıklayın.\n"
+            "    - \"VST3 klasörleri\" başka konumlardaki eklentileri ekler.\n"
             "\n"
-            "4)  Use it in any app\n"
-            "    In Discord / OBS / Zoom / ..., select \"CABLE Output\" as the microphone.\n"
+            "4)  İstediğiniz programda kullanın\n"
+            "    Discord, OBS, Zoom vb. programlarda mikrofon olarak \"CABLE Output\" seçin.\n"
             "\n"
-            "5)  Stability\n"
-            "    Microphone and cable run on separate realtime threads with a small safety buffer\n"
-            "    between them. \"Safety\" = Auto raises the buffer by itself if the output ever runs\n"
-            "    dry (e.g. while a heavy game starts). The status lines show the latency, the CPU\n"
-            "    load of your plugin chain and every dropout.\n"
+            "5)  Kesintisiz ses\n"
+            "    Mikrofon, eklenti zinciri ve kablo ayrı ayrı çalışır; aradaki küçük güvenlik\n"
+            "    payı anlık yüklenmeleri karşılar. \"Otomatik\" bu payı gerektiğinde kendisi\n"
+            "    büyütür. Alttaki satırlar gecikmeyi, işlemci yükünü ve her kesintiyi gösterir.\n"
+            "    \"Zincir çok ağır\" yazıyorsa eklentiler o anki yükte yetişemiyordur: kalite\n"
+            "    ayarlarını (aşırı örnekleme, ileri bakış) düşürün ya da arka plandaki ağır\n"
+            "    programın önceliğini azaltın.\n"
             "\n"
-            "6)  That's it\n"
-            "    Settings are saved automatically. Closing the window keeps MicVST running in the\n"
-            "    tray (right-click the tray icon for options). Enable \"Run at startup\" to launch\n"
-            "    it silently on boot.\n"
+            "6)  Hepsi bu\n"
+            "    Ayarlar kendiliğinden kaydedilir. Pencereyi kapatınca MicVST saatin yanındaki\n"
+            "    simgede çalışmaya devam eder (seçenekler için simgeye sağ tıklayın).\n"
+            "    \"Açılışta başlat\" seçiliyse Windows açılınca sessizce başlar.\n"
             "\n"
-            "Privacy\n"
-            "    MicVST never accesses the internet: no update check, no telemetry, no web links.";
+            "Gizlilik\n"
+            "    MicVST internete hiç bağlanmaz: güncelleme denetimi, veri toplama ya da\n"
+            "    web bağlantısı yoktur.");
     }
 
     // Inhalt des How-To-Fensters: nur Anleitungstext (keine klickbaren Links mehr - MicVST
@@ -74,17 +81,20 @@ namespace
     {
     public:
         HowToWindow()
-            : juce::DocumentWindow ("MicVST - How To", juce::Colours::darkgrey,
+            : juce::DocumentWindow (MainComponent::howToTitle(), juce::Colours::darkgrey,
                                     juce::DocumentWindow::closeButton)
         {
             setUsingNativeTitleBar (true);
-            setContentOwned (new HowToContent(), false);
+            setContentOwned (MainComponent::createHowToContent().release(), false);
             setResizable (true, false);
             centreWithSize (580, 600);
         }
         void closeButtonPressed() override { setVisible (false); }
     };
 }
+
+juce::String MainComponent::howToTitle()                         { return tr ("MicVST - Kullanım"); }
+std::unique_ptr<juce::Component> MainComponent::createHowToContent() { return std::make_unique<HowToContent>(); }
 
 MainComponent::MainComponent (AudioEngine& e) : engine (e)
 {
@@ -93,6 +103,8 @@ MainComponent::MainComponent (AudioEngine& e) : engine (e)
     addAndMakeVisible (inMeter);
     addAndMakeVisible (outMeter);
     addAndMakeVisible (dbScale);
+    inLabel.setText (tr ("Giriş"), juce::dontSendNotification);
+    outLabel.setText (tr ("Çıkış"), juce::dontSendNotification);
     addAndMakeVisible (inLabel);
     addAndMakeVisible (outLabel);
     inLabel.setJustificationType (juce::Justification::centredLeft);
@@ -102,21 +114,23 @@ MainComponent::MainComponent (AudioEngine& e) : engine (e)
     addAndMakeVisible (*pluginList);
 
     addAndMakeVisible (howToBtn);
-    howToBtn.setTooltip ("Quick setup guide");
+    howToBtn.setButtonText (tr ("Kullanım"));
+    howToBtn.setTooltip (tr ("Hızlı kurulum rehberi"));
     howToBtn.onClick = [this] { showHowTo(); };
 
     versionLabel.setText ("v" + juce::JUCEApplication::getInstance()->getApplicationVersion(), juce::dontSendNotification);
     versionLabel.setColour (juce::Label::textColourId, juce::Colours::grey);
-    versionLabel.setTooltip ("MicVST works fully offline (no network access)");
+    versionLabel.setTooltip (tr ("MicVST tamamen çevrimdışı çalışır (internete bağlanmaz)"));
     versionLabel.setJustificationType (juce::Justification::centredLeft);
     addAndMakeVisible (versionLabel);
 
     addAndMakeVisible (autostartToggle);
-    autostartToggle.setTooltip ("Launch MicVST silently into the tray when Windows starts");
+    autostartToggle.setButtonText (tr ("Açılışta başlat"));
+    autostartToggle.setTooltip (tr ("Windows açılınca MicVST'yi pencere açmadan, simge olarak başlatır"));
     autostartToggle.setToggleState (AutostartRegistry::isEnabled(), juce::dontSendNotification);
     autostartToggle.onClick = [this] { AutostartRegistry::setEnabled (autostartToggle.getToggleState()); };
 
-    cableHint.setText ("No virtual audio cable found - install VB-Cable (vb-audio.com/Cable) and restart MicVST",
+    cableHint.setText (tr ("Sanal ses kablosu bulunamadı - VB-Cable kurun (vb-audio.com/Cable) ve MicVST'yi yeniden başlatın"),
                        juce::dontSendNotification);
     cableHint.setColour (juce::Label::textColourId, juce::Colours::orange);
     cableHint.setJustificationType (juce::Justification::centredLeft);

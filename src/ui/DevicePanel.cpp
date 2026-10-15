@@ -1,35 +1,43 @@
 #include "ui/DevicePanel.h"
+#include "Text.h"
+
+using micvst::tr;
 
 DevicePanel::DevicePanel (AudioEngine& e) : engine (e)
 {
+    inLabel.setText (tr ("Giriş"), juce::dontSendNotification);
+    outLabel.setText (tr ("Çıkış"), juce::dontSendNotification);
+    bufLabel.setText (tr ("Tampon"), juce::dontSendNotification);
+    safetyLabel.setText (tr ("Güvenlik payı"), juce::dontSendNotification);
     for (auto* l : { &inLabel, &outLabel })
         l->setJustificationType (juce::Justification::centredLeft);
+    for (auto* b : { &inBox, &outBox, &bufBox, &safetyBox })
+        b->setTextWhenNoChoicesAvailable (tr ("(seçenek yok)"));
 
     addAndMakeVisible (inLabel);  addAndMakeVisible (inBox);
     addAndMakeVisible (outLabel); addAndMakeVisible (outBox);
 
-    inInfo.setTooltip ("Select your microphone here");
-    outInfo.setTooltip ("Select \"CABLE Input\" here, "
-                        "and choose \"CABLE Output\" as the microphone in Discord etc.");
+    inInfo.setTooltip (tr ("Mikrofonunuzu buradan seçin."));
+    outInfo.setTooltip (tr ("Buradan \"CABLE Input\" seçin; Discord, OBS gibi programlarda "
+                            "mikrofon olarak \"CABLE Output\" seçin."));
     addAndMakeVisible (inInfo);
     addAndMakeVisible (outInfo);
 
-    bufInfo.setTooltip ("Buffer size in samples. Smaller = lower latency, higher CPU risk. "
-                        "\"Auto\" uses the device default. Only shown when the devices "
-                        "support multiple sizes (low-latency mode).");
+    bufInfo.setTooltip (tr ("Ses bloklarının boyutu. Küçük değer: daha az gecikme ama işlemciye "
+                            "daha çok yük. \"Otomatik\" cihazın kendi değerini kullanır."));
     addChildComponent (bufLabel); addChildComponent (bufBox); addChildComponent (bufInfo);
     bufLabel.setJustificationType (juce::Justification::centredLeft);
     bufBox.onChange = [this] { apply(); };
 
     // Sicherheitspuffer zwischen Mikrofon und Kabel (AudioBridge) - immer sichtbar. Ändern
     // öffnet die Geräte nicht neu.
-    safetyInfo.setTooltip ("Audio kept in reserve between microphone and cable. It absorbs CPU spikes "
-                           "(heavy games, rendering) without crackles. \"Auto\" starts at 10 ms and "
-                           "adds 5 ms whenever the output ever runs dry. Larger = more robust, a few ms "
-                           "more latency.");
+    safetyInfo.setTooltip (tr ("Mikrofonla kablo arasında yedekte tutulan ses. Ağır oyun veya video "
+                               "işleme gibi anlık yüklerde çıtırtıyı önler. \"Otomatik\" 10 ms ile "
+                               "başlar, ses kesilirse kendiliğinden artar. Büyük değer: daha sağlam, "
+                               "biraz daha fazla gecikme."));
     safetyLabel.setJustificationType (juce::Justification::centredLeft);
     addAndMakeVisible (safetyLabel); addAndMakeVisible (safetyBox); addAndMakeVisible (safetyInfo);
-    safetyBox.addItem ("Auto (recommended)", 1);
+    safetyBox.addItem (tr ("Otomatik (önerilen)"), 1);
     for (int i = 0; i < (int) std::size (AudioEngine::safetyChoicesMs); ++i)
         safetyBox.addItem (juce::String (AudioEngine::safetyChoicesMs[i]) + " ms", i + 2);
     safetyBox.onChange = [this] { applySafety(); };
@@ -91,7 +99,7 @@ void DevicePanel::refresh()
     if (auto* type = outDm.getCurrentDeviceTypeObject())
     {
         const auto outName = outDm.getAudioDeviceSetup().outputDeviceName;
-        outBox.addItem ("(none)", 1);   // leerer Output-Name = kein Host-Output
+        outBox.addItem (tr ("(yok)"), 1);   // leerer Output-Name = kein Host-Output
         const auto outs = type->getDeviceNames (false);
         for (int i = 0; i < outs.size(); ++i) outBox.addItem (outs[i], i + 2);
         const int so = outs.indexOf (outName);
@@ -108,10 +116,10 @@ void DevicePanel::refresh()
     if (showBuf)
     {
         const double sr = dev->getCurrentSampleRate() > 0.0 ? dev->getCurrentSampleRate() : 48000.0;
-        bufBox.addItem ("Auto (default)", 1);
+        bufBox.addItem (tr ("Otomatik (varsayılan)"), 1);
         for (int i = 0; i < sizes.size(); ++i)
-            bufBox.addItem (juce::String (sizes[i]) + " samples ("
-                                + juce::String (sizes[i] / sr * 1000.0, 1) + " ms)", i + 2);
+            bufBox.addItem (juce::String (sizes[i]) + tr (" örnek (")
+                                + micvst::trNumber (sizes[i] / sr * 1000.0, 1) + " ms)", i + 2);
         const int pref = engine.getPreferredBufferSize();
         const int idx = sizes.indexOf (pref);
         bufBox.setSelectedId (pref > 0 && idx >= 0 ? idx + 2 : 1, juce::dontSendNotification);
@@ -150,33 +158,48 @@ void DevicePanel::updateStatus()
 
     // Zeile 1: Geräte + Ende-zu-Ende-Latenz durch MicVST (Geräte-Latenz In+Out, Plugin-Latenz
     // des Graphen, Resampler und der tatsächlich gepufferte Vorrat der Bridge).
-    juce::String st = engine.isRunning() ? juce::String ("Active")
-                                         : juce::String ("Idle - device disconnected");
+    juce::String st = engine.isRunning() ? tr ("Çalışıyor")
+                                         : tr ("Durdu - cihaz bağlı değil");
     if (d.inputRate > 0.0)
-        st << "   |   mic " << juce::String (d.inputRate, 0) << " Hz / " << d.inputBlock;
+        st << "  |  " << tr ("mikrofon ") << juce::roundToInt (d.inputRate) << " Hz / " << d.inputBlock;
     if (d.outputSelected && d.outputRate > 0.0)
-        st << "   |   cable " << juce::String (d.outputRate, 0) << " Hz / " << d.outputBlock;
+        st << "  |  " << tr ("kablo ") << juce::roundToInt (d.outputRate) << " Hz / " << d.outputBlock;
     if (d.latencyMs > 0.0)
-        st << "   |   latency " << juce::String (d.latencyMs, 1) << " ms";
+        st << "  |  " << tr ("gecikme ") << micvst::trNumber (d.latencyMs, 1) << " ms";
     statusLabel.setText (st, juce::dontSendNotification);
 
-    // Zeile 2: CPU-Last der Plugin-Kette, Sicherheitspuffer, Taktdrift und JEDER Aussetzer
-    // (orange, sobald einer auftrat; Tooltip schlüsselt die Ursachen auf).
-    const auto dropouts = d.bridge.underruns + d.overloads + (uint64_t) d.inputDeviceXruns;
+    // Zeile 2: CPU-Last der Plugin-Kette, Sicherheitspuffer, Taktdrift und JEDER hörbare Aussetzer
+    // (orange, sobald einer auftrat; Tooltip schlüsselt die Ursachen auf). Einzelne zu langsame
+    // Plugin-Blöcke sind seit 1.2.1 kein Aussetzer mehr (die Eingangs-Warteschlange fängt sie ab)
+    // und stehen nur im Tooltip; im Mittel über 100 % = die Kette ist für die aktuelle Last zu schwer.
+    const auto dropouts = d.bridge.underruns + d.inputSkips + d.inputQueueOverflows + (uint64_t) d.inputDeviceXruns;
+    const bool tooHeavy = d.dspLoadPercent >= 100.0;
     juce::String s2;
-    s2 << "CPU " << juce::String (d.dspLoadPercent, 0) << " % (peak " << juce::String (d.dspPeakPercent, 0) << " %)";
+    s2 << tr ("İşlemci ") << micvst::trPercent (d.dspLoadPercent)
+       << tr (" (tepe ") << micvst::trPercent (d.dspPeakPercent) << ")";
+    if (tooHeavy)
+        s2 << tr (" - zincir çok ağır");
     if (d.outputSelected)
-        s2 << "   |   safety " << juce::String (d.bridge.safetyMs, 0) << " ms"
-           << (engine.getSafetyBufferMs() == 0 ? " (auto)" : "")
-           << "   |   drift " << (d.bridge.driftPpm >= 0 ? "+" : "") << juce::String (d.bridge.driftPpm, 0) << " ppm";
-    s2 << "   |   dropouts " << juce::String ((juce::int64) dropouts);
+        s2 << "  |  " << tr ("güvenlik payı ") << juce::roundToInt (d.bridge.safetyMs) << " ms"
+           << (engine.getSafetyBufferMs() == 0 ? tr (" (otomatik)") : juce::String());
+    s2 << "  |  " << tr ("kesinti ") << juce::String ((juce::int64) dropouts);
     statsLabel.setText (s2, juce::dontSendNotification);
-    statsLabel.setColour (juce::Label::textColourId, dropouts > 0 ? juce::Colours::orange : juce::Colours::grey);
-    statsLabel.setTooltip ("Output ran dry: " + juce::String ((juce::int64) d.bridge.underruns)
-                           + "   |   plug-in chain slower than real time: " + juce::String ((juce::int64) d.overloads)
-                           + "   |   microphone driver gaps: " + juce::String (d.inputDeviceXruns)
-                           + "   |   latency trims: " + juce::String ((juce::int64) d.bridge.resyncs)
-                           + "   |   device restarts: " + juce::String ((juce::int64) d.watchdogRestarts));
+    statsLabel.setColour (juce::Label::textColourId, tooHeavy ? juce::Colours::orangered
+                                                   : dropouts > 0 ? juce::Colours::orange : juce::Colours::grey);
+
+    juce::String tip;
+    tip << tr ("Çıkışta ses kesildi: ") << (juce::int64) d.bridge.underruns << "\n"
+        << tr ("Zincir yetişemedi, ses atlandı: ") << (juce::int64) d.inputSkips;
+    if (d.inputSkips > 0)
+        tip << " (" << juce::roundToInt (d.skippedMs) << " ms)";
+    tip << "\n" << tr ("Mikrofon sürücüsünde kayıp: ") << d.inputDeviceXruns
+        << "\n" << tr ("Eklenti işleme takıldı: ") << (juce::int64) d.inputQueueOverflows
+        << "\n" << tr ("Gecikme düzeltmesi: ") << (juce::int64) d.bridge.resyncs
+        << "\n" << tr ("Cihaz yeniden açıldı: ") << (juce::int64) d.watchdogRestarts
+        << "\n" << tr ("Geç kalan eklenti bloğu (kesinti olmadan telafi edildi): ") << (juce::int64) d.overloads
+        << "\n" << tr ("Saat farkı mikrofon/kablo: ") << (d.bridge.driftPpm >= 0 ? "+" : "")
+        << juce::roundToInt (d.bridge.driftPpm) << " ppm";
+    statsLabel.setTooltip (tip);
 }
 
 void DevicePanel::apply()
@@ -225,7 +248,8 @@ void DevicePanel::applySafety()
 
 void DevicePanel::resized()
 {
-    constexpr int rowH = 26, statusH = 20, labelW = 84, gap = 4;
+    // labelW: Platz für das längste türkische Label ("Güvenlik payı") plus "?"-Icon.
+    constexpr int rowH = 26, statusH = 20, labelW = 118, gap = 4;
     auto r = getLocalBounds();
 
     auto row = [&] (int h)

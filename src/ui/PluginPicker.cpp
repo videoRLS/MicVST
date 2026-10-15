@@ -1,10 +1,13 @@
 #include "ui/PluginPicker.h"
+#include "Text.h"
+
+using micvst::tr;
 
 PluginPickerComponent::PluginPickerComponent (juce::Array<juce::PluginDescription> plugins,
                                               std::function<void (const juce::PluginDescription&)> onChosenIn)
     : all (std::move (plugins)), onChosen (std::move (onChosenIn))
 {
-    searchBox.setTextToShowWhenEmpty ("Search plugins...", juce::Colours::grey);
+    searchBox.setTextToShowWhenEmpty (tr ("Eklenti ara..."), juce::Colours::grey);
     searchBox.setFont (juce::Font (juce::FontOptions (14.0f)));
     searchBox.onTextChange = [this] { rebuildItems(); };
     searchBox.addKeyListener (this);
@@ -45,7 +48,7 @@ void PluginPickerComponent::rebuildItems()
         if (grouped && d.manufacturerName != lastManu)
         {
             lastManu = d.manufacturerName;
-            items.push_back ({ true, lastManu.isEmpty() ? "(unknown)" : lastManu, -1 });
+            items.push_back ({ true, lastManu.isEmpty() ? tr ("(bilinmiyor)") : lastManu, -1 });
         }
         items.push_back ({ false, grouped ? d.name : d.name + "  -  " + d.manufacturerName, i });
     }

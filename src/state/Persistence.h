@@ -7,6 +7,10 @@ struct PluginEntryState
     juce::String fileOrId;
     bool bypassed = false;
     juce::MemoryBlock state;   // getStateInformation()-Blob
+    // Identität des Plugins in seiner Datei (ab 1.2.1; fehlt in älteren config.xml):
+    // PluginDescription::createIdentifierString(), Name und uniqueId.
+    juce::String pluginId, pluginName;
+    int pluginUid = 0;
 };
 
 struct MicVSTState

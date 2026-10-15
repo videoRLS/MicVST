@@ -5,6 +5,9 @@
 #include "state/AutostartRegistry.h"
 #include "ui/MainComponent.h"
 #include "ui/TrayIcon.h"
+#include "Text.h"
+
+using micvst::tr;
 
 #if JUCE_WINDOWS
  // Bewusst kein <windows.h>: das Header pollutet nachfolgende JUCE-Header (Makrokonflikte
@@ -34,6 +37,42 @@ static unsigned int findTypesWithSehGuard (juce::VST3PluginFormat& format,
     }
 }
 #endif
+
+// %APPDATA%\MicVST\log.txt: Türkischer Kopf, Uhrzeit vor jeder Zeile (Ereignisse lassen sich so
+// zeitlich zuordnen), jede Zeile sofort geschrieben (übersteht einen Absturz), beim Start auf
+// die neuesten 256 KB gekürzt. Ersetzt juce::FileLogger (englischer Kopf, keine Uhrzeiten).
+class MicVSTLogger final : public juce::Logger
+{
+public:
+    explicit MicVSTLogger (const juce::File& f)
+    {
+        f.getParentDirectory().createDirectory();
+        juce::FileLogger::trimFileSize (f, 256 * 1024);
+        stream = std::make_unique<juce::FileOutputStream> (f);   // hängt ans Dateiende an
+        if (stream->failedToOpen())
+            stream.reset();
+        write ("\n**********************************************************\n"
+               + tr ("MicVST günlüğü - başlangıç: ") + juce::Time::getCurrentTime().formatted ("%d.%m.%Y %H:%M:%S") + "\n");
+    }
+
+    void logMessage (const juce::String& message) override
+    {
+        write ("[" + juce::Time::getCurrentTime().formatted ("%H:%M:%S") + "] " + message + "\n");
+    }
+
+private:
+    void write (const juce::String& text)
+    {
+        const juce::ScopedLock sl (lock);
+        if (stream == nullptr)
+            return;
+        stream->writeText (text, false, false, "\r\n");   // UTF-8, Windows-Zeilenenden
+        stream->flush();
+    }
+
+    std::unique_ptr<juce::FileOutputStream> stream;
+    juce::CriticalSection lock;
+};
 
 class MicVSTApplication : public juce::JUCEApplication
 {
@@ -100,20 +139,23 @@ public:
             return;
         }
 
+        // Türkische Texte auch für JUCEs eigene Beschriftungen (Dialog-Buttons, Kontextmenü des
+        // Suchfelds) - vor dem Aufbau jeder Oberfläche.
+        micvst::installTurkishTranslations();
+
         auto logFile = juce::File::getSpecialLocation (juce::File::userApplicationDataDirectory)
                           .getChildFile ("MicVST").getChildFile ("log.txt");
-        logFile.getParentDirectory().createDirectory();
-        logger.reset (new juce::FileLogger (logFile, "MicVST Log"));
+        logger = std::make_unique<MicVSTLogger> (logFile);
         juce::Logger::setCurrentLogger (logger.get());
         juce::Logger::writeToLog ("MicVST " + getApplicationVersion() + " (" + juce::SystemStats::getJUCEVersion()
-                                  + ", no network access)");
+                                  + tr (", internet erişimi yok)"));
 
         // Echtzeit-Prozess: Windows darf den (oft nur im Tray laufenden) Audio-Prozess nicht als
         // Hintergrundarbeit drosseln (EcoQoS / Timer-Drosselung), Priorität "über normal".
         const auto rtSetup = rt::configureRealtimeProcess();
-        juce::Logger::writeToLog (juce::String ("Process: priority above normal ") + (rtSetup.priorityRaised ? "ok" : "FAILED")
-                                  + ", power throttling off " + (rtSetup.executionThrottlingOff ? "ok" : "n/a")
-                                  + ", timer throttling off " + (rtSetup.timerThrottlingOff ? "ok" : "n/a"));
+        juce::Logger::writeToLog (tr ("İşlem: öncelik normalin üstü ") + (rtSetup.priorityRaised ? tr ("tamam") : tr ("BAŞARISIZ"))
+                                  + tr (", güç kısıtlaması kapalı ") + (rtSetup.executionThrottlingOff ? tr ("tamam") : tr ("desteklenmiyor"))
+                                  + tr (", zamanlayıcı kısıtlaması kapalı ") + (rtSetup.timerThrottlingOff ? tr ("tamam") : tr ("desteklenmiyor")));
 
         const bool silent = commandLine.contains ("--tray");
 
@@ -135,8 +177,8 @@ public:
             // gefunden -> Output bleibt leer ("none"), die UI weist auf den Download hin.
             state.outputDevice = engine->detectCableOutput();
             juce::Logger::writeToLog (state.outputDevice.isEmpty()
-                ? "No virtual cable found -> output 'none'"
-                : "Host output (cable) = " + state.outputDevice);
+                ? tr ("Sanal kablo bulunamadı -> çıkış 'yok'")
+                : tr ("Çıkış (kablo) = ") + state.outputDevice);
 
             // Input: System-Standardmikrofon, sonst erstes verfügbares Eingangsgerät.
             auto& dm = engine->getInputDeviceManager();
@@ -149,7 +191,7 @@ public:
                 state.inputDevice = juce::isPositiveAndBelow (def, ins.size()) ? ins[def]
                                   : (ins.isEmpty() ? juce::String() : ins[0]);
             }
-            juce::Logger::writeToLog ("Input = " + state.inputDevice);
+            juce::Logger::writeToLog (tr ("Giriş = ") + state.inputDevice);
         }
         engine->applyState (state);
 
@@ -224,7 +266,7 @@ private:
         AudioEngine::pluginCacheFile().deleteFile();
         juce::File::getSpecialLocation (juce::File::userApplicationDataDirectory)
             .getChildFile ("MicVST").getChildFile ("tray_hint_shown").deleteFile();
-        juce::Logger::writeToLog ("Factory-Reset: Daten gelöscht, App beendet sich");
+        juce::Logger::writeToLog (tr ("Sıfırlama: tüm veriler silindi, program kapanıyor"));
         systemRequestedQuit();
     }
 
@@ -246,7 +288,7 @@ private:
                         .getChildFile ("MicVST").getChildFile ("tray_hint_shown");
         if (marker.existsAsFile()) return;
         marker.create();
-        tray->showInfoBubble ("MicVST", "Still running in the tray - right-click the icon for options.");
+        tray->showInfoBubble ("MicVST", tr ("MicVST arka planda çalışmaya devam ediyor. Seçenekler için simgeye sağ tıklayın."));
     }
 
     class MainWindow : public juce::DocumentWindow
@@ -278,7 +320,7 @@ private:
         MainComponent* content = nullptr;   // gehört dem Fenster (setContentOwned), nur Zugriffszeiger
     };
 
-    std::unique_ptr<juce::FileLogger> logger;
+    std::unique_ptr<MicVSTLogger> logger;
     std::unique_ptr<AudioEngine> engine;
     std::unique_ptr<MainWindow> mainWindow;
     std::unique_ptr<TrayIcon> tray;

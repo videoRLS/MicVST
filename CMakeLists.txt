@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(MicVST VERSION 1.2.0 LANGUAGES C CXX)
+project(MicVST VERSION 1.2.1 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -47,6 +47,7 @@ add_library(MicVSTCore STATIC
     src/state/Persistence.cpp
     src/state/PluginScanCache.cpp
     src/ui/PluginSearch.cpp
+    src/Text.cpp
 )
 target_compile_features(MicVSTCore PUBLIC cxx_std_17)
 target_include_directories(MicVSTCore PUBLIC src)
@@ -112,6 +113,7 @@ target_sources(MicVSTTests PRIVATE
     tests/ScanTests.cpp
     tests/PickerTests.cpp
     tests/BridgeTests.cpp
+    tests/TextTests.cpp
 )
 target_include_directories(MicVSTTests PRIVATE tests)
 target_compile_definitions(MicVSTTests PRIVATE
@@ -135,6 +137,39 @@ target_link_libraries(MicVSTStress PRIVATE
     MicVSTCore
     juce::juce_core
     juce::juce_audio_basics
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_warning_flags
+)
+
+# --- UI snapshots (CI): the real windows rendered with the Windows fonts into PNG files, to check
+# the Turkish texts (fit, characters). Uses two test devices instead of WASAPI (CI machines have
+# no audio hardware): tests/snapshot/audio/MicVSTDeviceManager.h shadows the real one.
+juce_add_console_app(MicVSTSnapshot PRODUCT_NAME "MicVSTSnapshot")
+target_sources(MicVSTSnapshot PRIVATE
+    tests/SnapshotMain.cpp
+    src/audio/AudioEngine.cpp
+    src/audio/PluginChain.cpp
+    src/ui/MainComponent.cpp
+    src/ui/DevicePanel.cpp
+    src/ui/PluginListView.cpp
+    src/ui/PluginPicker.cpp
+    src/ui/LevelMeterComponent.cpp
+    src/state/AutostartRegistry.cpp
+)
+target_include_directories(MicVSTSnapshot BEFORE PRIVATE tests/snapshot)
+target_compile_definitions(MicVSTSnapshot PRIVATE
+    MICVST_VERSION_STRING="${PROJECT_VERSION}"
+    JUCE_PLUGINHOST_VST3=1
+    JUCE_USE_CURL=0
+    JUCE_WEB_BROWSER=0
+    JUCE_USE_WIN_WEBVIEW2=0
+)
+target_link_libraries(MicVSTSnapshot PRIVATE
+    MicVSTCore
+    juce::juce_audio_devices
+    juce::juce_audio_utils
+    juce::juce_gui_basics
+    juce::juce_gui_extra
     juce::juce_recommended_config_flags
     juce::juce_recommended_warning_flags
 )

@@ -110,7 +110,8 @@ bool PluginChain::addPlugin (juce::AudioPluginFormatManager& fm,
     auto node = graph.addNode (std::move (instance));
     if (node == nullptr) { errorOut = "addNode failed"; return false; }
 
-    chain.push_back ({ node->nodeID, desc.fileOrIdentifier, false });
+    chain.push_back ({ node->nodeID, desc.fileOrIdentifier, false,
+                       desc.createIdentifierString(), desc.name, desc.uniqueId });
     return true;
 }
 
@@ -131,7 +132,10 @@ void PluginChain::addStereoToMono()
 void PluginChain::removePlugin (int index)
 {
     if (! juce::isPositiveAndBelow (index, (int) chain.size())) return;
-    graph.removeNode (chain[(size_t) index].node);
+    // Ohne sofortigen Umbau: sonst liefe bis zum folgenden rebuildConnections() ein Graph mit
+    // durchtrennter Kette (= Stille). Der laufende Render-Ablauf hält den Knoten per Node::Ptr
+    // am Leben, bis der neue Ablauf übernommen ist.
+    graph.removeNode (chain[(size_t) index].node, juce::AudioProcessorGraph::UpdateKind::none);
     chain.erase (chain.begin() + index);
 }
 

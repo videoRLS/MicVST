@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 
 // Small OS-level helpers for realtime audio. Deliberately free of JUCE and <windows.h> in the
 // header (windows.h pollutes JUCE headers with macros), implemented in RealtimeSupport.cpp.
@@ -23,4 +24,46 @@ namespace rt
     // Called at the start of every audio callback; does its work once per thread. Opts the
     // audio thread out of power throttling (complements the MMCSS registration done by JUCE).
     void configureAudioThread() noexcept;
+
+    // MicVST's own plug-in thread, for its whole lifetime (create it first thing in the thread):
+    // MMCSS "Pro Audio" one step below the WASAPI device threads (those run at HIGH, so the light
+    // capture/output work always gets in first), plus the power-throttling opt-out. If MMCSS
+    // refuses, the thread keeps the time-critical priority it was started with.
+    class ProcessingThreadSetup
+    {
+    public:
+        ProcessingThreadSetup() noexcept;
+        ~ProcessingThreadSetup() noexcept;
+        bool mmcssActive() const noexcept { return handle != nullptr; }
+
+    private:
+        void* handle = nullptr;
+        ProcessingThreadSetup (const ProcessingThreadSetup&) = delete;
+        ProcessingThreadSetup& operator= (const ProcessingThreadSetup&) = delete;
+    };
+
+    // Auto-reset event that wakes the plug-in thread when the capture thread has queued audio.
+    // signal() is realtime-safe on Windows (SetEvent); the POSIX fallback (used by the tests on
+    // Linux) takes a mutex for a few instructions.
+    class WakeEvent
+    {
+    public:
+        WakeEvent();
+        ~WakeEvent();
+        void signal() noexcept;
+        bool wait (int timeoutMs) noexcept;   // true = signalled, false = timed out
+
+    private:
+        void* impl = nullptr;
+        WakeEvent (const WakeEvent&) = delete;
+        WakeEvent& operator= (const WakeEvent&) = delete;
+    };
+
+    // Wall-clock time and CPU time of the calling thread in one common unit. Over a busy period,
+    // dCpu / dWall = the share of that period the thread actually ran on a CPU; the rest it was
+    // runnable but waiting (pre-empted by drivers (DPC/ISR) or by higher-priority threads).
+    // Windows x64: time-stamp counter and QueryThreadCycleTime (both TSC ticks); Linux:
+    // nanoseconds. Both zero where this is not available.
+    struct ThreadTimes { uint64_t wall = 0, cpu = 0; };
+    ThreadTimes threadTimes() noexcept;
 }

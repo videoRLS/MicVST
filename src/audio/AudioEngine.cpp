@@ -1,5 +1,8 @@
 #include "audio/AudioEngine.h"
 #include "audio/RealtimeSupport.h"
+#include "Text.h"
+
+using micvst::tr;
 using IOProc = juce::AudioProcessorGraph::AudioGraphIOProcessor;
 
 namespace
@@ -42,9 +45,15 @@ namespace
 
     juce::String describe (juce::AudioIODevice* d)
     {
-        if (d == nullptr) return "(none)";
-        return "'" + d->getName() + "' " + juce::String (d->getCurrentSampleRate(), 0) + " Hz, buffer "
+        if (d == nullptr) return tr ("(yok)");
+        return "'" + d->getName() + "' " + juce::String (juce::roundToInt (d->getCurrentSampleRate())) + tr (" Hz, tampon ")
              + juce::String (d->getCurrentBufferSizeSamples());
+    }
+
+    void storeMax (std::atomic<double>& a, double v) noexcept
+    {
+        auto current = a.load (std::memory_order_relaxed);
+        while (v > current && ! a.compare_exchange_weak (current, v, std::memory_order_relaxed)) {}
     }
 }
 
@@ -63,12 +72,14 @@ AudioEngine::AudioEngine()
 AudioEngine::~AudioEngine()
 {
     stopTimer();
+    fadeOutOutput();   // no click on the cable when MicVST quits
     inputDevices.removeChangeListener (this);
     outputDevices.removeChangeListener (this);
     inputDevices.removeAudioCallback (&inputSide);
     outputDevices.removeAudioCallback (&outputSide);
     inputDevices.closeAudioDevice();
     outputDevices.closeAudioDevice();
+    stopProcessing();
     graph.releaseResources();
 }
 
@@ -85,7 +96,7 @@ bool AudioEngine::isRunning() const
 void AudioEngine::changeListenerCallback (juce::ChangeBroadcaster*)
 {
     // A device came or went: AudioDeviceManager restores the stored setup by name itself.
-    juce::Logger::writeToLog (isRunning() ? "Audio: running" : "Audio: idle (device disconnected?)");
+    juce::Logger::writeToLog (isRunning() ? tr ("Ses: çalışıyor") : tr ("Ses: durdu (cihaz bağlı değil mi?)"));
     if (onStatusChanged) onStatusChanged();
     if (onDeviceChanged) onDeviceChanged();
 }
@@ -135,8 +146,8 @@ void AudioEngine::openDevices (const juce::String& input, const juce::String& ou
         if (dm.getCurrentAudioDevice() == nullptr && name.isNotEmpty() && present
              && dm.getCurrentAudioDeviceType() == MicVSTDeviceManager::lowLatencyTypeName)
         {
-            juce::Logger::writeToLog ("'" + name + "' does not open in low-latency mode (" + err.upToFirstOccurrenceOf ("\n", false, false)
-                                      + ") - retrying in shared mode");
+            juce::Logger::writeToLog ("'" + name + tr ("' düşük gecikme modunda açılmadı (") + err.upToFirstOccurrenceOf ("\n", false, false)
+                                      + tr (") - paylaşımlı modda yeniden deneniyor"));
             dm.setCurrentAudioDeviceType (MicVSTDeviceManager::sharedTypeName, true);
             err = dm.setAudioDeviceSetup (makeSetup(), true);
         }
@@ -148,15 +159,16 @@ void AudioEngine::openDevices (const juce::String& input, const juce::String& ou
     const auto outErr = open (outputDevices, output, false,
                               [&] { return outputOnlySetup (outputDevices, output, preferredInputRate, bufferSize); });
 
-    juce::Logger::writeToLog ("Setup: input " + describe (inputDevices.getCurrentAudioDevice())
+    juce::Logger::writeToLog (tr ("Kurulum: giriş ") + describe (inputDevices.getCurrentAudioDevice())
                               + (inErr.isNotEmpty() ? " [" + inErr + "]" : juce::String())
-                              + " | output " + describe (outputDevices.getCurrentAudioDevice())
+                              + tr (" | çıkış ") + describe (outputDevices.getCurrentAudioDevice())
                               + (outErr.isNotEmpty() ? " [" + outErr + "]" : juce::String()));
 }
 
 juce::String AudioEngine::initialise (const juce::String& inputDeviceName,
                                       const juce::String& outputDeviceName)
 {
+    fadeOutOutput();   // both devices are closed below; reopening the output fades in again
     inputDevices.removeAudioCallback (&inputSide);    // idempotent: no double registration
     outputDevices.removeAudioCallback (&outputSide);
     inputDevices.closeAudioDevice();
@@ -168,6 +180,7 @@ juce::String AudioEngine::initialise (const juce::String& inputDeviceName,
     // (device not there yet / reconnect).
     openDevices (inputDeviceName, outputDeviceName, preferredBufferSize);
 
+    stopProcessing();   // (normally already stopped with the input callback) - never clear a live graph
     graph.clear();
     auto inNode  = graph.addNode (std::make_unique<IOProc> (IOProc::audioInputNode));
     auto outNode = graph.addNode (std::make_unique<IOProc> (IOProc::audioOutputNode));
@@ -181,9 +194,9 @@ juce::String AudioEngine::initialise (const juce::String& inputDeviceName,
 
     juce::String err;
     if (inputDevices.getCurrentAudioDevice() == nullptr && inputDeviceName.isNotEmpty())
-        err = "Couldn't open the input device '" + inputDeviceName + "'";
+        err = tr ("Giriş cihazı açılamadı: '") + inputDeviceName + "'";
     if (outputDevices.getCurrentAudioDevice() == nullptr && outputDeviceName.isNotEmpty())
-        err << (err.isEmpty() ? "" : " / ") << "Couldn't open the output device '" << outputDeviceName << "'";
+        err << (err.isEmpty() ? "" : " / ") << tr ("Çıkış cihazı açılamadı: '") << outputDeviceName << "'";
     return err;
 }
 
@@ -191,8 +204,37 @@ void AudioEngine::setDeviceConfig (const juce::String& input, const juce::String
                                    double sampleRate, int bufferSize)
 {
     if (sampleRate > 0.0) preferredInputRate = sampleRate;
+    const bool held = fadeOutOutput();   // the output may be restarted: fade out first
     openDevices (input, output, bufferSize);
-    rebuildGraph();   // the input node's channel count may have changed
+    {
+        const ChainEdit edit (*this);
+        rebuildGraph();   // the input node's channel count may have changed
+    }
+    if (held)
+        bridge.resume();   // fades in again (a restarted output has done so already)
+}
+
+bool AudioEngine::fadeOutOutput()
+{
+    // Message thread. Fade the cable out and wait until the faded block and some silence have
+    // left the device buffer: whatever is stopped then, the listener hears no cut.
+    auto* out = outputDevices.getCurrentAudioDevice();
+    if (out == nullptr || ! out->isPlaying() || ! outputRunningFlag.load())
+        return false;
+
+    const bool audible = bridge.getStats().running;
+    bridge.fadeOutAndHold();
+    if (! audible)
+        return true;   // silent anyway (no input yet / refilling): nothing to fade or drain
+
+    const double rate = juce::jmax (8000.0, out->getCurrentSampleRate());
+    const double blockMs = 1000.0 * juce::jmax (1, out->getCurrentBufferSizeSamples()) / rate;
+    const double start = juce::Time::getMillisecondCounterHiRes();
+    while (bridge.getStats().running && juce::Time::getMillisecondCounterHiRes() - start < 200.0)
+        juce::Thread::sleep (1);
+    const double drainMs = juce::jlimit (5.0, 200.0, 1000.0 * out->getOutputLatencyInSamples() / rate + 2.0 * blockMs);
+    juce::Thread::sleep (juce::roundToInt (drainMs));
+    return true;
 }
 
 void AudioEngine::setSafetyBufferMs (int ms)
@@ -221,7 +263,8 @@ void AudioEngine::inputAboutToStart (juce::AudioIODevice* device)
     const int    ins = juce::jlimit (1, 2, device->getActiveInputChannels().countNumberOfSetBits());
 
     // Prepare everything here (message thread, before the first callback) - never on the
-    // audio thread.
+    // audio threads. The plug-in thread must not run meanwhile.
+    stopProcessing();
     graph.setPlayConfigDetails (ins, 2, sr, bs);
     graph.prepareToPlay (sr, bs);
     workBuffer.setSize (2, bs, false, true, false);
@@ -230,19 +273,43 @@ void AudioEngine::inputAboutToStart (juce::AudioIODevice* device)
     bridge.setInputRate (sr);
     inputRateNow.store (sr);
     inputBlockNow.store (bs);
-    dspPeakWindow = dspSumWindow = 0.0;
+    inputQueue.reset();
+    dspPeakWindow = dspSumWindow = backlogWindowMs = 0.0;
     dspCountWindow = 0;
+    editGain = chainEditDepth.load() > 0 ? 0.0f : 1.0f;   // plug-in thread is stopped here
+    editSettleBlocks = 0;
+    seenEditGeneration = chainEditGeneration.load();
     rebuildGraph();   // IO node channel count may have changed (mono <-> stereo microphone)
     inputRunningFlag.store (true);
+    startProcessing();
 
-    juce::Logger::writeToLog ("Input start: " + describe (device) + " | channels " + juce::String (ins)
-                              + " of [" + device->getInputChannelNames().joinIntoString (", ") + "]");
+    juce::Logger::writeToLog (tr ("Giriş başladı: ") + describe (device) + tr (" | kanal ") + juce::String (ins)
+                              + " / [" + device->getInputChannelNames().joinIntoString (", ") + "]");
 }
 
 void AudioEngine::inputStopped()
 {
     inputRunningFlag.store (false);
+    stopProcessing();   // the capture thread has stopped already; let the plug-in thread finish
     graph.releaseResources();
+}
+
+void AudioEngine::startProcessing()
+{
+    if (! processingThread.isThreadRunning())
+        processingThread.startThread (juce::Thread::Priority::highest);   // MMCSS takes over inside
+}
+
+void AudioEngine::stopProcessing()
+{
+    if (! processingThread.isThreadRunning())
+        return;
+
+    processingThread.signalThreadShouldExit();
+    processingWake.signal();
+    // Returns as soon as the current block is done. Only a plug-in hanging inside processBlock
+    // could run into the timeout (JUCE then terminates the thread, as with its device threads).
+    processingThread.stopThread (5000);
 }
 
 void AudioEngine::outputAboutToStart (juce::AudioIODevice* device)
@@ -253,7 +320,7 @@ void AudioEngine::outputAboutToStart (juce::AudioIODevice* device)
     outputRateNow.store (sr);
     outputBlockNow.store (device->getCurrentBufferSizeSamples());
     outputRunningFlag.store (true);
-    juce::Logger::writeToLog ("Output start: " + describe (device) + " | channels "
+    juce::Logger::writeToLog (tr ("Çıkış başladı: ") + describe (device) + tr (" | kanal ")
                               + juce::String (device->getActiveOutputChannels().countNumberOfSetBits()));
 }
 
@@ -263,43 +330,83 @@ void AudioEngine::outputStopped()
     bridge.setConsumerActive (false);
 }
 
-void AudioEngine::processInput (const float* const* in, int numIn, int numSamples) noexcept
+void AudioEngine::captureInput (const float* const* in, int numIn, int numSamples) noexcept
 {
+    // Capture thread: copy and return. Nothing here may take long - while this thread is busy,
+    // only Windows' small capture buffer (about 20 ms) holds the incoming audio.
     rt::configureAudioThread();
-    const juce::ScopedNoDenormals noDenormals;   // plug-in tails decaying into denormals = CPU spikes
-    const auto startTicks = juce::Time::getHighResolutionTicks();
-
-    playHead.samples.fetch_add (numSamples, std::memory_order_relaxed);
     inputBeats.fetch_add (1, std::memory_order_relaxed);
 
-    const int capacity = workBuffer.getNumSamples();
-    if (capacity <= 0 || workBuffer.getNumChannels() < 2)
+    int channels = 0;
+    while (in != nullptr && channels < juce::jmin (2, numIn) && in[channels] != nullptr)
+        ++channels;
+
+    if (channels > 0)
+    {
+        // read-only view for the meter (AudioBuffer has no const-referencing constructor)
+        const juce::AudioBuffer<float> view (const_cast<float* const*> (in), channels, numSamples);
+        inputMeter.process (view);
+    }
+
+    inputQueue.write (in, channels, numSamples, nowSeconds());
+    processingWake.signal();
+}
+
+void AudioEngine::processingLoop()
+{
+    const rt::ProcessingThreadSetup setup;   // MMCSS "Pro Audio" + no power throttling, while it runs
+    processingMmcss.store (setup.mmcssActive());
+
+    while (! processingThread.threadShouldExit())
+    {
+        processingWake.wait (100);
+        processQueuedInput();
+    }
+}
+
+void AudioEngine::processQueuedInput() noexcept
+{
+    const int bs = workBuffer.getNumSamples();
+    if (bs <= 0 || workBuffer.getNumChannels() < 2)
         return;
 
-    const bool mono = pluginChain != nullptr && pluginChain->isOutputMono();
+    const double sr = juce::jmax (1.0, inputRateNow.load (std::memory_order_relaxed));
+    const double blockSeconds = (double) bs / sr;
+    const int64_t maxBacklog = InputQueue::backlogLimit (sr, bs);
+    const int blocksPerWindow = juce::jmax (1, (int) (sr / bs));   // ~1 s
 
-    for (int offset = 0; offset < numSamples; offset += capacity)
+    while (! processingThread.threadShouldExit())
     {
-        const int len = juce::jmin (capacity, numSamples - offset);
-        juce::AudioBuffer<float> block (workBuffer.getArrayOfWritePointers(), 2, len);
+        const int64_t queued = inputQueue.available();
+        if (queued < bs)
+            return;
 
-        for (int ch = 0; ch < 2; ++ch)
+        const juce::ScopedNoDenormals noDenormals;   // plug-in tails decaying into denormals = CPU spikes
+        const auto startTicks = juce::Time::getHighResolutionTicks();
+        const auto times0 = rt::threadTimes();
+
+        float* const dst[] = { workBuffer.getWritePointer (0), workBuffer.getWritePointer (1) };
+        const int64_t skipped = inputQueue.readBlock (dst, bs, maxBacklog, InputQueue::alignRange (sr));
+        if (skipped < 0)
+            return;
+        if (skipped > 0)
         {
-            if (ch < numIn && in[ch] != nullptr)
-                juce::FloatVectorOperations::copy (block.getWritePointer (ch), in[ch] + offset, len);
-            else
-                juce::FloatVectorOperations::clear (block.getWritePointer (ch), len);
+            inputSkips.fetch_add (1, std::memory_order_relaxed);
+            skippedFrames.fetch_add ((uint64_t) skipped, std::memory_order_relaxed);
         }
 
-        {
-            const juce::AudioBuffer<float> inView (workBuffer.getArrayOfWritePointers(), juce::jlimit (1, 2, numIn), len);
-            inputMeter.process (inView);
-        }
+        // The bridge models the microphone's clock: stamp the block with its capture time.
+        double captureTime = 0.0;
+        if (! inputQueue.lastReadCaptureTime (sr, captureTime))
+            captureTime = nowSeconds();
 
+        playHead.samples.fetch_add (bs, std::memory_order_relaxed);
+
+        juce::AudioBuffer<float> block (workBuffer.getArrayOfWritePointers(), 2, bs);
         midiBuffer.clear();
         {
-            // Never block the audio thread: if the message thread holds the graph lock right
-            // now (rare: suspend/prepare), output one silent block instead of waiting.
+            // Never block: if the message thread holds the graph lock right now (rare:
+            // suspend/prepare), output one silent block instead of waiting.
             const juce::ScopedTryLock sl (graph.getCallbackLock());
             if (sl.isLocked() && ! graph.isSuspended())
                 graph.processBlock (block, midiBuffer);
@@ -307,31 +414,116 @@ void AudioEngine::processInput (const float* const* in, int numIn, int numSample
                 block.clear();
         }
 
-        if (mono)   // chain ends mono: the voice belongs on both cable channels
-            juce::FloatVectorOperations::copy (block.getWritePointer (1), block.getReadPointer (0), len);
+        if (pluginChain != nullptr && pluginChain->isOutputMono())   // the voice belongs on both cable channels
+            juce::FloatVectorOperations::copy (block.getWritePointer (1), block.getReadPointer (0), bs);
 
+        applyEditFade (block, sr);
         outputMeter.process (block);
 
         const float* chans[] = { block.getReadPointer (0), block.getReadPointer (1) };
-        bridge.push (chans, 2, len, nowSeconds());
+        bridge.push (chans, 2, bs, captureTime, nowSeconds());
+
+        // --- statistics: load = processing time / real time of the block ---------------------
+        const double used = juce::Time::highResolutionTicksToSeconds (juce::Time::getHighResolutionTicks() - startTicks);
+        const auto times1 = rt::threadTimes();
+        const double load = used / blockSeconds;
+        const double waitingMs = 1000.0 * (double) juce::jmax ((int64_t) 0, queued - bs) / sr;
+
+        processedBlocks.fetch_add (1, std::memory_order_relaxed);
+        if (load > 1.0) overloads.fetch_add (1, std::memory_order_relaxed);
+        busyNanos.fetch_add ((uint64_t) (used * 1.0e9), std::memory_order_relaxed);
+        audioNanos.fetch_add ((uint64_t) (blockSeconds * 1.0e9), std::memory_order_relaxed);
+        if (times1.wall > times0.wall && times1.cpu >= times0.cpu)
+        {
+            threadWallTicks.fetch_add (times1.wall - times0.wall, std::memory_order_relaxed);
+            threadCpuTicks.fetch_add (times1.cpu - times0.cpu, std::memory_order_relaxed);
+        }
+        storeMax (logPeakLoad, load);
+        storeMax (logPeakBacklogMs, waitingMs);
+
+        dspPeakWindow = juce::jmax (dspPeakWindow, load);
+        dspSumWindow += load;
+        backlogWindowMs = juce::jmax (backlogWindowMs, waitingMs);
+        if (++dspCountWindow >= blocksPerWindow)
+        {
+            dspPeakPublished.store (dspPeakWindow, std::memory_order_relaxed);
+            dspAvgPublished.store (dspSumWindow / dspCountWindow, std::memory_order_relaxed);
+            backlogMsPublished.store (backlogWindowMs, std::memory_order_relaxed);
+            dspPeakWindow = dspSumWindow = backlogWindowMs = 0.0;
+            dspCountWindow = 0;
+        }
     }
+}
 
-    // DSP load = processing time / real time of the block.
-    const double sr = juce::jmax (1.0, inputRateNow.load (std::memory_order_relaxed));
-    const double used = juce::Time::highResolutionTicksToSeconds (juce::Time::getHighResolutionTicks() - startTicks);
-    const double load = used / ((double) numSamples / sr);
-
-    if (load > 1.0) overloads.fetch_add (1, std::memory_order_relaxed);
-    dspPeakWindow = juce::jmax (dspPeakWindow, load);
-    dspSumWindow += load;
-
-    if (++dspCountWindow >= juce::jmax (1, (int) (sr / juce::jmax (1, numSamples))))   // ~1 s
+void AudioEngine::applyEditFade (juce::AudioBuffer<float>& block, double sr) noexcept
+{
+    // Plug-in thread. During a chain edit: fade out, then silence (acknowledged to the message
+    // thread, which only then switches the graph); after the edit one more silent block (the
+    // graph hands the new render sequence over at the start of a block), then fade back in.
+    const bool editing = chainEditDepth.load (std::memory_order_acquire) > 0;
+    const auto generation = chainEditGeneration.load (std::memory_order_acquire);
+    if (generation != seenEditGeneration)
     {
-        dspPeakPublished.store (dspPeakWindow, std::memory_order_relaxed);
-        dspAvgPublished.store (dspSumWindow / dspCountWindow, std::memory_order_relaxed);
-        dspPeakWindow = dspSumWindow = 0.0;
-        dspCountWindow = 0;
+        seenEditGeneration = generation;
+        if (! editing && editGain <= 0.0f)
+            editSettleBlocks = 1;
     }
+
+    const float step = 1.0f / (float) juce::jmax (1.0, editFadeSeconds * sr);
+    const int n = block.getNumSamples();
+
+    if (editing || editSettleBlocks > 0)
+    {
+        if (editGain > 0.0f)
+        {
+            for (int i = 0; i < n; ++i)
+            {
+                editGain = juce::jmax (0.0f, editGain - step);
+                for (int c = 0; c < block.getNumChannels(); ++c)
+                    block.getWritePointer (c)[i] *= editGain;
+            }
+        }
+        else
+        {
+            block.clear();
+            if (! editing) --editSettleBlocks;
+        }
+        outputMutedForEdit.store (editing && editGain <= 0.0f, std::memory_order_release);
+        return;
+    }
+
+    outputMutedForEdit.store (false, std::memory_order_release);
+    if (editGain >= 1.0f)
+        return;
+
+    for (int i = 0; i < n; ++i)
+    {
+        editGain = juce::jmin (1.0f, editGain + step);
+        for (int c = 0; c < block.getNumChannels(); ++c)
+            block.getWritePointer (c)[i] *= editGain;
+    }
+}
+
+void AudioEngine::beginChainEdit()
+{
+    if (chainEditDepth.fetch_add (1, std::memory_order_acq_rel) > 0)
+        return;   // nested: already muted
+
+    // Wait (briefly) until the plug-in thread has faded the output out - only if it runs and
+    // gets audio; otherwise nothing is audible anyway.
+    if (! processingThread.isThreadRunning() || ! inputRunningFlag.load() || inputStallSeconds > 0)
+        return;
+
+    const auto deadline = juce::Time::getMillisecondCounterHiRes() + 150.0;
+    while (! outputMutedForEdit.load (std::memory_order_acquire)
+           && juce::Time::getMillisecondCounterHiRes() < deadline)
+        juce::Thread::sleep (1);
+}
+
+void AudioEngine::endChainEdit()
+{
+    if (chainEditDepth.fetch_sub (1, std::memory_order_acq_rel) == 1)
+        chainEditGeneration.fetch_add (1, std::memory_order_acq_rel);
 }
 
 void AudioEngine::processOutput (float* const* out, int numOut, int numSamples) noexcept
@@ -358,7 +550,11 @@ AudioEngine::Diagnostics AudioEngine::getDiagnostics()
     d.outputBlock    = outputBlockNow.load();
     d.dspLoadPercent = 100.0 * dspAvgPublished.load();
     d.dspPeakPercent = 100.0 * dspPeakPublished.load();
+    d.backlogMs      = backlogMsPublished.load();
     d.overloads      = overloads.load();
+    d.inputSkips     = inputSkips.load();
+    d.skippedMs      = d.inputRate > 0.0 ? 1000.0 * (double) skippedFrames.load() / d.inputRate : 0.0;
+    d.inputQueueOverflows = inputQueue.getOverflows();
     d.inputDeviceXruns = in != nullptr ? juce::jmax (0, in->getXRunCount()) : 0;
     d.watchdogRestarts = watchdogRestarts.load();
     d.bridge = bridge.getStats();
@@ -367,6 +563,8 @@ AudioEngine::Diagnostics AudioEngine::getDiagnostics()
     {
         double ms = 1000.0 * (in->getInputLatencyInSamples() + graph.getLatencySamples()
                               + bridge.getResamplerDelayFrames()) / d.inputRate;
+        ms += d.backlogMs;   // audio still waiting for the plug-ins (0 while the chain keeps up)
+        ms += d.bridge.inputDelayMs;   // plug-in thread: wake-up + processing of a block
         if (d.outputSelected && out != nullptr && d.outputRate > 0.0)
             ms += d.bridge.bufferedMs + 1000.0 * out->getOutputLatencyInSamples() / d.outputRate;
         d.latencyMs = ms;
@@ -391,9 +589,9 @@ void AudioEngine::timerCallback()
     const auto nowMs = juce::Time::getMillisecondCounter();
     const auto backoffMs = (juce::uint32) juce::jmin<int64_t> (60000, (int64_t) 10000 << juce::jmin<uint64_t> (3, watchdogRestarts.load()));
 
-    auto restart = [&] (MicVSTDeviceManager& dm, const char* which)
+    auto restart = [&] (MicVSTDeviceManager& dm, const juce::String& which)
     {
-        juce::Logger::writeToLog (juce::String ("Watchdog: ") + which + " device delivered no audio for 3 s - reopening it");
+        juce::Logger::writeToLog (tr ("Denetim: ") + which + tr (" cihazı 3 sn boyunca ses vermedi - yeniden açılıyor"));
         const auto setup = dm.getAudioDeviceSetup();
         dm.closeAudioDevice();
         dm.setAudioDeviceSetup (setup, true);
@@ -403,27 +601,88 @@ void AudioEngine::timerCallback()
 
     if (nowMs - lastRestartMs > backoffMs)
     {
-        if (inputStallSeconds >= 3)       { restart (inputDevices, "input");   inputStallSeconds = 0; }
-        else if (outputStallSeconds >= 3) { restart (outputDevices, "output"); outputStallSeconds = 0; }
+        if (inputStallSeconds >= 3)       { restart (inputDevices, tr ("giriş"));   inputStallSeconds = 0; }
+        else if (outputStallSeconds >= 3) { restart (outputDevices, tr ("çıkış")); outputStallSeconds = 0; }
     }
 
     // --- log realtime events once (from the message thread, never from the audio threads) --
     const auto st = bridge.getStats();
     if (st.underruns != lastLoggedStats.underruns)
-        juce::Logger::writeToLog ("Bridge: output ran dry " + juce::String ((int) (st.underruns - lastLoggedStats.underruns))
-                                  + "x (faded gap). Safety buffer now " + juce::String (st.safetyMs, 0) + " ms");
+        juce::Logger::writeToLog (tr ("Köprü: çıkışta ses kesildi, ") + juce::String ((int) (st.underruns - lastLoggedStats.underruns))
+                                  + tr (" kez (yumuşak geçişle). Güvenlik payı şimdi ") + juce::String (juce::roundToInt (st.safetyMs)) + " ms");
     if (st.droppedBlocks != lastLoggedStats.droppedBlocks)
-        juce::Logger::writeToLog ("Bridge: " + juce::String ((int) (st.droppedBlocks - lastLoggedStats.droppedBlocks))
-                                  + " input block(s) dropped (output stalled)");
+        juce::Logger::writeToLog (tr ("Köprü: ") + juce::String ((int) (st.droppedBlocks - lastLoggedStats.droppedBlocks))
+                                  + tr (" giriş bloğu atıldı (çıkış durmuştu)"));
     if (st.resyncs != lastLoggedStats.resyncs)
-        juce::Logger::writeToLog ("Bridge: latency trimmed back to target (" + juce::String ((int) st.resyncs) + " total)");
-    const auto ov = overloads.load();
-    if (ov != lastLoggedOverloads)
-        juce::Logger::writeToLog ("DSP: " + juce::String ((int) (ov - lastLoggedOverloads))
-                                  + " block(s) took longer than real time (peak load "
-                                  + juce::String (100.0 * dspPeakPublished.load(), 0) + " %)");
+        juce::Logger::writeToLog (tr ("Köprü: gecikme hedefe geri çekildi (toplam ") + juce::String ((int) st.resyncs) + ")");
     lastLoggedStats = st;
+
+    // Plug-in thread over the last second. Read every tick, logged only when something happened.
+    const auto blocks = processedBlocks.load(), ov = overloads.load();
+    const auto busy = busyNanos.load(), audio = audioNanos.load();
+    const auto wall = threadWallTicks.load(), cpu = threadCpuTicks.load();
+    const auto skips = inputSkips.load(), skipped = skippedFrames.load();
+    const auto queueOverflows = inputQueue.getOverflows();
+    const double peakLoad = logPeakLoad.exchange (0.0), peakWaitMs = logPeakBacklogMs.exchange (0.0);
+
+    if (ov != lastLoggedOverloads || skips != lastLoggedSkips)
+    {
+        const auto dAudio = audio - lastAudioNanos, dBusy = busy - lastBusyNanos, dWall = wall - lastWallTicks;
+        juce::String line (tr ("İşleme: ") + juce::String ((int) (ov - lastLoggedOverloads)) + " / "
+                           + juce::String ((int) (blocks - lastLoggedBlocks)) + tr (" blok gerçek zamandan uzun sürdü (eklenti yükü ort. ")
+                           + micvst::trPercent (dAudio > 0 ? 100.0 * (double) dBusy / (double) dAudio : 0.0)
+                           + tr (", tepe ") + micvst::trPercent (100.0 * peakLoad));
+        // Laufanteil deutlich unter 100 %: der Thread war bereit, Windows rechnete aber anderes
+        // (Treiber-DPC/Interrupts, höher priorisierte Threads); ~100 %: die Plugins selbst waren
+        // zu langsam. Nur aussagekräftig, wenn in der Sekunde nennenswert gerechnet wurde.
+        if (dWall > 0 && dBusy > 50000000)
+            line << tr ("; iş parçacığının çalışma oranı ")
+                 << micvst::trPercent (juce::jmin (100.0, 100.0 * (double) (cpu - lastCpuTicks) / (double) dWall))
+                 << tr (", kalan sürede işlemci bekledi");
+        line << tr ("; ses en çok ") << juce::roundToInt (peakWaitMs) << tr (" ms bekledi)");
+        juce::Logger::writeToLog (line);
+    }
+
+    if (skips != lastLoggedSkips)
+    {
+        const double sr = juce::jmax (1.0, inputRateNow.load());
+        juce::Logger::writeToLog (tr ("İşleme: eklenti zinciri gerçek zamanın ")
+                                  + juce::String (juce::roundToInt (1000.0 * InputQueue::maxBacklogSeconds))
+                                  + tr (" ms'den fazla gerisine düştü - mikrofon sesinden ")
+                                  + juce::String (juce::roundToInt (1000.0 * (double) (skipped - lastLoggedSkippedFrames) / sr))
+                                  + tr (" ms atlandı (") + juce::String ((int) (skips - lastLoggedSkips))
+                                  + tr (" kez, yumuşak geçişle). Zincir şu anki yükte gerçek zamandan fazla işlemci süresi istiyor."));
+    }
+
+    if (queueOverflows != lastLoggedQueueOverflows)
+        juce::Logger::writeToLog (tr ("İşleme: giriş kuyruğu doldu - ")
+                                  + juce::String ((int) (queueOverflows - lastLoggedQueueOverflows))
+                                  + tr (" mikrofon bloğu atıldı (eklenti işleme bir saniyeden uzun durdu)"));
+
+    // A plug-in stuck inside processBlock: the microphone delivers, nothing gets processed.
+    const bool inputFlowing = inputBeats.load() != 0 && inputStallSeconds == 0 && inputRunningFlag.load();
+    processingStallSeconds = (inputFlowing && blocks == lastLoggedBlocks && processingThread.isThreadRunning())
+                               ? processingStallSeconds + 1 : 0;
+    if (processingStallSeconds == 3)
+        juce::Logger::writeToLog (tr ("İşleme: mikrofon ses verdiği hâlde 3 sn boyunca hiçbir şey işlenmedi - bir eklenti takılmış olabilir"));
+
+    if (! processingThreadLogged && blocks > 0)
+    {
+        processingThreadLogged = true;
+        juce::Logger::writeToLog (tr ("Eklenti iş parçacığı: ")
+                                  + (processingMmcss.load() ? tr ("MMCSS 'Pro Audio' (cihaz iş parçacıklarının bir altında)")
+                                                            : tr ("MMCSS kullanılamıyor - zaman-kritik öncelik")));
+    }
+
     lastLoggedOverloads = ov;
+    lastLoggedBlocks = blocks;
+    lastBusyNanos = busy;
+    lastAudioNanos = audio;
+    lastWallTicks = wall;
+    lastCpuTicks = cpu;
+    lastLoggedSkips = skips;
+    lastLoggedSkippedFrames = skipped;
+    lastLoggedQueueOverflows = queueOverflows;
 }
 
 //==============================================================================
@@ -460,7 +719,7 @@ juce::StringArray AudioEngine::listVst3Files() const
 void AudioEngine::loadPluginCache()
 {
     if (! PluginScanCache::load (pluginCacheFile(), knownPlugins, skippedPlugins))
-        juce::Logger::writeToLog ("Plugin-Cache fehlt/korrupt -> voller Scan");
+        juce::Logger::writeToLog (tr ("Eklenti önbelleği yok ya da bozuk -> tam tarama"));
 }
 
 void AudioEngine::startBackgroundScan (int timeoutMs, const juce::StringArray& forceRescan)
@@ -469,7 +728,7 @@ void AudioEngine::startBackgroundScan (int timeoutMs, const juce::StringArray& f
 
     MicVST3Format vst3;
     auto files = filterFilesNeedingScan (listVst3Files(), knownPlugins, vst3, skippedPlugins, forceRescan);
-    juce::Logger::writeToLog ("Scan: " + juce::String (files.size()) + " Datei(en) zu scannen");
+    juce::Logger::writeToLog (tr ("Tarama: ") + juce::String (files.size()) + tr (" dosya taranacak"));
     if (files.isEmpty())
     {
         PluginScanCache::save (pluginCacheFile(), knownPlugins, skippedPlugins);
@@ -495,7 +754,7 @@ void AudioEngine::handleScanFinished (const ScanOutcome& outcome)
     for (auto& s : outcome.skipped)
     {
         skippedPlugins.add (s);
-        juce::Logger::writeToLog ("Scan übersprungen (" + s.reason + "): " + s.file);
+        juce::Logger::writeToLog (tr ("Tarama atlandı (") + micvst::scanSkipReasonText (s.reason) + "): " + s.file);
     }
 
     // Ordner können während des Scans entfernt worden sein -> NACH dem Übernehmen wegputzen,
@@ -590,6 +849,9 @@ MicVSTState AudioEngine::captureState()
         PluginEntryState p;
         p.fileOrId = e.fileOrId;
         p.bypassed = e.bypassed;
+        p.pluginId = e.pluginId;
+        p.pluginName = e.pluginName;
+        p.pluginUid = e.pluginUid;
         // Bewusst OHNE Callback-Lock (1.1.1 hielt ihn): der Graph nimmt in jedem Block den
         // Callback-Lock jedes Plugins. Solange ein Plugin hier seinen Zustand serialisierte,
         // stand der Audio-Thread still - und unter Last kann der (normal priorisierte)
@@ -615,19 +877,49 @@ void AudioEngine::applyState (const MicVSTState& s)
     // damit persistState die Kette nicht mit "leer" überschreibt).
     bool allResolvable = true;
     for (auto& p : s.plugins)
-        if (! p.fileOrId.startsWith ("builtin:") && knownPlugins.getTypeForFile (p.fileOrId) == nullptr)
+        if (! p.fileOrId.startsWith ("builtin:") && findPluginType (p, false) == nullptr)
             { allResolvable = false; break; }
 
     if (allResolvable) restoreChain (s.plugins);
     else               { pendingPlugins = s.plugins;
-                         juce::Logger::writeToLog ("Ketten-Restore wartet auf Plugin-Scan"); }
+                         juce::Logger::writeToLog (tr ("Zincirin geri yüklenmesi eklenti taramasını bekliyor")); }
     rebuildGraph();
+}
+
+std::unique_ptr<juce::PluginDescription> AudioEngine::findPluginType (const PluginEntryState& p, bool warnIfAmbiguous) const
+{
+    // 1) exakte Kennung (Format + Name + Datei + uid); 2) gleicher Name + uid an anderer Stelle
+    // (Plugin neu installiert/verschoben); 3) ältere config.xml (<= 1.2.0) kennen nur die Datei.
+    if (p.pluginId.isNotEmpty())
+        if (auto t = knownPlugins.getTypeForIdentifierString (p.pluginId))
+            return t;
+
+    if (p.pluginName.isNotEmpty())
+    {
+        for (auto& t : knownPlugins.getTypes())
+            if (t.name == p.pluginName && t.uniqueId == p.pluginUid)
+                return std::make_unique<juce::PluginDescription> (t);
+        return nullptr;   // bekanntes Plugin, aber nicht (mehr) installiert - nicht raten
+    }
+
+    auto t = knownPlugins.getTypeForFile (p.fileOrId);
+    if (t != nullptr && warnIfAmbiguous)
+    {
+        int inFile = 0;
+        for (auto& k : knownPlugins.getTypes())
+            if (k.fileOrIdentifier == p.fileOrId) ++inFile;
+        if (inFile > 1)
+            juce::Logger::writeToLog (tr ("Uyarı: '") + p.fileOrId + tr ("' birden çok eklenti içeriyor; eski ayar dosyası hangisinin "
+                                      "kullanıldığını kaydetmemiş - ilki yüklendi. Doğru eklentiyi bir kez yeniden ekleyin."));
+    }
+    return t;
 }
 
 void AudioEngine::restoreChain (const juce::Array<PluginEntryState>& plugins)
 {
     const double sr = getProcessingSampleRate();
     const int    bs = getProcessingBlockSize();
+    const ChainEdit edit (*this);   // muted until the whole chain is in place
 
     for (auto& p : plugins)
     {
@@ -639,8 +931,13 @@ void AudioEngine::restoreChain (const juce::Array<PluginEntryState>& plugins)
             continue;
         }
 
-        auto type = knownPlugins.getTypeForFile (p.fileOrId);
-        if (type == nullptr) { juce::Logger::writeToLog ("Plugin fehlt: " + p.fileOrId); continue; }
+        auto type = findPluginType (p, true);
+        if (type == nullptr)
+        {
+            juce::Logger::writeToLog (tr ("Eklenti bulunamadı: ") + (p.pluginName.isNotEmpty() ? p.pluginName + " - " : juce::String())
+                                      + p.fileOrId);
+            continue;
+        }
         juce::String err;
         if (pluginChain->addPlugin (formatManager, *type, sr, bs, err))
         {
@@ -649,7 +946,7 @@ void AudioEngine::restoreChain (const juce::Array<PluginEntryState>& plugins)
                 node->getProcessor()->setStateInformation (p.state.getData(), (int) p.state.getSize());
             pluginChain->setBypass (idx, p.bypassed);
         }
-        else juce::Logger::writeToLog ("Plugin-Load: " + err);
+        else juce::Logger::writeToLog (tr ("Eklenti yüklenemedi: ") + p.fileOrId + " - " + err);
     }
     rebuildGraph();
 }

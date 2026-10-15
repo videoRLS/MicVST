@@ -14,7 +14,11 @@ public:
     static constexpr const char* monoToStereoId = "builtin:mono2stereo";
     static constexpr const char* stereoToMonoId = "builtin:stereo2mono";
 
+    // pluginId/-Name/-Uid identifizieren das Plugin INNERHALB seiner Datei: eine VST3-Datei
+    // kann viele Plugins enthalten (Waves-WaveShell, LSP-Bündel). Nur über den Dateipfad
+    // wiederhergestellt, wurde aus jedem Plugin einer solchen Datei dasselbe (bis 1.2.0).
     struct Entry { NodeID node; juce::String fileOrId; bool bypassed = false;
+                   juce::String pluginId, pluginName; int pluginUid = 0;
                    bool isBuiltIn() const { return fileOrId.startsWith ("builtin:"); } };
 
     PluginChain (juce::AudioProcessorGraph& graph,

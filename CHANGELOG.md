@@ -4,6 +4,46 @@ All notable changes to MicVST are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project follows [Semantic Versioning](https://semver.org/).
 
+## [1.2.1] - Unreleased
+
+Focus: sound quality under heavy background load (e.g. a GPU/AI video render), no clicks when
+the chain or the devices change, and a completely Turkish interface. Measurements and what could
+not be tested: [docs/RAPOR.md](docs/RAPOR.md) (Turkish).
+
+### Changed
+- The plugin chain runs on its own thread (MMCSS "Pro Audio") behind a lock-free input queue; the
+  microphone's capture thread only copies the audio (microseconds). In 1.2.0 the chain ran on the
+  capture thread: whenever plugin blocks took longer than ~20 ms in total, Windows' capture buffer
+  overflowed and the audio was lost ("microphone driver gaps"). If the chain stays slower than
+  real time for more than 120 ms, the oldest audio is skipped with a crossfade at a
+  waveform-matched point, so the latency stays bounded.
+- Clock-drift and buffer-level control: beyond the learned clock drift the playback speed now
+  changes by at most +-0.05 % (0.9 cent); 1.2.0 allowed +-0.5 % (8.6 cent) for seconds after every
+  disturbance. Excess latency above 20 ms (e.g. after the cable stalled) is trimmed at once with a
+  10 ms crossfade at the point where the waveforms match. The level estimate now accounts for the
+  plugin thread's delay and the correction is smoothed in two stages: a constant clock drift is
+  followed with < 2 ppm error (1.2.0: a slow wander of up to ~400 ppm) and the block-to-block
+  speed jitter (phase noise, -84 dB at 1 kHz) is gone. Clock differences up to +-1000 ppm are
+  learned completely.
+- A larger safety buffer chosen while running takes effect at once (short fade-out, refill,
+  fade-in) instead of over minutes.
+- All texts shown to the user are Turkish: window, menus, dialogs, tooltips, tray, the usage
+  screen, the log file (now with timestamps) and JUCE's own buttons and text-field menu.
+- Displayed latency: the buffer part is now the mean time audio spends in the buffer plus the
+  plugin thread's delay (1.2.0 counted about half a block too much).
+
+### Fixed
+- Clicks when the chain is edited during playback (add, remove, move, bypass): the output fades
+  out (5 ms), the graph switches while muted, then fades in. Measured on virtual devices: 1.2.0
+  clicked on 11 of 13 edits, 1.2.1 on none.
+- Clicks on the cable when MicVST quits or a device/buffer setting is changed: the output now
+  fades out and drains before the device stops.
+- VST3 files that contain several plugins (Waves WaveShell, LSP, ...): every entry came back as
+  the first plugin of the file after a restart (since 1.1.1). The plugin's identity is now stored;
+  old configs still load.
+- Non-ASCII text in the log file was double-encoded (UTF-8 read as Latin-1).
+- The outer labels of the meter's dB scale were clipped.
+
 ## [1.2.0] - Unreleased
 
 Focus: no more crackles under heavy load, and a fully offline app. Full analysis, measurements

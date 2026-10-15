@@ -50,11 +50,13 @@ void DbScaleComponent::paint (juce::Graphics& g)
     for (int db : kTicks)
     {
         const float x = b.getX() + meterScale::dbToNorm ((float) db) * b.getWidth();
-        // Mittiger Text um die Markierung; Ränder etwas einrücken, damit nichts abgeschnitten wird.
-        auto just = db == kTicks[0] ? juce::Justification::centredLeft
-                  : db == 0         ? juce::Justification::centredRight
-                                    : juce::Justification::centred;
+        // Mittiger Text um die Markierung; an den Rändern (-60 links, 0 rechts) liegt das
+        // Textfeld ganz innerhalb der Komponente - vorher ragte es halb hinaus und die beiden
+        // Randbeschriftungen waren abgeschnitten (unsichtbar).
         juce::Rectangle<float> r (x - 18.0f, b.getY(), 36.0f, b.getHeight());
+        auto just = juce::Justification::centred;
+        if (db == kTicks[0]) { r.setX (b.getX());          just = juce::Justification::centredLeft; }
+        if (db == 0)         { r.setX (b.getRight() - 36.0f); just = juce::Justification::centredRight; }
         g.drawText (juce::String (db), r, just);
     }
 }
