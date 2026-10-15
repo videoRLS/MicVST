@@ -63,14 +63,14 @@ struct GraphConnectionsTest : juce::UnitTest
         const NodeID p1   { 10 };
         const NodeID p2   { 11 };
 
-        beginTest ("empty mono chain: input(1out) -> output(2in) = 1 Kanal");
+        beginTest ("empty mono chain: input(1out) -> output(2in) = 1 channel");
         {
             auto c = computeChainConnections ({ { in, 0, 1 }, { out, 2, 0 } });
             expectEquals ((int) c.size(), 1);
             expect (c[0] == ChannelConnection { in, 0, out, 0 });
         }
 
-        beginTest ("empty stereo chain: input(2out) -> output(2in) = 2 Kanäle");
+        beginTest ("empty stereo chain: input(2out) -> output(2in) = 2 channels");
         {
             auto c = computeChainConnections ({ { in, 0, 2 }, { out, 2, 0 } });
             expectEquals ((int) c.size(), 2);

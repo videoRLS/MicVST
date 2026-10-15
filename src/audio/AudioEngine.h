@@ -141,6 +141,7 @@ public:
         double skippedMs = 0.0;
         uint64_t inputQueueOverflows = 0; // plug-in thread stuck for > 1 s: captured blocks dropped
         uint64_t invalidBlocks = 0;       // blocks with NaN/infinite/absurd plug-in output (silenced)
+        uint64_t graphBusyBlocks = 0;     // blocks output silent because the graph was busy (prepare/suspend)
         int    inputDeviceXruns = 0;      // WASAPI capture discontinuities
         uint64_t watchdogRestarts = 0;
         double latencyMs = 0.0;           // estimated microphone -> cable latency
@@ -260,6 +261,7 @@ private:
     std::atomic<uint64_t> overloads { 0 }, processedBlocks { 0 };
     std::atomic<uint64_t> inputSkips { 0 }, skippedFrames { 0 };
     std::atomic<uint64_t> invalidBlocks { 0 };   // blocks with NaN/infinite/absurd samples from the chain
+    std::atomic<uint64_t> graphBusyBlocks { 0 }; // silent blocks: graph locked/suspended by the message thread
     uint64_t lastLoggedInvalid = 0;
     std::atomic<double>   dspPeakPublished { 0.0 }, dspAvgPublished { 0.0 }, backlogMsPublished { 0.0 };
     double  dspPeakWindow = 0.0, dspSumWindow = 0.0, backlogWindowMs = 0.0;   // plug-in thread only

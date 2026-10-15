@@ -471,7 +471,10 @@ void AudioEngine::processQueuedInput() noexcept
                 catch (...) { threwException = true; invalidBlocks.fetch_add (1, std::memory_order_relaxed); }
             }
             else
+            {
                 silenced = true;
+                graphBusyBlocks.fetch_add (1, std::memory_order_relaxed);
+            }
         }
 
         if (pluginChain != nullptr && pluginChain->isOutputMono())   // the voice belongs on both cable channels
@@ -665,6 +668,7 @@ AudioEngine::Diagnostics AudioEngine::getDiagnostics()
     d.skippedMs      = d.inputRate > 0.0 ? 1000.0 * (double) skippedFrames.load() / d.inputRate : 0.0;
     d.inputQueueOverflows = inputQueue.getOverflows();
     d.invalidBlocks  = invalidBlocks.load();
+    d.graphBusyBlocks = graphBusyBlocks.load();
     d.inputDeviceXruns = in != nullptr ? juce::jmax (0, in->getXRunCount()) : 0;
     d.watchdogRestarts = watchdogRestarts.load();
     d.bridge = bridge.getStats();

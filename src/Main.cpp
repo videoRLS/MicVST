@@ -195,7 +195,9 @@ public:
                 state.inputDevice = juce::isPositiveAndBelow (def, ins.size()) ? ins[def]
                                   : (ins.isEmpty() ? juce::String() : ins[0]);
             }
-            juce::Logger::writeToLog (tr ("Giriş = ") + state.inputDevice);
+            juce::Logger::writeToLog (state.inputDevice.isEmpty()
+                ? tr ("Mikrofon bulunamadı -> giriş 'yok'")
+                : tr ("Giriş (mikrofon) = ") + state.inputDevice);
         }
         engine->applyState (state);
 

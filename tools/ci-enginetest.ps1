@@ -42,22 +42,29 @@ try {
 if (-not $vst3) {
     try {
         $rel = Invoke-RestMethod -Headers $headers -Uri "https://api.github.com/repos/baconpaul/airwin2rack/releases/tags/DAWPlugin"
-        # "Airwindows" itself contains "win": match the platform word, never Linux/macOS assets
-        $zipAsset = $rel.assets | Where-Object { $_.name -match "(?i)windows|win64|-win-" -and $_.name -notmatch "(?i)linux|mac" -and $_.name -match "\.zip$" } | Select-Object -First 1
-        $exeAsset = $rel.assets | Where-Object { $_.name -match "(?i)windows|win64|-win-" -and $_.name -notmatch "(?i)linux|mac" -and $_.name -match "\.exe$" } | Select-Object -First 1
-        if ($zipAsset) {
+        # "Airwindows" itself contains "win": match the platform word, never Linux/macOS/ARM assets.
+        # x64 zip first, then the other zips, then the x64 installer (Inno Setup, silent).
+        $win = $rel.assets | Where-Object { $_.name -match "(?i)-windows|win64|-win-" -and $_.name -notmatch "(?i)linux|mac|arm64" }
+        $zips = @($win | Where-Object { $_.name -match "(?i)-windows\.zip$" }) + @($win | Where-Object { $_.name -match "\.zip$" -and $_.name -notmatch "(?i)-windows\.zip$" })
+        foreach ($zipAsset in $zips) {
+            if ($vst3) { break }
             $zip = Join-Path $env:RUNNER_TEMP $zipAsset.name
             Invoke-WebRequest -Headers $headers -Uri $zipAsset.browser_download_url -OutFile $zip
-            $dst = Join-Path $env:RUNNER_TEMP "airwindows"
+            $dst = Join-Path $env:RUNNER_TEMP ("airwindows-" + [IO.Path]::GetFileNameWithoutExtension($zipAsset.name))
             Expand-Archive -Force $zip $dst
             $vst3 = Find-Vst3 $dst
             if ($vst3) { "Airwindows Consolidated: $($zipAsset.name)" | Add-Content $sourceNote }
-        } elseif ($exeAsset) {
-            $exe = Join-Path $env:RUNNER_TEMP $exeAsset.name
-            Invoke-WebRequest -Headers $headers -Uri $exeAsset.browser_download_url -OutFile $exe
-            Start-Process -FilePath $exe -ArgumentList @("/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-") -Wait
-            $vst3 = Find-Vst3 (Join-Path $env:CommonProgramFiles "VST3")
-            if ($vst3) { "Airwindows Consolidated: $($exeAsset.name) (installer)" | Add-Content $sourceNote }
+            else { "$($zipAsset.name): no .vst3 inside; contents: $((Get-ChildItem -Recurse $dst | Select-Object -First 25 | ForEach-Object { $_.FullName.Substring($dst.Length) }) -join ', ')" | Add-Content $sourceNote }
+        }
+        if (-not $vst3) {
+            $exeAsset = $win | Where-Object { $_.name -match "\.exe$" -and $_.name -notmatch "(?i)windows7" } | Select-Object -First 1
+            if ($exeAsset) {
+                $exe = Join-Path $env:RUNNER_TEMP $exeAsset.name
+                Invoke-WebRequest -Headers $headers -Uri $exeAsset.browser_download_url -OutFile $exe
+                Start-Process -FilePath $exe -ArgumentList @("/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-") -Wait
+                $vst3 = Find-Vst3 (Join-Path $env:CommonProgramFiles "VST3")
+                if ($vst3) { "Airwindows Consolidated: $($exeAsset.name) (installer)" | Add-Content $sourceNote }
+            }
         }
         if (-not $vst3) { "Airwindows: no usable Windows asset among: $(($rel.assets | ForEach-Object name) -join ', ')" | Add-Content $sourceNote }
     } catch { "Airwindows download failed: $_" | Add-Content $sourceNote }

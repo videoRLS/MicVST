@@ -923,6 +923,32 @@ namespace
                 if (at >= mk.at - (int64_t) (0.4 * fs) && at <= mk.at + (int64_t) (0.4 * fs)) return mk.what;
             return {};
         };
+        // For an unexplained finding: what was nearest (to find causes the test does not record)
+        std::vector<int64_t> deviceChanges;   // cable index after each planned device change
+        auto context = [&] (int64_t at) -> juce::String
+        {
+            auto sec = [&] (int64_t d) { return juce::String ((double) d / fs, 3) + " s"; };
+            juce::String r;
+            int64_t lastDev = -1;
+            for (auto d : deviceChanges) if (d <= at) lastDev = d;
+            if (lastDev >= 0) r << "; " << sec (at - lastDev) << " after a device change";
+            const Mark* best = nullptr;
+            for (auto& mk : marks) if (best == nullptr || std::abs (mk.at - at) < std::abs (best->at - at)) best = &mk;
+            if (best != nullptr) r << "; nearest event: " << best->what << " at " << sec (best->at - at);
+            int64_t g = INT64_MAX;
+            for (int i = 0; i < rec.gapCount.load (std::memory_order_acquire); ++i)
+                if (std::abs (rec.gapEvents[(size_t) i].first - at) < std::abs (g)) g = rec.gapEvents[(size_t) i].first - at;
+            if (g != INT64_MAX) r << "; nearest cable-late at " << sec (g);
+            const auto& st = vdev::stats();
+            int64_t lp = INT64_MAX;
+            for (int i = 0; i < st.lostCount.load (std::memory_order_acquire); ++i)
+            {
+                const auto m = (int64_t) ((st.lostTimes[(size_t) i] - rec.outputStart.load()) * fs + 0.06 * fs) - at;
+                if (std::abs (m) < std::abs (lp)) lp = m;
+            }
+            if (lp != INT64_MAX) r << "; nearest mic packet lost at " << sec (lp);
+            return r;
+        };
         // any recorded event in [a, b] (cable timeline)
         auto eventIn = [&] (int64_t a, int64_t b)
         {
@@ -958,7 +984,7 @@ namespace
                         {
                             ++tot.clicks; ++minuteClicks;
                             const auto c = causeOf (at);
-                            if (c.isEmpty()) { ++tot.clicksUnexplained; ++minuteClicksU; pr ("  unexplained click at " + juce::String ((double) at / fs, 3) + " s"); }
+                            if (c.isEmpty()) { ++tot.clicksUnexplained; ++minuteClicksU; pr ("  unexplained click at " + juce::String ((double) at / fs, 3) + " s" + context (at)); }
                             else ++causes["click: " + c];
                         }
                         lastClick = at;
@@ -970,7 +996,7 @@ namespace
                         {
                             ++tot.gaps; ++minuteGaps; tot.gapMs += 1000.0 * zeros / fs;
                             const auto c = causeOf (zeroStart);
-                            if (c.isEmpty()) { ++tot.gapsUnexplained; ++minuteGapsU; pr ("  unexplained gap at " + juce::String ((double) zeroStart / fs, 3) + " s, " + juce::String (1000.0 * zeros / fs, 1) + " ms"); }
+                            if (c.isEmpty()) { ++tot.gapsUnexplained; ++minuteGapsU; pr ("  unexplained gap at " + juce::String ((double) zeroStart / fs, 3) + " s, " + juce::String (1000.0 * zeros / fs, 1) + " ms" + context (zeroStart)); }
                             else ++causes["gap: " + c];
                         }
                         zeros = 0;
@@ -983,8 +1009,8 @@ namespace
 
         pr ("## Long run" + juce::String (chaos ? " with changes during playback" : "") + ": " + juce::String (minutes, 0)
             + " min real time, chain gain 0.5 + delay 240 smp + load 30 %, 997 Hz -6 dBFS, buffer 480, streamed analysis");
-        pr ("| t (min) | RSS (MB) | process CPU (%) | clicks (unexplained) | gaps (unexplained) | THD+N (median of the 2 s slices without events; count) | level (dBFS) | MicVST |");
-        pr ("|---:|---:|---:|---:|---:|---:|---:|---|");
+        pr ("| t (min) | RSS (MB) | process CPU (%) | clicks (unexplained) | gaps (unexplained) | THD+N in 43 ms windows, median / worst (event-free 2 s slices) | speed p-p within a slice (ppm) | level (dBFS) | MicVST |");
+        pr ("|---:|---:|---:|---:|---:|---:|---:|---:|---|");
         {
             EngineRun run (480, seconds);
             auto& e = *run.engine;
@@ -992,7 +1018,10 @@ namespace
             run.add (testDesc ("TestDelay", 240));
             run.add (testDesc ("TestLoad", 0.3));
             const double start = juce::Time::getMillisecondCounterHiRes() * 0.001;
-            double lastCpu = processCpuSeconds(), lastT = start, nextMinute = start + 60.0, nextChange = start + 20.0, nextDevice = start + 300.0;
+            // ETEST_CHANGE_EVERY / ETEST_DEVICE_EVERY (s): other intervals for the chaos mode
+            const double changeEvery = juce::jmax (2.0, juce::SystemStats::getEnvironmentVariable ("ETEST_CHANGE_EVERY", "20").getDoubleValue());
+            const double deviceEvery = juce::jmax (5.0, juce::SystemStats::getEnvironmentVariable ("ETEST_DEVICE_EVERY", "300").getDoubleValue());
+            double lastCpu = processCpuSeconds(), lastT = start, nextMinute = start + 60.0, nextChange = start + changeEvery, nextDevice = start + deviceEvery;
             auto d0 = e.getDiagnostics();
             int change = 0;
             juce::String err;
@@ -1010,11 +1039,15 @@ namespace
                 note ("queue overflow", d0.inputQueueOverflows, d1.inputQueueOverflows);
                #endif
                 note ("device reopened by the watchdog", d0.watchdogRestarts, d1.watchdogRestarts);
+                note ("graph busy (silent block)", d0.graphBusyBlocks, d1.graphBusyBlocks);
+                if (d1.bridge.starts > d0.bridge.starts && d1.bridge.underruns == d0.bridge.underruns && d1.bridge.droppedBlocks == d0.bridge.droppedBlocks)
+                    marks.push_back ({ cableIndex (t), "MicVST bridge restarted (no underrun)" });
+                note ("invalid plug-in output", d0.invalidBlocks, d1.invalidBlocks);
                 d0 = d1;
 
                 if (chaos && t >= nextChange)
                 {
-                    nextChange += 20.0;
+                    nextChange += changeEvery;
                     marks.push_back ({ cableIndex (t), "planned change" });
                     switch (change++ % 6)
                     {
@@ -1030,12 +1063,13 @@ namespace
                 }
                 if (chaos && t >= nextDevice)
                 {
-                    nextDevice += 300.0;
+                    nextDevice += deviceEvery;
                     marks.push_back ({ cableIndex (t), "planned change" });
                     static const int sizes[] = { 960, 256, 480 };
-                    e.setDeviceConfig ("VMic", "VCable", 48000.0, sizes[(int) ((t - start) / 300.0) % 3]);
+                    e.setDeviceConfig ("VMic", "VCable", 48000.0, sizes[(int) std::lround ((t - start) / deviceEvery) % 3]);
                     raiseEngineThreads();
                     marks.push_back ({ cableIndex (juce::Time::getMillisecondCounterHiRes() * 0.001), "planned change" });
+                    deviceChanges.push_back (marks.back().at);
                 }
 
                 if (t >= nextMinute)
@@ -1045,25 +1079,40 @@ namespace
                     // THD+N and level: median of up to five 2 s slices of this minute that hold no
                     // recorded event (stall of the test machine, MicVST event, planned change):
                     // such a slice measures the event, not the audio path. No clean slice: "-".
-                    double thd = 0, level = -200;
+                    // Distortion: THD+N in 2048-sample windows (43 ms: the slow speed changes of
+                    // the clock control do not count as distortion there - a 2 s fit would read
+                    // them as -20..-50 dB "THD+N"); speed: fitted frequency in 4096-sample windows.
+                    // Only from 2 s slices without any recorded event (up to five per minute).
+                    double thd = 0, thdWorst = 0, level = -200, speedPp = 0;
                     int clean = 0;
                     if (work.size() > (size_t) (12 * fs))
                     {
-                        std::vector<double> th, lv;
+                        std::vector<double> th, lv, sp;
                         const auto len = (size_t) (2 * fs), margin = (size_t) (0.5 * fs);
-                        for (size_t from = analysed == 0 ? (size_t) (2 * fs) : margin; from + len + margin <= work.size() && th.size() < 5; from += len / 2)
+                        const double cps = 997.0 / fs;
+                        for (size_t from = analysed == 0 ? (size_t) (2 * fs) : margin; from + len + margin <= work.size() && clean < 5; from += len / 2)
                         {
                             if (eventIn (analysed + (int64_t) (from - margin), analysed + (int64_t) (from + len + margin))) continue;
-                            const auto f = fitSine (work, from, (int) len, 997.0 / fs);
-                            th.push_back (f.residualDb); lv.push_back (20.0 * std::log10 (std::max (f.amp, 1e-12)));
+                            for (size_t w = 0; w + 2048 <= len; w += 2048)
+                                th.push_back (fitSine (work, from + w, 2048, cps).residualDb);
+                            std::vector<double> ppm;
+                            for (size_t w = 0; w + 4096 <= len; w += 4096)
+                            {
+                                const auto f = fitSine (work, from + w, 4096, cps);
+                                ppm.push_back ((f.freq / cps - 1.0) * 1e6);
+                                lv.push_back (20.0 * std::log10 (std::max (f.amp, 1e-12)));
+                            }
+                            std::sort (ppm.begin(), ppm.end());
+                            sp.push_back (ppm.back() - ppm.front());
+                            ++clean;
                             from += len / 2;   // slices do not overlap
                         }
-                        clean = (int) th.size();
                         if (clean > 0)
                         {
                             std::sort (th.begin(), th.end()); std::sort (lv.begin(), lv.end());
-                            thd = th[th.size() / 2]; level = lv[lv.size() / 2];
-                            if (audioStarted) worstThd = std::max (worstThd, thd);
+                            thd = th[th.size() / 2]; thdWorst = th.back(); level = lv[lv.size() / 2];
+                            speedPp = *std::max_element (sp.begin(), sp.end());
+                            if (audioStarted) worstThd = std::max (worstThd, thdWorst);
                         }
                     }
                     minuteClicks = minuteClicksU = minuteGaps = minuteGapsU = 0;
@@ -1074,7 +1123,8 @@ namespace
                     rssSeries.push_back ({ (t - start) / 3600.0, rss });
                     pr ("| " + juce::String ((t - start) / 60.0, 1) + " | " + juce::String (rss, 1) + " | " + juce::String (100.0 * (cpu - lastCpu) / (t - lastT), 1)
                         + " | " + juce::String (minuteClicks) + " (" + juce::String (minuteClicksU) + ") | " + juce::String (minuteGaps) + " (" + juce::String (minuteGapsU)
-                        + ") | " + (clean > 0 ? db (thd) + " (" + juce::String (clean) + ")" : juce::String ("-")) + " | " + (clean > 0 ? juce::String (level, 3) : juce::String ("-"))
+                        + ") | " + (clean > 0 ? db (thd) + " / " + db (thdWorst) + " (" + juce::String (clean) + ")" : juce::String ("-"))
+                        + " | " + (clean > 0 ? juce::String (speedPp, 0) : juce::String ("-")) + " | " + (clean > 0 ? juce::String (level, 3) : juce::String ("-"))
                         + " | " + diagLine (e) + " |");
                     lastCpu = cpu; lastT = t;
                 }
@@ -1093,7 +1143,7 @@ namespace
             slope = (n * sxy - sx * sy) / std::max (1e-12, n * sxx - sx * sx);
         }
         pr ("recorded " + juce::String ((double) analysed / fs / 60.0, 1) + " min: clicks " + juce::String (tot.clicks) + " (unexplained " + juce::String (tot.clicksUnexplained)
-            + "), gaps " + juce::String (tot.gaps) + " (" + juce::String (tot.gapMs, 0) + " ms; unexplained " + juce::String (tot.gapsUnexplained) + "), worst per-minute THD+N (median of the 2 s slices without events) " + db (worstThd)
+            + "), gaps " + juce::String (tot.gaps) + " (" + juce::String (tot.gapMs, 0) + " ms; unexplained " + juce::String (tot.gapsUnexplained) + "), worst THD+N in a 43 ms window of an event-free slice " + db (worstThd)
             + ", RSS " + (rssSeries.empty() ? juce::String ("?") : juce::String (rssSeries.front().second, 1) + " -> " + juce::String (rssSeries.back().second, 1)) + " MB (slope over the second half "
             + juce::String (slope, 2) + " MB/h)");
         for (auto& [k, v] : causes) pr ("  " + k + ": " + juce::String (v));

@@ -587,6 +587,7 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
         fadeInRemaining = fadeLen;
         state = State::running;
         runningAtomic.store (true, std::memory_order_relaxed);
+        starts.fetch_add (1, std::memory_order_relaxed);
     }
 
     //--------------------------------------------------------------------------- running
@@ -842,6 +843,7 @@ AudioBridge::Stats AudioBridge::getStats() const noexcept
     s.underruns     = underruns.load (std::memory_order_relaxed);
     s.droppedBlocks = droppedBlocks.load (std::memory_order_relaxed);
     s.resyncs       = resyncs.load (std::memory_order_relaxed);
+    s.starts        = starts.load (std::memory_order_relaxed);
     s.safetyMs      = currentSafetyMs();
     s.bufferedMs    = bufferedFrames.load (std::memory_order_relaxed) * 1000.0
                         / juce::jmax (1.0, inputRate.load (std::memory_order_relaxed));

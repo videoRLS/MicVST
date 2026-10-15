@@ -15,7 +15,8 @@ All signals except a pure sine:
     (64-tap Kaiser-windowed sinc, so the controller's slow speed changes are followed exactly; the
     latency of every window refined to a fraction of a sample and smoothed robustly), then each
     256-sample output piece is compared with it (one gain factor, best of 9 offsets within +-0.12
-    samples, a candidate again within +-0.6 samples; no filter that could hide a click); a residual peak above the run's threshold marks a discontinuity: 10 x the
+    samples, a candidate again within +-0.6 samples and +-600 ppm speed inside the piece; no filter
+    that could hide a click); a residual peak above the run's threshold marks a discontinuity: 10 x the
     99th percentile of residual/RMS over all pieces (the method's floor for that signal), within
     2..20 % of the piece's RMS and above -60 dB re the whole signal; in pauses (pieces quieter
     than -50 dB re the signal) a residual above -50 dB re the signal. Pieces overlap by half.
@@ -211,6 +212,13 @@ def splice_metrics(meta, xb, yb, lat, t_of, base, fs):
         i = cand[-1]
         a, b = int(t_of[i] - 0.03 * fs), int(t_of[i + 1] + 0.03 * fs)
         pre, post = lat[i], lat[i + 1]
+        # another latency change between the same two located windows (a cable stall just before
+        # the trim, in periodic sound without a located window in between): the jump is the sum of
+        # both and the input alignment in between is unknown - no splice measurement
+        others = [g for g, n in meta.get('deviceGaps', []) + meta.get('injected', []) if t_of[i] <= g + n and g <= t_of[i + 1]]
+        if others:
+            rows.append(f'{kind} at {m / fs:.2f} s: not measured (a cable stall lies between the same two located windows; jump {pre - post:+.0f} samples = both together)')
+            continue
         yo = np.convolve(yb[a - 300:b + 300, 0], hp, mode='same')[300:-300]
         xi_pre = np.convolve(xb[int(a + base - pre) - 300:int(b + base - pre) + 300, 0], hp, mode='same')[300:-300]
         xi_post = np.convolve(xb[int(a + base - post) - 300:int(b + base - post) + 300, 0], hp, mode='same')[300:-300]
@@ -526,13 +534,21 @@ def analyse(name):
         if r <= limit_of(rms):
             continue
         # second look at a candidate: offsets within +-0.6 samples (a sharp onset in the input itself,
-        # e.g. a chord starting at full level, needs the alignment closer than the curve gives)
+        # e.g. a chord starting at full level, needs the alignment closer than the curve gives) and
+        # a speed within +-600 ppm of the curve's inside the piece (while the controller plays at up
+        # to 500 ppm, the delay changes by 0.13 samples over a piece: on a full-band transient such
+        # as a hi-hat that alone leaves ~10 %). A smooth time warp cannot explain a real click, skip or
+        # step; it only removes what the curve's resolution leaves.
         ys = yb[a:a + PIECE, c]
         mm = m[p0:p0 + PIECE]
-        for dl in np.arange(-0.6, 0.601, 0.05):
-            xs = warp(xb[:, c], mm + base - L[p0:p0 + PIECE] - dl)
-            g = float(np.dot(xs, ys)) / max(float(np.dot(xs, xs)), float(np.dot(ys, ys)), 1e-30)
-            r = min(r, float(np.max(np.abs(ys - g * xs))))
+        rel_t = (mm - mm[PIECE // 2]).astype(float)
+        for sp in np.arange(-6e-4, 6.01e-4, 1e-4):
+            for dl in np.arange(-0.6, 0.601, 0.05):
+                xs = warp(xb[:, c], mm + base - L[p0:p0 + PIECE] - dl - sp * rel_t)
+                g = float(np.dot(xs, ys)) / max(float(np.dot(xs, xs)), float(np.dot(ys, ys)), 1e-30)
+                r = min(r, float(np.max(np.abs(ys - g * xs))))
+            if r <= limit_of(rms):
+                break
         if r > limit_of(rms):
             click_spans.append((a, a + PIECE))
     merged = []

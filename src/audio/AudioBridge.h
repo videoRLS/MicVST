@@ -80,6 +80,7 @@ public:
         uint64_t underruns = 0;        // output ran dry (gap, faded out/in)
         uint64_t droppedBlocks = 0;    // input blocks dropped because the ring was full
         uint64_t resyncs = 0;          // latency trimmed back to the target (aligned crossfade)
+        uint64_t starts = 0;           // output (re)started after priming (fade-in): 1 + one per gap of any kind
         double   safetyMs = 0.0;       // current safety margin target
         double   bufferedMs = 0.0;     // mean time audio spends in the ring
         double   inputDelayMs = 0.0;   // normal delay capture -> arrival (plug-in thread), see push()
@@ -195,7 +196,7 @@ private:
     void    recordUnderrun() noexcept;
 
     // Stats (written by the RT threads, read anywhere)
-    std::atomic<uint64_t> underruns { 0 }, droppedBlocks { 0 }, resyncs { 0 };
+    std::atomic<uint64_t> underruns { 0 }, droppedBlocks { 0 }, resyncs { 0 }, starts { 0 };
     std::atomic<double>   bufferedFrames { 0.0 }, correctionAtomic { 0.0 }, driftAtomic { 0.0 };
     std::atomic<bool>     runningAtomic { false };
 
