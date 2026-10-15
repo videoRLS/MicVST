@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Kein Generator gepinnt: windows-latest wechselt die VS-Version (aktuell VS2026);
       # CMake nimmt automatisch das installierte Visual Studio des Runner-Images.
@@ -18,13 +18,20 @@ jobs:
         run: cmake -S . -B build -A x64
 
       - name: Build
-        run: cmake --build build --config Release --target MicVST MicVSTTests
+        run: cmake --build build --config Release --target MicVST MicVSTTests MicVSTStress
 
-      - name: Test
+      - name: Unit tests
         run: ./build/MicVSTTests_artefacts/Release/MicVSTTests.exe
 
+      - name: Audio path measurements (quick)
+        run: ./build/MicVSTStress_artefacts/Release/MicVSTStress.exe --quick
+
+      - name: Closed box - no networking library in the exe
+        shell: pwsh
+        run: ./tools/check-no-network.ps1 build/MicVST_artefacts/Release/MicVST.exe
+
       - name: Upload exe
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: MicVST
           path: build/MicVST_artefacts/Release/MicVST.exe

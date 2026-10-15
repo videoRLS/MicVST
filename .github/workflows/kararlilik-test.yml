@@ -1,0 +1,124 @@
+name: kararlilik-test
+
+# Windows build + tests for the kararlilik/** branches (MicVST stability work):
+#   baseline - the original v1.1.1, built and tested unchanged (reference values)
+#   new      - the pushed branch: unit tests, closed-box check (no networking library in the
+#              exe), the audio path measurements (MicVSTStress), UI snapshots, the engine test
+#              (MicVSTEngineTest) and the closed-box check at run time
+# Everything (metrics, logs, test output, the exe) is pushed as one commit to
+# ci-sonuclari/baseline and ci-sonuclari/<branch>, so it can be fetched with plain git.
+on:
+  push:
+    branches: [ 'kararlilik/**' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  baseline:
+    if: ${{ github.ref_name == 'kararlilik/v1.2.0' || github.event_name == 'workflow_dispatch' }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: tools-src
+      - uses: actions/checkout@v7
+        with:
+          ref: 5b1403fce2276298a89d58a95903927ae24ed146   # original MicVST v1.1.1
+          path: base
+
+      - name: Build original v1.1.1 (JUCE 8.0.13)
+        id: build
+        shell: pwsh
+        run: ./tools-src/tools/ci-build.ps1 -Source base -Build build-base -Targets "MicVST MicVSTTests" -Out results
+
+      - name: Unit tests (original)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        shell: pwsh
+        run: |
+          ./build-base/MicVSTTests_artefacts/Release/MicVSTTests.exe 2>&1 | Tee-Object -FilePath results/unit-tests.txt
+          $code = $LASTEXITCODE
+          "exit code: $code" | Add-Content results/unit-tests.txt
+          if ($code -ne 0) { exit $code }
+
+      - name: Imports of the original exe
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        shell: pwsh
+        continue-on-error: true   # the original is expected to import WinINet (update check)
+        run: ./tools-src/tools/check-no-network.ps1 build-base/MicVST_artefacts/Release/MicVST.exe results/imports.txt 2>&1 | Tee-Object -FilePath results/network-check.txt
+
+      - name: Publish
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./tools-src/tools/ci-publish.ps1 -Dir results -Branch ci-sonuclari/baseline -Message "baseline v1.1.1"
+
+  new:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build
+        id: build
+        shell: pwsh
+        run: |
+          $targets = "MicVST MicVSTTests"
+          if (Test-Path tests/StressMain.cpp) { $targets += " MicVSTStress" }
+          if (Test-Path tests/SnapshotMain.cpp) { $targets += " MicVSTSnapshot" }
+          if (Test-Path tests/EngineTestMain.cpp) { $targets += " MicVSTEngineTest" }
+          ./tools/ci-build.ps1 -Source . -Build build -Targets $targets -Out results
+
+      - name: Unit tests
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        shell: pwsh
+        run: |
+          ./build/MicVSTTests_artefacts/Release/MicVSTTests.exe 2>&1 | Tee-Object -FilePath results/unit-tests.txt
+          $code = $LASTEXITCODE
+          "exit code: $code" | Add-Content results/unit-tests.txt
+          if ($code -ne 0) { exit $code }
+
+      - name: Closed box - no networking library in the exe
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        # informational while the old update checker still exists, mandatory afterwards
+        continue-on-error: ${{ hashFiles('src/net/UpdateChecker.h') != '' }}
+        shell: pwsh
+        run: ./tools/check-no-network.ps1 build/MicVST_artefacts/Release/MicVST.exe results/imports.txt 2>&1 | Tee-Object -FilePath results/network-check.txt
+
+      - name: Audio path measurements (simulation + real Windows threads under full CPU load)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && hashFiles('tests/StressMain.cpp') != '' }}
+        shell: pwsh
+        run: ./build/MicVSTStress_artefacts/Release/MicVSTStress.exe results/measurements.md
+
+      - name: Simulated day (24 h of virtual time, random disturbances, deterministic)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && hashFiles('tests/StressMain.cpp') != '' }}
+        continue-on-error: true
+        shell: pwsh
+        run: ./build/MicVSTStress_artefacts/Release/MicVSTStress.exe results/day-simulation.md --day 24
+
+      - name: UI snapshots (Turkish texts with the Windows fonts)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && hashFiles('tests/SnapshotMain.cpp') != '' }}
+        shell: pwsh
+        run: ./build/MicVSTSnapshot_artefacts/Release/MicVSTSnapshot.exe results/ui
+
+      - name: Engine test (real AudioEngine + virtual WASAPI-like devices, real threads, MMCSS)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && hashFiles('tests/EngineTestMain.cpp') != '' }}
+        continue-on-error: true
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./tools/ci-enginetest.ps1 -Exe build/MicVSTEngineTest_artefacts/Release/MicVSTEngineTest.exe -Out results/engine -LongMinutes 20
+
+      - name: Closed box at run time (network, files, DLLs of the running MicVST.exe)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && hashFiles('tools/ci-runtime-check.ps1') != '' }}
+        continue-on-error: true
+        shell: pwsh
+        run: ./tools/ci-runtime-check.ps1 -Exe build/MicVST_artefacts/Release/MicVST.exe -Out results/runtime
+
+      - name: Publish
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./tools/ci-publish.ps1 -Dir results -Branch "ci-sonuclari/${{ github.ref_name }}" -Message "MicVST ${{ github.ref_name }}"

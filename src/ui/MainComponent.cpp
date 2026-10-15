@@ -1,46 +1,57 @@
 #include "ui/MainComponent.h"
 #include "audio/PluginChain.h"
+#include "Text.h"
+
+using micvst::tr;
 
 namespace
 {
     juce::String howToText()
     {
-        return
-            "How to use MicVST\n"
+        return tr (
+            "MicVST nasıl kullanılır\n"
             "\n"
-            "1)  Install a virtual audio cable\n"
-            "    VB-Cable (free) is recommended (link below). MicVST detects it automatically.\n"
+            "1)  Sanal ses kablosu kurun\n"
+            "    Ücretsiz VB-Cable önerilir: vb-audio.com/Cable. MicVST onu kendiliğinden bulur.\n"
             "\n"
-            "2)  Pick your devices (top of the window)\n"
-            "    Input   =  your microphone\n"
-            "    Output  =  the virtual cable (e.g. \"CABLE Input\")\n"
+            "2)  Cihazları seçin (pencerenin üstünde)\n"
+            "    Giriş  =  mikrofonunuz\n"
+            "    Çıkış  =  sanal kablo (ör. \"CABLE Input\")\n"
             "\n"
-            "3)  Build your plugin chain\n"
-            "    - \"+ Plugin\" opens a searchable list (grouped by manufacturer) of all VST3 effects\n"
-            "      and built-in nodes. Add effects you like (EQ, de-noise, compressor, ...).\n"
-            "    - Insert \"Mono -> Stereo\" where you want stereo (before it the chain runs\n"
-            "      mono = less CPU). \"Stereo -> Mono\" is available too.\n"
-            "    - Drag the handle on the left to reorder; the trash icon removes (with a prompt).\n"
-            "    - Double-click a plugin to open its editor.\n"
-            "    - \"Manage VST3 Folders\" adds plugins from other locations.\n"
+            "3)  Eklenti zincirinizi kurun\n"
+            "    - \"+ Eklenti\" tüm VST3 efektlerini ve dahili araçları üreticiye göre gruplu,\n"
+            "      aranabilir bir listede açar. İstediğiniz efektleri ekleyin (EQ, gürültü\n"
+            "      giderme, kompresör...).\n"
+            "    - Stereo istediğiniz yere \"Mono -> Stereo\" ekleyin; ondan önceki kısım mono\n"
+            "      çalışır (daha az işlemci). \"Stereo -> Mono\" da vardır. Mono biten zincir\n"
+            "      kablonun iki kanalına da gönderilir.\n"
+            "    - Sıralamak için soldaki tutamağı sürükleyin; çöp kutusu siler (onay sorar).\n"
+            "    - Eklentinin penceresini açmak için adına çift tıklayın.\n"
+            "    - \"VST3 klasörleri\" başka konumlardaki eklentileri ekler.\n"
             "\n"
-            "4)  Use it in any app\n"
-            "    In Discord / OBS / Zoom / ..., select \"CABLE Output\" as the microphone.\n"
+            "4)  İstediğiniz programda kullanın\n"
+            "    Discord, OBS, Zoom vb. programlarda mikrofon olarak \"CABLE Output\" seçin.\n"
             "\n"
-            "5)  That's it\n"
-            "    Settings are saved automatically. Closing the window keeps MicVST running in the\n"
-            "    tray (right-click the tray icon for options). Enable \"Run at startup\" to launch\n"
-            "    it silently on boot.\n"
+            "5)  Kesintisiz ses\n"
+            "    Mikrofon, eklenti zinciri ve kablo ayrı ayrı çalışır; aradaki küçük güvenlik\n"
+            "    payı anlık yüklenmeleri karşılar. \"Otomatik\" bu payı gerektiğinde kendisi\n"
+            "    büyütür. Alttaki satırlar gecikmeyi, işlemci yükünü ve her kesintiyi gösterir.\n"
+            "    \"Zincir çok ağır\" yazıyorsa eklentiler o anki yükte yetişemiyordur: kalite\n"
+            "    ayarlarını (aşırı örnekleme, ileri bakış) düşürün ya da arka plandaki ağır\n"
+            "    programın önceliğini azaltın.\n"
             "\n"
-            "Auto-Update-Check\n"
-            "    With \"Auto-Update-Check\" enabled, MicVST asks GitHub once on each start whether a\n"
-            "    newer version exists. No data is collected and there is no auto-installer - if an\n"
-            "    update is found, the version number turns into a link to the download.";
+            "6)  Hepsi bu\n"
+            "    Ayarlar kendiliğinden kaydedilir. Pencereyi kapatınca MicVST saatin yanındaki\n"
+            "    simgede çalışmaya devam eder (seçenekler için simgeye sağ tıklayın).\n"
+            "    \"Açılışta başlat\" seçiliyse Windows açılınca sessizce başlar.\n"
+            "\n"
+            "Gizlilik\n"
+            "    MicVST internete hiç bağlanmaz: güncelleme denetimi, veri toplama ya da\n"
+            "    web bağlantısı yoktur.");
     }
 
-    const char* const kRepoUrl = "https://github.com/philipz794/MicVST";
-
-    // Inhalt des How-To-Fensters: Anleitungstext + klickbare Links (VB-Cable, GitHub).
+    // Inhalt des How-To-Fensters: nur Anleitungstext (keine klickbaren Links mehr - MicVST
+    // öffnet keine Webseiten).
     class HowToContent : public juce::Component
     {
     public:
@@ -57,33 +68,12 @@ namespace
             body.setFont (juce::Font (juce::FontOptions (15.0f)));
             body.setText (howToText(), false);
             addAndMakeVisible (body);
-
-            setupLink (vbCable, "Download VB-Cable  (vb-audio.com/Cable)", "https://vb-audio.com/Cable/");
-            setupLink (github,  "Check for updates on GitHub", kRepoUrl);
         }
 
-        void resized() override
-        {
-            auto r = getLocalBounds().reduced (12);
-            github.setBounds (r.removeFromBottom (22));
-            r.removeFromBottom (6);
-            vbCable.setBounds (r.removeFromBottom (22));
-            r.removeFromBottom (10);
-            body.setBounds (r);
-        }
+        void resized() override { body.setBounds (getLocalBounds().reduced (12)); }
 
     private:
-        void setupLink (juce::HyperlinkButton& b, const juce::String& text, const juce::String& url)
-        {
-            b.setButtonText (text);
-            b.setURL (juce::URL (url));
-            b.setJustificationType (juce::Justification::centredLeft);
-            b.setColour (juce::HyperlinkButton::textColourId, juce::Colours::orange);
-            addAndMakeVisible (b);
-        }
-
         juce::TextEditor body;
-        juce::HyperlinkButton vbCable, github;
     };
 
     // Eigenes Fenster mit der Anleitung. Schließen versteckt nur (Instanz bleibt zum Wieder-Öffnen).
@@ -91,17 +81,20 @@ namespace
     {
     public:
         HowToWindow()
-            : juce::DocumentWindow ("MicVST - How To", juce::Colours::darkgrey,
+            : juce::DocumentWindow (MainComponent::howToTitle(), juce::Colours::darkgrey,
                                     juce::DocumentWindow::closeButton)
         {
             setUsingNativeTitleBar (true);
-            setContentOwned (new HowToContent(), false);
+            setContentOwned (MainComponent::createHowToContent().release(), false);
             setResizable (true, false);
-            centreWithSize (560, 560);
+            centreWithSize (580, 600);
         }
         void closeButtonPressed() override { setVisible (false); }
     };
 }
+
+juce::String MainComponent::howToTitle()                         { return tr ("MicVST - Kullanım"); }
+std::unique_ptr<juce::Component> MainComponent::createHowToContent() { return std::make_unique<HowToContent>(); }
 
 MainComponent::MainComponent (AudioEngine& e) : engine (e)
 {
@@ -110,6 +103,8 @@ MainComponent::MainComponent (AudioEngine& e) : engine (e)
     addAndMakeVisible (inMeter);
     addAndMakeVisible (outMeter);
     addAndMakeVisible (dbScale);
+    inLabel.setText (tr ("Giriş"), juce::dontSendNotification);
+    outLabel.setText (tr ("Çıkış"), juce::dontSendNotification);
     addAndMakeVisible (inLabel);
     addAndMakeVisible (outLabel);
     inLabel.setJustificationType (juce::Justification::centredLeft);
@@ -119,34 +114,26 @@ MainComponent::MainComponent (AudioEngine& e) : engine (e)
     addAndMakeVisible (*pluginList);
 
     addAndMakeVisible (howToBtn);
-    howToBtn.setTooltip ("Quick setup guide");
+    howToBtn.setButtonText (tr ("Kullanım"));
+    howToBtn.setTooltip (tr ("Hızlı kurulum rehberi"));
     howToBtn.onClick = [this] { showHowTo(); };
 
-    currentVersion = juce::JUCEApplication::getInstance()->getApplicationVersion();
-    versionLink.setButtonText ("v" + currentVersion);
-    versionLink.setURL (juce::URL (kRepoUrl));
-    versionLink.setTooltip ("MicVST on GitHub");
-    versionLink.setJustificationType (juce::Justification::centredLeft);
-    versionLink.setColour (juce::HyperlinkButton::textColourId, juce::Colours::grey);
-    addAndMakeVisible (versionLink);
-
-    updateToggle.setTooltip ("Check GitHub on startup whether a newer version exists (opt-in, no data collected)");
-    updateToggle.onClick = [this]
-    {
-        const bool on = updateToggle.getToggleState();
-        if (onUpdateCheckToggled) onUpdateCheckToggled (on);
-        if (on) startUpdateCheck();
-    };
-    addAndMakeVisible (updateToggle);
+    versionLabel.setText ("v" + juce::JUCEApplication::getInstance()->getApplicationVersion(), juce::dontSendNotification);
+    versionLabel.setColour (juce::Label::textColourId, juce::Colours::grey);
+    versionLabel.setTooltip (tr ("MicVST tamamen çevrimdışı çalışır (internete bağlanmaz)"));
+    versionLabel.setJustificationType (juce::Justification::centredLeft);
+    addAndMakeVisible (versionLabel);
 
     addAndMakeVisible (autostartToggle);
-    autostartToggle.setTooltip ("Launch MicVST silently into the tray when Windows starts");
+    autostartToggle.setButtonText (tr ("Açılışta başlat"));
+    autostartToggle.setTooltip (tr ("Windows açılınca MicVST'yi pencere açmadan, simge olarak başlatır"));
     autostartToggle.setToggleState (AutostartRegistry::isEnabled(), juce::dontSendNotification);
     autostartToggle.onClick = [this] { AutostartRegistry::setEnabled (autostartToggle.getToggleState()); };
 
-    cableHint.setColour (juce::HyperlinkButton::textColourId, juce::Colours::orange);
+    cableHint.setText (tr ("Sanal ses kablosu bulunamadı - VB-Cable kurun (vb-audio.com/Cable) ve MicVST'yi yeniden başlatın"),
+                       juce::dontSendNotification);
+    cableHint.setColour (juce::Label::textColourId, juce::Colours::orange);
     cableHint.setJustificationType (juce::Justification::centredLeft);
-    cableHint.setTooltip ("https://vb-audio.com/Cable/");
     addChildComponent (cableHint);   // Sichtbarkeit steuert updateCableHint()
 
     engine.onStatusChanged = [this] { updateCableHint(); };
@@ -166,8 +153,14 @@ void MainComponent::timerCallback()
 {
     inMeter.setLevel (engine.inputLevel());
     outMeter.setLevel (engine.outputLevel());
-    // Mit der Registry synchron halten (z. B. wenn der Tray den Autostart umschaltet).
-    autostartToggle.setToggleState (AutostartRegistry::isEnabled(), juce::dontSendNotification);
+
+    // Mit der Registry synchron halten (z. B. wenn der Tray den Autostart umschaltet) - einmal
+    // pro Sekunde reicht (1.1.1 las die Registry 30-mal pro Sekunde).
+    if (++timerTicks >= 30)
+    {
+        timerTicks = 0;
+        autostartToggle.setToggleState (AutostartRegistry::isEnabled(), juce::dontSendNotification);
+    }
 }
 
 void MainComponent::showHowTo()
@@ -176,36 +169,6 @@ void MainComponent::showHowTo()
         howToWindow.reset (new HowToWindow());
     howToWindow->setVisible (true);
     howToWindow->toFront (true);
-}
-
-void MainComponent::setUpdateCheckEnabled (bool on, bool runIfOn)
-{
-    updateToggle.setToggleState (on, juce::dontSendNotification);
-    if (on && runIfOn) startUpdateCheck();
-}
-
-void MainComponent::startUpdateCheck()
-{
-    // SafePointer: falls die Komponente vor dem (asynchronen) Ergebnis zerstört wird,
-    // läuft der Callback ins Leere statt in einen Dangling-this.
-    juce::Component::SafePointer<MainComponent> safe (this);
-    updateChecker.start (currentVersion, [safe] (UpdateChecker::Result r)
-    {
-        if (auto* self = safe.getComponent())
-        {
-            self->showUpdateAvailable (r.latestVersion, r.releaseUrl);
-            if (self->onUpdateFound) self->onUpdateFound (r.latestVersion, r.releaseUrl);
-        }
-    });
-}
-
-void MainComponent::showUpdateAvailable (const juce::String& latestVersion, const juce::String& url)
-{
-    versionLink.setButtonText ("v" + currentVersion + " > Update available!");
-    versionLink.setURL (juce::URL (url));
-    versionLink.setTooltip ("MicVST " + latestVersion + " is available on GitHub - click to open");
-    versionLink.setColour (juce::HyperlinkButton::textColourId, juce::Colours::orange);
-    resized();   // Text ist breiter -> Layout der unteren Leiste auffrischen
 }
 
 void MainComponent::updateCableHint()
@@ -224,16 +187,11 @@ void MainComponent::resized()
 {
     auto r = getLocalBounds().reduced (8);
     auto bottomRow = r.removeFromBottom (24);
-    // Rechts, von außen nach innen: Run at startup (Rand) | Auto-Update-Check | How To.
+    // Rechts, von außen nach innen: Run at startup (Rand) | How To. Links die Version.
     autostartToggle.setBounds (bottomRow.removeFromRight (120));
     bottomRow.removeFromRight (6);
-    updateToggle.setBounds (bottomRow.removeFromRight (150));
-    bottomRow.removeFromRight (6);
     howToBtn.setBounds (bottomRow.removeFromRight (80));
-    // Links die klickbare Version: Breite an den Text anpassen, sonst ist der leere Reserve-
-    // Platz (für "> Update available!") mit-klickbar.
-    versionLink.setBounds (bottomRow);
-    versionLink.changeWidthToFitText();
+    versionLabel.setBounds (bottomRow);
     r.removeFromBottom (4);
 
     // Horizontale Meter: In-Zeile, Out-Zeile, gemeinsame dB-Skala darunter.
@@ -256,8 +214,8 @@ void MainComponent::resized()
         r.removeFromTop (4);
     }
 
-    // DevicePanel meldet seine Höhe selbst (3 Zeilen, +1 wenn die Buffer-Zeile sichtbar
-    // ist); die Plugin-Liste bekommt den ganzen Rest.
+    // DevicePanel meldet seine Höhe selbst (Input/Output/Safety, +1 wenn die Buffer-Zeile
+    // sichtbar ist, plus zwei Statuszeilen); die Plugin-Liste bekommt den ganzen Rest.
     devicePanel->setBounds (r.removeFromTop (devicePanel->preferredHeight()));
     r.removeFromTop (8);
     pluginList->setBounds (r);

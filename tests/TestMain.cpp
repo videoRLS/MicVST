@@ -1,5 +1,6 @@
 #include <juce_core/juce_core.h>
 #include "audio/Metering.h"
+#include <cstdio>
 
 // Smoke-Test: beweist, dass der UnitTestRunner läuft.
 struct SmokeTest : juce::UnitTest
@@ -62,14 +63,14 @@ struct GraphConnectionsTest : juce::UnitTest
         const NodeID p1   { 10 };
         const NodeID p2   { 11 };
 
-        beginTest ("empty mono chain: input(1out) -> output(2in) = 1 Kanal");
+        beginTest ("empty mono chain: input(1out) -> output(2in) = 1 channel");
         {
             auto c = computeChainConnections ({ { in, 0, 1 }, { out, 2, 0 } });
             expectEquals ((int) c.size(), 1);
             expect (c[0] == ChannelConnection { in, 0, out, 0 });
         }
 
-        beginTest ("empty stereo chain: input(2out) -> output(2in) = 2 Kanäle");
+        beginTest ("empty stereo chain: input(2out) -> output(2in) = 2 channels");
         {
             auto c = computeChainConnections ({ { in, 0, 2 }, { out, 2, 0 } });
             expectEquals ((int) c.size(), 2);
@@ -118,9 +119,7 @@ struct PersistenceTest : juce::UnitTest
         s.sampleRate = 48000.0; s.bufferSize = 128;
         s.pluginFolders.add ("C:/My VST3");
         s.windowState = "0 0 600 480";
-        s.updateCheckEnabled = true;
-        s.updateCheckAsked = true;
-        s.lastNotifiedVersion = "1.0.3";
+        s.safetyBufferMs = 20;
 
         PluginEntryState p;
         p.fileOrId = "C:/VST3/Pro-Q 3.vst3";
@@ -139,19 +138,80 @@ struct PersistenceTest : juce::UnitTest
         expectEquals (r.pluginFolders.size(), 1);
         expectEquals (r.pluginFolders[0], juce::String ("C:/My VST3"));
         expectEquals (r.windowState, juce::String ("0 0 600 480"));
-        expect (r.updateCheckEnabled == true);
-        expect (r.updateCheckAsked == true);
-        expectEquals (r.lastNotifiedVersion, juce::String ("1.0.3"));
+        expectEquals (r.safetyBufferMs, 20);
         expectEquals (r.plugins.size(), 1);
         expectEquals (r.plugins[0].fileOrId, p.fileOrId);
         expect (r.plugins[0].bypassed == true);
         expect (r.plugins[0].state == p.state);
+
+        beginTest ("1.1.1 config loads: old update-check keys ignored, safety buffer defaults to Auto");
+        {
+            juce::ValueTree old ("MicVST");
+            old.setProperty ("inputDevice", "Mic", nullptr);
+            old.setProperty ("outputDevice", "CABLE Input (VB-Audio Virtual Cable)", nullptr);
+            old.setProperty ("userBufferSize", 0, nullptr);
+            old.setProperty ("updateCheckEnabled", true, nullptr);
+            old.setProperty ("updateCheckAsked", true, nullptr);
+            old.setProperty ("lastNotifiedVersion", "1.1.0", nullptr);
+            const auto o = fromValueTree (old);
+            expectEquals (o.inputDevice, juce::String ("Mic"));
+            expectEquals (o.safetyBufferMs, 0);
+            const auto written = toValueTree (o);
+            expect (! written.hasProperty ("updateCheckEnabled"), "no update keys are written any more");
+            expect (! written.hasProperty ("lastNotifiedVersion"));
+        }
+
+        beginTest ("plug-in identity inside a multi-plug-in file survives a round trip");
+        {
+            // A WaveShell or an LSP bundle holds many plug-ins in ONE file; up to 1.2.0 only the
+            // file was stored and every such entry came back as the same plug-in.
+            MicVSTState m;
+            for (auto* shellName : { "CLA-2A Mono", "SSL E-Channel Mono" })
+            {
+                PluginEntryState e;
+                e.fileOrId = "C:/Program Files/Common Files/VST3/WaveShell1-VST3 17.4_x64.vst3";
+                e.pluginName = shellName;
+                e.pluginId = juce::String ("VST3-") + shellName + "-1a2b3c4d-5e6f7a8b";
+                e.pluginUid = juce::String (shellName).hashCode();
+                m.plugins.add (e);
+            }
+            const auto back = fromValueTree (juce::ValueTree::fromXml (*toValueTree (m).createXml()));
+            expectEquals (back.plugins.size(), 2);
+            for (int i = 0; i < 2; ++i)
+            {
+                expectEquals (back.plugins[i].pluginName, m.plugins[i].pluginName);
+                expectEquals (back.plugins[i].pluginId, m.plugins[i].pluginId);
+                expectEquals (back.plugins[i].pluginUid, m.plugins[i].pluginUid);
+            }
+
+            juce::ValueTree legacy ("MicVST"), list ("plugins"), entry ("plugin");   // 1.2.0 config
+            entry.setProperty ("fileOrId", "C:/VST3/Pro-Q 4.vst3", nullptr);
+            list.appendChild (entry, nullptr);
+            legacy.appendChild (list, nullptr);
+            const auto l = fromValueTree (legacy);
+            expectEquals (l.plugins.size(), 1);
+            expect (l.plugins[0].pluginId.isEmpty() && l.plugins[0].pluginName.isEmpty(), "old configs: identity empty");
+        }
     }
 };
 static PersistenceTest persistenceTest;
 
+// Ohne gesetzten Logger schreibt juce::Logger unter Windows nur nach OutputDebugString - in der
+// CI-Konsole wären Testnamen und Messwerte unsichtbar. Daher explizit auf stdout.
+struct StdoutLogger : juce::Logger
+{
+    void logMessage (const juce::String& message) override
+    {
+        std::fputs ((message + "\n").toRawUTF8(), stdout);
+        std::fflush (stdout);
+    }
+};
+
 int main (int, char**)
 {
+    StdoutLogger logger;
+    juce::Logger::setCurrentLogger (&logger);
+
     juce::UnitTestRunner runner;
     runner.setAssertOnFailure (false);
     runner.runAllTests();
@@ -161,10 +221,10 @@ int main (int, char**)
         failures += runner.getResult (i)->failures;
 
     if (failures > 0)
-    {
         juce::Logger::writeToLog ("TESTS FAILED: " + juce::String (failures));
-        return 1;
-    }
-    juce::Logger::writeToLog ("All tests completed successfully");
-    return 0;
+    else
+        juce::Logger::writeToLog ("All tests completed successfully");
+
+    juce::Logger::setCurrentLogger (nullptr);
+    return failures > 0 ? 1 : 0;
 }

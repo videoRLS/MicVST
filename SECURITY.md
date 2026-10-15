@@ -8,11 +8,11 @@ Only the **latest release** of MicVST receives fixes. Please update to the newes
 ## Scope
 
 MicVST is a small **local** Windows app: it processes audio between local devices and a virtual
-audio cable. It has **no telemetry and no auto-installer**. The only network access is an
-**optional, opt-in update check** (off by default): when enabled, on startup it makes a single
-request to the public GitHub releases API to see whether a newer version exists. The main areas of
-interest are third-party VST3 plugins it loads and the config/log files it writes under
-`%APPDATA%\MicVST\`.
+audio cable. Since 1.2.0 it contains **no network code at all** (no update check, no telemetry, no
+web links; the CI build fails if the exe imports a networking library). Third-party VST3 plugins,
+however, run inside the MicVST process and can do whatever they want - `tools/firewall-block.ps1`
+blocks the whole process in the Windows Firewall. The main areas of interest are those plugins and
+the config/log files MicVST writes under `%APPDATA%\MicVST\`.
 
 ## Reporting a vulnerability
 

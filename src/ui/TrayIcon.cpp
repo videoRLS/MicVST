@@ -1,5 +1,8 @@
 #include "ui/TrayIcon.h"
 #include "BinaryData.h"
+#include "Text.h"
+
+using micvst::tr;
 
 TrayIcon::TrayIcon()
 {
@@ -30,10 +33,10 @@ void TrayIcon::mouseDown (const juce::MouseEvent& e)
     if (e.mods.isRightButtonDown())
     {
         juce::PopupMenu m;
-        m.addItem (1, "Run at Windows startup",
+        m.addItem (1, tr ("Windows açılışında başlat"),
                    true, isAutostartOn && isAutostartOn());
         m.addSeparator();
-        m.addItem (2, "Quit");
+        m.addItem (2, tr ("MicVST'yi kapat"));
         m.showMenuAsync (juce::PopupMenu::Options(), [this] (int result)
         {
             if      (result == 1 && setAutostart && isAutostartOn) setAutostart (! isAutostartOn());

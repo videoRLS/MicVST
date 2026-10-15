@@ -11,7 +11,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Kein Generator gepinnt: windows-latest wechselt die VS-Version (aktuell VS2026);
       # CMake nimmt automatisch das installierte Visual Studio des Runner-Images.
@@ -27,7 +27,7 @@ jobs:
         run: echo "hash=$((Get-FileHash build/MicVST_artefacts/Release/MicVST.exe -Algorithm SHA256).Hash)" >> $env:GITHUB_OUTPUT
 
       - name: Publish release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: build/MicVST_artefacts/Release/MicVST.exe
           body: |

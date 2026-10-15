@@ -1,9 +1,13 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "audio/AudioEngine.h"
+#include "audio/RealtimeSupport.h"
 #include "state/Persistence.h"
 #include "state/AutostartRegistry.h"
 #include "ui/MainComponent.h"
 #include "ui/TrayIcon.h"
+#include "Text.h"
+
+using micvst::tr;
 
 #if JUCE_WINDOWS
  // Bewusst kein <windows.h>: das Header pollutet nachfolgende JUCE-Header (Makrokonflikte
@@ -34,11 +38,51 @@ static unsigned int findTypesWithSehGuard (juce::VST3PluginFormat& format,
 }
 #endif
 
+// %APPDATA%\MicVST\log.txt: Türkischer Kopf, Uhrzeit vor jeder Zeile (Ereignisse lassen sich so
+// zeitlich zuordnen), jede Zeile sofort geschrieben (übersteht einen Absturz), beim Start auf
+// die neuesten 256 KB gekürzt. Ersetzt juce::FileLogger (englischer Kopf, keine Uhrzeiten).
+class MicVSTLogger final : public juce::Logger
+{
+public:
+    explicit MicVSTLogger (const juce::File& f)
+    {
+        f.getParentDirectory().createDirectory();
+        juce::FileLogger::trimFileSize (f, 256 * 1024);
+        stream = std::make_unique<juce::FileOutputStream> (f);   // hängt ans Dateiende an
+        if (stream->failedToOpen())
+            stream.reset();
+        write ("\n**********************************************************\n"
+               + tr ("MicVST günlüğü - başlangıç: ") + juce::Time::getCurrentTime().formatted ("%d.%m.%Y %H:%M:%S") + "\n");
+    }
+
+    void logMessage (const juce::String& message) override
+    {
+        // Der Benutzerordner (enthält den Windows-Benutzernamen) steht im Log nur als
+        // %USERPROFILE% - das Log wird oft zur Fehlersuche weitergegeben.
+        write ("[" + juce::Time::getCurrentTime().formatted ("%H:%M:%S") + "] "
+               + (userHome.length() > 3 ? message.replace (userHome, "%USERPROFILE%", true) : message) + "\n");
+    }
+
+private:
+    void write (const juce::String& text)
+    {
+        const juce::ScopedLock sl (lock);
+        if (stream == nullptr)
+            return;
+        stream->writeText (text, false, false, "\r\n");   // UTF-8, Windows-Zeilenenden
+        stream->flush();
+    }
+
+    std::unique_ptr<juce::FileOutputStream> stream;
+    juce::CriticalSection lock;
+    const juce::String userHome { juce::File::getSpecialLocation (juce::File::userHomeDirectory).getFullPathName() };
+};
+
 class MicVSTApplication : public juce::JUCEApplication
 {
 public:
     const juce::String getApplicationName() override    { return "MicVST"; }
-    const juce::String getApplicationVersion() override { return "1.1.1"; }
+    const juce::String getApplicationVersion() override { return MICVST_VERSION_STRING; }   // aus CMake project(VERSION)
 
     // Kind-Scanprozesse (--scan) laufen parallel zur Haupt-Instanz und dürfen nicht
     // von der Single-Instance-Logik weggefangen werden.
@@ -57,6 +101,9 @@ public:
         // eine kaputte Plugin-DLL soll still als Fehler enden, nicht als Modal-Dialog.
         SetErrorMode (kSemFailCriticalErrors | kSemNoGpFaultErrorBox | kSemNoOpenFileErrorBox);
        #endif
+        // Scans laufen parallel zum Audio: Priorität "unter normal", damit ein schwerer
+        // Plugin-Scan nicht mit Spiel, OBS oder MicVST selbst um CPU konkurriert.
+        rt::configureBackgroundProcess();
 
         auto args = juce::JUCEApplicationBase::getCommandLineParameterArray();
         juce::String pluginPath, outPath;
@@ -96,11 +143,23 @@ public:
             return;
         }
 
+        // Türkische Texte auch für JUCEs eigene Beschriftungen (Dialog-Buttons, Kontextmenü des
+        // Suchfelds) - vor dem Aufbau jeder Oberfläche.
+        micvst::installTurkishTranslations();
+
         auto logFile = juce::File::getSpecialLocation (juce::File::userApplicationDataDirectory)
                           .getChildFile ("MicVST").getChildFile ("log.txt");
-        logFile.getParentDirectory().createDirectory();
-        logger.reset (new juce::FileLogger (logFile, "MicVST Log"));
+        logger = std::make_unique<MicVSTLogger> (logFile);
         juce::Logger::setCurrentLogger (logger.get());
+        juce::Logger::writeToLog ("MicVST " + getApplicationVersion() + " (" + juce::SystemStats::getJUCEVersion()
+                                  + tr (", internet erişimi yok)"));
+
+        // Echtzeit-Prozess: Windows darf den (oft nur im Tray laufenden) Audio-Prozess nicht als
+        // Hintergrundarbeit drosseln (EcoQoS / Timer-Drosselung), Priorität "über normal".
+        const auto rtSetup = rt::configureRealtimeProcess();
+        juce::Logger::writeToLog (tr ("İşlem: öncelik normalin üstü ") + (rtSetup.priorityRaised ? tr ("tamam") : tr ("BAŞARISIZ"))
+                                  + tr (", güç kısıtlaması kapalı ") + (rtSetup.executionThrottlingOff ? tr ("tamam") : tr ("desteklenmiyor"))
+                                  + tr (", zamanlayıcı kısıtlaması kapalı ") + (rtSetup.timerThrottlingOff ? tr ("tamam") : tr ("desteklenmiyor")));
 
         const bool silent = commandLine.contains ("--tray");
 
@@ -112,11 +171,6 @@ public:
         const bool firstRun = ! configFile().existsAsFile();
         MicVSTState state = loadState();
 
-        // Auto-Update-Check-Zustand übernehmen (Default: aus, nie gefragt).
-        updateCheckEnabled  = state.updateCheckEnabled;
-        updateCheckAsked    = state.updateCheckAsked;
-        lastNotifiedVersion = state.lastNotifiedVersion;
-
         // Custom-VST3-Ordner übernehmen, dann Cache laden (vor applyState und vor der UI).
         engine->setPluginFolders (state.pluginFolders);
         engine->loadPluginCache();   // KEIN synchroner Scan mehr — Cache reicht zum Start
@@ -127,11 +181,11 @@ public:
             // gefunden -> Output bleibt leer ("none"), die UI weist auf den Download hin.
             state.outputDevice = engine->detectCableOutput();
             juce::Logger::writeToLog (state.outputDevice.isEmpty()
-                ? "No virtual cable found -> output 'none'"
-                : "Host output (cable) = " + state.outputDevice);
+                ? tr ("Sanal kablo bulunamadı -> çıkış 'yok'")
+                : tr ("Çıkış (kablo) = ") + state.outputDevice);
 
             // Input: System-Standardmikrofon, sonst erstes verfügbares Eingangsgerät.
-            auto& dm = engine->getDeviceManager();
+            auto& dm = engine->getInputDeviceManager();
             dm.setCurrentAudioDeviceType (dm.preferredTypeName(), true);
             if (auto* type = dm.getCurrentDeviceTypeObject())
             {
@@ -141,7 +195,9 @@ public:
                 state.inputDevice = juce::isPositiveAndBelow (def, ins.size()) ? ins[def]
                                   : (ins.isEmpty() ? juce::String() : ins[0]);
             }
-            juce::Logger::writeToLog ("Input = " + state.inputDevice);
+            juce::Logger::writeToLog (state.inputDevice.isEmpty()
+                ? tr ("Mikrofon bulunamadı -> giriş 'yok'")
+                : tr ("Giriş (mikrofon) = ") + state.inputDevice);
         }
         engine->applyState (state);
 
@@ -162,28 +218,10 @@ public:
         // damit In-/Output-Auswahl gemerkt wird — auch ohne sauberes Beenden (X versteckt nur).
         engine->onDeviceChanged = [this] { persistState(); };
         // UI-Änderungen (Plugin-Kette, Ordner) persistieren ebenfalls den Gesamtzustand —
-        // ein direktes saveState(captureState()) in der UI würde windowState/Update-Check resetten.
+        // ein direktes saveState(captureState()) in der UI würde windowState resetten.
         engine->onStateChanged  = [this] { persistState(); };
 
         engine->onFactoryResetRequested = [this] { factoryReset(); };
-
-        // --- Auto-Update-Check verdrahten ---
-        if (auto* mc = mainWindow->getContent())
-        {
-            mc->onUpdateCheckToggled = [this] (bool on) { updateCheckEnabled = on; persistState(); };
-            mc->onUpdateFound = [this] (const juce::String& latestVersion, const juce::String&)
-            {
-                // Tray-Bubble nur EINMAL pro neuer Version (der Fenster-Hinweis bleibt sowieso).
-                if (latestVersion == lastNotifiedVersion) return;
-                lastNotifiedVersion = latestVersion;
-                persistState();
-                if (tray != nullptr)
-                    tray->showInfoBubble ("Update available",
-                        "MicVST " + latestVersion + " is available - click the version number to update.");
-            };
-            // Bei aktivem Check sofort einen Lauf starten (auch im stillen Autostart -> Tray-Bubble).
-            mc->setUpdateCheckEnabled (updateCheckEnabled, true);
-        }
 
         // Altes Dead-Man's-Pedal aufräumen (ersetzt durch Skip-Liste im plugin_cache.xml).
         juce::File::getSpecialLocation (juce::File::userApplicationDataDirectory)
@@ -191,10 +229,6 @@ public:
 
         // Fenster + Tray stehen -> jetzt (und erst jetzt) im Hintergrund scannen.
         engine->startBackgroundScan();
-
-        // Erststart: einmalig nach Zustimmung fragen (nur mit sichtbarem Fenster).
-        if (! silent && ! updateCheckAsked)
-            askUpdateConsent();
     }
 
     void anotherInstanceStarted (const juce::String&) override
@@ -218,15 +252,12 @@ public:
     }
 
 private:
-    // Engine-Zustand (Geräte/Plugins) + Fenstergröße/-position + Update-Check-Zustand speichern.
+    // Engine-Zustand (Geräte/Plugins) + Fenstergröße/-position speichern.
     void persistState()
     {
         if (suppressPersist || engine == nullptr) return;
         auto s = engine->captureState();
         if (mainWindow != nullptr) s.windowState = mainWindow->getWindowStateAsString();
-        s.updateCheckEnabled  = updateCheckEnabled;
-        s.updateCheckAsked    = updateCheckAsked;
-        s.lastNotifiedVersion = lastNotifiedVersion;
         saveState (s);
     }
 
@@ -241,32 +272,8 @@ private:
         AudioEngine::pluginCacheFile().deleteFile();
         juce::File::getSpecialLocation (juce::File::userApplicationDataDirectory)
             .getChildFile ("MicVST").getChildFile ("tray_hint_shown").deleteFile();
-        juce::Logger::writeToLog ("Factory-Reset: Daten gelöscht, App beendet sich");
+        juce::Logger::writeToLog (tr ("Sıfırlama: tüm veriler silindi, program kapanıyor"));
         systemRequestedQuit();
-    }
-
-    // Einmaliges Erststart-Popup: Zustimmung zum Update-Check einholen. Egal wie der Nutzer
-    // entscheidet -> "gefragt" wird gemerkt, also kommt der Dialog nie wieder.
-    void askUpdateConsent()
-    {
-        updateCheckAsked = true;
-        persistState();
-        juce::NativeMessageBox::showYesNoBox (
-            juce::MessageBoxIconType::QuestionIcon,
-            "Check for updates?",
-            "Should MicVST check GitHub for a newer version on startup?\n\n"
-            "Only a single request is sent to GitHub - no data is collected and there is no "
-            "auto-installer. You can change this anytime with the \"Auto-Update-Check\" box.",
-            nullptr,
-            juce::ModalCallbackFunction::create ([this] (int result)
-            {
-                const bool yes = (result == 1);
-                updateCheckEnabled = yes;
-                persistState();
-                if (mainWindow != nullptr)
-                    if (auto* mc = mainWindow->getContent())
-                        mc->setUpdateCheckEnabled (yes, true);   // bei Ja: gleich prüfen
-            }));
     }
 
     void toggleWindow()
@@ -287,7 +294,7 @@ private:
                         .getChildFile ("MicVST").getChildFile ("tray_hint_shown");
         if (marker.existsAsFile()) return;
         marker.create();
-        tray->showInfoBubble ("MicVST", "Still running in the tray - right-click the icon for options.");
+        tray->showInfoBubble ("MicVST", tr ("MicVST arka planda çalışmaya devam ediyor. Seçenekler için simgeye sağ tıklayın."));
     }
 
     class MainWindow : public juce::DocumentWindow
@@ -303,14 +310,14 @@ private:
             content = new MainComponent (engine);
             setContentOwned (content, false);
             setResizable (true, false);
-            // Mindestgröße = Startgröße (600x480); zusätzliche Höhe verlängert die Plugin-Liste.
-            setResizeLimits (600, 480, 1600, 1400);
+            // Mindestgröße = Startgröße (600x560); zusätzliche Höhe verlängert die Plugin-Liste.
+            setResizeLimits (600, 560, 1600, 1400);
             // Letzte Größe/Position wiederherstellen (innerhalb der Resize-Limits), sonst zentriert
             // auf Startgröße. restoreWindowStateFromString respektiert die gesetzten Limits.
             if (windowState.isNotEmpty())
                 restoreWindowStateFromString (windowState);
             else
-                centreWithSize (600, 480);
+                centreWithSize (600, 560);
         }
         std::function<void()> onHide;
         void closeButtonPressed() override { setVisible (false); if (onHide) onHide(); }
@@ -319,15 +326,10 @@ private:
         MainComponent* content = nullptr;   // gehört dem Fenster (setContentOwned), nur Zugriffszeiger
     };
 
-    std::unique_ptr<juce::FileLogger> logger;
+    std::unique_ptr<MicVSTLogger> logger;
     std::unique_ptr<AudioEngine> engine;
     std::unique_ptr<MainWindow> mainWindow;
     std::unique_ptr<TrayIcon> tray;
-
-    // Auto-Update-Check-Zustand (in config.xml persistiert, siehe persistState()).
-    bool updateCheckEnabled = false;
-    bool updateCheckAsked   = false;
-    juce::String lastNotifiedVersion;
     bool suppressPersist = false;   // Factory-Reset: nichts darf die gelöschte Config neu anlegen
 };
 

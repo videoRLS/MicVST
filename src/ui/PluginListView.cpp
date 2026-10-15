@@ -1,8 +1,29 @@
 #include "ui/PluginListView.h"
 #include "audio/PluginChain.h"
 #include "ui/PluginPicker.h"
+#include "Text.h"
+
+using micvst::tr;
+
+namespace
+{
+    // Anzeigename eines Ketten-Eintrags (VST3: Dateiname ohne Endung; interne Glieder: Funktion).
+    juce::String displayName (const PluginChain::Entry& e)
+    {
+        if (e.fileOrId == PluginChain::monoToStereoId) return "Mono -> Stereo";
+        if (e.fileOrId == PluginChain::stereoToMonoId) return "Stereo -> Mono";
+        // Name des Plugins selbst (eine Datei kann viele enthalten), sonst der Dateiname
+        return e.pluginName.isNotEmpty() ? e.pluginName : juce::File (e.fileOrId).getFileNameWithoutExtension();
+    }
+}
+
 
 // ============================ TrashButton ============================
+
+PluginListView::TrashButton::TrashButton() : juce::Button (tr ("Kaldır"))
+{
+    setTooltip (tr ("Eklentiyi zincirden kaldır"));
+}
 
 void PluginListView::TrashButton::paintButton (juce::Graphics& g, bool highlighted, bool /*down*/)
 {
@@ -40,7 +61,8 @@ PluginListView::Row::Row (PluginListView& ownerIn, int idx) : owner (ownerIn), i
     const bool bypassed = juce::isPositiveAndBelow (index, (int) es.size())
                           && es[(size_t) index].bypassed;
 
-    bypassBtn.setButtonText ("Bypass");
+    bypassBtn.setButtonText (tr ("Devre dışı"));
+    bypassBtn.setTooltip (tr ("Eklentiyi geçici olarak devre dışı bırak (ses onu atlar)"));
     bypassBtn.setClickingTogglesState (true);
     bypassBtn.setToggleState (bypassed, juce::dontSendNotification);
     bypassBtn.setColour (juce::TextButton::buttonOnColourId, juce::Colours::darkorange);
@@ -87,16 +109,13 @@ void PluginListView::Row::paint (juce::Graphics& g)
     if (auto* node = owner.engine.getGraph().getNodeForId (e.node))
         if (auto* proc = node->getProcessor())
         {
-            auto* dev = owner.engine.getDeviceManager().getCurrentAudioDevice();
-            const double sr = dev != nullptr ? dev->getCurrentSampleRate() : 48000.0;
+            const double sr = owner.engine.getProcessingSampleRate();   // Kette läuft mit der Mikrofon-Rate
             const double ms = sr > 0.0 ? (double) proc->getLatencySamples() / sr * 1000.0 : 0.0;
-            latText = juce::String (ms, 1) + " ms";
+            latText = micvst::trNumber (ms, 1) + " ms";
         }
 
     // Name (auf den Platz links der Latenz-Spalte begrenzt).
-    const auto name = e.fileOrId == PluginChain::monoToStereoId ? juce::String ("Mono -> Stereo")
-                    : e.fileOrId == PluginChain::stereoToMonoId ? juce::String ("Stereo -> Mono")
-                    : juce::File (e.fileOrId).getFileNameWithoutExtension();
+    const auto name = displayName (e);
     g.setColour (e.bypassed ? juce::Colours::grey : juce::Colours::white);
     g.drawText (name, 28, 0, latLeft - 6 - 28, b.getHeight(), juce::Justification::centredLeft);
 
@@ -158,7 +177,10 @@ PluginListView::PluginListView (AudioEngine& e) : engine (e)
     addChildComponent (scanLabel);       // nur sichtbar während des Scans
     addChildComponent (scanBar);
     addChildComponent (skipScanBtn);
-    skipScanBtn.setTooltip ("Skip the plugin that is currently being scanned");
+    addBtn.setButtonText (tr ("+ Eklenti"));
+    manageFoldersBtn.setButtonText (tr ("VST3 klasörleri"));
+    skipScanBtn.setButtonText (tr ("Atla"));
+    skipScanBtn.setTooltip (tr ("Şu an taranan eklentiyi atla"));
     skipScanBtn.onClick = [this] { engine.skipCurrentScanFile(); };
     skipLabel.setFont (juce::Font (juce::FontOptions (12.0f)));
     skipLabel.setColour (juce::Label::textColourId, juce::Colours::orange);
@@ -167,8 +189,9 @@ PluginListView::PluginListView (AudioEngine& e) : engine (e)
     engine.onScanProgress = [this] (int cur, int total, juce::String name)
     {
         scanProgress = total > 0 ? (double) (cur - 1) / (double) total : 0.0;
-        scanLabel.setText ("Scanning plugins... " + juce::String (cur) + "/" + juce::String (total)
+        scanLabel.setText (tr ("Eklentiler taranıyor... ") + juce::String (cur) + "/" + juce::String (total)
                            + " - " + name, juce::dontSendNotification);
+        scanBar.setTextToDisplay (micvst::trPercent (100.0 * scanProgress));
         updateScanUi();
     };
     engine.onScanFinished = [this]
@@ -246,7 +269,8 @@ void PluginListView::rebuildRows()
 
 void PluginListView::commitChange()
 {
-    engine.rebuildGraph();
+    // Läuft NACH dem ChainEdit-Block (Graph ist schon umgebaut): erst dann speichern - das
+    // Serialisieren aller Plugin-Zustände soll die Stummschaltung nicht verlängern.
     engine.requestPersist();   // App persistiert den Gesamtzustand (nicht nur captureState)
     rebuildRows();
 }
@@ -256,24 +280,27 @@ void PluginListView::requestRemove (int index)
     const auto& es = engine.getChain().entries();
     if (! juce::isPositiveAndBelow (index, (int) es.size())) return;
     const auto& e = es[(size_t) index];
-    const auto name = e.isBuiltIn() ? juce::String ("Mono -> Stereo")
-                                    : juce::File (e.fileOrId).getFileNameWithoutExtension();
+    const auto name = displayName (e);
 
     // Sicherheitsabfrage. Der Dialog ist asynchron -> die auslösende Row bleibt am Leben,
     // bis OK gedrückt wird (das eigentliche Entfernen passiert erst im Callback).
-    juce::NativeMessageBox::showOkCancelBox (
+    const auto options = juce::MessageBoxOptions::makeOptionsOkCancel (
         juce::MessageBoxIconType::QuestionIcon,
-        "Remove plugin",
-        "Remove \"" + name + "\" from the chain?",
-        nullptr,
-        juce::ModalCallbackFunction::create ([this, index] (int result)
+        tr ("Eklentiyi kaldır"),
+        "\"" + name + tr ("\" zincirden kaldırılsın mı?"),
+        tr ("Kaldır"), tr ("İptal"));
+    juce::NativeMessageBox::showAsync (options, [this, index] (int result)
         {
-            if (result == 0) return;   // cancel
+            if (result != 0) return;   // 0 = erster Button ("Kaldır"), 1 = İptal
             if (! juce::isPositiveAndBelow (index, (int) engine.getChain().entries().size())) return;
             editorWindows.clear();     // offene Editoren schließen (sonst Dangling -> Crash)
-            engine.getChain().removePlugin (index);
+            {
+                const AudioEngine::ChainEdit edit (engine);   // ausblenden - umbauen - einblenden
+                engine.getChain().removePlugin (index);
+                engine.rebuildGraph();
+            }
             commitChange();
-        }));
+        });
 }
 
 void PluginListView::requestMove (int from, int to)
@@ -282,7 +309,11 @@ void PluginListView::requestMove (int from, int to)
     {
         const int n = (int) engine.getChain().entries().size();
         if (from == to || ! juce::isPositiveAndBelow (from, n)) { rebuildRows(); return; }
-        engine.getChain().movePlugin (from, juce::jlimit (0, n - 1, to));
+        {
+            const AudioEngine::ChainEdit edit (engine);
+            engine.getChain().movePlugin (from, juce::jlimit (0, n - 1, to));
+            engine.rebuildGraph();
+        }
         commitChange();
     });
 }
@@ -293,7 +324,11 @@ void PluginListView::toggleBypass (int index)
     {
         const auto& es = engine.getChain().entries();
         if (! juce::isPositiveAndBelow (index, (int) es.size())) return;
-        engine.getChain().setBypass (index, ! es[(size_t) index].bypassed);
+        {
+            const AudioEngine::ChainEdit edit (engine);
+            engine.getChain().setBypass (index, ! es[(size_t) index].bypassed);
+            engine.rebuildGraph();
+        }
         commitChange();
     });
 }
@@ -303,11 +338,11 @@ void PluginListView::showPluginPicker()
     // Built-ins als Pseudo-Descriptions: laufen so durch dieselbe Suche/Gruppierung.
     juce::Array<juce::PluginDescription> entries;
     juce::PluginDescription m2s;
-    m2s.name = "Mono -> Stereo"; m2s.manufacturerName = "Built-in";
+    m2s.name = "Mono -> Stereo"; m2s.manufacturerName = tr ("Dahili");
     m2s.fileOrIdentifier = PluginChain::monoToStereoId;
     entries.add (m2s);
     juce::PluginDescription s2m;
-    s2m.name = "Stereo -> Mono"; s2m.manufacturerName = "Built-in";
+    s2m.name = "Stereo -> Mono"; s2m.manufacturerName = tr ("Dahili");
     s2m.fileOrIdentifier = PluginChain::stereoToMonoId;
     entries.add (s2m);
     entries.addArray (engine.getKnownPlugins().getTypes());
@@ -324,38 +359,54 @@ void PluginListView::showPluginPicker()
 
 void PluginListView::addFromPicker (const juce::PluginDescription& desc)
 {
-    if (desc.fileOrIdentifier == PluginChain::monoToStereoId)
+    if (desc.fileOrIdentifier == PluginChain::monoToStereoId
+         || desc.fileOrIdentifier == PluginChain::stereoToMonoId)
     {
-        engine.getChain().addMonoToStereo();
-        commitChange();
-        return;
-    }
-    if (desc.fileOrIdentifier == PluginChain::stereoToMonoId)
-    {
-        engine.getChain().addStereoToMono();
+        {
+            const AudioEngine::ChainEdit edit (engine);
+            if (desc.fileOrIdentifier == PluginChain::monoToStereoId) engine.getChain().addMonoToStereo();
+            else                                                      engine.getChain().addStereoToMono();
+            engine.rebuildGraph();
+        }
         commitChange();
         return;
     }
 
-    double sr = engine.getDeviceManager().getCurrentAudioDevice() != nullptr
-              ? engine.getDeviceManager().getCurrentAudioDevice()->getCurrentSampleRate() : 48000.0;
+    // Laden (kann dauern) bei laufendem Ton: der neue Knoten hängt noch an keiner Verbindung,
+    // ist also unhörbar. Nur das Einhängen in die Kette passiert stummgeschaltet.
     juce::String err;
-    if (engine.getChain().addPlugin (engine.getFormatManager(), desc, sr, 128, err))
+    if (engine.getChain().addPlugin (engine.getFormatManager(), desc, engine.getProcessingSampleRate(),
+                                     engine.getProcessingBlockSize(), err))
+    {
+        {
+            const AudioEngine::ChainEdit edit (engine);
+            engine.rebuildGraph();
+        }
         commitChange();
+    }
     else
-        juce::Logger::writeToLog ("Plugin-Load: " + err);
+    {
+        juce::Logger::writeToLog (tr ("Eklenti yüklenemedi: ") + desc.name + " - " + err);
+        juce::NativeMessageBox::showAsync (juce::MessageBoxOptions::makeOptionsOk (
+                                               juce::MessageBoxIconType::WarningIcon,
+                                               tr ("Eklenti yüklenemedi"),
+                                               "\"" + desc.name + tr ("\" yüklenemedi. Ayrıntılar günlük dosyasında "
+                                                                      "(%APPDATA%\\MicVST\\log.txt)."),
+                                               tr ("Tamam")),
+                                           [] (int) {});
+    }
 }
 
 void PluginListView::showFolderMenu()
 {
     juce::PopupMenu m;
-    m.addItem (1, "Add folder...");
+    m.addItem (1, tr ("Klasör ekle..."));
     m.addSeparator();
 
     const auto& folders = engine.getPluginFolders();
     if (folders.isEmpty())
     {
-        m.addItem (2, "(no custom folders)", false /*enabled*/, false);
+        m.addItem (2, tr ("(ek klasör yok)"), false /*enabled*/, false);
     }
     else
     {
@@ -363,7 +414,7 @@ void PluginListView::showFolderMenu()
         for (int i = 0; i < folders.size(); ++i)
         {
             juce::PopupMenu sub;
-            sub.addItem (1000 + i, "Remove");
+            sub.addItem (1000 + i, tr ("Kaldır"));
             m.addSubMenu (folders[i], sub);
         }
     }
@@ -373,10 +424,10 @@ void PluginListView::showFolderMenu()
     // rescanAllPlugins dann bewusst nichts tut.
     constexpr int rescanItemId = 3;
     m.addSeparator();
-    m.addItem (rescanItemId, "Rescan all plugins", ! engine.isScanning());
+    m.addItem (rescanItemId, tr ("Tüm eklentileri yeniden tara"), ! engine.isScanning());
 
     constexpr int retryItemId = 4;
-    m.addItem (retryItemId, "Retry skipped plugins",
+    m.addItem (retryItemId, tr ("Atlanan eklentileri yeniden dene"),
                ! engine.isScanning() && ! engine.getSkippedPlugins().isEmpty());
 
     constexpr int resetItemId = 5;
@@ -387,7 +438,7 @@ void PluginListView::showFolderMenu()
     // scan-finished-Message mehr ausstehen. Startet der User über den (nicht-modalen)
     // Bestätigungsdialog dennoch einen Scan (zweite Menü-Runde), ist das unschädlich: Quit
     // zerstört den ScanCoordinator, bevor je wieder etwas den Cache speichert.
-    m.addItem (resetItemId, "Reset app (clear all data)...", ! engine.isScanning());
+    m.addItem (resetItemId, tr ("Programı sıfırla (tüm veriler silinir)..."), ! engine.isScanning());
 
     m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (&manageFoldersBtn),
         [this, rescanItemId, retryItemId, resetItemId] (int res)
@@ -397,16 +448,16 @@ void PluginListView::showFolderMenu()
             if (res == retryItemId) { engine.retrySkippedPlugins(); updateScanUi(); return; }
             if (res == resetItemId)
             {
-                juce::NativeMessageBox::showOkCancelBox (
+                const auto options = juce::MessageBoxOptions::makeOptionsOkCancel (
                     juce::MessageBoxIconType::WarningIcon,
-                    "Reset MicVST",
-                    "Deletes all settings, the plugin cache and the plugin chain, then closes "
-                    "MicVST. Start it again for a first-run setup. Continue?",
-                    nullptr,
-                    juce::ModalCallbackFunction::create ([this] (int result)
+                    tr ("MicVST'yi sıfırla"),
+                    tr ("Tüm ayarlar, eklenti listesi ve eklenti zinciri silinir, ardından MicVST "
+                        "kapanır. Yeniden açtığınızda ilk kurulum yapılır. Devam edilsin mi?"),
+                    tr ("Sıfırla"), tr ("İptal"));
+                juce::NativeMessageBox::showAsync (options, [this] (int result)
                     {
-                        if (result != 0) engine.requestFactoryReset();   // 0 = Cancel
-                    }));
+                        if (result == 0) engine.requestFactoryReset();   // 0 = "Sıfırla", 1 = İptal
+                    });
                 return;
             }
             if (res >= 1000)
@@ -424,7 +475,7 @@ void PluginListView::showFolderMenu()
 
 void PluginListView::chooseFolder()
 {
-    auto chooser = std::make_shared<juce::FileChooser> ("Choose a VST3 folder");
+    auto chooser = std::make_shared<juce::FileChooser> (tr ("VST3 klasörü seçin"));
     chooser->launchAsync (juce::FileBrowserComponent::openMode
                               | juce::FileBrowserComponent::canSelectDirectories,
         [this, chooser] (const juce::FileChooser& fc)
@@ -446,7 +497,13 @@ void PluginListView::openEditor (int row)
     if (proc == nullptr || ! proc->hasEditor()) return;
 
     auto* w = new EditorWindow (proc->getName(),
-                                [this] (EditorWindow* self) { editorWindows.removeObject (self); });
+                                [this] (EditorWindow* self)
+                                {
+                                    editorWindows.removeObject (self);
+                                    // Parameter-Änderungen im Editor sofort sichern (1.1.1: erst beim
+                                    // Verstecken/Beenden -> nach Absturz/Stromausfall verloren).
+                                    engine.requestPersist();
+                                });
     w->setUsingNativeTitleBar (true);
     w->setContentOwned (proc->createEditorAndMakeActive(), true);
     w->centreWithSize (w->getWidth(), w->getHeight());
@@ -466,11 +523,11 @@ void PluginListView::updateScanUi()
     skipLabel.setVisible (! scanning && ! skips.isEmpty());
     if (skipLabel.isVisible())
     {
-        skipLabel.setText (juce::String (skips.size()) + " plugin(s) skipped - hover for details",
+        skipLabel.setText (juce::String (skips.size()) + tr (" eklenti atlandı - ayrıntılar için üzerine gelin"),
                            juce::dontSendNotification);
         juce::String tip;
         for (auto& s : skips)
-            tip << juce::File (s.file).getFileNameWithoutExtension() << " (" << s.reason << ")\n";
+            tip << juce::File (s.file).getFileNameWithoutExtension() << " (" << micvst::scanSkipReasonText (s.reason) << ")\n";
         skipLabel.setTooltip (tip.trimEnd());
     }
     resized();

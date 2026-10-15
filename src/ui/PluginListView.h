@@ -35,7 +35,7 @@ private:
     // Per-Row gezeichneter Mülleimer-Button.
     struct TrashButton : juce::Button
     {
-        TrashButton() : juce::Button ("Remove") {}
+        TrashButton();
         void paintButton (juce::Graphics&, bool highlighted, bool down) override;
     };
 
@@ -74,12 +74,12 @@ private:
     juce::Label scanLabel;               // "Scanning plugins... 12/34 - Name"
     double scanProgress = 0.0;           // 0..1, von ProgressBar per Referenz gelesen
     juce::ProgressBar scanBar { scanProgress };
-    juce::TextButton skipScanBtn { "Skip" };   // überspringt das aktuell scannende Plugin
+    juce::TextButton skipScanBtn;        // "Atla": überspringt das aktuell scannende Plugin
     juce::Label skipLabel;               // "N plugin(s) skipped - hover for details"
 
     AudioEngine& engine;
-    juce::TextButton addBtn { "+ Plugin" };
-    juce::TextButton manageFoldersBtn { "Manage VST3 Folders" };
+    juce::TextButton addBtn;             // "+ Eklenti"
+    juce::TextButton manageFoldersBtn;   // "VST3 klasörleri"
     juce::Viewport viewport;
     juce::Component rowsHolder;          // Inhalt des Viewports (trägt die Zeilen)
     juce::OwnedArray<Row> rows;

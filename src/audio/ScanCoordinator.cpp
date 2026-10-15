@@ -1,4 +1,5 @@
 #include "audio/ScanCoordinator.h"
+#include "Text.h"
 
 ScanOutcome runScan (const juce::StringArray& files, ScanProcessRunner& runner, int timeoutMs,
                      std::function<void (int, int, const juce::String&)> progress,
@@ -105,7 +106,7 @@ juce::StringArray filterFilesNeedingScan (const juce::StringArray& allFiles,
         const juce::File f (skipped[i].file);
         if (! f.exists() || effectiveModTime (f).toMilliseconds() != skipped[i].fileTimeMs)
         {
-            juce::Logger::writeToLog ("Scan: Skip aufgehoben (Datei geändert/entfernt): " + skipped[i].file);
+            juce::Logger::writeToLog (micvst::tr ("Tarama: atlama kaldırıldı (dosya değişti ya da silindi): ") + skipped[i].file);
             skipped.remove (i);
         }
     }
@@ -131,11 +132,11 @@ juce::StringArray filterFilesNeedingScan (const juce::StringArray& allFiles,
         // diagnostizierbar (cache = gespeicherte mtime, datei = aktuelle effectiveModTime).
         juce::String detail;
         if (auto t = list.getTypeForFile (f))
-            detail = " (cache=" + juce::String (t->lastFileModTime.toMilliseconds())
-                   + " datei=" + juce::String (effectiveModTime (juce::File (f)).toMilliseconds()) + ")";
-        juce::Logger::writeToLog (juce::String ("Scan ")
-            + (forced ? "(erzwungen): "
-                      : list.getTypeForFile (f) == nullptr ? "(neu): " : "(geändert): ") + f + detail);
+            detail = micvst::tr (" (önbellek=") + juce::String (t->lastFileModTime.toMilliseconds())
+                   + micvst::tr (" dosya=") + juce::String (effectiveModTime (juce::File (f)).toMilliseconds()) + ")";
+        juce::Logger::writeToLog (micvst::tr ("Tarama ")
+            + (forced ? micvst::tr ("(zorunlu): ")
+                      : list.getTypeForFile (f) == nullptr ? micvst::tr ("(yeni): ") : micvst::tr ("(değişti): ")) + f + detail);
         out.add (f);
     }
     return out;

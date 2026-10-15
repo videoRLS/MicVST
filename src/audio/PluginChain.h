@@ -1,6 +1,7 @@
 #pragma once
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "audio/GraphConnections.h"
+#include <atomic>
 #include <vector>
 
 // Verwaltet die geordnete VST3-Kette innerhalb eines AudioProcessorGraph.
@@ -13,7 +14,11 @@ public:
     static constexpr const char* monoToStereoId = "builtin:mono2stereo";
     static constexpr const char* stereoToMonoId = "builtin:stereo2mono";
 
+    // pluginId/-Name/-Uid identifizieren das Plugin INNERHALB seiner Datei: eine VST3-Datei
+    // kann viele Plugins enthalten (Waves-WaveShell, LSP-Bündel). Nur über den Dateipfad
+    // wiederhergestellt, wurde aus jedem Plugin einer solchen Datei dasselbe (bis 1.2.0).
     struct Entry { NodeID node; juce::String fileOrId; bool bypassed = false;
+                   juce::String pluginId, pluginName; int pluginUid = 0;
                    bool isBuiltIn() const { return fileOrId.startsWith ("builtin:"); } };
 
     PluginChain (juce::AudioProcessorGraph& graph,
@@ -38,11 +43,18 @@ public:
 
     // Baut alle Graph-Verbindungen neu auf. Pro Übergang werden min(quelle.outs, ziel.ins)
     // Kanäle verbunden -> wechselnde Kanalbreite (z. B. ein Mono->Stereo-Glied) wird
-    // automatisch korrekt verdrahtet.
+    // automatisch korrekt verdrahtet. Alle Änderungen gehen als EIN Umbau an den Graphen
+    // (1.1.1: ein synchroner Umbau pro Verbindung -> das Audio-Thread konnte Zwischenstände
+    // ohne Verbindungen = Stille/Knackser erwischen).
     void rebuildConnections();
+
+    // true, wenn nur EIN Kanal am Ausgang ankommt (Kette endet mono). Die Engine legt die
+    // Stimme dann auf beide Kanäle des Kabels statt nur links. Lock-frei lesbar (Audio-Thread).
+    bool isOutputMono() const noexcept { return outputMono.load (std::memory_order_relaxed); }
 
 private:
     juce::AudioProcessorGraph& graph;
     NodeID inputNode, outputNode;
     std::vector<Entry> chain;
+    std::atomic<bool> outputMono { false };
 };

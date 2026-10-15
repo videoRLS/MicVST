@@ -19,9 +19,11 @@ struct InfoIcon : juce::Component, juce::SettableTooltipClient
 };
 
 // Kompakte Geräteauswahl: Input zuerst, dann Output (Output kennt "(none)").
-// Darunter optional eine Buffer-Zeile: nur sichtbar, wenn das Gerätepaar im
+// Darunter optional eine Buffer-Zeile: nur sichtbar, wenn das Mikrofon im
 // Low-Latency-Modus mehr als eine Buffer-Größe meldet ("Auto" = Geräte-Default).
-// Zuunterst eine dauerhaft sichtbare Info-Zeile (Active / Samplerate / Buffer / Latenz).
+// Dann die Safety-Zeile (Sicherheitspuffer Mikrofon -> Kabel, "Auto" = adaptiv).
+// Zuunterst zwei dauerhaft sichtbare Info-Zeilen (Active / Geräte / Latenz und
+// CPU-Last / Safety / Drift / Aussetzer).
 // Bewusst KEIN Input-Pegelmeter (oben gibt es den großen) und keine Kanal-Listen
 // (MicVST verwaltet die Kanäle selbst auf Stereo).
 class DevicePanel : public juce::Component,
@@ -33,23 +35,28 @@ public:
     ~DevicePanel() override;
     void resized() override;
 
-    int preferredHeight() const;   // 3 Zeilen, +1 wenn die Buffer-Zeile sichtbar ist
+    int preferredHeight() const;   // 3 Zeilen + 2 Info-Zeilen, +1 wenn die Buffer-Zeile sichtbar ist
 
 private:
     void changeListenerCallback (juce::ChangeBroadcaster*) override;
     void timerCallback() override;
     void refresh();        // Input/Output-Combos aus dem aktuellen Setup neu füllen
-    void updateStatus();   // nur die Info-Zeile (Active / Samplerate / Buffer / Latenz)
+    void updateStatus();   // nur die Info-Zeilen (Geräte / Latenz, CPU-Last / Aussetzer)
     void apply();          // aktuelle Auswahl -> AudioEngine
+    void applySafety();    // Safety-Combo -> AudioEngine (ohne Geräte-Neustart)
 
     AudioEngine& engine;
-    juce::Label    inLabel  { {}, "Input" },  outLabel { {}, "Output" };
+    juce::Label    inLabel, outLabel;     // Texte im Konstruktor (UTF-8, siehe Text.h)
     InfoIcon       inInfo, outInfo;
     juce::ComboBox inBox, outBox;
-    juce::Label    bufLabel { {}, "Buffer" };
+    juce::Label    bufLabel;
     InfoIcon       bufInfo;
     juce::ComboBox bufBox;
-    juce::Label    statusLabel;   // Active / Samplerate / Buffer / Latenz (immer sichtbar)
+    juce::Label    safetyLabel;
+    InfoIcon       safetyInfo;
+    juce::ComboBox safetyBox;
+    juce::Label    statusLabel;   // Active / Geräte / Latenz (immer sichtbar)
+    juce::Label    statsLabel;    // CPU-Last / Safety / Drift / Aussetzer (immer sichtbar)
 
     bool updating = false;        // Re-entrancy-Guard beim Befüllen
 };

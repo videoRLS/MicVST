@@ -37,7 +37,7 @@ recommended - MicVST detects it automatically. VoiceMeeter and Virtual Audio Cab
 ## Setup
 
 1. **Install [VB-Cable](https://vb-audio.com/Cable/)** and reboot. (If no cable is installed,
-   MicVST shows an orange hint with the download link.)
+   MicVST shows an orange hint with the download address.)
 2. **Run `MicVST.exe`.** On first start it picks your default microphone as input and the detected
    virtual cable (e.g. *CABLE Input*) as output. Both are changeable in the audio setup and are
    remembered across restarts.
@@ -78,16 +78,22 @@ boot (no window, engine running). For a stable setup, copy the `.exe` to a fixed
   the bundle changes, not when vendor background services write logs into it. “Reset app (clear all
   data)...” (also in the “Manage VST3 Folders” menu) deletes all settings and the plugin cache.
   “Rescan all plugins” (also in the “Manage VST3 Folders” menu) rebuilds the cache from scratch.
+- **Stable under heavy load** (1.2): microphone and cable run on two separate realtime threads with
+  a small, self-adjusting **safety buffer** between them that also compensates the clock drift of
+  the two devices (details below)
+- Live **diagnostics** under the device list: latency, CPU load of the plugin chain, safety buffer,
+  clock drift and a **dropout counter** (turns orange, tooltip shows the cause)
 - Persistent settings (`%APPDATA%\MicVST\config.xml`), low latency, silent **tray autostart**
-- Optional, **opt-in update check** (off by default): one request to the GitHub releases API on
-  startup; no telemetry, no auto-installer
+- **Fully offline** (1.2): no network code at all - no update check, no telemetry, no web links
+  (see [Offline](#offline-closed-box))
 - Single portable `.exe`, no install, no runtime dependencies
 
 ## Build from source
 
 Requires **Windows x64** (tested on Windows 11; Windows 10 should work but is untested) and
 **Visual Studio 2022** with the *Desktop development with C++* workload (MSVC + Windows SDK +
-CMake). JUCE is fetched automatically via CMake `FetchContent` (JUCE 8.0.13) - nothing else to
+CMake). JUCE is fetched automatically via CMake `FetchContent` (JUCE 9.0.4; `cmake/PatchJuce.cmake`
+applies three small realtime fixes to its WASAPI backend during the fetch) - nothing else to
 install.
 
 ```powershell
@@ -102,6 +108,13 @@ $cmake = "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\Co
 # Optional: unit tests (exit code 0 = ok)
 & $cmake --build build --config Release --target MicVSTTests
 .\build\MicVSTTests_artefacts\Release\MicVSTTests.exe
+
+# Optional: audio path measurements (old vs. new design, real threads under full CPU load)
+& $cmake --build build --config Release --target MicVSTStress
+.\build\MicVSTStress_artefacts\Release\MicVSTStress.exe report.md
+
+# Optional: check that the exe imports no networking library
+.\tools\check-no-network.ps1 build\MicVST_artefacts\Release\MicVST.exe
 ```
 
 The build uses the static MSVC runtime (`/MT`), so the resulting `.exe` runs on any Windows 11 x64
@@ -109,24 +122,65 @@ machine without the Visual C++ Redistributable (Windows 10 x64 should work too, 
 
 ## How it works
 
-- An **AudioProcessorGraph** wires the input device → your plugin chain → the output device,
-  driven by JUCE’s `AudioDeviceManager` (WASAPI shared mode).
+- The microphone is opened as an **input-only** WASAPI device and the cable as an **output-only**
+  device - each with its own realtime (MMCSS "Pro Audio") thread.
+- On the microphone's thread an **AudioProcessorGraph** runs your plugin chain and hands the result
+  to an **AudioBridge**: a lock-free FIFO with a high-quality resampler that keeps a small safety
+  buffer and continuously corrects the clock drift between microphone and cable (two devices never
+  run at exactly the same speed). The cable's thread only reads from it, so a CPU spike in a plugin
+  or a briefly late thread is absorbed by the safety buffer instead of becoming a crackle. If the
+  output ever runs dry anyway, MicVST fades out/in (no hard click) and - in "Auto" mode - raises
+  the safety buffer by 5 ms (max. 80 ms).
 - Per hop, `min(source.outs, target.ins)` channels are connected, so variable channel width
-  (the mono→stereo transition) is routed correctly and automatically.
+  (the mono→stereo transition) is routed correctly and automatically. A chain that ends mono is
+  sent to both cable channels.
 - The output device is just a normal render endpoint - pointing it at a virtual cable’s *input*
   endpoint lets the cable’s driver loop the audio to its *output* (capture) endpoint, which other
   apps read as a microphone. No special “output plugin” needed.
 
 ## Latency
 
-MicVST adds only the **smallest buffer necessary** to run your VST3 chain - typically one 10 ms block (480 samples at 48 kHz), the standard Windows shared-audio period. There's no extra buffering on top: audio comes in, goes through your plugins, and goes straight out.
+MicVST needs one device block (typically 10 ms = 480 samples at 48 kHz, the standard Windows shared-audio period) plus, since 1.2, a small **safety buffer** between microphone and cable ("Safety" row, *Auto* starts at 10 ms). In return a processing spike of up to that size no longer becomes a crackle. Compared to 1.1.1 this costs roughly 10-20 ms (the old design's latency itself varied with the timing of the two devices); *Auto* only grows the buffer when the output actually ran dry. A fixed value (5-80 ms) can be chosen instead.
 
 A few things worth knowing:
 
-- **Buffer size**: in low-latency mode the device reports its supported sizes and a "Buffer" dropdown appears in the device panel ("Auto" = device default); otherwise Windows' shared engine period (typically 480 samples at 48 kHz = ~10 ms) is used directly. MicVST shows the buffer and live end-to-end latency under the device list.
+- **Buffer size**: in low-latency mode the microphone reports its supported sizes and a "Buffer" dropdown appears in the device panel ("Auto" = device default); otherwise Windows' shared engine period (typically 480 samples at 48 kHz = ~10 ms) is used directly. MicVST shows the live end-to-end latency (devices + plugins + safety buffer) under the device list.
 - **Total latency you hear is mostly downstream of MicVST.** The signal path is `Mic → MicVST → virtual cable → your app (Discord/OBS/…)`. The virtual cable and the receiving app each read through Windows shared audio too, and the cable has its own buffering. If you want to trim the cable's part, VB-Cable exposes a latency / internal-sample-rate setting in its own control panel (`VBCABLE_ControlPanel.exe`).
 - **For talking into Discord/OBS/Zoom, latency is inaudible** - your microphone signal travels one way to your listeners, so a few milliseconds never matter. (Low buffer sizes only matter when you monitor *yourself* live or play an instrument in real time, which isn't what MicVST is for.)
 - **ASIO / ASIO4All won't help here.** ASIO is built for a single exclusive in-and-out device and doesn't fit a mic-in / virtual-cable-out setup - and the receiving app would still read through shared audio anyway. MicVST is already on the most direct path Windows offers for this job.
+
+## Crackles under heavy load (games, rendering)
+
+The second status line shows `dropouts`. While it stays at 0 nothing was lost. If it counts up
+(orange), hover it to see the cause:
+
+- **Output ran dry** - the safety buffer was empty. *Auto* raises it by itself; with a fixed value,
+  choose a larger one.
+- **Plug-in chain slower than real time** - your plugins needed more than the block time (see the
+  CPU peak). Use lighter settings / fewer instances, or a larger buffer.
+- **Microphone driver gaps** - the microphone driver itself lost data; usually a driver/DPC
+  problem of the system (check with [LatencyMon](https://www.resplendence.com/latencymon)), USB
+  power saving, or a too small device buffer.
+
+MicVST runs its audio threads with "Pro Audio" priority and opts the process out of Windows'
+power throttling, so a game at normal priority can no longer starve it. Freezes of the whole
+system (driver/DPC storms) can still be audible - no application can fix those.
+
+## Offline (closed box)
+
+MicVST 1.2 contains **no network code at all**: no update check, no telemetry, no clickable web
+links; the CI build fails if the exe imports any networking library (WinINet, WinHTTP, Winsock,
+URLMon, ...). Your **VST3 plugins** however run inside the MicVST process and could still go online
+on their own (licence/update checks). To make the whole process a closed box, block it in the
+Windows Firewall (PowerShell as administrator):
+
+```powershell
+.\tools\firewall-block.ps1 -Exe "C:\Tools\MicVST\MicVST.exe"   # add the rule
+.\tools\firewall-block.ps1 -Remove                             # remove it again
+```
+
+Plugins that need online activation must be activated beforehand (their licence managers run as
+separate programs and are not affected).
 
 ## Notes
 

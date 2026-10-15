@@ -4,6 +4,115 @@ All notable changes to MicVST are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project follows [Semantic Versioning](https://semver.org/).
 
+## [1.2.1] - Unreleased
+
+Focus: sound quality under heavy background load (e.g. a GPU/AI video render), no clicks when
+the chain or the devices change, and a completely Turkish interface. Measurements and what could
+not be tested: [docs/TEST_RAPORU_1.2.1.md](docs/TEST_RAPORU_1.2.1.md) (Turkish).
+
+### Changed
+- The plugin chain runs on its own thread (MMCSS "Pro Audio") behind a lock-free input queue; the
+  microphone's capture thread only copies the audio (microseconds). In 1.2.0 the chain ran on the
+  capture thread: whenever plugin blocks took longer than ~20 ms in total, Windows' capture buffer
+  overflowed and the audio was lost ("microphone driver gaps"). If the chain stays slower than
+  real time for more than 120 ms, the oldest audio is skipped with a crossfade at a
+  waveform-matched point, so the latency stays bounded.
+- Clock-drift and buffer-level control: beyond the learned clock drift the playback speed now
+  changes by at most +-0.05 % (0.9 cent); 1.2.0 allowed +-0.5 % (8.6 cent) for seconds after every
+  disturbance. Excess latency above 20 ms (e.g. after the cable stalled) is trimmed at once with a
+  10 ms crossfade at the point where the waveforms match. The level estimate now accounts for the
+  plugin thread's delay and the correction is smoothed in two stages: a constant clock drift is
+  followed with < 2 ppm error (1.2.0: a slow wander of up to ~400 ppm) and the block-to-block
+  speed jitter (phase noise, -84 dB at 1 kHz) is gone. Clock differences up to +-1000 ppm are
+  learned completely. While blocks arrive late (the plugins fall behind, e.g. under a video
+  render's CPU load) the drift is not learned: in the simulated render periods the learned value
+  had wandered by up to +-170 ppm and then needed minutes to settle again; now it stays put. The
+  tail of a recovery (the level error being played off) is not learned as drift either, which
+  roughly halves the wander of the learned value when disturbances come every few seconds.
+- A larger safety buffer chosen while running takes effect at once (short fade-out, refill,
+  fade-in) instead of over minutes.
+- All texts shown to the user are Turkish: window, menus, dialogs, tooltips, tray, the usage
+  screen, the log file (now with timestamps) and JUCE's own buttons and text-field menu.
+- Displayed latency: the buffer part is now the mean time audio spends in the buffer plus the
+  plugin thread's delay (1.2.0 counted about half a block too much).
+- Unplugged devices: MicVST no longer falls back to another device. 1.2.0 (via JUCE's device
+  manager) switched to the next available microphone or speaker when the chosen one disappeared,
+  so a built-in microphone could go out on the stream, or the processed microphone on the
+  speakers, and it stayed there after the device came back. Now the chosen devices stay selected
+  (shown as "... (bağlı değil)"), the output is silent meanwhile, and they reopen by themselves
+  within about a second when they are plugged in again.
+- The log file shows the user folder as %USERPROFILE% (it contains the Windows user name and the
+  log is often passed on for troubleshooting).
+- JUCE patches (cmake/PatchJuce.cmake), now five: besides the three WASAPI fixes, the audio
+  graph no longer allocates memory on the audio thread when a plugin reports a larger block
+  (audio-thread probe: 0 allocations, 0 lock waits in all scenarios), and the device manager no
+  longer opens a different device when the device list changes.
+
+### Fixed
+- A plugin that outputs NaN, infinite or absurd values (> +24 dBFS) no longer reaches the cable
+  (or crashes the next plugin): the whole block is silenced and the sound fades in again (2 ms)
+  once the plugin recovers; counted in the dropout tooltip and the log. A plugin that throws an
+  exception costs one silent block. Neither starts or ends with a step: the output fades out from
+  the valid audio still buffered and, once valid audio returns, refills and fades in (about 50 ms
+  of faded silence for a single bad block; no underrun is counted and the safety buffer stays).
+  The engine test had found clicks at both ends of such a block.
+- A plugin that hangs for more than ~1.3 s: the microphone audio captured meanwhile is dropped
+  (the input queue is full); the audio after the drop used to follow the old audio without a
+  fade (a click). Now the queue never plays across that point and the output fades there.
+- Clicks when the chain is edited during playback (add, remove, move, bypass): the output fades
+  out (5 ms), the graph switches while muted, then fades in. Measured on virtual devices: 1.2.0
+  clicked on 11 of 13 edits, 1.2.1 on none.
+- Clicks on the cable when MicVST quits or a device/buffer setting is changed: the output now
+  fades out and drains before the device stops (1.2.0: two clicked samples per change).
+- VST3 files that contain several plugins (Waves WaveShell, LSP, ...): every entry came back as
+  the first plugin of the file after a restart (since 1.1.1). The plugin's identity is now stored;
+  old configs still load.
+- Non-ASCII text in the log file was double-encoded (UTF-8 read as Latin-1).
+- Device errors reported by JUCE/WASAPI ("No such device: ...", "Can't open the audio device!",
+  ...) were written to the log in English; they are Turkish now.
+- The outer labels of the meter's dB scale were clipped.
+
+## [1.2.0] - Unreleased
+
+Focus: no more crackles under heavy load, and a fully offline app. Full analysis, measurements
+and what could not be tested: [docs/RAPOR.md](docs/RAPOR.md) (Turkish).
+
+### Changed
+- New audio engine: microphone and cable run on two separate realtime threads (input-only and
+  output-only WASAPI devices) instead of one shared device. Between them a lock-free safety buffer
+  with a high-quality resampler absorbs processing spikes and continuously compensates the clock
+  drift of the two devices. 1.1.1 filled every input shortfall with silence and never compensated
+  drift, which produced periodic clicks and crackles under load.
+- New "Safety" row: "Auto (recommended)" starts at 10 ms and adds 5 ms whenever the output runs
+  dry (max. 80 ms); fixed values 5-80 ms are available. Costs roughly 10-20 ms of latency in Auto.
+- Realtime priority: the audio threads use MMCSS "Pro Audio" priority HIGH (was NORMAL) and opt
+  out of Windows power throttling; the process runs "above normal" and opts out of EcoQoS/timer
+  throttling. Plugin scan processes run "below normal".
+- JUCE 8.0.13 -> 9.0.4 (WASAPI start/stop race fix, VST3 hosting fixes) plus a small patch for
+  JUCE's WASAPI backend (input-only devices drain a backlog immediately and survive timeouts, no
+  busy spinning while a session restarts).
+- Second status line: CPU load of the plugin chain, safety buffer, clock drift and a dropout
+  counter (orange with a cause breakdown in the tooltip).
+
+### Removed
+- All network code: the opt-in update check (WinINet request to GitHub), the consent dialog, the
+  update tray bubble and all clickable web links. Old config files load fine; the update keys are
+  ignored. `tools/firewall-block.ps1` optionally blocks the whole process (incl. plugins) in the
+  Windows Firewall.
+
+### Fixed
+- Saving the state held every plugin's audio lock while the plugin serialised itself - the audio
+  thread could stall behind the UI thread (priority inversion).
+- No denormal protection on the audio thread (decaying plugin tails could cause CPU spikes).
+- Changing the chain rebuilt the audio graph once per connection; the audio thread could hit
+  intermediate states without connections (short silence/clicks). Now one rebuild per change.
+- Bypassed plugins were still processed every block (CPU); they are now suspended and start with
+  a clean state when switched back on.
+- A chain that ends mono was sent to the left cable channel only.
+- Microphone and cable at different sample rates (e.g. 44.1 kHz mic, 48 kHz cable) now work.
+- Plugin editor changes are saved when the editor closes; the autostart toggle no longer reads
+  the registry 30 times per second.
+
 ## [1.1.1] - 2026-07-27
 
 ### Added
