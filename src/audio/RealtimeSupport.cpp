@@ -211,6 +211,10 @@ namespace rt
 #include <condition_variable>
 #include <mutex>
 #include <time.h>
+#if defined (__linux__)
+ #include <cerrno>
+ #include <semaphore.h>
+#endif
 
 namespace rt
 {
@@ -221,6 +225,51 @@ namespace rt
     ProcessingThreadSetup::ProcessingThreadSetup() noexcept {}
     ProcessingThreadSetup::~ProcessingThreadSetup() noexcept {}
 
+   #if defined (__linux__)
+    // Semaphore: signal() is one atomic operation (a futex wake when someone waits), it never
+    // blocks on a lock - like SetEvent on Windows. Several signals before a wait wake it once.
+    WakeEvent::WakeEvent()
+    {
+        auto* s = new sem_t;
+        if (sem_init (s, 0, 0) != 0) { delete s; s = nullptr; }
+        impl = s;
+    }
+    WakeEvent::~WakeEvent()
+    {
+        if (auto* s = static_cast<sem_t*> (impl)) { sem_destroy (s); delete s; }
+    }
+
+    void WakeEvent::signal() noexcept
+    {
+        auto* s = static_cast<sem_t*> (impl);
+        int value = 0;
+        if (s != nullptr && sem_getvalue (s, &value) == 0 && value == 0)
+            sem_post (s);
+    }
+
+    bool WakeEvent::wait (int timeoutMs) noexcept
+    {
+        auto* s = static_cast<sem_t*> (impl);
+        if (s == nullptr)
+            return false;
+        int r = 0;
+        if (timeoutMs < 0)
+        {
+            while ((r = sem_wait (s)) != 0 && errno == EINTR) {}
+        }
+        else
+        {
+            timespec until {};
+            clock_gettime (CLOCK_REALTIME, &until);
+            until.tv_sec  += timeoutMs / 1000;
+            until.tv_nsec += (long) (timeoutMs % 1000) * 1000000L;
+            if (until.tv_nsec >= 1000000000L) { until.tv_nsec -= 1000000000L; ++until.tv_sec; }
+            while ((r = sem_timedwait (s, &until)) != 0 && errno == EINTR) {}
+        }
+        while (sem_trywait (s) == 0) {}   // auto-reset: one wake-up for any number of signals
+        return r == 0;
+    }
+   #else
     namespace
     {
         struct PosixEvent
@@ -256,6 +305,7 @@ namespace rt
         e->flag = false;
         return signalled;
     }
+   #endif
 
     ThreadTimes threadTimes() noexcept
     {

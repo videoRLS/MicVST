@@ -159,6 +159,7 @@ target_sources(MicVSTSnapshot PRIVATE
 target_include_directories(MicVSTSnapshot BEFORE PRIVATE tests/snapshot)
 target_compile_definitions(MicVSTSnapshot PRIVATE
     MICVST_VERSION_STRING="${PROJECT_VERSION}"
+    JUCE_MODAL_LOOPS_PERMITTED=1
     JUCE_PLUGINHOST_VST3=1
     JUCE_USE_CURL=0
     JUCE_WEB_BROWSER=0

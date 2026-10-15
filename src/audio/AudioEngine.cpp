@@ -87,7 +87,7 @@ bool AudioEngine::isRunning() const
 {
     auto* in = inputDevices.getCurrentAudioDevice();
     const bool inputOk = in != nullptr && in->isPlaying();
-    const bool outputSelected = outputDevices.getAudioDeviceSetup().outputDeviceName.isNotEmpty();
+    const bool outputSelected = wantedOutput.isNotEmpty();
     auto* out = outputDevices.getCurrentAudioDevice();
     const bool outputOk = ! outputSelected || (out != nullptr && out->isPlaying());
     return inputOk && outputOk;
@@ -95,10 +95,59 @@ bool AudioEngine::isRunning() const
 
 void AudioEngine::changeListenerCallback (juce::ChangeBroadcaster*)
 {
-    // A device came or went: AudioDeviceManager restores the stored setup by name itself.
+    // A device came or went (or a device was opened/closed).
+    reconnectIfNeeded();
     juce::Logger::writeToLog (isRunning() ? tr ("Ses: çalışıyor") : tr ("Ses: durdu (cihaz bağlı değil mi?)"));
     if (onStatusChanged) onStatusChanged();
     if (onDeviceChanged) onDeviceChanged();
+}
+
+void AudioEngine::reconnectIfNeeded()
+{
+    // Only the chosen devices are ever used. If one disappeared (USB microphone unplugged, cable
+    // driver restarted), its manager stays closed - no other microphone, never the speakers
+    // instead of the virtual cable (JUCE switched to the default device, see PatchJuce.cmake).
+    // As soon as it is listed again, it is reopened.
+    if (reconnecting)
+        return;
+    const juce::ScopedValueSetter<bool> guard (reconnecting, true);
+
+    enum { fine = 0, missing = 1, back = 2 };
+    auto state = [] (MicVSTDeviceManager& dm, const juce::String& wanted, bool isInput)
+    {
+        if (wanted.isEmpty())
+            return (int) fine;
+        auto* d = dm.getCurrentAudioDevice();
+        if (d != nullptr && d->getName() == wanted)
+            return (int) fine;
+        if (d != nullptr)
+            dm.closeAudioDevice();   // some other device: never play through it
+        auto* type = dm.getCurrentDeviceTypeObject();
+        return type != nullptr && type->getDeviceNames (isInput).contains (wanted) ? (int) back : (int) missing;
+    };
+
+    const int in = state (inputDevices, wantedInput, true);
+    const int out = state (outputDevices, wantedOutput, false);
+
+    if (in == back || out == back)
+    {
+        juce::Logger::writeToLog (tr ("Cihaz yeniden bağlandı, açılıyor: ") + (in == back ? wantedInput : juce::String())
+                                  + (in == back && out == back ? " / " : "") + (out == back ? wantedOutput : juce::String()));
+        openDevices (wantedInput, wantedOutput, preferredBufferSize);
+        {
+            const ChainEdit edit (*this);
+            rebuildGraph();   // the microphone's channel count may differ
+        }
+        lastMissingState = 0;
+        return;
+    }
+
+    const int missingState = (in == missing ? 1 : 0) | (out == missing ? 2 : 0);
+    if (missingState != lastMissingState && missingState != 0)
+        juce::Logger::writeToLog (tr ("Seçili cihaz bağlı değil, takılınca yeniden açılacak: ")
+                                  + ((missingState & 1) != 0 ? wantedInput : juce::String())
+                                  + (missingState == 3 ? " / " : "") + ((missingState & 2) != 0 ? wantedOutput : juce::String()));
+    lastMissingState = missingState;
 }
 
 juce::String AudioEngine::detectCableOutput()
@@ -132,6 +181,9 @@ juce::String AudioEngine::detectCableOutput()
 //==============================================================================
 void AudioEngine::openDevices (const juce::String& input, const juce::String& output, int bufferSize)
 {
+    wantedInput = input;
+    wantedOutput = output;
+
     // Names VERBATIM, also empty: an empty output deliberately means "no output" ("none").
     // If the low-latency mode (IAudioClient3) refuses a device that IS present, it is retried in
     // classic shared mode - 1.1.1 then simply stayed silent ("Idle").
@@ -335,6 +387,7 @@ void AudioEngine::captureInput (const float* const* in, int numIn, int numSample
     // Capture thread: copy and return. Nothing here may take long - while this thread is busy,
     // only Windows' small capture buffer (about 20 ms) holds the incoming audio.
     rt::configureAudioThread();
+    MICVST_REALTIME_SCOPE;
     inputBeats.fetch_add (1, std::memory_order_relaxed);
 
     int channels = 0;
@@ -381,6 +434,7 @@ void AudioEngine::processQueuedInput() noexcept
         if (queued < bs)
             return;
 
+        MICVST_REALTIME_SCOPE;
         const juce::ScopedNoDenormals noDenormals;   // plug-in tails decaying into denormals = CPU spikes
         const auto startTicks = juce::Time::getHighResolutionTicks();
         const auto times0 = rt::threadTimes();
@@ -404,18 +458,43 @@ void AudioEngine::processQueuedInput() noexcept
 
         juce::AudioBuffer<float> block (workBuffer.getArrayOfWritePointers(), 2, bs);
         midiBuffer.clear();
+        bool threwException = false;
         {
             // Never block: if the message thread holds the graph lock right now (rare:
             // suspend/prepare), output one silent block instead of waiting.
             const juce::ScopedTryLock sl (graph.getCallbackLock());
             if (sl.isLocked() && ! graph.isSuspended())
-                graph.processBlock (block, midiBuffer);
+            {
+                // A C++ exception out of a plug-in would end the whole program here (this
+                // function is noexcept): silence the block instead and count it.
+                try { graph.processBlock (block, midiBuffer); }
+                catch (...) { threwException = true; invalidBlocks.fetch_add (1, std::memory_order_relaxed); }
+            }
             else
                 block.clear();
         }
 
         if (pluginChain != nullptr && pluginChain->isOutputMono())   // the voice belongs on both cable channels
             juce::FloatVectorOperations::copy (block.getWritePointer (1), block.getReadPointer (0), bs);
+
+        // A plug-in that produces NaN/infinity (an unstable filter, a bug) or absurd levels would
+        // otherwise poison the resampler and everything downstream (OBS, Discord): such a block
+        // is silenced as a whole (counted, logged once per second); when valid audio returns it
+        // fades in over 2 ms instead of starting with a jump.
+        if (! isValidAudio (block) || threwException)
+        {
+            block.clear();
+            if (! threwException)
+                invalidBlocks.fetch_add (1, std::memory_order_relaxed);
+            outputWasInvalid = true;
+        }
+        else if (outputWasInvalid)
+        {
+            outputWasInvalid = false;
+            const int fade = juce::jmin (bs, juce::jmax (1, (int) (0.002 * sr)));
+            for (int c = 0; c < block.getNumChannels(); ++c)
+                block.applyGainRamp (c, 0, fade, 0.0f, 1.0f);
+        }
 
         applyEditFade (block, sr);
         outputMeter.process (block);
@@ -453,6 +532,20 @@ void AudioEngine::processQueuedInput() noexcept
             dspCountWindow = 0;
         }
     }
+}
+
+bool AudioEngine::isValidAudio (const juce::AudioBuffer<float>& block) noexcept
+{
+    // > +24 dBFS is no signal but a plug-in out of control (an unstable filter).
+    constexpr float limit = 16.0f;
+    for (int c = 0; c < block.getNumChannels(); ++c)
+    {
+        const float* x = block.getReadPointer (c);
+        for (int i = 0; i < block.getNumSamples(); ++i)
+            if (! (std::abs (x[i]) <= limit))   // also true for NaN
+                return false;
+    }
+    return true;
 }
 
 void AudioEngine::applyEditFade (juce::AudioBuffer<float>& block, double sr) noexcept
@@ -529,6 +622,7 @@ void AudioEngine::endChainEdit()
 void AudioEngine::processOutput (float* const* out, int numOut, int numSamples) noexcept
 {
     rt::configureAudioThread();
+    MICVST_REALTIME_SCOPE;
     const juce::ScopedNoDenormals noDenormals;
     outputBeats.fetch_add (1, std::memory_order_relaxed);
     bridge.pull (out, numOut, numSamples, nowSeconds());
@@ -543,7 +637,7 @@ AudioEngine::Diagnostics AudioEngine::getDiagnostics()
 
     d.inputRunning   = in != nullptr && in->isPlaying() && inputRunningFlag.load();
     d.outputRunning  = out != nullptr && out->isPlaying() && outputRunningFlag.load();
-    d.outputSelected = outputDevices.getAudioDeviceSetup().outputDeviceName.isNotEmpty();
+    d.outputSelected = wantedOutput.isNotEmpty();
     d.inputRate      = inputRateNow.load();
     d.outputRate     = outputRateNow.load();
     d.inputBlock     = inputBlockNow.load();
@@ -555,6 +649,7 @@ AudioEngine::Diagnostics AudioEngine::getDiagnostics()
     d.inputSkips     = inputSkips.load();
     d.skippedMs      = d.inputRate > 0.0 ? 1000.0 * (double) skippedFrames.load() / d.inputRate : 0.0;
     d.inputQueueOverflows = inputQueue.getOverflows();
+    d.invalidBlocks  = invalidBlocks.load();
     d.inputDeviceXruns = in != nullptr ? juce::jmax (0, in->getXRunCount()) : 0;
     d.watchdogRestarts = watchdogRestarts.load();
     d.bridge = bridge.getStats();
@@ -582,7 +677,7 @@ void AudioEngine::timerCallback()
         last = beats;
     };
     check (inputDevices,  inputBeats.load(),  lastInputBeats,  inputStallSeconds);
-    const bool outputSelected = outputDevices.getAudioDeviceSetup().outputDeviceName.isNotEmpty();
+    const bool outputSelected = wantedOutput.isNotEmpty();
     if (outputSelected) check (outputDevices, outputBeats.load(), lastOutputBeats, outputStallSeconds);
     else                outputStallSeconds = 0;
 
@@ -616,6 +711,15 @@ void AudioEngine::timerCallback()
     if (st.resyncs != lastLoggedStats.resyncs)
         juce::Logger::writeToLog (tr ("Köprü: gecikme hedefe geri çekildi (toplam ") + juce::String ((int) st.resyncs) + ")");
     lastLoggedStats = st;
+
+    const auto invalid = invalidBlocks.load();
+    if (invalid != lastLoggedInvalid)
+    {
+        juce::Logger::writeToLog (tr ("Eklenti zinciri kullanılamaz ses verdi (NaN, sonsuz, aşırı yüksek değer ya da hata): ")
+                                  + juce::String ((int) (invalid - lastLoggedInvalid))
+                                  + tr (" blokta bu örnekler susturuldu. Sorun sürerse son eklediğiniz eklentiyi kaldırıp yeniden ekleyin."));
+        lastLoggedInvalid = invalid;
+    }
 
     // Plug-in thread over the last second. Read every tick, logged only when something happened.
     const auto blocks = processedBlocks.load(), ov = overloads.load();
@@ -832,8 +936,8 @@ void AudioEngine::removePluginFolder (const juce::String& folder)
 MicVSTState AudioEngine::captureState()
 {
     MicVSTState s;
-    s.inputDevice   = inputDevices.getAudioDeviceSetup().inputDeviceName;
-    s.outputDevice  = outputDevices.getAudioDeviceSetup().outputDeviceName;
+    s.inputDevice   = wantedInput;    // also while unplugged: stays the user's choice
+    s.outputDevice  = wantedOutput;
     s.sampleRate    = preferredInputRate;
     s.bufferSize    = preferredBufferSize;
     s.safetyBufferMs = safetyBufferMs;

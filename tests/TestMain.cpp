@@ -166,13 +166,13 @@ struct PersistenceTest : juce::UnitTest
             // A WaveShell or an LSP bundle holds many plug-ins in ONE file; up to 1.2.0 only the
             // file was stored and every such entry came back as the same plug-in.
             MicVSTState m;
-            for (auto* name : { "CLA-2A Mono", "SSL E-Channel Mono" })
+            for (auto* shellName : { "CLA-2A Mono", "SSL E-Channel Mono" })
             {
                 PluginEntryState e;
                 e.fileOrId = "C:/Program Files/Common Files/VST3/WaveShell1-VST3 17.4_x64.vst3";
-                e.pluginName = name;
-                e.pluginId = juce::String ("VST3-") + name + "-1a2b3c4d-5e6f7a8b";
-                e.pluginUid = juce::String (name).hashCode();
+                e.pluginName = shellName;
+                e.pluginId = juce::String ("VST3-") + shellName + "-1a2b3c4d-5e6f7a8b";
+                e.pluginUid = juce::String (shellName).hashCode();
                 m.plugins.add (e);
             }
             const auto back = fromValueTree (juce::ValueTree::fromXml (*toValueTree (m).createXml()));

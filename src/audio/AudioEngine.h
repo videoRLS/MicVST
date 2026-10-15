@@ -40,6 +40,10 @@ public:
     // User buffer preference in samples; 0 = Auto (device default period).
     void setPreferredBufferSize (int samples) { preferredBufferSize = samples; }
     int  getPreferredBufferSize() const       { return preferredBufferSize; }
+    // The devices the user chose. They stay chosen while unplugged: MicVST never switches to
+    // another microphone or to the speakers, and reopens them when they are listed again.
+    const juce::String& getChosenInput() const  { return wantedInput; }
+    const juce::String& getChosenOutput() const { return wantedOutput; }
 
     // Safety buffer between microphone and cable in ms; 0 = Auto (adaptive).
     void setSafetyBufferMs (int ms);
@@ -135,6 +139,7 @@ public:
         uint64_t inputSkips = 0;          // chain fell behind > 120 ms: oldest input skipped (crossfaded)
         double skippedMs = 0.0;
         uint64_t inputQueueOverflows = 0; // plug-in thread stuck for > 1 s: captured blocks dropped
+        uint64_t invalidBlocks = 0;       // blocks with NaN/infinite/absurd plug-in output (silenced)
         int    inputDeviceXruns = 0;      // WASAPI capture discontinuities
         uint64_t watchdogRestarts = 0;
         double latencyMs = 0.0;           // estimated microphone -> cable latency
@@ -206,6 +211,8 @@ private:
     void startProcessing();
     void stopProcessing();
     void applyEditFade (juce::AudioBuffer<float>& block, double sampleRate) noexcept;   // plug-in thread
+    static bool isValidAudio (const juce::AudioBuffer<float>& block) noexcept;          // plug-in thread
+    bool outputWasInvalid = false;                                                     // plug-in thread
     void beginChainEdit();
     void endChainEdit();
     void inputAboutToStart (juce::AudioIODevice*);
@@ -235,6 +242,10 @@ private:
     juce::KnownPluginList knownPlugins;
     juce::StringArray pluginFolders;
     int preferredBufferSize = 0;
+    juce::String wantedInput, wantedOutput;   // chosen devices (also while unplugged)
+    bool reconnecting = false;
+    int lastMissingState = 0;                 // for logging changes only
+    void reconnectIfNeeded();
     int safetyBufferMs = 0;                // 0 = Auto
     double preferredInputRate = 48000.0;
     LevelMeter inputMeter, outputMeter;
@@ -246,6 +257,8 @@ private:
     std::atomic<uint64_t> inputBeats { 0 }, outputBeats { 0 };
     std::atomic<uint64_t> overloads { 0 }, processedBlocks { 0 };
     std::atomic<uint64_t> inputSkips { 0 }, skippedFrames { 0 };
+    std::atomic<uint64_t> invalidBlocks { 0 };   // blocks with NaN/infinite/absurd samples from the chain
+    uint64_t lastLoggedInvalid = 0;
     std::atomic<double>   dspPeakPublished { 0.0 }, dspAvgPublished { 0.0 }, backlogMsPublished { 0.0 };
     double  dspPeakWindow = 0.0, dspSumWindow = 0.0, backlogWindowMs = 0.0;   // plug-in thread only
     int     dspCountWindow = 0;                                               // plug-in thread only

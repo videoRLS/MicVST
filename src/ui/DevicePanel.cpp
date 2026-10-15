@@ -88,23 +88,37 @@ void DevicePanel::refresh()
     auto& inDm  = engine.getInputDeviceManager();
     auto& outDm = engine.getOutputDeviceManager();
 
+    // The chosen devices stay selected while unplugged ("... (bağlı değil)"); the engine reopens
+    // them when they return and never switches to another device meanwhile.
     if (auto* type = inDm.getCurrentDeviceTypeObject())
     {
         const auto ins = type->getDeviceNames (true);
         for (int i = 0; i < ins.size(); ++i) inBox.addItem (ins[i], i + 1);
-        const int si = ins.indexOf (inDm.getAudioDeviceSetup().inputDeviceName);
-        if (si >= 0) inBox.setSelectedId (si + 1, juce::dontSendNotification);
+        const auto& chosen = engine.getChosenInput();
+        const int si = ins.indexOf (chosen);
+        if (si >= 0)
+            inBox.setSelectedId (si + 1, juce::dontSendNotification);
+        else if (chosen.isNotEmpty())
+        {
+            inBox.addItem (chosen + tr (" (bağlı değil)"), ins.size() + 1);
+            inBox.setSelectedId (ins.size() + 1, juce::dontSendNotification);
+        }
     }
 
     if (auto* type = outDm.getCurrentDeviceTypeObject())
     {
-        const auto outName = outDm.getAudioDeviceSetup().outputDeviceName;
+        const auto& outName = engine.getChosenOutput();
         outBox.addItem (tr ("(yok)"), 1);   // leerer Output-Name = kein Host-Output
         const auto outs = type->getDeviceNames (false);
         for (int i = 0; i < outs.size(); ++i) outBox.addItem (outs[i], i + 2);
         const int so = outs.indexOf (outName);
-        outBox.setSelectedId (outName.isNotEmpty() && so >= 0 ? so + 2 : 1,
-                              juce::dontSendNotification);
+        if (outName.isNotEmpty() && so < 0)
+        {
+            outBox.addItem (outName + tr (" (bağlı değil)"), outs.size() + 2);
+            outBox.setSelectedId (outs.size() + 2, juce::dontSendNotification);
+        }
+        else
+            outBox.setSelectedId (outName.isNotEmpty() ? so + 2 : 1, juce::dontSendNotification);
     }
 
     // Buffer-Zeile: nur wenn das Mikrofon mehrere Größen anbietet (Low-Latency-Modus). Die
@@ -172,7 +186,8 @@ void DevicePanel::updateStatus()
     // (orange, sobald einer auftrat; Tooltip schlüsselt die Ursachen auf). Einzelne zu langsame
     // Plugin-Blöcke sind seit 1.2.1 kein Aussetzer mehr (die Eingangs-Warteschlange fängt sie ab)
     // und stehen nur im Tooltip; im Mittel über 100 % = die Kette ist für die aktuelle Last zu schwer.
-    const auto dropouts = d.bridge.underruns + d.inputSkips + d.inputQueueOverflows + (uint64_t) d.inputDeviceXruns;
+    const auto dropouts = d.bridge.underruns + d.inputSkips + d.inputQueueOverflows + (uint64_t) d.inputDeviceXruns
+                          + d.invalidBlocks;
     const bool tooHeavy = d.dspLoadPercent >= 100.0;
     juce::String s2;
     s2 << tr ("İşlemci ") << micvst::trPercent (d.dspLoadPercent)
@@ -194,6 +209,7 @@ void DevicePanel::updateStatus()
         tip << " (" << juce::roundToInt (d.skippedMs) << " ms)";
     tip << "\n" << tr ("Mikrofon sürücüsünde kayıp: ") << d.inputDeviceXruns
         << "\n" << tr ("Eklenti işleme takıldı: ") << (juce::int64) d.inputQueueOverflows
+        << "\n" << tr ("Eklentiden geçersiz ses (susturuldu): ") << (juce::int64) d.invalidBlocks
         << "\n" << tr ("Gecikme düzeltmesi: ") << (juce::int64) d.bridge.resyncs
         << "\n" << tr ("Cihaz yeniden açıldı: ") << (juce::int64) d.watchdogRestarts
         << "\n" << tr ("Geç kalan eklenti bloğu (kesinti olmadan telafi edildi): ") << (juce::int64) d.overloads
@@ -214,11 +230,14 @@ void DevicePanel::apply()
     const auto outs = outType->getDeviceNames (false);
 
     const int ii = inBox.getSelectedId() - 1;
-    juce::String input = juce::isPositiveAndBelow (ii, ins.size()) ? ins[ii] : juce::String();
+    juce::String input = juce::isPositiveAndBelow (ii, ins.size()) ? ins[ii]
+                       : ii == ins.size() ? engine.getChosenInput()     // chosen but unplugged
+                       : juce::String();
 
     juce::String output;   // "(none)" (id 1) -> leer
     const int oid = outBox.getSelectedId();
     if (oid >= 2 && juce::isPositiveAndBelow (oid - 2, outs.size())) output = outs[oid - 2];
+    else if (oid == outs.size() + 2) output = engine.getChosenOutput();  // chosen but unplugged
 
     // Buffer-Wunsch: id 1 = Auto (0). Bei Auto den Geräte-Default explizit setzen,
     // weil setDeviceConfig 0 als "unverändert" interpretiert (sonst kein Zurückstellen).

@@ -66,4 +66,19 @@ namespace rt
     // nanoseconds. Both zero where this is not available.
     struct ThreadTimes { uint64_t wall = 0, cpu = 0; };
     ThreadTimes threadTimes() noexcept;
+
+   #if MICVST_RT_PROBE
+    // Test builds only: marks the code that runs on an audio thread, so a test can catch memory
+    // allocations and lock waits there (tests interpose malloc/new/mutexes). In MicVST itself
+    // MICVST_REALTIME_SCOPE compiles to nothing.
+    void probeEnter() noexcept;
+    void probeExit() noexcept;
+    struct ProbeScope { ProbeScope() noexcept { probeEnter(); } ~ProbeScope() noexcept { probeExit(); } };
+   #endif
 }
+
+#if MICVST_RT_PROBE
+ #define MICVST_REALTIME_SCOPE const rt::ProbeScope micvstRealtimeScope
+#else
+ #define MICVST_REALTIME_SCOPE
+#endif
