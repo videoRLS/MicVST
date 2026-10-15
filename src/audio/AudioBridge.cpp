@@ -47,6 +47,8 @@ namespace
     // (a clock that differs by more than the proportional range, > ~500 ppm): then up to 20 ms
     // of it count.
     constexpr double recoveredBelow  = 0.0005;
+    constexpr double lateLimit       = 0.005;   // a block arriving > 5 ms later than the normal pipeline delay ...
+    constexpr double steadySeconds   = 2.0;     // ... pauses drift learning until 2 s without one
     constexpr double jumpSeconds     = 0.003;
     constexpr double integrateLimit  = 0.020;
 
@@ -297,7 +299,8 @@ void AudioBridge::push (const float* const* data, int numChannels, int numFrames
     // smallest of the last 16 blocks, so that a block arriving that much after its capture time
     // is not taken for a late one (see the extrapolation in pullBlock). The smallest, because a
     // backlog (plug-ins slower than real time) is real lateness, not the pipeline's normal delay.
-    lagHistory[(size_t) lagCursor] = arrivalSeconds >= timeSeconds ? juce::jmin (0.5, arrivalSeconds - timeSeconds) : 0.0;
+    const double thisLag = arrivalSeconds >= timeSeconds ? juce::jmin (0.5, arrivalSeconds - timeSeconds) : 0.0;
+    lagHistory[(size_t) lagCursor] = thisLag;
     lagCursor = (lagCursor + 1) % (int) lagHistory.size();
     lagCount = juce::jmin (lagCount + 1, (int) lagHistory.size());
     const double lag = *std::min_element (lagHistory.begin(), lagHistory.begin() + lagCount);
@@ -310,6 +313,7 @@ void AudioBridge::push (const float* const* data, int numChannels, int numFrames
     pushTime.store (timeSeconds, std::memory_order_relaxed);
     pushArrival.store (arrivalSeconds >= timeSeconds ? arrivalSeconds : timeSeconds, std::memory_order_relaxed);
     pushLag.store (lag, std::memory_order_relaxed);
+    pushLate.store (thisLag - lag, std::memory_order_relaxed);
     lastPushFrames.store (numFrames, std::memory_order_relaxed);
     pushSeq.store (seq + 2, std::memory_order_release);
 }
@@ -324,6 +328,7 @@ bool AudioBridge::readLastPush (LastPush& p) const noexcept
         p.time     = pushTime.load (std::memory_order_relaxed);
         p.arrival  = pushArrival.load (std::memory_order_relaxed);
         p.lag      = pushLag.load (std::memory_order_relaxed);
+        p.late     = pushLate.load (std::memory_order_relaxed);
         std::atomic_thread_fence (std::memory_order_acquire);
         if (pushSeq.load (std::memory_order_relaxed) == s1)
             return true;
@@ -712,7 +717,13 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
             trendSeconds = 0.0;
         }
 
-        if (recovered && sinceStartSeconds >= settleSeconds)
+        // Blocks arriving late (the plug-ins fall behind, e.g. under a render's CPU load) make the
+        // level look low until the backlog arrives: that is not clock drift either. Learning waits
+        // until the input has arrived on time for steadySeconds (the level is still held by the
+        // proportional part meanwhile).
+        steadyInputSeconds = last.late > lateLimit ? 0.0 : steadyInputSeconds + dt;
+
+        if (recovered && sinceStartSeconds >= settleSeconds && steadyInputSeconds >= steadySeconds)
         {
             if (std::abs (err) < integrateBelow)
                 integral += ki * err * dt;

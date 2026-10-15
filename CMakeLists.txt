@@ -174,3 +174,33 @@ target_link_libraries(MicVSTSnapshot PRIVATE
     juce::juce_recommended_config_flags
     juce::juce_recommended_warning_flags
 )
+
+# --- Engine test (CI): MicVST's real AudioEngine with real threads between virtual devices with
+# WASAPI-like timing (tests/enginetest), on Windows with MMCSS. Records everything the virtual
+# cable plays: clicks, gaps, latency, chain edits, device changes, unplugging, faulty plug-ins.
+juce_add_console_app(MicVSTEngineTest PRODUCT_NAME "MicVSTEngineTest")
+target_sources(MicVSTEngineTest PRIVATE
+    tests/EngineTestMain.cpp
+    src/audio/AudioEngine.cpp
+    src/audio/PluginChain.cpp
+)
+target_include_directories(MicVSTEngineTest BEFORE PRIVATE tests/enginetest tests)
+target_compile_definitions(MicVSTEngineTest PRIVATE
+    MICVST_VERSION_STRING="${PROJECT_VERSION}"
+    MICVST_NEW_ENGINE=1
+    MICVST_ENGINE_LABEL="${PROJECT_VERSION}"
+    JUCE_MODAL_LOOPS_PERMITTED=1
+    JUCE_PLUGINHOST_VST3=1
+    JUCE_USE_CURL=0
+    JUCE_WEB_BROWSER=0
+    JUCE_USE_WIN_WEBVIEW2=0
+)
+target_link_libraries(MicVSTEngineTest PRIVATE
+    MicVSTCore
+    juce::juce_audio_devices
+    juce::juce_audio_formats
+    juce::juce_audio_utils
+    juce::juce_gui_basics
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_warning_flags
+)

@@ -57,7 +57,10 @@ public:
 
     void logMessage (const juce::String& message) override
     {
-        write ("[" + juce::Time::getCurrentTime().formatted ("%H:%M:%S") + "] " + message + "\n");
+        // Der Benutzerordner (enthält den Windows-Benutzernamen) steht im Log nur als
+        // %USERPROFILE% - das Log wird oft zur Fehlersuche weitergegeben.
+        write ("[" + juce::Time::getCurrentTime().formatted ("%H:%M:%S") + "] "
+               + (userHome.length() > 3 ? message.replace (userHome, "%USERPROFILE%", true) : message) + "\n");
     }
 
 private:
@@ -72,6 +75,7 @@ private:
 
     std::unique_ptr<juce::FileOutputStream> stream;
     juce::CriticalSection lock;
+    const juce::String userHome { juce::File::getSpecialLocation (juce::File::userHomeDirectory).getFullPathName() };
 };
 
 class MicVSTApplication : public juce::JUCEApplication

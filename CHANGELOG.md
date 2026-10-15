@@ -24,20 +24,38 @@ not be tested: [docs/RAPOR.md](docs/RAPOR.md) (Turkish).
   plugin thread's delay and the correction is smoothed in two stages: a constant clock drift is
   followed with < 2 ppm error (1.2.0: a slow wander of up to ~400 ppm) and the block-to-block
   speed jitter (phase noise, -84 dB at 1 kHz) is gone. Clock differences up to +-1000 ppm are
-  learned completely.
+  learned completely. While blocks arrive late (the plugins fall behind, e.g. under a video
+  render's CPU load) the drift is not learned: in the simulated render periods the learned value
+  had wandered by up to +-170 ppm and then needed minutes to settle again; now it stays put.
 - A larger safety buffer chosen while running takes effect at once (short fade-out, refill,
   fade-in) instead of over minutes.
 - All texts shown to the user are Turkish: window, menus, dialogs, tooltips, tray, the usage
   screen, the log file (now with timestamps) and JUCE's own buttons and text-field menu.
 - Displayed latency: the buffer part is now the mean time audio spends in the buffer plus the
   plugin thread's delay (1.2.0 counted about half a block too much).
+- Unplugged devices: MicVST no longer falls back to another device. 1.2.0 (via JUCE's device
+  manager) switched to the next available microphone or speaker when the chosen one disappeared,
+  so a built-in microphone could go out on the stream, or the processed microphone on the
+  speakers, and it stayed there after the device came back. Now the chosen devices stay selected
+  (shown as "... (bağlı değil)"), the output is silent meanwhile, and they reopen by themselves
+  within about a second when they are plugged in again.
+- The log file shows the user folder as %USERPROFILE% (it contains the Windows user name and the
+  log is often passed on for troubleshooting).
+- JUCE patches (cmake/PatchJuce.cmake), now five: besides the three WASAPI fixes, the audio
+  graph no longer allocates memory on the audio thread when a plugin reports a larger block
+  (audio-thread probe: 0 allocations, 0 lock waits in all scenarios), and the device manager no
+  longer opens a different device when the device list changes.
 
 ### Fixed
+- A plugin that outputs NaN, infinite or absurd values (> +24 dBFS) no longer reaches the cable
+  (or crashes the next plugin): the whole block is silenced and the sound fades in again (2 ms)
+  once the plugin recovers; counted in the dropout tooltip and the log. A plugin that throws an
+  exception costs one silent block.
 - Clicks when the chain is edited during playback (add, remove, move, bypass): the output fades
   out (5 ms), the graph switches while muted, then fades in. Measured on virtual devices: 1.2.0
   clicked on 11 of 13 edits, 1.2.1 on none.
 - Clicks on the cable when MicVST quits or a device/buffer setting is changed: the output now
-  fades out and drains before the device stops.
+  fades out and drains before the device stops (1.2.0: two clicked samples per change).
 - VST3 files that contain several plugins (Waves WaveShell, LSP, ...): every entry came back as
   the first plugin of the file after a restart (since 1.1.1). The plugin's identity is now stored;
   old configs still load.

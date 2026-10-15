@@ -14,7 +14,11 @@
 //          ProcessingThreadSetup and AudioBridge, a modelled WASAPI capture buffer, render-like
 //          plug-in load and all cores busy. Also checks the CPU-time measurement (threadTimes).
 //
-// Usage: MicVSTStress [report.md] [--quick]
+//  Part D (any OS, deterministic, --day <hours>): a simulated day under a random but reproducible
+//          schedule of clock drift changes, cable stalls, system freezes, plug-in stalls and
+//          render periods; clicks attributed to their causes, hour by hour.
+//
+// Usage: MicVSTStress [report.md] [--quick] | MicVSTStress [report.md] --day <hours>
 #include <juce_core/juce_core.h>
 #include "audio/AudioBridge.h"
 #include "audio/InputQueue.h"
@@ -24,6 +28,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstdio>
+#include <cstdlib>
 #include <deque>
 #include <random>
 #include <thread>
@@ -626,15 +631,221 @@ namespace
    #endif
 }
 
+namespace
+{
+    //==============================================================================
+    // Part D: a simulated day (deterministic, virtual time) - the real AudioBridge and InputQueue
+    // with the 1.2.1 microphone path, under a random but reproducible schedule of everything that
+    // happens on a real PC over hours: the mic clock drifts with temperature (random walk, plus a
+    // jump every 6 h like plugging in another microphone), the cable's driver stalls, the whole
+    // system freezes briefly (DPC), the plug-in thread stalls, and every 3 h (from 0:30 on) a
+    // 30-minute video render loads the CPU like the Topaz log. The output is analysed while it is produced (a day
+    // of audio is not kept): clicks of the 997 Hz tone, each attributed to its cause.
+    void partD (double hours)
+    {
+        using namespace bridgesim;
+        std::mt19937 rng (20261015);
+        std::uniform_real_distribution<double> uni (0.0, 1.0);
+        std::normal_distribution<double> gauss (0.0, 1.0);
+        auto logUniform = [&] (double lo, double hi) { return lo * std::pow (hi / lo, uni (rng)); };
+        auto poisson = [&] (double meanInterval, double lo, double hi, double seconds)
+        {
+            std::vector<Stall> v;
+            for (double t = 30.0 - meanInterval * std::log (1.0 - uni (rng)); t < seconds; t += -meanInterval * std::log (1.0 - uni (rng)))
+                v.push_back ({ t, logUniform (lo, hi) / 1000.0 });
+            return v;
+        };
+
+        Scenario sc;
+        sc.seconds = hours * 3600.0;
+        double drift = 40.0;
+        for (int m = 0; m < (int) std::ceil (sc.seconds / 60.0) + 2; ++m)
+        {
+            if (m > 0 && m % 360 == 0) drift = -300.0 + 600.0 * uni (rng);       // another microphone
+            drift = juce::jlimit (-300.0, 300.0, drift + 0.5 * gauss (rng));       // temperature
+            sc.driftByMinutePpm.push_back (drift);
+        }
+        sc.consumerStalls = poisson (300.0, 5.0, 80.0, sc.seconds);    // cable driver late
+        sc.captureStalls  = poisson (900.0, 2.0, 30.0, sc.seconds);    // whole system frozen (DPC)
+        sc.stalls         = poisson (600.0, 10.0, 250.0, sc.seconds);  // plug-in thread stalls
+        sc.captureStalls  = mergedStalls (sc.captureStalls, {});
+        sc.stalls = mergedStalls (sc.stalls, sc.captureStalls);        // a system freeze stops the plug-in thread too
+        sc.consumerStalls = mergedStalls (sc.consumerStalls, sc.captureStalls);
+        for (double t = 1800.0; t < sc.seconds; t += 3.0 * 3600.0)   // 0:30-1:00, 3:30-4:00, ...
+            sc.heavyLoad.push_back ({ t, std::min (sc.seconds, t + 1800.0) });
+        sc.baseLoad = 0.25; sc.spikeChance = 0.45; sc.spikeMin = 1.1; sc.spikeMax = 1.9;
+
+        out ("## Part D - simulated day: " + juce::String (hours, 0) + " h of virtual time (1.2.1: real AudioBridge + InputQueue, deterministic)");
+        out ("");
+        out ("Schedule (seed 20261015): mic clock drift random walk within +-300 ppm (0.5 ppm/min) with a jump to a new value every 6 h; "
+             + juce::String ((int) sc.consumerStalls.size()) + " cable stalls (5-80 ms), " + juce::String ((int) sc.captureStalls.size())
+             + " system freezes (2-30 ms, all threads), " + juce::String ((int) sc.stalls.size()) + " plug-in thread stalls (10-250 ms, incl. the freezes); "
+             + juce::String ((int) sc.heavyLoad.size()) + " render periods of 30 min (45 % of the blocks need 1.1-1.9x real time). "
+             "Buffer 480 at 48 kHz, safety Auto. Clicks = jumps of the 997 Hz tone's waveform (second difference), events 10 ms apart; "
+             "'inevitable' = at a cable gap (the cable's driver was late longer than its buffer: silence inserted) or at audio lost in a "
+             "system freeze (capture buffer overflowed); 'at MicVST' = at an underrun, trim or skip of MicVST (should be none: those are faded/crossfaded).");
+        out ("");
+        out ("| Hour | Underruns | Trims | Skips | Capture overflows | Cable gaps | Clicks: inevitable / at MicVST / other | Pitch error max (ppm) | time > 100 ppm | Latency mean / max (ms) | Safety (ms) |");
+        out ("|---:|---:|---:|---:|---:|---:|---|---:|---:|---|---:|");
+
+        AudioBridge bridge;
+        bridge.setInputRate (sc.inputRate);
+        bridge.setOutputRate (sc.outputRate);
+        bridge.setSafety (sc.safetyMs, sc.autoSafety);
+        bridge.setConsumerActive (true);
+        SeparateThreadMic mic (sc);
+
+        const int B = sc.outputBlock;
+        const double rate = sc.outputRate, outPeriod = B / rate;
+        const auto renderCap = (int64_t) std::lround (2.2 * B);
+        const double w = juce::MathConstants<double>::twoPi * sc.toneHz / rate;
+        const double limit = 3.0 * 0.5 * w * w + 2.0e-4;
+        std::vector<float> inBuf ((size_t) sc.inputBlock), block ((size_t) B);
+        int64_t written = renderCap, recorded = renderCap;
+        double tCons = 0.0;
+        float p1 = 0.0f, p2 = 0.0f;
+        int64_t lastClick = -1000000;
+        bool running = false;
+
+        std::vector<int64_t> inevitable, atMicVST;   // windows (cable sample index) of explaining events
+        struct Hour { uint64_t under = 0, trims = 0, skips = 0; int overflows = 0, gaps = 0, clkInev = 0, clkMic = 0, clkOther = 0;
+                      double pitchMax = 0, over100 = 0, latSum = 0, latMax = 0; int latN = 0; } h;
+        struct Totals { uint64_t under = 0, trims = 0, skips = 0; int overflows = 0, gaps = 0, clkInev = 0, clkMic = 0, clkOther = 0; double pitchMax = 0, over100 = 0, lostMs = 0; } tot;
+        Result mr;
+        int prevOverflows = 0; uint64_t prevSkips = 0;
+        AudioBridge::Stats prev {};
+        double hourStart = 0.0;
+        int hourIndex = 0;
+
+        auto near = [] (const std::vector<int64_t>& v, int64_t at, int64_t before, int64_t after)
+        {
+            for (auto it = v.rbegin(); it != v.rend() && *it > at - before - 200000; ++it)
+                if (at >= *it - before && at <= *it + after) return true;
+            return false;
+        };
+        auto flushHour = [&] (double tEnd, const AudioBridge::Stats& st)
+        {
+            out ("| " + juce::String (hourIndex + 1) + " | " + juce::String ((int) h.under) + " | " + juce::String ((int) h.trims) + " | " + juce::String ((int) h.skips)
+                 + " | " + juce::String (h.overflows) + " | " + juce::String (h.gaps) + " | " + juce::String (h.clkInev) + " / " + juce::String (h.clkMic) + " / " + juce::String (h.clkOther)
+                 + " | " + juce::String (juce::roundToInt (h.pitchMax)) + " | " + juce::String (100.0 * h.over100 / std::max (1.0, tEnd - hourStart), 2) + " %"
+                 + " | " + juce::String (h.latN > 0 ? h.latSum / h.latN : 0.0, 1) + " / " + juce::String (h.latMax, 1) + " | " + juce::String (st.safetyMs, 0) + " |");
+            tot.under += h.under; tot.trims += h.trims; tot.skips += h.skips; tot.overflows += h.overflows; tot.gaps += h.gaps;
+            tot.clkInev += h.clkInev; tot.clkMic += h.clkMic; tot.clkOther += h.clkOther; tot.pitchMax = std::max (tot.pitchMax, h.pitchMax); tot.over100 += h.over100;
+            h = Hour(); hourStart = tEnd; ++hourIndex;
+            // forget old windows
+            auto trim = [&] (std::vector<int64_t>& v) { if (v.size() > 100000) v.erase (v.begin(), v.begin() + (ptrdiff_t) (v.size() - 1000)); };
+            trim (inevitable); trim (atMicVST);
+        };
+
+        const bool trace = std::getenv ("MICVST_DAY_TRACE") != nullptr;   // one line per simulated minute (diagnosis)
+        double nextTrace = 0.0;
+        Push nextPush;
+        mic.next (nextPush, inBuf.data());
+        auto playedAt = [&] (double tt) { return (int64_t) std::floor (tt * rate); };
+        while (std::min (nextPush.time, tCons) < sc.seconds)
+        {
+            if (nextPush.time <= tCons)
+            {
+                const float* chans[] = { inBuf.data() };
+                bridge.push (chans, 1, sc.inputBlock, nextPush.stamp, nextPush.time);
+                mic.next (nextPush, inBuf.data());
+                continue;
+            }
+            double t = tCons, stallEnd = 0.0;
+            if (insideStall (sc.consumerStalls, t, stallEnd)) t = stallEnd;
+            float* chans[] = { block.data() };
+            bridge.pull (chans, 1, B, t);
+            const auto st = bridge.getStats();
+            const int minute = juce::jlimit (0, (int) sc.driftByMinutePpm.size() - 1, (int) (t / 60.0));
+            const double pitch = std::abs (st.correctionPpm - sc.driftByMinutePpm[(size_t) minute]);
+            if (t > 5.0)
+            {
+                h.pitchMax = std::max (h.pitchMax, pitch);
+                if (pitch > 100.0) h.over100 += outPeriod;
+            }
+            mic.report (mr);
+            const int64_t here = recorded;
+            if (mr.captureOverflows > prevOverflows) { h.overflows += mr.captureOverflows - prevOverflows; prevOverflows = mr.captureOverflows; inevitable.push_back (here); }
+            mic.reportQueue (mr);
+            if (mr.inputSkips > prevSkips) { h.skips += mr.inputSkips - prevSkips; prevSkips = mr.inputSkips; atMicVST.push_back (here); }
+            if (st.underruns > prev.underruns) { h.under += st.underruns - prev.underruns; atMicVST.push_back (here); }
+            if (st.resyncs > prev.resyncs) { h.trims += st.resyncs - prev.resyncs; atMicVST.push_back (here); }
+            prev = st;
+            running = running || st.running;
+
+            const int64_t needPlayed = written + B - renderCap;
+            if (needPlayed > playedAt (t))
+                t = std::ceil ((double) needPlayed / rate / outPeriod - 1.0e-9) * outPeriod;
+            if (insideStall (sc.consumerStalls, t, stallEnd)) t = stallEnd;
+            const int64_t played = playedAt (t);
+            auto feed = [&] (float v)
+            {
+                if (running && std::abs ((double) v - 2.0 * p1 + p2) > limit && recorded > 48000)
+                {
+                    if (recorded - lastClick > (int64_t) (0.01 * rate))
+                    {
+                        if (near (inevitable, recorded, 2400, 24000)) ++h.clkInev;
+                        else if (near (atMicVST, recorded, 2400, 24000)) ++h.clkMic;
+                        else ++h.clkOther;
+                    }
+                    lastClick = recorded;
+                }
+                p2 = p1; p1 = v; ++recorded;
+            };
+            if (played > written)   // cable thread late longer than its buffer: silence was played
+            {
+                ++h.gaps; inevitable.push_back (recorded);
+                for (int64_t i = written; i < played; ++i) feed (0.0f);
+                written = played;
+            }
+            for (int i = 0; i < B; ++i) feed (block[(size_t) i]);
+            written += B;
+            tCons = t;
+            const double lat = st.bufferedMs + st.inputDelayMs + 1000.0 * (double) (written - playedAt (t)) / rate;
+            h.latSum += lat; ++h.latN; h.latMax = std::max (h.latMax, lat);
+            if (trace && t >= nextTrace)
+            {
+                nextTrace += 60.0;
+                std::printf ("trace t %7.0f s  true %7.1f  learned %7.1f  corr %7.1f ppm  buffered %6.1f ms  safety %3.0f  under %d trims %d\n",
+                             t, sc.driftByMinutePpm[(size_t) minute], st.driftPpm, st.correctionPpm, st.bufferedMs, st.safetyMs, (int) st.underruns, (int) st.resyncs);
+            }
+            if (t >= hourStart + 3600.0) flushHour (t, st);
+        }
+        const auto st = bridge.getStats();
+        if (h.latN > 0) flushHour (tCons, st);
+        mic.report (mr);
+        out ("");
+        out ("Day total: underruns " + juce::String ((int) tot.under) + ", trims " + juce::String ((int) tot.trims) + ", skips " + juce::String ((int) tot.skips)
+             + ", capture overflows " + juce::String (tot.overflows) + " (" + juce::String (juce::roundToInt (mr.lostInputMs)) + " ms lost), cable gaps " + juce::String (tot.gaps)
+             + "; clicks: inevitable " + juce::String (tot.clkInev) + ", at MicVST " + juce::String (tot.clkMic) + ", other " + juce::String (tot.clkOther)
+             + "; pitch error max " + juce::String (juce::roundToInt (tot.pitchMax)) + " ppm (" + juce::String (tot.pitchMax * 1.0e-6 * 1731.2, 2) + " cent), above 100 ppm for "
+             + juce::String (tot.over100, 0) + " s; learned drift at the end " + juce::String (st.driftPpm, 1) + " ppm (true " + juce::String (sc.driftByMinutePpm[(size_t) juce::jmin ((int) sc.driftByMinutePpm.size() - 1, (int) ((tCons - 1.0) / 60.0))], 1)
+             + " ppm), safety " + juce::String (st.safetyMs, 0) + " ms.");
+        out ("");
+    }
+}
+
 int main (int argc, char** argv)
 {
     bool quick = false;
+    double dayHours = 0.0;
     juce::File reportFile;
     for (int i = 1; i < argc; ++i)
     {
         const juce::String a (argv[i]);
         if (a == "--quick") quick = true;
+        else if (a == "--day" && i + 1 < argc) dayHours = juce::String (argv[++i]).getDoubleValue();
         else reportFile = juce::File::getCurrentWorkingDirectory().getChildFile (a);
+    }
+
+    if (dayHours > 0.0)   // Part D only (long)
+    {
+        out ("# MicVST: simulated day");
+        out ("");
+        partD (dayHours);
+        if (reportFile != juce::File())
+            reportFile.replaceWithText (report);
+        return 0;
     }
 
     out ("# MicVST audio path measurements");

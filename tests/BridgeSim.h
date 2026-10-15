@@ -35,6 +35,11 @@ namespace bridgesim
         double spikeMin = 0.0, spikeMax = 0.0;   // ... needing this much of the block time (uniform)
         double captureBufferPeriods = 2.2;  // WASAPI capture buffer in device periods (shared mode ~2.2)
         uint32_t seed = 1234;
+        // Long runs: the mic clock's drift minute by minute (overrides inputDriftPpm when set), and
+        // the periods (start, end in s) in which the spikes above occur (all the time when empty).
+        // Stall lists with more than 64 entries must be sorted by time (binary search).
+        std::vector<double> driftByMinutePpm;
+        std::vector<std::pair<double, double>> heavyLoad;
     };
 
     // Where the plug-in chain runs relative to the microphone's WASAPI capture thread.
@@ -87,6 +92,16 @@ namespace bridgesim
 
     inline bool insideStall (const std::vector<Stall>& stalls, double t, double& stallEnd)
     {
+        if (stalls.size() > 64)   // long, time-sorted lists: the stalls starting up to t, newest first
+        {
+            auto it = std::upper_bound (stalls.begin(), stalls.end(), t, [] (double v, const Stall& s) { return v < s.atSeconds; });
+            for (int back = 0; back < 8 && it != stalls.begin(); ++back)
+            {
+                --it;
+                if (t < it->atSeconds + it->durationSeconds) { stallEnd = it->atSeconds + it->durationSeconds; return true; }
+            }
+            return false;
+        }
         for (auto& s : stalls)
             if (t >= s.atSeconds && t < s.atSeconds + s.durationSeconds)
             {
@@ -115,8 +130,14 @@ namespace bridgesim
             if (insideStall (stalls, t, stallEnd)) { t = stallEnd; continue; }
 
             double next = 1.0e300;
-            for (auto& s : stalls)
-                if (s.atSeconds > t) next = std::min (next, s.atSeconds);
+            if (stalls.size() > 64)
+            {
+                auto it = std::upper_bound (stalls.begin(), stalls.end(), t, [] (double v, const Stall& s) { return v < s.atSeconds; });
+                if (it != stalls.end()) next = it->atSeconds;
+            }
+            else
+                for (auto& s : stalls)
+                    if (s.atSeconds > t) next = std::min (next, s.atSeconds);
 
             if (t + remaining <= next) return t + remaining;
             remaining -= next - t;
@@ -130,10 +151,10 @@ namespace bridgesim
     {
         WorkModel (const Scenario& s, double blockSeconds) : sc (s), block (blockSeconds), rng (s.seed) {}
 
-        double next()
+        double next (double now = 0.0)
         {
             double w;
-            if (sc.spikeChance > 0.0 && uni (rng) < sc.spikeChance)
+            if (sc.spikeChance > 0.0 && heavyAt (now) && uni (rng) < sc.spikeChance)
                 w = block * (sc.spikeMin + (sc.spikeMax - sc.spikeMin) * uni (rng));
             else
                 w = sc.baseLoad * block + uni (rng) * sc.inputJitterMs / 1000.0;
@@ -144,6 +165,13 @@ namespace bridgesim
             if (load > 1.0) ++late;
             ++count;
             return w;
+        }
+
+        bool heavyAt (double now) const
+        {
+            if (sc.heavyLoad.empty()) return true;
+            for (auto& h : sc.heavyLoad) if (now >= h.first && now < h.second) return true;
+            return false;
         }
 
         void report (Result& r) const
@@ -314,7 +342,25 @@ namespace bridgesim
         }
 
     protected:
-        double arrival (int64_t k) const noexcept { return (double) (k + 1) * period; }
+        // Time at which packet k is complete: on the mic's own clock (drift constant, or minute by
+        // minute for long runs - then the cumulative sample count per minute is integrated).
+        double arrival (int64_t k) const noexcept
+        {
+            if (sc.driftByMinutePpm.empty())
+                return (double) (k + 1) * period;
+            if (cumulative.empty())
+            {
+                cumulative.push_back (0.0);
+                for (double ppm : sc.driftByMinutePpm)
+                    cumulative.push_back (cumulative.back() + 60.0 * sc.inputRate * (1.0 + ppm * 1.0e-6));
+            }
+            const double target = (double) (k + 1) * (double) packet;
+            auto it = std::upper_bound (cumulative.begin(), cumulative.end(), target);
+            const auto m = (size_t) std::max<std::ptrdiff_t> (0, (it - cumulative.begin()) - 1);
+            const size_t mm = std::min (m, sc.driftByMinutePpm.size() - 1);
+            return 60.0 * (double) mm + (target - cumulative[mm]) / (sc.inputRate * (1.0 + sc.driftByMinutePpm[mm] * 1.0e-6));
+        }
+        mutable std::vector<double> cumulative;
 
         void fillPacket (float* dst, int64_t k) const noexcept
         {
@@ -381,7 +427,7 @@ namespace bridgesim
                 reservoir.pop_front();
                 fillPacket (block, k);
 
-                const double end = advanceWork (t, work.next(), stalls);
+                const double end = advanceWork (t, work.next (t), stalls);
                 p.time = end;
                 p.stamp = end;            // 1.2.0 pushed with the time after processing
                 recordDelay (end - arrival (k));
@@ -442,7 +488,7 @@ namespace bridgesim
             const int64_t skipped = queue.readBlock (dst, packet, maxBacklog, InputQueue::alignRange (sc.inputRate));
             if (skipped > 0) { ++skips; skippedFrames += skipped; }
 
-            const double end = advanceWork (s, work.next(), sc.stalls);
+            const double end = advanceWork (s, work.next (s), sc.stalls);
             captureUntil (end);
 
             double stamp = end;

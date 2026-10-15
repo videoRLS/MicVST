@@ -112,10 +112,11 @@ private:
     std::atomic<double>   pushTime { 0.0 };
     std::atomic<double>   pushArrival { 0.0 };    // when the last push arrived
     std::atomic<double>   pushLag { 0.0 };        // smallest capture -> arrival delay of the last 16 pushes (s)
+    std::atomic<double>   pushLate { 0.0 };       // how much later than that the newest push arrived (s)
     std::atomic<int>      lastPushFrames { 480 };
     std::array<double, 16> lagHistory {};         // producer only
     int                   lagCursor = 0, lagCount = 0;   // producer only
-    struct LastPush { int64_t endIndex = 0; double time = 0.0, arrival = 0.0, lag = 0.0; };
+    struct LastPush { int64_t endIndex = 0; double time = 0.0, arrival = 0.0, lag = 0.0, late = 0.0; };
     bool readLastPush (LastPush&) const noexcept;
 
     // Resampler (polyphase Kaiser-windowed sinc, linear interpolation between phases)
@@ -172,6 +173,7 @@ private:
     double  sinceStartSeconds = 0.0; // running time since the last (re-)prime or trim
     bool    recovered = false;      // level back at the target since the last disturbance (drift learning on)
     double  persistingSeconds = 0.0; // how long the level error has not shrunk (checked every second)
+    double  steadyInputSeconds = 0.0; // how long no block has arrived late (plug-ins keeping up)
     double  trendFast = 0.0, trendSeconds = 0.0;
     void    resetTrend() noexcept { recovered = false; persistingSeconds = 0.0; trendFast = 0.0; trendSeconds = 0.0; }
     int     fadeInRemaining = 0;

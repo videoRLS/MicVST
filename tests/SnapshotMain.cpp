@@ -53,15 +53,18 @@ namespace
             w = juce::jmax (w, boxes.back().getWidth());
         }
         juce::Image img (juce::Image::ARGB, w + 16, h, true);
-        juce::Graphics g (img);
-        g.fillAll (juce::Colours::darkgrey);
-        int y = 8;
-        for (int i = 0; i < tips.size(); ++i)
         {
-            juce::Graphics::ScopedSaveState ss (g);
-            g.setOrigin (8, y);
-            lf.drawTooltip (g, tips[i], boxes[(size_t) i].getWidth(), boxes[(size_t) i].getHeight());
-            y += boxes[(size_t) i].getHeight() + 8;
+            // Windows (Direct2D): the drawing reaches the image only when the context ends
+            juce::Graphics g (img);
+            g.fillAll (juce::Colours::darkgrey);
+            int y = 8;
+            for (int i = 0; i < tips.size(); ++i)
+            {
+                juce::Graphics::ScopedSaveState ss (g);
+                g.setOrigin (8, y);
+                lf.drawTooltip (g, tips[i], boxes[(size_t) i].getWidth(), boxes[(size_t) i].getHeight());
+                y += boxes[(size_t) i].getHeight() + 8;
+            }
         }
         save (img, out);
     }
@@ -72,16 +75,18 @@ namespace
         auto& lf = juce::LookAndFeel::getDefaultLookAndFeel();
         const int w = 320, itemH = 24;
         juce::Image img (juce::Image::ARGB, w, itemH * items.size() + 8, true);
-        juce::Graphics g (img);
-        lf.drawPopupMenuBackground (g, w, img.getHeight());
-        for (int i = 0; i < items.size(); ++i)
         {
-            juce::Graphics::ScopedSaveState ss (g);
-            const juce::Rectangle<int> area (0, 4 + i * itemH, w, itemH);
-            if (items[i] == "-")
-                lf.drawPopupMenuItem (g, area, true, false, false, false, false, {}, {}, nullptr, nullptr);
-            else
-                lf.drawPopupMenuItem (g, area, false, true, false, false, false, items[i], {}, nullptr, nullptr);
+            juce::Graphics g (img);   // see renderTooltips
+            lf.drawPopupMenuBackground (g, w, img.getHeight());
+            for (int i = 0; i < items.size(); ++i)
+            {
+                juce::Graphics::ScopedSaveState ss (g);
+                const juce::Rectangle<int> area (0, 4 + i * itemH, w, itemH);
+                if (items[i] == "-")
+                    lf.drawPopupMenuItem (g, area, true, false, false, false, false, {}, {}, nullptr, nullptr);
+                else
+                    lf.drawPopupMenuItem (g, area, false, true, false, false, false, items[i], {}, nullptr, nullptr);
+            }
         }
         save (img, out);
     }
@@ -180,5 +185,17 @@ int main (int argc, char** argv)
     renderMenu ({ tr ("Windows açılışında başlat"), "-", tr ("MicVST'yi kapat"),
                   "-", TRANS ("Cut"), TRANS ("Copy"), TRANS ("Paste"), TRANS ("Delete"), TRANS ("Select All") },
                 dir.getChildFile ("9_menu_tray_and_textfield.png"));
+
+    // The chosen microphone is unplugged (long device name): "... (bağlı değil)" in the list and
+    // the stopped status line must fit.
+    {
+        MicVSTState st2 = st;
+        st2.inputDevice = juce::String::fromUTF8 ("Mikrofon (Logitech G PRO X 2 LIGHTSPEED Wireless Gaming Headset)");
+        engine.applyState (st2);
+        pump (1500);
+        MainComponent mc (engine);
+        pump (700);
+        snap (mc, 584, 521, dir.getChildFile ("1b_main_device_missing.png"));
+    }
     return 0;
 }
