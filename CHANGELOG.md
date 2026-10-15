@@ -6,7 +6,8 @@ project follows [Semantic Versioning](https://semver.org/).
 
 ## [1.2.0] - Unreleased
 
-Focus: no more crackles under heavy load, and a fully offline app.
+Focus: no more crackles under heavy load, and a fully offline app. Full analysis, measurements
+and what could not be tested: [docs/RAPOR.md](docs/RAPOR.md) (Turkish).
 
 ### Changed
 - New audio engine: microphone and cable run on two separate realtime threads (input-only and
