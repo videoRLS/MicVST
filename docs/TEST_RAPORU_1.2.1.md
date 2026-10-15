@@ -24,7 +24,7 @@ gerçek Windows sürücüsü) hiçbir test yapılamadı – bu, 12. bölümde a�
 | Simüle edilmiş 24 saat | MicVST'nin olaylarında tık 0, öğrenilen saat farkı gerçeğe 0,2 ppm yakın | S |
 | Bellek | uzun koşularda artış yok | W, L |
 | VST3 | gerçek eklentilerle yükle / çalarken değiştir / kaydet-geri yükle: tık 0, durum birebir | L (LSP), W (Airwindows) |
-| Hata ayıklayıcılar | ASan/UBSan: MicVST'de bulgu yok; TSan: MicVST'de bulgu yok, gerçek LSP eklentisiyle 7 uyarı (eklentinin kendi iş parçacığı, incelenmedi) | L |
+| Hata ayıklayıcılar | ASan/UBSan: MicVST'de bulgu yok; TSan: MicVST'de bulgu yok, gerçek LSP eklentisiyle 7 uyarı (hepsi eklentinin kendi iş parçacığı ile eklentinin yüklendiği ana iş parçacığı arasında; ses iş parçacıkları yok) | L |
 | İnternet | 0 bağlantı, 0 soket, ağ kütüphanesi yok – 6 durumda | W (+L) |
 | Türkçe arayüz | bütün metinler Türkçe, taşma yok, tasarım aynı | W |
 
@@ -445,8 +445,8 @@ Son kodla, JUCE'un ses/olay modülleri de araçlı derlenerek (gerçek zamanlı 
 | Araç | Koşular | Sonuç |
 |---|---|---|
 | ASan + UBSan (bellek hatası, tanımsız davranış) | zincir değişiklikleri, cihaz değişiklikleri, çıkar/tak, hatalı eklentiler, gerçek LSP VST3, eklenti takılması kaydı, 5 dk karışık koşu | hepsi çıkış kodu 0; MicVST'de bulgu yok. VST3 koşusunda bellek sızıntısı raporu yalnızca LSP eklentisinin kendi kodunda |
-| TSan (iş parçacığı yarışları) | zincir değişiklikleri, cihaz değişiklikleri, çıkar/tak, hatalı eklentiler, kablo takılması kaydı | bulgu yok |
-| TSan | gerçek LSP VST3 | 7 uyarı: LSP'nin kendi iş parçacığı JUCE'un VST3 ana bilgisayar geri çağrılarını (`restartComponent`, `AsyncUpdater`) çağırıyor. MicVST'nin ses yolu sınıflarında (köprü, kuyruk, motor) bulgu yok; ama bu 7 uyarı ayrıntılı incelenmedi (zaman kalmadı) – açık madde |
+| TSan (iş parçacığı yarışları) | zincir değişiklikleri, cihaz değişiklikleri, çıkar/tak, hatalı eklentiler, kablo takılması kaydı, 5 dk karışık koşu | hepsi çıkış kodu 0, bulgu yok. Karışık koşu: 21 tık / 28 boşluk, hepsi makine takılmalarına bağlandı (açıklanamayan 0); TSan yavaşlattığı için bu koşunun ses ölçümleri kalite ölçüsü değildir |
+| TSan | gerçek LSP VST3 | 7 uyarı (çıkış kodu 66). Yığınlar incelendi: 7'sinin de bir tarafı LSP'nin yükleme sırasında kendi açtığı iş parçacığı (3'ü LSP'nin kendi belleği, 4'ü JUCE'un `restartComponent` / `AsyncUpdater` geri çağrısı), diğer tarafı eklentiyi oluşturan ana iş parçacığı (`PluginChain::addPlugin`, `AudioEngine::restoreChain`). Hiçbirinde ses iş parçacıkları, köprü, kuyruk ya da motorun ses yolu yok. LSP kütüphanesi araçlı derlenmediği için kendi eşzamanlamasını TSan göremez; uyarıların büyük olasılıkla bundan kaynaklandığını düşünüyorum, ama bu kanıtlanmadı – açık madde |
 
 ---
 
@@ -649,9 +649,10 @@ Aşağıdakiler ya çözülmedi ya da bu ortamda doğrulanamadı. Hiçbiri "test
     gerçek eklentiyle (Airwindows) birebir karşılaştırma anlamlı sonuç vermedi (6.2). Linux sanal
     makinesi testler sırasında sık donduğu için L'deki bazı ölçümler (ör. son "flutter" koşusu)
     bozuldu; bunlar için W sonuçları esas alındı.
-15. **TSan, gerçek LSP eklentisiyle 7 uyarı** verdi (7.3); eklentinin kendi iş parçacığından JUCE geri çağrıları – ayrıntılı incelenmedi.
 14. **Linux'ta bulunan tek "açıklanamayan" bulgu** (LSP zinciri + konuşma, 3.2) büyük olasılıkla
     eklentinin kayıp girişe tepkisi; kesin olarak ayrıştırılamadı.
+15. **TSan, gerçek LSP eklentisiyle 7 uyarı** verdi (7.3): eklentinin kendi iş parçacığı ile
+    eklentiyi yükleyen ana iş parçacığı arasında, ses yolunda değil. Yanlış alarm olduğu kanıtlanmadı.
 
 ---
 
