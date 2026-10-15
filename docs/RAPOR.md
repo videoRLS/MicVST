@@ -4,6 +4,9 @@ Bu rapor `videoRLS/MicVST` deposundaki çalışmayı belgeler. Her ölçüm değ
 alındığıyla birlikte verilmiştir. Gerçek donanımda (gerçek mikrofon, VB-Cable, gerçek oyun yükü)
 yapılamayan testler **9. bölümde** açıkça listelenmiştir; bunlar "yapıldı" diye gösterilmemiştir.
 
+> **Sonraki sürüm:** 1.2.1'in testleri ve bu rapordaki 7.4 tablosunun düzeltmesi:
+> [TEST_RAPORU_1.2.1.md](TEST_RAPORU_1.2.1.md).
+
 **Uzak depodaki dallar** (hepsi gerçekten gönderildi, `main` dalına dokunulmadı):
 
 | Dal | İçerik |
