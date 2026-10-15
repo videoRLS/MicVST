@@ -174,8 +174,9 @@ private:
     bool    recovered = false;      // level back at the target since the last disturbance (drift learning on)
     double  persistingSeconds = 0.0; // how long the level error has not shrunk (checked every second)
     double  steadyInputSeconds = 0.0; // how long no block has arrived late (plug-ins keeping up)
+    bool    shrinking = false;        // the level error is being played off (checked every second)
     double  trendFast = 0.0, trendSeconds = 0.0;
-    void    resetTrend() noexcept { recovered = false; persistingSeconds = 0.0; trendFast = 0.0; trendSeconds = 0.0; }
+    void    resetTrend() noexcept { recovered = false; persistingSeconds = 0.0; trendFast = 0.0; trendSeconds = 0.0; shrinking = false; }
     int     fadeInRemaining = 0;
     int64_t spliceOffset = 0;       // trim in progress: the old audio plays at readIndex - spliceOffset
     int     spliceRemaining = 0, spliceLength = 0;

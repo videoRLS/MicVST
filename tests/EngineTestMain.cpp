@@ -249,7 +249,7 @@ namespace
             vdev::recorder().reset ((size_t) ((seconds + 4.0) * vdev::config().cableRate));
             vdev::stats().reset();
             engine = std::make_unique<AudioEngine>();
-            engine->getFormatManager().addFormat (new TestFormat());
+            engine->getFormatManager().addFormat (std::make_unique<TestFormat>());
             MicVSTState st;
             st.inputDevice = "VMic";
             st.outputDevice = "VCable";
@@ -317,9 +317,22 @@ namespace
     // compensation), so the exact output frequency differs by a few ppm from the nominal one.
     Fit fitSine (const std::vector<float>& y, size_t from, int n, double nominalCyclesPerSample)
     {
-        double lo = nominalCyclesPerSample * (1.0 - 0.006), hi = nominalCyclesPerSample * (1.0 + 0.006);
+        // Search range: the bridge changes the speed by at most ~600 ppm, and the range must stay
+        // inside the main lobe of the window (+-0.45 bin): a wider range has side-lobe minima where
+        // the golden section can end up (that read as -30..-80 dB "THD+N" for high tones and long
+        // windows - a fit error, not the audio).
+        const double span = std::max (nominalCyclesPerSample * 0.0006, std::min (nominalCyclesPerSample * 0.006, 0.45 / (double) n));
+        // coarse grid first (finds the main lobe), then golden section around its best point
         Fit best = fit3 (y.data() + from, n, nominalCyclesPerSample);
-        for (int it = 0; it < 60; ++it)   // golden-section on the residual
+        double centre = nominalCyclesPerSample;
+        const double step = span / 10.0;
+        for (int k = -10; k <= 10; ++k)
+        {
+            const auto f = fit3 (y.data() + from, n, nominalCyclesPerSample + k * step);
+            if (f.residualDb < best.residualDb) { best = f; centre = nominalCyclesPerSample + k * step; }
+        }
+        double lo = centre - step, hi = centre + step;
+        for (int it = 0; it < 40; ++it)   // golden-section on the residual
         {
             const double a = hi - (hi - lo) * 0.618, b = lo + (hi - lo) * 0.618;
             const auto fa = fit3 (y.data() + from, n, a), fb = fit3 (y.data() + from, n, b);
@@ -707,7 +720,7 @@ namespace
         {
             chain.clear();
             for (auto* t : types)
-                if (t->numInputChannels > 0 && chain.size() < 7) chain.add (*t);
+                if (! t->isInstrument && chain.size() < 7) chain.add (*t);
             for (int i = 0; chain.size() > 0 && chain.size() < 4; ++i) chain.add (chain[i]);
         }
         juce::String names; for (auto& d : chain) names << d.name << ", ";
@@ -720,7 +733,7 @@ namespace
         {
             EngineRun run (480, total);
             auto& e = *run.engine;
-            e.getFormatManager().addFormat (new juce::VST3PluginFormat());
+            e.getFormatManager().addFormat (std::make_unique<juce::VST3PluginFormat>());
             const double t0 = juce::Time::getMillisecondCounterHiRes();
             int loaded = 0;
             for (auto& d : chain)
@@ -820,7 +833,7 @@ namespace
                     + juce::String (fromFile.plugins.size()) + " plug-ins");
                 file.deleteFile();
                 AudioEngine second;
-                second.getFormatManager().addFormat (new juce::VST3PluginFormat());
+                second.getFormatManager().addFormat (std::make_unique<juce::VST3PluginFormat>());
                 for (auto& d : chain) second.getKnownPlugins().addType (d);
                 MicVSTState s2 = fromFile;
                 s2.inputDevice = {}; s2.outputDevice = {};   // devices of the first engine stay in use
@@ -863,7 +876,7 @@ namespace
     // counters. Every click/gap is attributed: cable late or mic packet lost (stalls of the test
     // machine), a MicVST event (underrun, trim, skip, ...), a planned change (chaos mode).
     // chaos: every 20 s one change while audio plays (bypass, add/move/remove a plug-in, safety
-    // buffer 10 <-> 40 ms), every 5 min a device buffer change (both devices reopen).
+    // buffer fixed 40 ms <-> Auto), every 5 min a device buffer change (both devices reopen).
     void longRun (double minutes, bool chaos)
     {
         auto& cfg = vdev::config();
@@ -902,12 +915,31 @@ namespace
             const double latency = 0.06 * fs;
             for (int i = 0; i < st.lostCount.load (std::memory_order_acquire); ++i)
             {
-                const auto m = (int64_t) ((double) st.lostEvents[(size_t) i] * fs / cfg.micRate + (rec.micStart.load() - rec.outputStart.load()) * fs + latency);
+                // by capture time: the mic's sample index restarts when the devices are reopened
+                const auto m = (int64_t) ((st.lostTimes[(size_t) i] - rec.outputStart.load()) * fs + latency);
                 if (at >= m - (int64_t) (0.06 * fs) && at <= m + (int64_t) (0.2 * fs)) return "mic packet lost (test machine)";
             }
             for (auto& mk : marks)
                 if (at >= mk.at - (int64_t) (0.4 * fs) && at <= mk.at + (int64_t) (0.4 * fs)) return mk.what;
             return {};
+        };
+        // any recorded event in [a, b] (cable timeline)
+        auto eventIn = [&] (int64_t a, int64_t b)
+        {
+            for (int i = 0; i < rec.gapCount.load (std::memory_order_acquire); ++i)
+            {
+                const auto& g = rec.gapEvents[(size_t) i];
+                if (g.first + g.second >= a && g.first <= b) return true;
+            }
+            const auto& st = vdev::stats();
+            for (int i = 0; i < st.lostCount.load (std::memory_order_acquire); ++i)
+            {
+                const auto m = (int64_t) ((st.lostTimes[(size_t) i] - rec.outputStart.load()) * fs + 0.06 * fs);
+                if (m >= a && m <= b) return true;
+            }
+            for (auto& mk : marks)
+                if (mk.at >= a && mk.at <= b) return true;
+            return false;
         };
 
         int minuteClicks = 0, minuteClicksU = 0, minuteGaps = 0, minuteGapsU = 0;
@@ -951,7 +983,7 @@ namespace
 
         pr ("## Long run" + juce::String (chaos ? " with changes during playback" : "") + ": " + juce::String (minutes, 0)
             + " min real time, chain gain 0.5 + delay 240 smp + load 30 %, 997 Hz -6 dBFS, buffer 480, streamed analysis");
-        pr ("| t (min) | RSS (MB) | process CPU (%) | clicks (unexplained) | gaps (unexplained) | THD+N (median of 5 x 2 s) | level (dBFS) | MicVST |");
+        pr ("| t (min) | RSS (MB) | process CPU (%) | clicks (unexplained) | gaps (unexplained) | THD+N (median of the 2 s slices without events; count) | level (dBFS) | MicVST |");
         pr ("|---:|---:|---:|---:|---:|---:|---:|---|");
         {
             EngineRun run (480, seconds);
@@ -992,7 +1024,7 @@ namespace
                                 { const AudioEngine::ChainEdit ce (e); e.rebuildGraph(); } break;
                         case 3: { const AudioEngine::ChainEdit ce (e); e.getChain().movePlugin ((int) e.getChain().entries().size() - 1, 0); e.rebuildGraph(); } break;
                         case 4: { const AudioEngine::ChainEdit ce (e); e.getChain().removePlugin (0); e.rebuildGraph(); } break;
-                        case 5: e.setSafetyBufferMs ((change / 6) % 2 == 0 ? 40 : 10); break;
+                        case 5: e.setSafetyBufferMs ((change / 6) % 2 == 0 ? 40 : 0); break;   // fixed 40 ms <-> Auto
                     }
                     marks.back().at = cableIndex (juce::Time::getMillisecondCounterHiRes() * 0.001);
                 }
@@ -1010,20 +1042,29 @@ namespace
                 {
                     nextMinute += 60.0;
                     { const std::lock_guard<std::mutex> g (lock); std::swap (pending, work); }
-                    // THD+N and level: median of five 2 s slices of this minute (a slice with a
-                    // planned change or a gap in it does not decide)
+                    // THD+N and level: median of up to five 2 s slices of this minute that hold no
+                    // recorded event (stall of the test machine, MicVST event, planned change):
+                    // such a slice measures the event, not the audio path. No clean slice: "-".
                     double thd = 0, level = -200;
+                    int clean = 0;
                     if (work.size() > (size_t) (12 * fs))
                     {
                         std::vector<double> th, lv;
-                        for (double pos : { 0.1, 0.3, 0.5, 0.7, 0.85 })
+                        const auto len = (size_t) (2 * fs), margin = (size_t) (0.5 * fs);
+                        for (size_t from = analysed == 0 ? (size_t) (2 * fs) : margin; from + len + margin <= work.size() && th.size() < 5; from += len / 2)
                         {
-                            const auto f = fitSine (work, (size_t) (pos * (double) (work.size() - (size_t) (2 * fs))), (int) (2 * fs), 997.0 / fs);
+                            if (eventIn (analysed + (int64_t) (from - margin), analysed + (int64_t) (from + len + margin))) continue;
+                            const auto f = fitSine (work, from, (int) len, 997.0 / fs);
                             th.push_back (f.residualDb); lv.push_back (20.0 * std::log10 (std::max (f.amp, 1e-12)));
+                            from += len / 2;   // slices do not overlap
                         }
-                        std::sort (th.begin(), th.end()); std::sort (lv.begin(), lv.end());
-                        thd = th[2]; level = lv[2];
-                        if (audioStarted) worstThd = std::max (worstThd, thd);
+                        clean = (int) th.size();
+                        if (clean > 0)
+                        {
+                            std::sort (th.begin(), th.end()); std::sort (lv.begin(), lv.end());
+                            thd = th[th.size() / 2]; level = lv[lv.size() / 2];
+                            if (audioStarted) worstThd = std::max (worstThd, thd);
+                        }
                     }
                     minuteClicks = minuteClicksU = minuteGaps = minuteGapsU = 0;
                     analyseChunk (work);
@@ -1033,7 +1074,8 @@ namespace
                     rssSeries.push_back ({ (t - start) / 3600.0, rss });
                     pr ("| " + juce::String ((t - start) / 60.0, 1) + " | " + juce::String (rss, 1) + " | " + juce::String (100.0 * (cpu - lastCpu) / (t - lastT), 1)
                         + " | " + juce::String (minuteClicks) + " (" + juce::String (minuteClicksU) + ") | " + juce::String (minuteGaps) + " (" + juce::String (minuteGapsU)
-                        + ") | " + db (thd) + " | " + juce::String (level, 3) + " | " + diagLine (e) + " |");
+                        + ") | " + (clean > 0 ? db (thd) + " (" + juce::String (clean) + ")" : juce::String ("-")) + " | " + (clean > 0 ? juce::String (level, 3) : juce::String ("-"))
+                        + " | " + diagLine (e) + " |");
                     lastCpu = cpu; lastT = t;
                 }
             }
@@ -1051,7 +1093,7 @@ namespace
             slope = (n * sxy - sx * sy) / std::max (1e-12, n * sxx - sx * sx);
         }
         pr ("recorded " + juce::String ((double) analysed / fs / 60.0, 1) + " min: clicks " + juce::String (tot.clicks) + " (unexplained " + juce::String (tot.clicksUnexplained)
-            + "), gaps " + juce::String (tot.gaps) + " (" + juce::String (tot.gapMs, 0) + " ms; unexplained " + juce::String (tot.gapsUnexplained) + "), worst per-minute THD+N (median of five 2 s slices) " + db (worstThd)
+            + "), gaps " + juce::String (tot.gaps) + " (" + juce::String (tot.gapMs, 0) + " ms; unexplained " + juce::String (tot.gapsUnexplained) + "), worst per-minute THD+N (median of the 2 s slices without events) " + db (worstThd)
             + ", RSS " + (rssSeries.empty() ? juce::String ("?") : juce::String (rssSeries.front().second, 1) + " -> " + juce::String (rssSeries.back().second, 1)) + " MB (slope over the second half "
             + juce::String (slope, 2) + " MB/h)");
         for (auto& [k, v] : causes) pr ("  " + k + ": " + juce::String (v));
@@ -1297,7 +1339,7 @@ int main (int argc, char** argv)
                     if (t->name == w) chain.add (*t);
             scenario ("LSP VST3: compressor, EQ x8, limiter, gate", [chain] (EngineRun& r)
                       {
-                          auto& e = *r.engine; e.getFormatManager().addFormat (new juce::VST3PluginFormat());
+                          auto& e = *r.engine; e.getFormatManager().addFormat (std::make_unique<juce::VST3PluginFormat>());
                           for (auto& d : chain) { juce::String err; e.getChain().addPlugin (e.getFormatManager(), d, e.getProcessingSampleRate(), e.getProcessingBlockSize(), err); }
                           const AudioEngine::ChainEdit ce (e); e.rebuildGraph();
                       },
@@ -1561,7 +1603,7 @@ int main (int argc, char** argv)
             if (chain == "testdelay240") run.add (testDesc ("TestDelay", 240.0));   // reports 240 samples latency
             if (chain.startsWith ("lsp") || chain.startsWith ("vst3"))   // real VST3 plug-ins ("...-bypassed": all bypassed)
             {
-                e.getFormatManager().addFormat (new juce::VST3PluginFormat());
+                e.getFormatManager().addFormat (std::make_unique<juce::VST3PluginFormat>());
                 juce::VST3PluginFormat fmt; juce::OwnedArray<juce::PluginDescription> types;
                 fmt.findAllTypesForFile (types, vst3Bundle());
                 // lsp: EQ x8, graphic EQ x16, compressor, limiter; lsp-eq: only the two (linear) EQs;
@@ -1574,7 +1616,7 @@ int main (int argc, char** argv)
                 if (e.getChain().entries().empty())   // another bundle: up to 4 of its effects (one effect several times if alone)
                 {
                     juce::Array<juce::PluginDescription> pick;
-                    for (auto* t : types) if (t->numInputChannels > 0 && pick.size() < 4) pick.add (*t);
+                    for (auto* t : types) if (! t->isInstrument && pick.size() < 4) pick.add (*t);
                     for (int i = 0; pick.size() > 0 && pick.size() < 4; ++i) pick.add (pick[i]);
                     for (auto& d : pick) { juce::String err; if (e.getChain().addPlugin (e.getFormatManager(), d, e.getProcessingSampleRate(), e.getProcessingBlockSize(), err)) refDescs.add (d); }
                 }
@@ -1633,7 +1675,7 @@ int main (int argc, char** argv)
         if (! refDescs.isEmpty() && ! chain.endsWith ("-bypassed"))
         {
             juce::AudioPluginFormatManager fm;
-            fm.addFormat (new juce::VST3PluginFormat());
+            fm.addFormat (std::make_unique<juce::VST3PluginFormat>());
             std::vector<std::unique_ptr<juce::AudioPluginInstance>> procs;
             int maxCh = 2;
             bool ok = true;

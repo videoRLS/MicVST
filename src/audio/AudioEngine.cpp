@@ -198,7 +198,7 @@ void AudioEngine::openDevices (const juce::String& input, const juce::String& ou
         if (dm.getCurrentAudioDevice() == nullptr && name.isNotEmpty() && present
              && dm.getCurrentAudioDeviceType() == MicVSTDeviceManager::lowLatencyTypeName)
         {
-            juce::Logger::writeToLog ("'" + name + tr ("' düşük gecikme modunda açılmadı (") + err.upToFirstOccurrenceOf ("\n", false, false)
+            juce::Logger::writeToLog ("'" + name + tr ("' düşük gecikme modunda açılmadı (") + micvst::deviceErrorText (err).upToFirstOccurrenceOf ("\n", false, false)
                                       + tr (") - paylaşımlı modda yeniden deneniyor"));
             dm.setCurrentAudioDeviceType (MicVSTDeviceManager::sharedTypeName, true);
             err = dm.setAudioDeviceSetup (makeSetup(), true);
@@ -212,9 +212,9 @@ void AudioEngine::openDevices (const juce::String& input, const juce::String& ou
                               [&] { return outputOnlySetup (outputDevices, output, preferredInputRate, bufferSize); });
 
     juce::Logger::writeToLog (tr ("Kurulum: giriş ") + describe (inputDevices.getCurrentAudioDevice())
-                              + (inErr.isNotEmpty() ? " [" + inErr + "]" : juce::String())
+                              + (inErr.isNotEmpty() ? " [" + micvst::deviceErrorText (inErr) + "]" : juce::String())
                               + tr (" | çıkış ") + describe (outputDevices.getCurrentAudioDevice())
-                              + (outErr.isNotEmpty() ? " [" + outErr + "]" : juce::String()));
+                              + (outErr.isNotEmpty() ? " [" + micvst::deviceErrorText (outErr) + "]" : juce::String()));
 }
 
 juce::String AudioEngine::initialise (const juce::String& inputDeviceName,
@@ -458,7 +458,7 @@ void AudioEngine::processQueuedInput() noexcept
 
         juce::AudioBuffer<float> block (workBuffer.getArrayOfWritePointers(), 2, bs);
         midiBuffer.clear();
-        bool threwException = false;
+        bool threwException = false, silenced = false;
         {
             // Never block: if the message thread holds the graph lock right now (rare:
             // suspend/prepare), output one silent block instead of waiting.
@@ -471,7 +471,7 @@ void AudioEngine::processQueuedInput() noexcept
                 catch (...) { threwException = true; invalidBlocks.fetch_add (1, std::memory_order_relaxed); }
             }
             else
-                block.clear();
+                silenced = true;
         }
 
         if (pluginChain != nullptr && pluginChain->isOutputMono())   // the voice belongs on both cable channels
@@ -481,22 +481,37 @@ void AudioEngine::processQueuedInput() noexcept
         // otherwise poison the resampler and everything downstream (OBS, Discord): such a block
         // is silenced as a whole (counted, logged once per second); when valid audio returns it
         // fades in over 2 ms instead of starting with a jump.
-        if (! isValidAudio (block) || threwException)
+        if (! silenced && (threwException || ! isValidAudio (block)))
         {
-            block.clear();
             if (! threwException)
                 invalidBlocks.fetch_add (1, std::memory_order_relaxed);
+            silenced = true;
+        }
+        const int fade = juce::jmin (bs, juce::jmax (1, (int) (0.002 * sr)));
+        if (silenced)
+        {
+            // The first silent block does not drop to zero at once (a step = a click): the last
+            // output value is ramped down over 2 ms.
+            block.clear();
+            if (! outputWasInvalid)
+                for (int c = 0; c < block.getNumChannels(); ++c)
+                {
+                    float* d = block.getWritePointer (c);
+                    for (int i = 0; i < fade; ++i)
+                        d[i] = lastOutput[(size_t) c] * (1.0f - (float) (i + 1) / (float) fade);
+                }
             outputWasInvalid = true;
         }
         else if (outputWasInvalid)
         {
             outputWasInvalid = false;
-            const int fade = juce::jmin (bs, juce::jmax (1, (int) (0.002 * sr)));
             for (int c = 0; c < block.getNumChannels(); ++c)
                 block.applyGainRamp (c, 0, fade, 0.0f, 1.0f);
         }
 
         applyEditFade (block, sr);
+        for (int c = 0; c < block.getNumChannels(); ++c)
+            lastOutput[(size_t) c] = block.getSample (c, bs - 1);
         outputMeter.process (block);
 
         const float* chans[] = { block.getReadPointer (0), block.getReadPointer (1) };

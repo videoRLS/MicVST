@@ -40,6 +40,21 @@ countries: tr
 "Undo" = "Geri al"
 "Redo" = "Yinele"
 "(no choices)" = "(seçenek yok)"
+"Couldn't open the input device!" = "Giriş cihazı açılamadı!"
+"Couldn't open the output device!" = "Çıkış cihazı açılamadı!"
+"Couldn't open the output device (buffer size mismatch)" = "Çıkış cihazı açılamadı (tampon boyutu uyuşmuyor)"
+"Couldn't start the input device!" = "Giriş cihazı başlatılamadı!"
+"Couldn't start the output device!" = "Çıkış cihazı başlatılamadı!"
+"The input and output devices don't share a common sample rate!" = "Giriş ve çıkış cihazlarının ortak örnekleme hızı yok!"
 )MAP"), false));
+    }
+
+    juce::String deviceErrorText (const juce::String& error)
+    {
+        if (error.startsWith ("No such device: "))
+            return tr ("Cihaz bulunamadı: ") + error.fromFirstOccurrenceOf ("No such device: ", false, false);
+        if (error.startsWith ("Can't open the audio device!"))
+            return tr ("Ses cihazı açılamadı - başka bir program cihazı tek başına kullanıyor olabilir");
+        return juce::translate (error);
     }
 }

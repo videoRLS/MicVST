@@ -8,7 +8,7 @@ project follows [Semantic Versioning](https://semver.org/).
 
 Focus: sound quality under heavy background load (e.g. a GPU/AI video render), no clicks when
 the chain or the devices change, and a completely Turkish interface. Measurements and what could
-not be tested: [docs/RAPOR.md](docs/RAPOR.md) (Turkish).
+not be tested: [docs/TEST_RAPORU_1.2.1.md](docs/TEST_RAPORU_1.2.1.md) (Turkish).
 
 ### Changed
 - The plugin chain runs on its own thread (MMCSS "Pro Audio") behind a lock-free input queue; the
@@ -26,7 +26,9 @@ not be tested: [docs/RAPOR.md](docs/RAPOR.md) (Turkish).
   speed jitter (phase noise, -84 dB at 1 kHz) is gone. Clock differences up to +-1000 ppm are
   learned completely. While blocks arrive late (the plugins fall behind, e.g. under a video
   render's CPU load) the drift is not learned: in the simulated render periods the learned value
-  had wandered by up to +-170 ppm and then needed minutes to settle again; now it stays put.
+  had wandered by up to +-170 ppm and then needed minutes to settle again; now it stays put. The
+  tail of a recovery (the level error being played off) is not learned as drift either, which
+  roughly halves the wander of the learned value when disturbances come every few seconds.
 - A larger safety buffer chosen while running takes effect at once (short fade-out, refill,
   fade-in) instead of over minutes.
 - All texts shown to the user are Turkish: window, menus, dialogs, tooltips, tray, the usage
@@ -50,7 +52,9 @@ not be tested: [docs/RAPOR.md](docs/RAPOR.md) (Turkish).
 - A plugin that outputs NaN, infinite or absurd values (> +24 dBFS) no longer reaches the cable
   (or crashes the next plugin): the whole block is silenced and the sound fades in again (2 ms)
   once the plugin recovers; counted in the dropout tooltip and the log. A plugin that throws an
-  exception costs one silent block.
+  exception costs one silent block. The silenced block does not start with a jump to zero either:
+  the last good sample is ramped down over 2 ms (the engine test on Windows had counted 4 clicks
+  there).
 - Clicks when the chain is edited during playback (add, remove, move, bypass): the output fades
   out (5 ms), the graph switches while muted, then fades in. Measured on virtual devices: 1.2.0
   clicked on 11 of 13 edits, 1.2.1 on none.
@@ -60,6 +64,8 @@ not be tested: [docs/RAPOR.md](docs/RAPOR.md) (Turkish).
   the first plugin of the file after a restart (since 1.1.1). The plugin's identity is now stored;
   old configs still load.
 - Non-ASCII text in the log file was double-encoded (UTF-8 read as Latin-1).
+- Device errors reported by JUCE/WASAPI ("No such device: ...", "Can't open the audio device!",
+  ...) were written to the log in English; they are Turkish now.
 - The outer labels of the meter's dB scale were clipped.
 
 ## [1.2.0] - Unreleased

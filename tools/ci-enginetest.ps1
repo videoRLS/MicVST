@@ -29,7 +29,7 @@ function Find-Vst3([string] $dir) {
 }
 try {
     $rel = Invoke-RestMethod -Headers $headers -Uri "https://api.github.com/repos/lsp-plugins/lsp-plugins/releases/latest"
-    $asset = $rel.assets | Where-Object { $_.name -match "vst3" -and $_.name -match "(?i)win" -and $_.name -match "\.zip$" } | Select-Object -First 1
+    $asset = $rel.assets | Where-Object { $_.name -match "vst3" -and $_.name -match "(?i)windows|win64" -and $_.name -match "\.zip$" } | Select-Object -First 1
     if ($asset) {
         $zip = Join-Path $env:RUNNER_TEMP $asset.name
         Invoke-WebRequest -Headers $headers -Uri $asset.browser_download_url -OutFile $zip
@@ -42,8 +42,9 @@ try {
 if (-not $vst3) {
     try {
         $rel = Invoke-RestMethod -Headers $headers -Uri "https://api.github.com/repos/baconpaul/airwin2rack/releases/tags/DAWPlugin"
-        $zipAsset = $rel.assets | Where-Object { $_.name -match "(?i)win" -and $_.name -match "\.zip$" } | Select-Object -First 1
-        $exeAsset = $rel.assets | Where-Object { $_.name -match "(?i)win" -and $_.name -match "(?i)setup.*\.exe$|\.exe$" } | Select-Object -First 1
+        # "Airwindows" itself contains "win": match the platform word, never Linux/macOS assets
+        $zipAsset = $rel.assets | Where-Object { $_.name -match "(?i)windows|win64|-win-" -and $_.name -notmatch "(?i)linux|mac" -and $_.name -match "\.zip$" } | Select-Object -First 1
+        $exeAsset = $rel.assets | Where-Object { $_.name -match "(?i)windows|win64|-win-" -and $_.name -notmatch "(?i)linux|mac" -and $_.name -match "\.exe$" } | Select-Object -First 1
         if ($zipAsset) {
             $zip = Join-Path $env:RUNNER_TEMP $zipAsset.name
             Invoke-WebRequest -Headers $headers -Uri $zipAsset.browser_download_url -OutFile $zip
@@ -101,7 +102,9 @@ function Run-Test([string] $name, [string[]] $arguments, [int] $timeoutSeconds) 
     Write-Output "$name : exit $code, $secs s"
 }
 
+$env:ETEST_LOG = "1"   # MicVST's log lines on stdout once: shows whether the plug-in thread got MMCSS
 Run-Test "edits"   @("edits")   300
+Remove-Item Env:ETEST_LOG
 Run-Test "devices" @("devices") 180
 Run-Test "hotplug" @("hotplug") 300
 Run-Test "faults"  @("faults")  300
@@ -140,7 +143,7 @@ Run-Test "long" @("long", "$LongMinutes") ([int] ($LongMinutes * 60 + 600))
 Run-Test "chaos" @("chaos", "10") 1500   # changes during playback every 20 s, device buffer change every 5 min
 
 try {
-    python -m pip install --quiet numpy 2>&1 | Out-Null
+    python -m pip install --quiet numpy scipy 2>&1 | Out-Null
     python (Join-Path $PSScriptRoot "..\tests\enginetest\analyse_dump.py") @names 2>&1 | Set-Content -Encoding utf8 (Join-Path $Out "integrity.txt")
 } catch { "analysis failed: $_" | Set-Content (Join-Path $Out "integrity.txt") }
 

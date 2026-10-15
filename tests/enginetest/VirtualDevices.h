@@ -179,8 +179,9 @@ namespace vdev
         // First mic sample of every packet the capture buffer had no room for (lost before MicVST
         // could read it: a stall of the test machine). Written by the mic thread only.
         std::vector<int64_t> lostEvents;   // pre-sized; lostCount entries valid
+        std::vector<double> lostTimes;     // the same packets: capture time (s, now() clock) - survives device restarts
         std::atomic<int> lostCount { 0 };
-        void reset() { captureXruns = 0; lostPackets = 0; maxCallbackUs = 0; captureLateWakes = 0; lostEvents.assign (65536, 0); lostCount = 0; }
+        void reset() { captureXruns = 0; lostPackets = 0; maxCallbackUs = 0; captureLateWakes = 0; lostEvents.assign (65536, 0); lostTimes.assign (65536, 0.0); lostCount = 0; }
     };
     inline Stats& stats() { static Stats s; return s; }
 
@@ -307,7 +308,12 @@ namespace vdev
                     {
                         ++stats().lostPackets; if (! previousLost) ++stats().captureXruns; previousLost = true;
                         const int n = stats().lostCount.load (std::memory_order_relaxed);
-                        if (n < (int) stats().lostEvents.size()) { stats().lostEvents[(size_t) n] = nextArrival * block; stats().lostCount.store (n + 1, std::memory_order_release); }
+                        if (n < (int) stats().lostEvents.size())
+                        {
+                            stats().lostEvents[(size_t) n] = nextArrival * block;
+                            stats().lostTimes[(size_t) n] = t0 + (double) nextArrival * period;
+                            stats().lostCount.store (n + 1, std::memory_order_release);
+                        }
                     }
                     ++nextArrival;
                 }

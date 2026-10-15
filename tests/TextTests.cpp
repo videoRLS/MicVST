@@ -51,6 +51,18 @@ struct TextTest : juce::UnitTest
             expectEquals (TRANS ("(no choices)"), tr ("(seçenek yok)"));
             juce::LocalisedStrings::setCurrentMappings (nullptr);
         }
+
+        beginTest ("device errors in the log are Turkish (also JUCE's untranslated ones)");
+        {
+            micvst::installTurkishTranslations();
+            expectEquals (micvst::deviceErrorText ("No such device: CABLE Input (VB-Audio Virtual Cable)"),
+                          tr ("Cihaz bulunamadı: CABLE Input (VB-Audio Virtual Cable)"));
+            expect (micvst::deviceErrorText ("Can't open the audio device!\n\nThis may be because another application is currently using the same device")
+                        .startsWith (tr ("Ses cihazı açılamadı")));
+            expectEquals (micvst::deviceErrorText (TRANS ("Couldn't open the input device!")), tr ("Giriş cihazı açılamadı!"));
+            expectEquals (micvst::deviceErrorText ("Couldn't start the output device!"), tr ("Çıkış cihazı başlatılamadı!"));
+            juce::LocalisedStrings::setCurrentMappings (nullptr);
+        }
     }
 };
 

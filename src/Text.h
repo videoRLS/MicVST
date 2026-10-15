@@ -29,6 +29,12 @@ namespace micvst
     juce::String scanSkipReasonText (const juce::String& reason);
 
     // Turkish texts for the strings JUCE itself shows (TRANS): the buttons of native message
-    // boxes ("OK"/"Cancel"/...) and the right-click menu of text fields. Installed once at start.
+    // boxes ("OK"/"Cancel"/...), the right-click menu of text fields and the WASAPI device
+    // errors that reach the log. Installed once at start.
     void installTurkishTranslations();
+
+    // A device error from JUCE for the log: the two messages JUCE does not pass through TRANS
+    // ("No such device: ...", "Can't open the audio device! ...") in Turkish; the others are
+    // already translated by the table above.
+    juce::String deviceErrorText (const juce::String& error);
 }

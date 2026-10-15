@@ -8,6 +8,7 @@
 #include "audio/MicVSTDeviceManager.h"
 #include "audio/RealtimeSupport.h"
 #include "audio/ScanCoordinator.h"
+#include "Text.h"
 #include "state/Persistence.h"
 
 // Owns the two audio devices, the plug-in graph and the bridge between them.
@@ -181,7 +182,7 @@ private:
             { engine.captureInput (in, numIn, numSamples); }
         void audioDeviceAboutToStart (juce::AudioIODevice* d) override { engine.inputAboutToStart (d); }
         void audioDeviceStopped() override                             { engine.inputStopped(); }
-        void audioDeviceError (const juce::String& e) override         { juce::Logger::writeToLog (juce::String::fromUTF8 ("Giriş cihazı hatası: ") + e); }
+        void audioDeviceError (const juce::String& e) override         { juce::Logger::writeToLog (juce::String::fromUTF8 ("Giriş cihazı hatası: ") + micvst::deviceErrorText (e)); }
         AudioEngine& engine;
     };
     struct OutputSide final : juce::AudioIODeviceCallback
@@ -192,7 +193,7 @@ private:
             { engine.processOutput (out, numOut, numSamples); }
         void audioDeviceAboutToStart (juce::AudioIODevice* d) override { engine.outputAboutToStart (d); }
         void audioDeviceStopped() override                             { engine.outputStopped(); }
-        void audioDeviceError (const juce::String& e) override         { juce::Logger::writeToLog (juce::String::fromUTF8 ("Çıkış cihazı hatası: ") + e); }
+        void audioDeviceError (const juce::String& e) override         { juce::Logger::writeToLog (juce::String::fromUTF8 ("Çıkış cihazı hatası: ") + micvst::deviceErrorText (e)); }
         AudioEngine& engine;
     };
 
@@ -213,6 +214,7 @@ private:
     void applyEditFade (juce::AudioBuffer<float>& block, double sampleRate) noexcept;   // plug-in thread
     static bool isValidAudio (const juce::AudioBuffer<float>& block) noexcept;          // plug-in thread
     bool outputWasInvalid = false;                                                     // plug-in thread
+    std::array<float, 2> lastOutput {};                                                // plug-in thread: last sample handed to the bridge
     void beginChainEdit();
     void endChainEdit();
     void inputAboutToStart (juce::AudioIODevice*);

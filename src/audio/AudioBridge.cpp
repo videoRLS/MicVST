@@ -712,6 +712,10 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
                 recovered = false;                                            // a step: a disturbance
             const bool persists = std::abs (fast) > std::abs (trendFast) - 0.0002   // not being played off
                                     && (fast > 0.0) == (trendFast > 0.0);
+            // The tail of a recovery (the proportional part playing a disturbance off: the error
+            // shrinks by ~20 % per second) is not drift either; a drifting clock keeps the error
+            // nearly constant (it shrinks only as fast as the drift is learned, ~2.5 % per second).
+            shrinking = std::abs (trendFast) > 0.0001 && std::abs (fast) < 0.9 * std::abs (trendFast);
             persistingSeconds = persists ? persistingSeconds + trendSeconds : 0.0;
             trendFast = fast;
             trendSeconds = 0.0;
@@ -726,7 +730,10 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
         if (recovered && sinceStartSeconds >= settleSeconds && steadyInputSeconds >= steadySeconds)
         {
             if (std::abs (err) < integrateBelow)
-                integral += ki * err * dt;
+            {
+                if (! shrinking)
+                    integral += ki * err * dt;
+            }
             else if (persistingSeconds >= 3.0)
                 integral += ki * juce::jlimit (-integrateLimit, integrateLimit, err) * dt;
             integral = juce::jlimit (-maxCorrection, maxCorrection, integral);

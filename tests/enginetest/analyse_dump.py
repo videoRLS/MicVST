@@ -559,4 +559,10 @@ def analyse(name):
 
 if __name__ == '__main__':
     for n in sys.argv[1:]:
-        analyse(n)
+        try:
+            analyse(n)
+        except Exception as e:   # one broken dump must not hide the others
+            import traceback
+            print(f'=== {n}: ANALYSIS FAILED: {e!r}')
+            traceback.print_exc(file=sys.stdout)
+        sys.stdout.flush()
