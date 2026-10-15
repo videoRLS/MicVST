@@ -95,7 +95,7 @@ cent'tir, yani duyulmaz.
 
 **Bilinen davranış:** Büyük bir aksamadan sonra (ör. çıkışın takılması) köprü, tampon seviyesini
 geri getirmek için birkaç saniye boyunca oynatma hızını en fazla ±%0,5 değiştirebilir (en fazla
-~8 cent, tipik olarak çok daha az). 40 ms'yi aşan fazlalık ise çapraz geçişle (crossfade) bir anda
+~8,6 cent, tipik olarak çok daha az). 40 ms'yi aşan fazlalık ise çapraz geçişle (crossfade) bir anda
 kırpılır. Konuşmada bu fark edilmez.
 
 **Boşalma ve gecikme:**
