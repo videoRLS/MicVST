@@ -92,17 +92,22 @@ void AudioEngine::changeListenerCallback (juce::ChangeBroadcaster*)
 
 juce::String AudioEngine::detectCableOutput()
 {
-    // Render endpoints of known virtual cables, by priority (VB-Cable first).
+    // Render-Endpunkte bekannter virtueller Kabel, nach Priorität (VB-Cable zuerst).
     static const char* const cablePatterns[] = {
-        "CABLE Input",          // VB-Audio Virtual Cable (recommended)
-        "VB-Audio",             // other VB-Audio cables (Hi-Fi Cable etc.)
+        "CABLE Input",          // VB-Audio Virtual Cable (empfohlen)
+        "VB-Audio",             // weitere VB-Audio-Kabel (Hi-Fi Cable etc.)
         "VoiceMeeter Input",    // VoiceMeeter VAIO/Aux
         "Virtual Audio Cable"   // VAC ("Line 1 (Virtual Audio Cable)")
     };
 
-    outputDevices.setCurrentAudioDeviceType (outputDevices.preferredTypeName(), true);
-    if (auto* type = outputDevices.getCurrentDeviceTypeObject())
+    // Nur aufzählen, den Gerätetyp NICHT umschalten: das würde das offene Kabel-Gerät neu öffnen
+    // (und einen Shared-Fallback, siehe openDevices, wieder rückgängig machen). Die Namen sind in
+    // beiden WASAPI-Typen gleich.
+    for (auto* type : outputDevices.getAvailableDeviceTypes())
     {
+        if (type->getTypeName() != outputDevices.preferredTypeName())
+            continue;
+
         type->scanForDevices();
         auto outs = type->getDeviceNames (false /* output */);
         for (auto* pat : cablePatterns)
@@ -117,10 +122,31 @@ juce::String AudioEngine::detectCableOutput()
 void AudioEngine::openDevices (const juce::String& input, const juce::String& output, int bufferSize)
 {
     // Names VERBATIM, also empty: an empty output deliberately means "no output" ("none").
-    const auto inErr = inputDevices.setAudioDeviceSetup (
-        inputOnlySetup (inputDevices, input, preferredInputRate, bufferSize), true);
-    const auto outErr = outputDevices.setAudioDeviceSetup (
-        outputOnlySetup (outputDevices, output, preferredInputRate, bufferSize), true);
+    // If the low-latency mode (IAudioClient3) refuses a device that IS present, it is retried in
+    // classic shared mode - 1.1.1 then simply stayed silent ("Idle").
+    auto open = [] (MicVSTDeviceManager& dm, const juce::String& name, bool isInput,
+                    const std::function<juce::AudioDeviceManager::AudioDeviceSetup()>& makeSetup)
+    {
+        auto err = dm.setAudioDeviceSetup (makeSetup(), true);
+
+        auto* type = dm.getCurrentDeviceTypeObject();
+        const bool present = type != nullptr && type->getDeviceNames (isInput).contains (name);
+
+        if (dm.getCurrentAudioDevice() == nullptr && name.isNotEmpty() && present
+             && dm.getCurrentAudioDeviceType() == MicVSTDeviceManager::lowLatencyTypeName)
+        {
+            juce::Logger::writeToLog ("'" + name + "' does not open in low-latency mode (" + err.upToFirstOccurrenceOf ("\n", false, false)
+                                      + ") - retrying in shared mode");
+            dm.setCurrentAudioDeviceType (MicVSTDeviceManager::sharedTypeName, true);
+            err = dm.setAudioDeviceSetup (makeSetup(), true);
+        }
+        return err;
+    };
+
+    const auto inErr  = open (inputDevices, input, true,
+                              [&] { return inputOnlySetup (inputDevices, input, preferredInputRate, bufferSize); });
+    const auto outErr = open (outputDevices, output, false,
+                              [&] { return outputOnlySetup (outputDevices, output, preferredInputRate, bufferSize); });
 
     juce::Logger::writeToLog ("Setup: input " + describe (inputDevices.getCurrentAudioDevice())
                               + (inErr.isNotEmpty() ? " [" + inErr + "]" : juce::String())
