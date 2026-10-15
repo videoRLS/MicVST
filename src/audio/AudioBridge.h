@@ -143,6 +143,7 @@ private:
     double  levelEma = 0.0;         // smoothed time-continuous fill error (frames)
     bool    levelEmaValid = false;
     int     excessCount = 0;        // consecutive pulls with a large excess (resync trigger)
+    double  sinceStartSeconds = 0.0; // running time since the last (re-)prime or trim
     int     fadeInRemaining = 0;
     std::array<std::vector<float>, maxChannels> scratchA, scratchB;   // preallocated
 

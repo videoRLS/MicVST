@@ -19,6 +19,8 @@ namespace
     constexpr int    resyncPulls    = 50;      // ... if it persists for this many output blocks
     constexpr double producerTimeout = 0.5;    // no push for this long = producer not running
     constexpr double integrateBelow  = 0.003;  // anti-windup: only small errors teach the drift
+    constexpr double settleSeconds   = 1.5;    // no drift learning right after a (re-)prime or trim:
+                                               // the catch-up after a stall is not clock drift
 
     double besselI0 (double x) noexcept
     {
@@ -364,6 +366,20 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
                     juce::FloatVectorOperations::clear (out[c] + start, numFrames - start);
     };
 
+    // Continues a fade-in that started after the last (re-)prime over the first n samples.
+    auto applyFadeIn = [&] (int n, int fadeLength)
+    {
+        if (fadeInRemaining <= 0 || n <= 0)
+            return;
+        const int done = fadeLength - fadeInRemaining;
+        const int fl = juce::jmin (fadeInRemaining, n);
+        for (int c = 0; c < numCh; ++c)
+            if (out[c] != nullptr)
+                for (int i = 0; i < fl; ++i)
+                    out[c][i] *= (float) (done + i + 1) / (float) fadeLength;
+        fadeInRemaining -= fl;
+    };
+
     const RealtimeScope scope (gate);
     if (! scope.entered)
     {
@@ -435,6 +451,7 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
         correction = integral;
         levelEmaValid = false;
         excessCount = 0;
+        sinceStartSeconds = 0.0;
         fadeInRemaining = fadeLen;
         state = State::running;
         runningAtomic.store (true, std::memory_order_relaxed);
@@ -456,6 +473,7 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
         if (k > 0)
         {
             render (out, numCh, k, readIndex, frac, step);
+            applyFadeIn (k, fadeLen);   // starved again right after a re-prime: keep the ramp
             const int fl = juce::jmin (k, fadeLen);
             for (int c = 0; c < numCh; ++c)
                 if (out[c] != nullptr)
@@ -490,9 +508,10 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
 
         levelEma = levelEmaValid ? levelEma + alpha * ((level - target) - levelEma) : (level - target);
         levelEmaValid = true;
+        sinceStartSeconds += dt;
 
         const double err = levelEma / inHz;   // seconds; > 0 = more queued than needed
-        if (std::abs (err) < integrateBelow)
+        if (sinceStartSeconds >= settleSeconds && std::abs (err) < integrateBelow)
             integral = juce::jlimit (-maxCorrection, maxCorrection, integral + ki * err * dt);
         const double newCorrection = juce::jlimit (-maxCorrection, maxCorrection, kp * err + integral);
         const double newStep = nominal * (1.0 + newCorrection);
@@ -536,6 +555,7 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
         readIndex += skip;
         levelEmaValid = false;   // restart the average from the trimmed level
         excessCount = 0;
+        sinceStartSeconds = 0.0;
         resyncs.fetch_add (1, std::memory_order_relaxed);
     }
     else
@@ -543,16 +563,7 @@ void AudioBridge::pullBlock (float* const* out, int numCh, int numFrames, double
         render (out, numCh, numFrames, readIndex, frac, step);
     }
 
-    if (fadeInRemaining > 0)
-    {
-        const int done = fadeLen - fadeInRemaining;
-        const int fl = juce::jmin (fadeInRemaining, numFrames);
-        for (int c = 0; c < numCh; ++c)
-            if (out[c] != nullptr)
-                for (int i = 0; i < fl; ++i)
-                    out[c][i] *= (float) (done + i + 1) / (float) fadeLen;
-        fadeInRemaining -= fl;
-    }
+    applyFadeIn (numFrames, fadeLen);
 
     const double pos = frac + (double) numFrames * step;
     const auto consumed = (int64_t) std::floor (pos);

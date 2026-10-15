@@ -176,6 +176,24 @@ struct BridgeStreamTest : juce::UnitTest
             expect (r.outputRunningAtEnd);
         }
 
+        beginTest ("tiny output blocks and repeated starvation: every gap is faded, never a click");
+        {
+            // 32-frame output periods (shorter than the 2 ms fade) and the smallest fixed cushion,
+            // with a producer stall every 0.5 s: many underruns, re-primes and fades back to back.
+            Scenario sc;
+            sc.outputBlock = 32;
+            sc.safetyMs = AudioBridge::minSafetyMs;
+            sc.autoSafety = false;
+            sc.seconds = 30.0;
+            for (double t = 2.0; t < sc.seconds; t += 0.5)
+                sc.stalls.push_back ({ t, 0.015 });
+            const auto r = runBridge (sc);
+            logMessage ("  " + r.describe());
+            expectGreaterThan ((int) r.underruns, 10);
+            expectEquals ((int) r.clicksAfterStart, 0);
+            expect (r.outputRunningAtEnd);
+        }
+
         beginTest ("consumer stall: queue overflow is trimmed back (resync), no underrun");
         {
             Scenario sc;
