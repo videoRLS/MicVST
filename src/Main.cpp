@@ -58,8 +58,8 @@ public:
         // eine kaputte Plugin-DLL soll still als Fehler enden, nicht als Modal-Dialog.
         SetErrorMode (kSemFailCriticalErrors | kSemNoGpFaultErrorBox | kSemNoOpenFileErrorBox);
        #endif
-        // Scans laufen parallel zum Audio: niedrige Priorität + EcoQoS, damit ein schwerer
-        // Plugin-Scan nie mit den Audio-Threads um CPU konkurriert.
+        // Scans laufen parallel zum Audio: Priorität "unter normal", damit ein schwerer
+        // Plugin-Scan nicht mit Spiel, OBS oder MicVST selbst um CPU konkurriert.
         rt::configureBackgroundProcess();
 
         auto args = juce::JUCEApplicationBase::getCommandLineParameterArray();

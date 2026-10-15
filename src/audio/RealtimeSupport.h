@@ -16,7 +16,8 @@ namespace rt
     // cores / lower clocks) by its own heuristics.
     ProcessSetup configureRealtimeProcess() noexcept;
 
-    // Plug-in scan child processes: the opposite - lowest impact on the running audio.
+    // Plug-in scan child processes: below normal priority, so a scan never competes with the game,
+    // OBS or MicVST's own threads (no EcoQoS, see RealtimeSupport.cpp).
     void configureBackgroundProcess() noexcept;
 
     // Called at the start of every audio callback; does its work once per thread. Opts the

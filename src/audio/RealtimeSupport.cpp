@@ -71,8 +71,10 @@ namespace rt
 
     void configureBackgroundProcess() noexcept
     {
+        // Below normal only - deliberately NOT EcoQoS: on hybrid CPUs EcoQoS pins the process to
+        // the efficiency cores even when the machine is idle, and a huge shell plug-in (WaveShell)
+        // could then run into the scan timeout. The audio threads are MMCSS anyway.
         SetPriorityClass (GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
-        setProcessThrottling (executionSpeed, executionSpeed);   // EcoQoS on
     }
 
     void configureAudioThread() noexcept

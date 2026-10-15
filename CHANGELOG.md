@@ -18,7 +18,7 @@ Focus: no more crackles under heavy load, and a fully offline app.
   dry (max. 80 ms); fixed values 5-80 ms are available. Costs roughly 10-20 ms of latency in Auto.
 - Realtime priority: the audio threads use MMCSS "Pro Audio" priority HIGH (was NORMAL) and opt
   out of Windows power throttling; the process runs "above normal" and opts out of EcoQoS/timer
-  throttling. Plugin scan processes run "below normal" with EcoQoS.
+  throttling. Plugin scan processes run "below normal".
 - JUCE 8.0.13 -> 9.0.4 (WASAPI start/stop race fix, VST3 hosting fixes) plus a small patch for
   JUCE's WASAPI backend (input-only devices drain a backlog immediately and survive timeouts, no
   busy spinning while a session restarts).
