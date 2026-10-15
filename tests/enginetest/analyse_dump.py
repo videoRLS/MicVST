@@ -13,8 +13,9 @@ All signals except a pure sine:
     repeat shifts the latency for good.
   * clicks: the input is resampled onto the output's time base along the measured latency curve
     (64-tap Kaiser-windowed sinc, so the controller's slow speed changes are followed exactly; the
-    latency of every window refined to a fraction of a sample), then each 256-sample output piece
-    is compared with it (one gain factor, no filter that could hide a click); a residual peak above the run's threshold marks a discontinuity: 10 x the
+    latency of every window refined to a fraction of a sample and smoothed robustly), then each
+    256-sample output piece is compared with it (one gain factor, best of 9 offsets within +-0.12
+    samples, a candidate again within +-0.6 samples; no filter that could hide a click); a residual peak above the run's threshold marks a discontinuity: 10 x the
     99th percentile of residual/RMS over all pieces (the method's floor for that signal), within
     2..20 % of the piece's RMS and above -60 dB re the whole signal; in pauses (pieces quieter
     than -50 dB re the signal) a residual above -50 dB re the signal. Pieces overlap by half.
@@ -346,7 +347,7 @@ def analyse(name):
 
     # --- location
     ref_rms = np.sqrt(np.mean(y[start:end, 0] ** 2))
-    t_of, lat, quiet, unmatched, ambiguous, long_used = [], [], 0, 0, 0, 0
+    t_of, lat, quiet, unmatched, ambiguous, long_used, resolved = [], [], 0, 0, 0, 0, 0
 
     def locate(a, n):
         lo, hi = int(a + base - 0.45 * fs), int(a + base) + n
@@ -355,6 +356,7 @@ def analyse(name):
         k, r, r2 = peak(xcorr(x[lo:hi, 0], y[a:a + n, 0]))
         return a + base - (lo + k), r, r2
 
+    pending = []   # ambiguous windows: (m0, all candidate latencies with rho >= 0.9)
     for m0 in range(start, end - HOP, HOP):
         yw = y[m0:m0 + HOP, 0]
         if np.sqrt(np.mean(yw * yw)) < 0.003 * ref_rms:   # -50 dB re the whole signal: a pause
@@ -365,14 +367,34 @@ def analyse(name):
         if res[1] < 0.5 or res[2] > 0.98 * res[1]:
             # periodic sound (sustained tones, voiced speech): a 4096-sample window around it
             res2 = locate(m0 + HOP // 2 - 2048, 4096)
-            if res2 is not None and res2[1] >= 0.5 and res2[2] <= 0.98 * res2[1]:
+            if res2 is not None and res2[1] >= 0.9 and res2[2] <= 0.98 * res2[1]:
                 res = res2; long_used += 1
             elif res[1] < 0.5:
                 unmatched += 1; continue
             else:
-                ambiguous += 1; continue
+                pending.append(m0); continue
         lat.append(res[0]); t_of.append(m0 + HOP // 2)
-    lat, t_of = np.array(lat), np.array(t_of)
+    # ambiguous windows: the candidate (rho >= 0.95) within 64 samples of both located neighbours'
+    # latency - continuity decides between the periods of a sustained sound; none -> not located
+    t_arr, l_arr = np.array(t_of), np.array(lat)
+    for m0 in pending:
+        tc = m0 + HOP // 2
+        j = np.searchsorted(t_arr, tc)
+        if j == 0 or j >= len(t_arr) or abs(l_arr[j - 1] - l_arr[j]) > 64:
+            ambiguous += 1; continue
+        guess = 0.5 * (l_arr[j - 1] + l_arr[j])
+        lo, hi = int(m0 + base - guess) - 80, int(m0 + base - guess) + 80 + HOP
+        if lo < 64 or hi >= len(x):
+            ambiguous += 1; continue
+        rho = xcorr(x[lo:hi, 0], y[m0:m0 + HOP, 0])
+        k, r, _ = peak(rho)
+        cand = m0 + base - (lo + k)
+        if r >= 0.95 and abs(cand - guess) <= 64:
+            lat.append(cand); t_of.append(tc); resolved += 1
+        else:
+            ambiguous += 1
+    order = np.argsort(t_of)
+    lat, t_of = np.array(lat)[order], np.array(t_of)[order]
     if len(lat) < 8:
         print('    too few audio windows'); return
     # isolated mislocations (imprecise peaks of tonal sound) are not discontinuities: a real skip or
@@ -384,7 +406,7 @@ def analyse(name):
     med_lat = float(np.median(lat))
     events = Events(meta, fs, med_lat, base)
     print(f'    recorded events: {events.summary()}')
-    print(f'    {len(lat)} of {len(lat) + quiet + unmatched + ambiguous} 1024-sample windows located ({long_used} with a 4096 window); quiet (< -50 dB re the signal) {quiet}, '
+    print(f'    {len(lat)} of {len(lat) + quiet + unmatched + ambiguous} 1024-sample windows located ({long_used} with a 4096 window, {resolved} periodic ones by continuity); quiet (< -50 dB re the signal) {quiet}, '
           f'not matching the input (rho < 0.5) {unmatched}, ambiguous (periodic) {ambiguous}, single outliers (> 1.5 samples off the running median) {outliers}')
     latms = lat / fs * 1000.0
     print(f'    latency capture -> playback: median {np.median(latms):.2f} ms, p1..p99 {np.percentile(latms,1):.2f}..{np.percentile(latms,99):.2f}, '
@@ -430,24 +452,58 @@ def analyse(name):
             xw = warp(xb[:, 0], mw + base - (l0 + dl))
             return -np.dot(xw, yw) / np.sqrt(max(np.dot(xw, xw) * np.dot(yw, yw), 1e-30))
         fine[i] = l0 + golden(cost, -1.0, 1.0, 14)
-    lat = fine
+    # The latency itself changes smoothly between jumps (speed control: at most 500 ppm, smoothed
+    # over seconds); single windows of tonal sound are less precise. Robust local line through
+    # +-5 located windows of the same segment (biweight, 3 iterations).
+    seg_id = np.concatenate(([0], np.cumsum(np.abs(np.diff(fine)) > 1.5 + 6e-4 * np.diff(t_of))))
+    smooth = fine.copy()
+    for i in range(len(fine)):
+        idx = [k for k in range(max(0, i - 5), min(len(fine), i + 6)) if seg_id[k] == seg_id[i]]
+        if len(idx) < 3:
+            continue
+        tt = (t_of[idx] - t_of[i]).astype(np.float64); vv = fine[idx]; w = np.ones(len(idx))
+        for _ in range(3):
+            W = np.sum(w); tm = np.sum(w * tt) / W; vm = np.sum(w * vv) / W
+            b = np.sum(w * (tt - tm) * (vv - vm)) / max(np.sum(w * (tt - tm) ** 2), 1e-12)
+            a = vm - b * tm
+            r = vv - (a + b * tt)
+            sc = max(6.0 * np.median(np.abs(r)), 0.05)
+            w = np.where(np.abs(r) < sc, (1 - (r / sc) ** 2) ** 2, 0.0) + 1e-9
+        smooth[i] = a
+    lat = smooth
     m = np.arange(start, end)
     L = np.interp(m, t_of, lat)
     near_jump = np.zeros(len(m), dtype=bool)
     for i in jumps:
         near_jump[max(0, t_of[i] - start - HOP): min(len(m), t_of[i + 1] - start + HOP)] = True
     covered = (m >= t_of[0]) & (m <= t_of[-1])   # between located windows only (no extrapolation of a drifting latency)
+    # ... and not across a long stretch without a located window (a stall, a splice in periodic
+    # sound): the latency there is unknown, those pieces are not judged
+    idx = np.searchsorted(t_of, m)
+    dist = np.minimum(np.abs(m - t_of[np.clip(idx - 1, 0, len(t_of) - 1)]), np.abs(t_of[np.clip(idx, 0, len(t_of) - 1)] - m))
+    covered &= dist <= 2 * HOP
+    print(f'    not judged (no located window within 2048 samples): {100.0 * (1.0 - covered.mean()):.1f} % of the analysed time')
     level, level_t, pieces = [], [], []
+    # every piece is compared at 9 offsets within +-0.12 samples of the measured latency curve (the
+    # best one counts): an abrupt full-band onset (a hi-hat) needs a few hundredths of a sample,
+    # more than a window's latency estimate guarantees; no click is explained by such a shift.
+    deltas = np.arange(-0.12, 0.1201, 0.03)
     for c in (0, 1):
-        xw = warp(xb[:, c], m + base - L)
+        xws = [warp(xb[:, c], m + base - L - dl) for dl in deltas]
+        xw = xws[len(deltas) // 2]
         for p0 in range(0, len(m) - PIECE, PIECE // 2):   # half-overlapping: every sample lies inside a fit
             sl = slice(p0, p0 + PIECE)
             if near_jump[sl].any() or not covered[sl].all():
                 continue
-            ys, xs = yb[start + p0:start + p0 + PIECE, c], xw[sl]
+            ys = yb[start + p0:start + p0 + PIECE, c]
             rms = np.sqrt(np.mean(ys * ys))
-            g = float(np.dot(xs, ys)) / max(float(np.dot(xs, xs)), float(np.dot(ys, ys)), 1e-30)   # gain (<= 1 where the input is silent)
-            pieces.append((start + p0, float(np.max(np.abs(ys - g * xs))), rms))
+            best = None
+            for xwd in xws:
+                xs = xwd[sl]
+                g = float(np.dot(xs, ys)) / max(float(np.dot(xs, xs)), float(np.dot(ys, ys)), 1e-30)   # gain (<= 1 where the input is silent)
+                r = float(np.max(np.abs(ys - g * xs)))
+                best = r if best is None else min(best, r)
+            pieces.append((start + p0, best, rms, c, p0))
         if c == 0:
             for p0 in range(0, len(m) - HOP, HOP):
                 sl = slice(p0, p0 + HOP)
@@ -460,11 +516,25 @@ def analyse(name):
     # method's own floor for this signal), at least 2 %, at most 20 % of the piece RMS, and above
     # -60 dB re the whole signal. Pauses (pieces quieter than -50 dB re the signal): the plug-ins'
     # float noise floor is not judged against the piece, only residuals above -50 dB re the signal.
-    loud = [r / rms for (_, r, rms) in pieces if rms >= 0.003 * ref_rms]
+    loud = [p[1] / p[2] for p in pieces if p[2] >= 0.003 * ref_rms]
     floor99 = float(np.percentile(loud, 99)) if loud else 0.0
     rel = float(np.clip(10.0 * floor99, 0.02, 0.2))
-    click_spans = [(a, a + PIECE) for (a, r, rms) in pieces
-                   if r > (max(rel * rms, 0.001 * ref_rms) if rms >= 0.003 * ref_rms else 0.003 * ref_rms)]
+    def limit_of(rms):
+        return max(rel * rms, 0.001 * ref_rms) if rms >= 0.003 * ref_rms else 0.003 * ref_rms
+    click_spans = []
+    for (a, r, rms, c, p0) in pieces:
+        if r <= limit_of(rms):
+            continue
+        # second look at a candidate: offsets within +-0.6 samples (a sharp onset in the input itself,
+        # e.g. a chord starting at full level, needs the alignment closer than the curve gives)
+        ys = yb[a:a + PIECE, c]
+        mm = m[p0:p0 + PIECE]
+        for dl in np.arange(-0.6, 0.601, 0.05):
+            xs = warp(xb[:, c], mm + base - L[p0:p0 + PIECE] - dl)
+            g = float(np.dot(xs, ys)) / max(float(np.dot(xs, xs)), float(np.dot(ys, ys)), 1e-30)
+            r = min(r, float(np.max(np.abs(ys - g * xs))))
+        if r > limit_of(rms):
+            click_spans.append((a, a + PIECE))
     merged = []
     for a, b in sorted(click_spans):
         if merged and a <= merged[-1][1]: merged[-1][1] = max(merged[-1][1], b)
