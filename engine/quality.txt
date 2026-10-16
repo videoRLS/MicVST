@@ -1,0 +1,73 @@
+# MicVST engine test (1.2.1) - quality
+## Quality: passthrough (empty chain), stereo mic, 48 kHz / 48 kHz, buffer 480
+| Signal | Gain L / R | THD+N L / R | Clicks | Gaps |
+|---|---:|---:|---:|---:|
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.6 ppm, shown latency 55.4 ms, cpu 0 %
+| 997 Hz, -6.0206 dBFS | -0.0000 dB / -0.0000 dB | -107.3 dB / -107.3 dB (worst window -100.6 dB, 18 windows) | 0 | 0 |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.1 ppm, shown latency 55.4 ms, cpu 0 %
+| 997 Hz, -20 dBFS | -0.0000 dB / -0.0000 dB | -101.6 dB / -101.6 dB (worst window -97.7 dB, 18 windows) | 0 | 0 |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -1.2 ppm, shown latency 55.4 ms, cpu 0 %
+| 997 Hz, -60 dBFS | -0.0000 dB / -0.0000 dB | -105.9 dB / -105.9 dB (worst window -92.1 dB, 18 windows) | 0 | 0 |
+
+## Frequency response (48/48 kHz, -6 dBFS tones)
+| Frequency | Gain L | THD+N L |
+|---:|---:|---:|
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.3 ppm, shown latency 55.5 ms, cpu 0 %
+| 20 Hz | -0.000 dB | -138.1 dB (worst -134.7 dB) |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.5 ppm, shown latency 55.3 ms, cpu 0 %
+| 50 Hz | -0.000 dB | -131.4 dB (worst -119.8 dB) |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.0 ppm, shown latency 55.4 ms, cpu 0 %
+| 100 Hz | -0.000 dB | -122.1 dB (worst -112.9 dB) |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.9 ppm, shown latency 55.4 ms, cpu 0 %
+| 1000 Hz | -0.000 dB | -102.6 dB (worst -97.8 dB) |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.3 ppm, shown latency 55.4 ms, cpu 0 %
+| 5000 Hz | -0.000 dB | -95.7 dB (worst -81.0 dB) |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.5 ppm, shown latency 55.4 ms, cpu 0 %
+| 10000 Hz | -0.000 dB | -85.6 dB (worst -81.0 dB) |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.4 ppm, shown latency 55.4 ms, cpu 0 %
+| 15000 Hz | -0.000 dB | -80.2 dB (worst -75.2 dB) |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.6 ppm, shown latency 55.4 ms, cpu 0 %
+| 18000 Hz | -0.000 dB | -79.2 dB (worst -75.3 dB) |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.1 ppm, shown latency 55.4 ms, cpu 0 %
+| 19000 Hz | -0.000 dB | -77.9 dB (worst -67.8 dB) |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.3 ppm, shown latency 55.3 ms, cpu 0 %
+| 20000 Hz | -0.000 dB | -79.0 dB (worst -71.5 dB) |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.1 ppm, shown latency 55.4 ms, cpu 0 %
+| 21000 Hz | -0.001 dB | -85.3 dB (worst -70.5 dB) |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.0 ppm, shown latency 55.4 ms, cpu 0 %
+| 22000 Hz | -0.362 dB | -79.3 dB (worst -68.8 dB) |
+
+## Silence in -> output
+max |output| = 0.000000000000 (all finite)
+
+## Channels
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.1 ppm, shown latency 55.4 ms, cpu 0 %
+mono mic -> cable: gain L -0.0000 dB, R -0.0000 dB, THD+N L -102.0 dB, R -102.0 dB, windows 12 (+0 with dropouts), clicks 0
+  mono output: zero samples 1.1 %
+stereo mic L=440 Hz, R=1250 Hz: L keeps 440 Hz at -0.0000 dB, 1250 Hz leaking into L -106.9 dB; R keeps 1250 Hz at -0.0001 dB, 440 Hz leaking into R -97.6 dB
+
+## Sample-rate combinations (mic -> cable), 997 Hz and 15 kHz at -6 dBFS
+| Mic | Cable | 997 Hz gain / THD+N | 15 kHz gain / THD+N | Clicks | Gaps |
+|---:|---:|---:|---:|---:|---:|
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 1.5 ppm, shown latency 53.4 ms, cpu 0 %
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -1.9 ppm, shown latency 53.3 ms, cpu 0 %
+| 44100 | 48000 | -0.000 dB / -92.0 dB | -0.000 dB / -69.6 dB | 0 | 0 |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 1.2 ppm, shown latency 57.6 ms, cpu 0 %
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -1.8 ppm, shown latency 58.0 ms, cpu 0 %
+| 48000 | 44100 | -0.000 dB / -86.9 dB | -0.000 dB / -72.8 dB | 0 | 0 |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.5 ppm, shown latency 82.3 ms, cpu 0 %
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.7 ppm, shown latency 82.4 ms, cpu 0 %
+| 96000 | 48000 | -0.000 dB / -99.5 dB | -0.000 dB / -73.6 dB | 0 | 0 |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -1.4 ppm, shown latency 41.9 ms, cpu 0 %
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -1.1 ppm, shown latency 42.0 ms, cpu 0 %
+| 48000 | 96000 | -0.000 dB / -112.4 dB | -0.000 dB / -91.0 dB | 0 | 0 |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.4 ppm, shown latency 55.5 ms, cpu 0 %
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.2 ppm, shown latency 55.5 ms, cpu 0 %
+| 44100 | 44100 | -0.000 dB / -104.8 dB | -0.000 dB / -75.9 dB | 0 | 0 |
+
+## Mic clock drift (60 s, 997 Hz -6 dBFS)
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -113.3 ppm, shown latency 55.2 ms, cpu 0 %
+drift -150 ppm: THD+N -103.0 dB, clicks 0, gaps 0
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 110.4 ppm, shown latency 55.7 ms, cpu 0 %
+drift 150 ppm: THD+N -102.0 dB, clicks 0, gaps 0
+-- exit code 0, 375.3 s, peak working set 30 MB

@@ -1,0 +1,30 @@
+---
+Mikrofonunuzu buradan seçin.
+---
+Buradan "CABLE Input" seçin; Discord, OBS gibi programlarda mikrofon olarak "CABLE Output" seçin.
+---
+Ses bloklarının boyutu. Küçük değer: daha az gecikme ama işlemciye daha çok yük. "Otomatik" cihazın kendi değerini kullanır.
+---
+Mikrofonla kablo arasında yedekte tutulan ses. Ağır oyun veya video işleme gibi anlık yüklerde çıtırtıyı önler. "Otomatik" 10 ms ile başlar, ses kesilirse kendiliğinden artar. Büyük değer: daha sağlam, biraz daha fazla gecikme.
+---
+Çıkışta ses kesildi: 0
+Zincir yetişemedi, ses atlandı: 0
+Mikrofon sürücüsünde kayıp: 0
+Eklenti işleme takıldı: 0
+Eklentiden geçersiz ses (susturuldu): 0
+Gecikme düzeltmesi: 0
+Cihaz yeniden açıldı: 0
+Geç kalan eklenti bloğu (kesinti olmadan telafi edildi): 0
+Saat farkı mikrofon/kablo: -2 ppm
+---
+Eklentiyi geçici olarak devre dışı bırak (ses onu atlar)
+---
+Eklentiyi zincirden kaldır
+---
+Şu an taranan eklentiyi atla
+---
+Hızlı kurulum rehberi
+---
+MicVST tamamen çevrimdışı çalışır (internete bağlanmaz)
+---
+Windows açılınca MicVST'yi pencere açmadan, simge olarak başlatır

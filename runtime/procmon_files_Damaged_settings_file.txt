@@ -1,0 +1,31 @@
+%USERPROFILE%
+%USERPROFILE%\AppData\Local
+%USERPROFILE%\AppData\Local\Programs\Common\VST3\
+%USERPROFILE%\AppData\Roaming
+%USERPROFILE%\AppData\Roaming\MicVST
+%USERPROFILE%\AppData\Roaming\MicVST\config_temp1e993b1e.xml
+%USERPROFILE%\AppData\Roaming\MicVST\config_temp7d4efb18.xml
+%USERPROFILE%\AppData\Roaming\MicVST\config_tempb63dc4cc.xml
+%USERPROFILE%\AppData\Roaming\MicVST\config.xml
+%USERPROFILE%\AppData\Roaming\MicVST\config.xml~RF610b62.TMP
+%USERPROFILE%\AppData\Roaming\MicVST\config.xml~RF610b81.TMP
+%USERPROFILE%\AppData\Roaming\MicVST\config.xml~RF616cfa.TMP
+%USERPROFILE%\AppData\Roaming\MicVST\log.txt
+%USERPROFILE%\AppData\Roaming\MicVST\plugin_cache_tempa80f4542.xml
+%USERPROFILE%\AppData\Roaming\MicVST\plugin_cache.xml
+%USERPROFILE%\AppData\Roaming\MicVST\plugin_cache.xml~RF610b52.TMP
+%USERPROFILE%\AppData\Roaming\MicVST\plugin_scan.tmp
+C:\Program Files\Common Files
+C:\Program Files\Common Files\VST3
+C:\Program Files\Common Files\VST3\Airwindows Consolidated.vst3
+C:\Program Files\Common Files\VST3\Airwindows Consolidated.vst3\Contents
+C:\Program Files\Common Files\VST3\Airwindows Consolidated.vst3\Contents\Resources
+C:\Program Files\Common Files\VST3\Airwindows Consolidated.vst3\Contents\x86_64-win
+C:\Program Files\Common Files\VST3\Airwindows Consolidated.vst3\Contents\x86_64-win\Airwindows Consolidated.vst3
+D:\
+D:\a
+D:\a\MicVST
+D:\a\MicVST\MicVST
+D:\a\MicVST\MicVST\build\MicVST_artefacts
+D:\a\MicVST\MicVST\build\MicVST_artefacts\SystemResources\MicVST.exe.mun
+D:\a\MicVST\MicVST\d3d10warp.dll

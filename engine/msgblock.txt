@@ -1,0 +1,11 @@
+# MicVST engine test (1.2.1) - msgblock
+## Message thread blocked 3000 ms right after a device buffer change, 6 rounds; chain gain 0.5 + delay 240 smp + load 30 %, 997 Hz
+  underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 31.8 ppm, shown latency 60.2 ms, cpu 30 %, graph busy 0, chain silence 1, bridge starts 7
+  zeros at 3.116 s: 181.4 ms; change +0.023 s, changed +-0.091 s, thread free again -3.091 s
+  zeros at 12.249 s: 150.4 ms; change +0.042 s, changed +-0.106 s, thread free again -3.107 s
+  zeros at 21.367 s: 113.0 ms; change +0.011 s, changed +-0.062 s, thread free again -3.062 s
+  zeros at 30.444 s: 175.6 ms; change +0.015 s, changed +-0.085 s, thread free again -3.085 s
+  zeros at 39.559 s: 132.2 ms; change +0.029 s, changed +-0.101 s, thread free again -3.102 s
+  zeros at 48.673 s: 109.5 ms; change +0.012 s, changed +-0.058 s, thread free again -3.058 s
+  zero runs > 1 ms: 6; cable late 0 times; mic packets lost 0
+-- exit code 0, 57.8 s, peak working set 38 MB

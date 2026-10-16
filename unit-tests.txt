@@ -1,0 +1,298 @@
+Random seed: 0x5017a2b
+-----------------------------------------------------------------
+Starting tests in: Smoke / runner works...
+Completed tests in Smoke / runner works
+-----------------------------------------------------------------
+Starting tests in: Metering / silence is zero...
+Completed tests in Metering / silence is zero
+-----------------------------------------------------------------
+Starting tests in: Metering / DC at 1.0 -> rms 1, peak 1...
+Completed tests in Metering / DC at 1.0 -> rms 1, peak 1
+-----------------------------------------------------------------
+Starting tests in: Metering / peak picks max abs across channels...
+Completed tests in Metering / peak picks max abs across channels
+-----------------------------------------------------------------
+Starting tests in: GraphConnections / empty mono chain: input(1out) -> output(2in) = 1 channel...
+Completed tests in GraphConnections / empty mono chain: input(1out) -> output(2in) = 1 channel
+-----------------------------------------------------------------
+Starting tests in: GraphConnections / empty stereo chain: input(2out) -> output(2in) = 2 channels...
+Completed tests in GraphConnections / empty stereo chain: input(2out) -> output(2in) = 2 channels
+-----------------------------------------------------------------
+Starting tests in: GraphConnections / mono plugin then mono->stereo converter then stereo out...
+Completed tests in GraphConnections / mono plugin then mono->stereo converter then stereo out
+-----------------------------------------------------------------
+Starting tests in: GraphConnections / two stereo plugins: in(2)->p1(2/2)->p2(2/2)->out(2)...
+Completed tests in GraphConnections / two stereo plugins: in(2)->p1(2/2)->p2(2/2)->out(2)
+-----------------------------------------------------------------
+Starting tests in: Persistence / round-trip preserves fields + plugin blob...
+Completed tests in Persistence / round-trip preserves fields + plugin blob
+-----------------------------------------------------------------
+Starting tests in: Persistence / 1.1.1 config loads: old update-check keys ignored, safety buffer defaults to Auto...
+Completed tests in Persistence / 1.1.1 config loads: old update-check keys ignored, safety buffer defaults to Auto
+-----------------------------------------------------------------
+Starting tests in: Persistence / plug-in identity inside a multi-plug-in file survives a round trip...
+Completed tests in Persistence / plug-in identity inside a multi-plug-in file survives a round trip
+-----------------------------------------------------------------
+Starting tests in: PluginScanCache / round-trip preserves types and skip list...
+Completed tests in PluginScanCache / round-trip preserves types and skip list
+-----------------------------------------------------------------
+Starting tests in: PluginScanCache / foreign xml is rejected...
+Completed tests in PluginScanCache / foreign xml is rejected
+-----------------------------------------------------------------
+Starting tests in: PluginScanCache / load deletes corrupt file and returns false...
+Completed tests in PluginScanCache / load deletes corrupt file and returns false
+-----------------------------------------------------------------
+Starting tests in: runScan / ok/timeout/failed are sorted into found and skipped...
+Completed tests in runScan / ok/timeout/failed are sorted into found and skipped
+-----------------------------------------------------------------
+Starting tests in: runScan / garbage xml on ok-status counts as failed...
+Completed tests in runScan / garbage xml on ok-status counts as failed
+-----------------------------------------------------------------
+Starting tests in: runScan / shouldExit aborts without blacklisting...
+Completed tests in runScan / shouldExit aborts without blacklisting
+-----------------------------------------------------------------
+Starting tests in: runScan / user skip only affects the current file and is reset per file...
+Completed tests in runScan / user skip only affects the current file and is reset per file
+-----------------------------------------------------------------
+Starting tests in: runScan / partial: rescued types are kept, file skip-listed with crash reason...
+Completed tests in runScan / partial: rescued types are kept, file skip-listed with crash reason
+-----------------------------------------------------------------
+Starting tests in: runScan / failed with crash exit code carries the code in the reason...
+Completed tests in runScan / failed with crash exit code carries the code in the reason
+-----------------------------------------------------------------
+Starting tests in: runScan / plain failed (own exit codes) keeps the short reason...
+Completed tests in runScan / plain failed (own exit codes) keeps the short reason
+-----------------------------------------------------------------
+Starting tests in: runScan / failed status with rescueable XML rescues the crash and carries the code...
+Completed tests in runScan / failed status with rescueable XML rescues the crash and carries the code
+-----------------------------------------------------------------
+Starting tests in: runScan / partial with valid root but zero rescued children still carries the crash code...
+Completed tests in runScan / partial with valid root but zero rescued children still carries the crash code
+-----------------------------------------------------------------
+Starting tests in: runScan / partial with malformed xml falls back to plain failed, exit 3 not decorated...
+Completed tests in runScan / partial with malformed xml falls back to plain failed, exit 3 not decorated
+-----------------------------------------------------------------
+Starting tests in: parseScanResultXml / valid result xml yields descriptions...
+Completed tests in parseScanResultXml / valid result xml yields descriptions
+-----------------------------------------------------------------
+Starting tests in: parseScanResultXml / garbage and wrong root are rejected...
+Completed tests in parseScanResultXml / garbage and wrong root are rejected
+-----------------------------------------------------------------
+Starting tests in: parseScanResultXml / crashCode attribute is surfaced when requested...
+Completed tests in parseScanResultXml / crashCode attribute is surfaced when requested
+-----------------------------------------------------------------
+Starting tests in: mergeScanResults / found entries get freshly stamped mtime...
+Completed tests in mergeScanResults / found entries get freshly stamped mtime
+-----------------------------------------------------------------
+Starting tests in: mergeScanResults / old entry of same file (different uid) is replaced, others untouched...
+Completed tests in mergeScanResults / old entry of same file (different uid) is replaced, others untouched
+-----------------------------------------------------------------
+Starting tests in: mergeScanResults / bundle entries are restamped with the inner binary's mtime...
+Tarama: atlama kaldırıldı (dosya değişti ya da silindi): C:\Users\RUNNER~1\AppData\Local\Temp\micvst_filter\StaleSkip.vst3
+Tarama (değişti): C:\Users\RUNNER~1\AppData\Local\Temp\micvst_filter\Changed.vst3 (önbellek=1 dosya=1792108417153)
+Tarama (yeni): C:\Users\RUNNER~1\AppData\Local\Temp\micvst_filter\StaleSkip.vst3
+Completed tests in mergeScanResults / bundle entries are restamped with the inner binary's mtime
+-----------------------------------------------------------------
+Starting tests in: filterFilesNeedingScan / cache hit is filtered, mtime mismatch is rescanned...
+Completed tests in filterFilesNeedingScan / cache hit is filtered, mtime mismatch is rescanned
+-----------------------------------------------------------------
+Starting tests in: filterFilesNeedingScan / active skip filters, stale skip is dropped and rescanned...
+Completed tests in filterFilesNeedingScan / active skip filters, stale skip is dropped and rescanned
+-----------------------------------------------------------------
+Starting tests in: filterFilesNeedingScan / force-list bypasses the cache-is-up-to-date check...
+Tarama (zorunlu): C:\Users\RUNNER~1\AppData\Local\Temp\micvst_filter\Forced.vst3 (önbellek=1792108417159 dosya=1792108417159)
+Completed tests in filterFilesNeedingScan / force-list bypasses the cache-is-up-to-date check
+-----------------------------------------------------------------
+Starting tests in: pathIsInsideAnyFolder / children match, prefix-siblings do not...
+Completed tests in pathIsInsideAnyFolder / children match, prefix-siblings do not
+-----------------------------------------------------------------
+Starting tests in: pathIsInsideAnyFolder / case-insensitive on Windows...
+Completed tests in pathIsInsideAnyFolder / case-insensitive on Windows
+-----------------------------------------------------------------
+Starting tests in: pathIsInsideAnyFolder / empty folder entries are ignored...
+Completed tests in pathIsInsideAnyFolder / empty folder entries are ignored
+-----------------------------------------------------------------
+Starting tests in: effectiveModTime / plain file uses its own mtime...
+Completed tests in effectiveModTime / plain file uses its own mtime
+-----------------------------------------------------------------
+Starting tests in: effectiveModTime / bundle dir uses the inner binary's mtime, service writes are ignored...
+Completed tests in effectiveModTime / bundle dir uses the inner binary's mtime, service writes are ignored
+-----------------------------------------------------------------
+Starting tests in: effectiveModTime / newest inner binary wins (multi-arch bundle)...
+Completed tests in effectiveModTime / newest inner binary wins (multi-arch bundle)
+-----------------------------------------------------------------
+Starting tests in: effectiveModTime / dir without inner binaries falls back to dir mtime...
+Completed tests in effectiveModTime / dir without inner binaries falls back to dir mtime
+-----------------------------------------------------------------
+Starting tests in: effectiveModTime / MicVST3Format: service write no rescan, binary update rescans...
+Completed tests in effectiveModTime / MicVST3Format: service write no rescan, binary update rescans
+-----------------------------------------------------------------
+Starting tests in: filterPlugins / empty query returns all, sorted by manufacturer then name...
+Completed tests in filterPlugins / empty query returns all, sorted by manufacturer then name
+-----------------------------------------------------------------
+Starting tests in: filterPlugins / matches name and manufacturer, case-insensitive...
+Completed tests in filterPlugins / matches name and manufacturer, case-insensitive
+-----------------------------------------------------------------
+Starting tests in: filterPlugins / no hits and whitespace-only query...
+Completed tests in filterPlugins / no hits and whitespace-only query
+-----------------------------------------------------------------
+Starting tests in: Bridge resampler / passband flat and clean at drift-sized ratios (48 kHz)...
+  100 Hz: gain -0.0000 dB, THD+N -128.5 dB
+  1000 Hz: gain -0.0000 dB, THD+N -117.7 dB
+  5000 Hz: gain -0.0000 dB, THD+N -115.6 dB
+  10000 Hz: gain -0.0000 dB, THD+N -116.5 dB
+  16000 Hz: gain -0.0000 dB, THD+N -109.0 dB
+  18000 Hz: gain -0.0001 dB, THD+N -107.7 dB
+Completed tests in Bridge resampler / passband flat and clean at drift-sized ratios (48 kHz)
+-----------------------------------------------------------------
+Starting tests in: Bridge resampler / 44.1 kHz -> 48 kHz conversion is clean...
+  1 kHz: THD+N -118.5 dB
+Completed tests in Bridge resampler / 44.1 kHz -> 48 kHz conversion is clean
+-----------------------------------------------------------------
+Starting tests in: Bridge resampler / 96 kHz -> 48 kHz: anti-aliasing removes content above 24 kHz...
+  30 kHz alias attenuation: -114.3 dB
+Completed tests in Bridge resampler / 96 kHz -> 48 kHz: anti-aliasing removes content above 24 kHz
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / clock drift -300 ppm: no gaps, converges, tracks drift...
+  underruns 0, dropped 0, resyncs 0, clicks 0, drift -298.1 ppm, margin 17.03 ms, safety 10.0 ms, latency 44.37 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 284 ppm, pitch error (last 60 s) max 2 ppm
+Completed tests in Bridge stream / clock drift -300 ppm: no gaps, converges, tracks drift
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / clock drift -50 ppm: no gaps, converges, tracks drift...
+  underruns 0, dropped 0, resyncs 0, clicks 0, drift -49.7 ppm, margin 17.04 ms, safety 10.0 ms, latency 44.65 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 47 ppm, pitch error (last 60 s) max 0 ppm
+Completed tests in Bridge stream / clock drift -50 ppm: no gaps, converges, tracks drift
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / clock drift 0 ppm: no gaps, converges, tracks drift...
+  underruns 0, dropped 0, resyncs 0, clicks 0, drift -0.0 ppm, margin 17.04 ms, safety 10.0 ms, latency 44.71 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 0 ppm, pitch error (last 60 s) max 0 ppm
+Completed tests in Bridge stream / clock drift 0 ppm: no gaps, converges, tracks drift
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / clock drift 80 ppm: no gaps, converges, tracks drift...
+  underruns 0, dropped 0, resyncs 0, clicks 0, drift 79.5 ppm, margin 17.07 ms, safety 10.0 ms, latency 44.82 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 76 ppm, pitch error (last 60 s) max 0 ppm
+Completed tests in Bridge stream / clock drift 80 ppm: no gaps, converges, tracks drift
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / clock drift 300 ppm: no gaps, converges, tracks drift...
+  underruns 0, dropped 0, resyncs 0, clicks 0, drift 298.1 ppm, margin 17.08 ms, safety 10.0 ms, latency 45.06 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 284 ppm, pitch error (last 60 s) max 2 ppm
+Completed tests in Bridge stream / clock drift 300 ppm: no gaps, converges, tracks drift
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / clock drift -1000 ppm (worst case): learned completely, pitch steady afterwards...
+  underruns 1, dropped 0, resyncs 0, clicks 0, drift -999.0 ppm, margin 22.03 ms, safety 15.0 ms, latency 48.43 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 500 ppm, pitch error (last 60 s) max 1 ppm
+Completed tests in Bridge stream / clock drift -1000 ppm (worst case): learned completely, pitch steady afterwards
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / clock drift 1000 ppm (worst case): learned completely, pitch steady afterwards...
+  underruns 0, dropped 0, resyncs 0, clicks 0, drift 999.0 ppm, margin 17.07 ms, safety 10.0 ms, latency 46.08 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 500 ppm, pitch error (last 60 s) max 1 ppm
+Completed tests in Bridge stream / clock drift 1000 ppm (worst case): learned completely, pitch steady afterwards
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / producer jitter up to 6 ms is absorbed by a 10 ms safety buffer...
+  underruns 0, dropped 0, resyncs 0, clicks 0, drift 0.0 ppm, margin 17.81 ms, safety 10.0 ms, latency 47.89 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 5.5 / max 8.5 ms, load mean 55 % (0 % of blocks late, peak 85 %), speed deviation max 188 ppm, pitch error (last 60 s) max 52 ppm
+Completed tests in Bridge stream / producer jitter up to 6 ms is absorbed by a 10 ms safety buffer
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / producer stall longer than the cushion: one faded gap, then recovery...
+  underruns 1, dropped 0, resyncs 0, clicks 0, drift 1.8 ppm, margin 22.01 ms, safety 15.0 ms, latency 51.90 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 62.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 500 ppm, pitch error (last 60 s) max 500 ppm
+Completed tests in Bridge stream / producer stall longer than the cushion: one faded gap, then recovery
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / tiny output blocks and repeated starvation: every gap is faded, never a click...
+  underruns 56, dropped 0, resyncs 0, clicks 0, drift 0.0 ppm, margin 23.71 ms, safety 2.0 ms, latency 25.60 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.9 / max 17.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 351 ppm, pitch error (last 60 s) max 351 ppm
+Completed tests in Bridge stream / tiny output blocks and repeated starvation: every gap is faded, never a click
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / output stalls longer than the ring right after an underrun: recovers, no deadlock...
+  underruns 1, dropped 68, resyncs 0, clicks 0, drift -0.1 ppm, margin 22.04 ms, safety 15.0 ms, latency 46.66 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.6 / max 62.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 4 ppm, pitch error (last 60 s) max 4 ppm
+Completed tests in Bridge stream / output stalls longer than the ring right after an underrun: recovers, no deadlock
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / output stalls longer than the ring while running: no click at the dropped input...
+  underruns 0, dropped 66, resyncs 0, clicks 4, drift -0.0 ppm, margin 17.04 ms, safety 10.0 ms, latency 43.39 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 0 ppm, pitch error (last 60 s) max 0 ppm
+Completed tests in Bridge stream / output stalls longer than the ring while running: no click at the dropped input
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / consumer stall: queue overflow is trimmed back (resync), no underrun...
+  underruns 0, dropped 0, resyncs 1, clicks 4, drift -0.6 ppm, margin 17.05 ms, safety 10.0 ms, latency 43.96 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 500 ppm, pitch error (last 60 s) max 500 ppm
+Completed tests in Bridge stream / consumer stall: queue overflow is trimmed back (resync), no underrun
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / output device gap (60 ms stall): excess latency trimmed once at a matching splice point, no pitch bend...
+  underruns 0, dropped 0, resyncs 1, clicks 4, drift 0.6 ppm, margin 17.03 ms, safety 10.0 ms, latency 43.94 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 169 ppm, pitch error (last 60 s) max 169 ppm
+  splice at sample 970079: level -0.01 .. 0.01 dB
+Completed tests in Bridge stream / output device gap (60 ms stall): excess latency trimmed once at a matching splice point, no pitch bend
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / short output gap (30 ms stall): the small excess drains slowly, no trim, no pitch bend...
+  underruns 0, dropped 0, resyncs 0, clicks 4, drift 1.3 ppm, margin 17.01 ms, safety 10.0 ms, latency 48.72 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 500 ppm, pitch error (last 60 s) max 504 ppm
+Completed tests in Bridge stream / short output gap (30 ms stall): the small excess drains slowly, no trim, no pitch bend
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / larger safety buffer chosen while running: applied at once (fade-out, refill, fade-in)...
+  underruns 0, dropped 0, resyncs 0, clicks 0, drift -0.0 ppm, margin 47.04 ms, safety 40.0 ms, latency 64.67 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 0 ppm, pitch error (last 60 s) max 0 ppm
+Completed tests in Bridge stream / larger safety buffer chosen while running: applied at once (fade-out, refill, fade-in)
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / smaller safety buffer chosen while running: the latency is trimmed at a matching splice point...
+  underruns 0, dropped 0, resyncs 1, clicks 0, drift -0.3 ppm, margin 17.00 ms, safety 10.0 ms, latency 56.19 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 381 ppm, pitch error (last 60 s) max 381 ppm
+Completed tests in Bridge stream / smaller safety buffer chosen while running: the latency is trimmed at a matching splice point
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / 44.1 kHz microphone into a 48 kHz cable...
+  underruns 0, dropped 0, resyncs 0, clicks 0, drift 54.8 ppm, margin 17.10 ms, safety 10.0 ms, latency 44.91 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 57 ppm, pitch error (last 60 s) max 5 ppm
+Completed tests in Bridge stream / 44.1 kHz microphone into a 48 kHz cable
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / fade out and hold before a device stops, then resume: no click, silence in between...
+Completed tests in Bridge stream / fade out and hold before a device stops, then resume: no click, silence in between
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / input held (invalid plug-in output), then valid audio with a jump: faded, no click, no underrun...
+Completed tests in Bridge stream / input held (invalid plug-in output), then valid audio with a jump: faded, no click, no underrun
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / discontinuity marked by the producer: the output fades there instead of jumping...
+Completed tests in Bridge stream / discontinuity marked by the producer: the output fades there instead of jumping
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / inactive consumer: push is a no-op (nothing queued, nothing counted)...
+Completed tests in Bridge stream / inactive consumer: push is a no-op (nothing queued, nothing counted)
+-----------------------------------------------------------------
+Starting tests in: Input queue / round trip across the wrap point: every frame arrives once, in order...
+Completed tests in Input queue / round trip across the wrap point: every frame arrives once, in order
+-----------------------------------------------------------------
+Starting tests in: Input queue / two threads: no frame lost, duplicated or reordered...
+  3000000 frames, producer overflows (retried) 411
+Completed tests in Input queue / two threads: no frame lost, duplicated or reordered
+-----------------------------------------------------------------
+Starting tests in: Input queue / chain fell behind by more than the limit: one crossfaded block, then the newest audio...
+Completed tests in Input queue / chain fell behind by more than the limit: one crossfaded block, then the newest audio
+-----------------------------------------------------------------
+Starting tests in: Input queue / skip with alignment: the splice follows the waveform (voice-like tone, no dip, no click)...
+  plain: skipped 13920, largest deviation during the crossfade 182.6 % of the peak
+  aligned: skipped 13745, largest deviation during the crossfade 4.0 % of the peak
+Completed tests in Input queue / skip with alignment: the splice follows the waveform (voice-like tone, no dip, no click)
+-----------------------------------------------------------------
+Starting tests in: Input queue / capture time of the newest frame read...
+Completed tests in Input queue / capture time of the newest frame read
+-----------------------------------------------------------------
+Starting tests in: Input queue / after dropped blocks the queue never plays across the jump...
+Completed tests in Input queue / after dropped blocks the queue never plays across the jump
+-----------------------------------------------------------------
+Starting tests in: Input queue / consumer stuck: the producer drops (counted) instead of overwriting...
+Completed tests in Input queue / consumer stuck: the producer drops (counted) instead of overwriting
+-----------------------------------------------------------------
+Starting tests in: Input path / render load like the Topaz log (45 % of blocks 1.1-1.9x real time): 1.2.0 loses audio, 1.2.1 none...
+  1.2.0: underruns 15, dropped 0, resyncs 5, clicks 111, drift 17.5 ppm, margin 77.93 ms, safety 80.0 ms, latency 111.85 ms, capture overflows 58 (580 ms lost), skips 0 (0 ms), input delay mean 22.5 / max 93.0 ms, load mean 92 % (45 % of blocks late, peak 190 %), speed deviation max 500 ppm, pitch error (last 60 s) max 545 ppm
+  1.2.1: underruns 14, dropped 0, resyncs 19, clicks 0, drift 0.0 ppm, margin 93.34 ms, safety 80.0 ms, latency 117.77 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 25.5 / max 117.5 ms, load mean 92 % (45 % of blocks late, peak 190 %), speed deviation max 500 ppm, pitch error (last 60 s) max 540 ppm
+Completed tests in Input path / render load like the Topaz log (45 % of blocks 1.1-1.9x real time): 1.2.0 loses audio, 1.2.1 none
+-----------------------------------------------------------------
+Starting tests in: Input path / chain slower than real time (avg. 112 %): crossfaded skips, bounded latency, no clicks...
+  underruns 78, dropped 0, resyncs 3, clicks 0, drift 0.0 ppm, margin 91.44 ms, safety 80.0 ms, latency 138.88 ms, capture overflows 0 (0 ms lost), skips 56 (6230 ms), input delay mean 61.1 / max 137.3 ms, load mean 110 % (59 % of blocks late, peak 200 %), speed deviation max 500 ppm, pitch error (last 60 s) max 500 ppm
+Completed tests in Input path / chain slower than real time (avg. 112 %): crossfaded skips, bounded latency, no clicks
+-----------------------------------------------------------------
+Starting tests in: Input path / 60 ms plug-in stall every 3 s: nothing lost at the capture side...
+  1.2.0: underruns 15, dropped 0, resyncs 0, clicks 95, drift -0.5 ppm, margin 54.79 ms, safety 80.0 ms, latency 77.25 ms, capture overflows 20 (970 ms lost), skips 0 (0 ms), input delay mean 3.4 / max 63.5 ms, load mean 30 % (0 % of blocks late, peak 35 %), speed deviation max 500 ppm, pitch error (last 60 s) max 501 ppm
+  1.2.1: underruns 10, dropped 0, resyncs 6, clicks 0, drift 13.1 ppm, margin 66.79 ms, safety 60.0 ms, latency 85.44 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 4.0 / max 63.5 ms, load mean 30 % (0 % of blocks late, peak 35 %), speed deviation max 500 ppm, pitch error (last 60 s) max 501 ppm
+Completed tests in Input path / 60 ms plug-in stall every 3 s: nothing lost at the capture side
+-----------------------------------------------------------------
+Starting tests in: Input path / whole system frozen 30 ms (capture thread too): audio is lost in either design...
+  1.2.1: underruns 4, dropped 0, resyncs 0, clicks 16, drift -4.3 ppm, margin 33.26 ms, safety 30.0 ms, latency 54.99 ms, capture overflows 5 (100 ms lost), skips 0 (0 ms), input delay mean 3.0 / max 13.3 ms, load mean 30 % (0 % of blocks late, peak 35 %), speed deviation max 500 ppm, pitch error (last 60 s) max 504 ppm
+Completed tests in Input path / whole system frozen 30 ms (capture thread too): audio is lost in either design
+-----------------------------------------------------------------
+Starting tests in: Turkish texts / UTF-8 literals keep the Turkish letters (no Latin-1 double encoding)...
+Completed tests in Turkish texts / UTF-8 literals keep the Turkish letters (no Latin-1 double encoding)
+-----------------------------------------------------------------
+Starting tests in: Turkish texts / decimal comma and Turkish percent...
+Completed tests in Turkish texts / decimal comma and Turkish percent
+-----------------------------------------------------------------
+Starting tests in: Turkish texts / stored scan-skip reasons are shown in Turkish (also those of older versions)...
+Completed tests in Turkish texts / stored scan-skip reasons are shown in Turkish (also those of older versions)
+-----------------------------------------------------------------
+Starting tests in: Turkish texts / JUCE's own texts are translated (message-box buttons, text-field menu)...
+Completed tests in Turkish texts / JUCE's own texts are translated (message-box buttons, text-field menu)
+-----------------------------------------------------------------
+Starting tests in: Turkish texts / device errors in the log are Turkish (also JUCE's untranslated ones)...
+Completed tests in Turkish texts / device errors in the log are Turkish (also JUCE's untranslated ones)
+All tests completed successfully
+exit code: 0

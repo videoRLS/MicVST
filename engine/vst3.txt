@@ -1,0 +1,20 @@
+# MicVST engine test (1.2.1) - vst3
+## VST3 plug-ins (C:\Program Files\Common Files\VST3\Airwindows Consolidated.vst3)
+types in the bundle: 1
+chain: Airwindows Consolidated, Airwindows Consolidated, Airwindows Consolidated, Airwindows Consolidated
+loaded 4/4 in 0.03 s; graph latency 0 samples
+  Airwindows Consolidated: in 2 / out 2, latency 0, params 14
+  Airwindows Consolidated: in 2 / out 2, latency 0, params 14
+  Airwindows Consolidated: in 2 / out 2, latency 0, params 14
+  Airwindows Consolidated: in 2 / out 2, latency 0, params 14
+  after 8 s: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.4 ppm, shown latency 55.3 ms, cpu 3 %
+  saved chain state: 4 plug-ins, 2288 bytes
+  after bypass round: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.5 ppm, shown latency 55.3 ms, cpu 3 %
+  with 4 extra compressors (8 plug-ins): underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.0 ppm, shown latency 55.9 ms, cpu 6 %
+  settings file: written, 4377 bytes, read back 4 plug-ins
+  restored plug-ins: Airwindows Consolidated, Airwindows Consolidated, Airwindows Consolidated, Airwindows Consolidated
+  restore into a new engine: 4 plug-ins, identical state blobs: 4/4
+  end: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.6 ppm, shown latency 55.5 ms, cpu 3 %
+  output finite: yes, peak -15.1 dB
+  edits during playback with real plug-ins: 16, followed by a click within 1 s: 0; click events in the whole run: 0
+-- exit code 0, 40.2 s, peak working set 48 MB

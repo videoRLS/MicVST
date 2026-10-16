@@ -1,0 +1,5 @@
+# MicVST engine test (1.2.1) - dump
+  VST3 chain: 4 plug-ins from C:\Program Files\Common Files\VST3\Airwindows Consolidated.vst3
+  underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.2 ppm, shown latency 55.3 ms, cpu 0 %
+  written: dump_i_mt_vst3byp_{in,out}.f32 + .json
+-- exit code 0, 23 s, peak working set 56 MB

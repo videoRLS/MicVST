@@ -1,0 +1,12 @@
+{
+  "juce_version": "9.0.4",
+  "juce_patch_markers": 3,
+  "configure_seconds": 121.1,
+  "build_seconds": 1003.2,
+  "build_ok": true,
+  "warnings_micvst": 0,
+  "warnings_juce": 0,
+  "errors": 0,
+  "exe_bytes": 6814208,
+  "exe_sha256": "87EDAE04A681D4034430478472DE1D61EFF197807AC801F3EE73E015441AA04C"
+}

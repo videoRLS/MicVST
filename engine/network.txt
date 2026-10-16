@@ -1,0 +1,1 @@
+Windows Filtering Platform events (connect/bind) of MicVSTEngineTest.exe during all runs: 0

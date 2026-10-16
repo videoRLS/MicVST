@@ -1,0 +1,4 @@
+
+LSP Plugins 1.2.35: no Windows VST3 asset
+Airwindows Consolidated: AirwindowsConsolidated-2026-10-11-8a67b80-Windows.zip
+VST3 bundle used: C:\Program Files\Common Files\VST3\Airwindows Consolidated.vst3
