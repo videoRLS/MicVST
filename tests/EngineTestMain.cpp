@@ -1460,8 +1460,12 @@ namespace
             const auto& L = vdev::recorder().left;
             const double top = peakDbOf (0.0, 1.0e9);
             if (countLoudest) loudest = std::max (loudest, peakDbOf ((double) firstAudio (L) / fs + 0.3, 1.0e9));
-            const size_t start = firstAudio (L) + (size_t) (0.05 * fs);
-            return clicks (L, start, L.size(), juce::Decibels::decibelsToGain (top), 300.0 / fs).events;
+            // from 50 ms after the first audio to 50 ms before the last: the engine's own fade when the
+            // test run is shut down (often in the middle of a syllable) is not a click of the element
+            size_t last = L.size();
+            while (last > 0 && std::abs (L[last - 1]) < 1.0e-6f) --last;
+            const size_t start = firstAudio (L) + (size_t) (0.05 * fs), end = last > (size_t) (0.05 * fs) ? last - (size_t) (0.05 * fs) : 0;
+            return clicks (L, start, end, juce::Decibels::decibelsToGain (top), 300.0 / fs).events;
         };
 
         pr ("## Otomatik Kazanç: normal speech at different microphone levels (13 s, output analysed from 6.8 s)");
