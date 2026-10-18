@@ -20,7 +20,7 @@ not be tested: [docs/TEST_RAPORU_1.2.1.md](docs/TEST_RAPORU_1.2.1.md) (Turkish).
   and its value is saved with the chain. The output meter's peak mark turns red at 0 dBFS (the
   level at which the cable's 24-bit format clips) instead of disappearing past the right edge.
 - Built-in "Otomatik Kazanç" (Auto Gain) element ("Dahili"): rides the voice level so speech peaks
-  land near -6 dBFS - only as much gain as needed, at most +12 dB boost, down to -12 dB for loud
+  land near -15 dBFS - only as much gain as needed, at most +6 dB boost, down to -12 dB for loud
   input. It always sits at the very front of the chain (before every effect and the manual Kazanç),
   only one can be added, and its row has an on/off box plus a live readout (applied gain, input and
   output peak). Level estimate from the real input (loudest block peak, held for 1 s of speech, then

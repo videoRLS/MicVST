@@ -28,7 +28,7 @@ namespace
             "    - \"Kazanç\" (Dahili) sesi -30 ile +12 dB arasında alçaltır/yükseltir; değeri\n"
             "      satırdaki kaydırıcıyla değiştirin. Kırpılmaması için sınırlayıcıdan önce koyun.\n"
             "    - \"Otomatik Kazanç\" (Dahili) zincirin en başına girer ve konuşmanın tepe seviyesini\n"
-            "      yaklaşık -6 dBFS'ye getirir (en çok +12 dB); satırdaki kutuyla açılıp kapatılır.\n"
+            "      yaklaşık -15 dBFS'ye getirir (en çok +6 dB); satırdaki kutuyla açılıp kapatılır.\n"
             "    - Sıralamak için soldaki tutamağı sürükleyin; çöp kutusu siler (onay sorar).\n"
             "    - Eklentinin penceresini açmak için adına çift tıklayın.\n"
             "    - \"VST3 klasörleri\" başka konumlardaki eklentileri ekler.\n"

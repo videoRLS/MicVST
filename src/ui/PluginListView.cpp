@@ -111,8 +111,8 @@ PluginListView::Row::Row (PluginListView& ownerIn, int idx) : owner (ownerIn), i
     {
         autoToggle.setButtonText (tr ("Etkin"));
         autoToggle.setToggleState (owner.engine.getChain().isAutoGainEnabled (index), juce::dontSendNotification);
-        autoToggle.setTooltip (tr ("Otomatik Kazanç: konuşmanın tepe seviyesini yaklaşık -6 dBFS'ye getirir; gerektiği kadar, "
-                                   "en çok +12 dB yükseltir, yüksek seste -12 dB'ye kadar azaltır. Sessizlikte kazancı bekletir. "
+        autoToggle.setTooltip (tr ("Otomatik Kazanç: konuşmanın tepe seviyesini yaklaşık -15 dBFS'ye getirir; gerektiği kadar, "
+                                   "en çok +6 dB yükseltir, yüksek seste -12 dB'ye kadar azaltır. Sessizlikte kazancı bekletir. "
                                    "Zincirin en başında, manuel Kazanç'tan önce çalışır. Kapatınca kazanç yumuşakça 0 dB'ye döner.\n"
                                    "Gösterge: uygulanan kazanç (giriş tepe -> çıkış tepe, dBFS). Beyaz: konuşma algılanıyor, "
                                    "gri: bekletiliyor ya da kapalı."));

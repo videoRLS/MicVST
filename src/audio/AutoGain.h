@@ -6,10 +6,10 @@
 
 // The DSP core of MicVST's built-in "Otomatik Kazanç" (Auto Gain): a slow level rider for the
 // voice. It measures the real input block by block and sets ONE gain for all channels so that
-// speech peaks land near -6 dBFS. No compressor, limiter, gate or look-ahead: the only thing that
+// speech peaks land near -15 dBFS. No compressor, limiter, gate or look-ahead: the only thing that
 // changes the audio is that gain, applied through GainStage (smooth glide, no clicks).
 //
-//  * Range: at most +12 dB boost (only as much as needed), down to -12 dB for loud input.
+//  * Range: at most +6 dB boost (only as much as needed), down to -12 dB for loud input.
 //  * Level estimate: the loudest block peak, held for 1 s of speech, then released at 2 dB/s, so
 //    the gain follows phrases, not syllables - the voice keeps its natural dynamics.
 //  * Gain moves: up at most 4 dB/s (only while someone speaks); down 3 dB/s, or quickly
@@ -23,8 +23,8 @@
 class AutoGainStage
 {
 public:
-    static constexpr double targetPeakDb       = -6.0;
-    static constexpr double maxBoostDb         = 12.0;
+    static constexpr double targetPeakDb       = -15.0;
+    static constexpr double maxBoostDb         = 6.0;
     static constexpr double maxCutDb           = -12.0;
     static constexpr double activityFloorDb    = -50.0;   // block RMS below this is never speech
     static constexpr double activityMarginDb   = 10.0;    // speech must be this far above the noise floor

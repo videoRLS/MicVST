@@ -1369,7 +1369,7 @@ namespace
 
     //==============================================================================
     // Built-in "Otomatik Kazanç" (auto gain), basic checks through the real engine: it changes the
-    // output (speech peaks to about -6 dBFS), the meters show the real values, silence holds the
+    // output (speech peaks to about -15 dBFS), the meters show the real values, silence holds the
     // gain, switching on/off is click-free and returns to 0 dB, it stays first in the chain, and
     // with auto gain off the manual Kazanç measures exactly as before.
     // Test signal: speech-like phrases (2.5 s of 150 ms syllables every 250 ms, then 1 s pause).
@@ -1429,8 +1429,10 @@ namespace
         pr ("## Otomatik Kazanç: speech peaks in -> out (48/48 kHz, buffer 480, 13 s, analysed from 6.8 s = after the first two phrases)");
         pr ("| Chain | Input peaks | Output peaks | Expected | Gain shown in the row | Gain measured (out - in) | L = R | Clicks | Silent runs > 100 ms (3 = the phrase pauses) |");
         pr ("|---|---:|---:|---:|---:|---:|---:|---:|---:|");
-        auto speechRow = [&] (const juce::String& what, double peakDb, bool withAuto, double expectedDb)
+        const double T = AutoGainStage::targetPeakDb;
+        auto speechRow = [&] (const juce::String& what, double peakDb, bool withAuto)
         {
+            const double expectedDb = withAuto ? peakDb + std::clamp (T - peakDb, AutoGainStage::maxCutDb, AutoGainStage::maxBoostDb) : peakDb;
             voiceConfig (peakDb);
             AutoGainStage::Meters m;
             {
@@ -1452,11 +1454,12 @@ namespace
                 + (withAuto ? db (m.gainDb, 2) : juce::String ("-")) + " | " + db (out - peakDb, 2) + " | " + (same ? "yes" : "NO")
                 + " | " + juce::String (clk.events) + " | " + juce::String (gaps.count) + " |");
         };
-        speechRow ("empty chain (reference)", -16.0, false, -16.0);
-        speechRow ("Otomatik Kazanç, quiet voice", -16.0, true, -6.0);
-        speechRow ("Otomatik Kazanç, very quiet voice (needs more than +12 dB)", -26.0, true, -14.0);
-        speechRow ("Otomatik Kazanç, voice already at the target", -6.0, true, -6.0);
-        speechRow ("Otomatik Kazanç, loud voice", -1.0, true, -6.0);
+        speechRow ("empty chain (reference)", T - 5.0, false);
+        speechRow ("Otomatik Kazanç, quiet voice", T - 5.0, true);
+        speechRow ("Otomatik Kazanç, very quiet voice (needs more than +" + juce::String (AutoGainStage::maxBoostDb, 0) + " dB)", T - 12.0, true);
+        speechRow ("Otomatik Kazanç, voice already at the target", T, true);
+        speechRow ("Otomatik Kazanç, loud voice", T + 5.0, true);
+        speechRow ("Otomatik Kazanç, shouting near full scale (cut limited to -12 dB)", -1.0, true);
 
         pr ("");
         pr ("## Otomatik Kazanç off: the manual Kazanç is unchanged (997 Hz, -20 dBFS in)");
@@ -1518,9 +1521,9 @@ namespace
         }
 
         pr ("");
-        pr ("## Otomatik Kazanç: silence and room noise hold the gain (voice -20 dBFS until 9.6 s, white noise -70 dBFS RMS all the time)");
+        pr ("## Otomatik Kazanç: silence and room noise hold the gain (voice " + juce::String (T - 10.0, 0) + " dBFS until 9.6 s, white noise -70 dBFS RMS all the time)");
         {
-            voiceConfig (-20.0, 9.6, -70.0);
+            voiceConfig (T - 10.0, 9.6, -70.0);
             AutoGainStage::Meters a, b, c;
             {
                 EngineRun run (480, 17.0);
@@ -1542,9 +1545,9 @@ namespace
         }
 
         pr ("");
-        pr ("## Otomatik Kazanç: switched off and on during speech (voice -16 dBFS, 4 x off 2 s / on 2 s)");
+        pr ("## Otomatik Kazanç: switched off and on during speech (voice " + juce::String (T - 10.0, 0) + " dBFS, 4 x off 2 s / on 2 s)");
         {
-            voiceConfig (-16.0);
+            voiceConfig (T - 10.0);
             AutoGainStage::Meters offState;
             {
                 EngineRun run (480, 24.0);
@@ -1561,7 +1564,7 @@ namespace
             const auto& L = vdev::recorder().left;
             const size_t start = firstAudio (L) + (size_t) (0.05 * fs);
             std::vector<size_t> where;
-            const auto clk = clicks (L, start, L.size(), juce::Decibels::decibelsToGain (-4.0), 300.0 / fs, 480, &where);
+            const auto clk = clicks (L, start, L.size(), juce::Decibels::decibelsToGain (T + 2.0), 300.0 / fs, 480, &where);
             pr ("clicks " + juce::String (clk.events) + "; gain shown 2 s after switching off: " + db (offState.gainDb, 6));
             for (size_t k = 0; k < std::min<size_t> (where.size(), 5); ++k) pr ("    click at " + juce::String ((double) where[k] / fs, 3) + " s");
         }

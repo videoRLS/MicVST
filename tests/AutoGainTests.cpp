@@ -79,36 +79,39 @@ struct AutoGainTest : juce::UnitTest
     {
         // the last phrase of a 12.5 s signal: 10.5 .. 13.0 s
         const size_t lastFrom = (size_t) (10.5 * fs), lastTo = (size_t) (13.0 * fs);
+        // test levels relative to the target (-15 dBFS)
+        const double T = AutoGainStage::targetPeakDb;
+        auto dbfs = [] (double v) { return juce::String (v, 0) + " dBFS"; };
 
-        beginTest ("quiet voice (peaks -16 dBFS): gain rises to about +10 dB, output peaks near -6 dBFS");
+        beginTest ("quiet voice (peaks " + dbfs (T - 5.0) + "): gain rises to about +5 dB, output peaks near " + dbfs (T));
         {
             AutoGainStage s; s.prepare (fs);
-            auto x = voice (13.0, -16.0);
+            auto x = voice (13.0, T - 5.0);
             const auto g = run (s, x);
             const double out = peakDbOf (x, lastFrom, lastTo);
             logMessage ("    gain after 2 s " + juce::String (g[200], 2) + " dB, at the end " + juce::String (g.back(), 2)
                         + " dB; output peak of the last phrase " + juce::String (out, 2) + " dBFS");
             expectGreaterThan (g[200], 0.5, "the gain goes up");
-            expectWithinAbsoluteError (g.back(), 10.0, 1.5);
+            expectWithinAbsoluteError (g.back(), 5.0, 1.0);
             expectWithinAbsoluteError (out, AutoGainStage::targetPeakDb, 1.5);
         }
 
-        beginTest ("very quiet voice (peaks -30 dBFS): boost stops at +12 dB");
+        beginTest ("very quiet voice (peaks " + dbfs (T - 15.0) + "): boost stops at +" + juce::String (AutoGainStage::maxBoostDb, 0) + " dB");
         {
             AutoGainStage s; s.prepare (fs);
-            auto x = voice (13.0, -30.0);
+            auto x = voice (13.0, T - 15.0);
             const auto g = run (s, x);
             double highest = -100.0;
             for (auto v : g) highest = std::max (highest, v);
             logMessage ("    highest gain " + juce::String (highest, 4) + " dB");
             expectLessOrEqual (highest, AutoGainStage::maxBoostDb + 1.0e-9);
-            expectGreaterThan (g.back(), 11.9);
+            expectGreaterThan (g.back(), AutoGainStage::maxBoostDb - 0.1);
         }
 
-        beginTest ("loud voice (peaks -1 dBFS): gain goes down to about -5 dB, output near -6 dBFS");
+        beginTest ("loud voice (peaks " + dbfs (T + 5.0) + "): gain goes down to about -5 dB, output near " + dbfs (T));
         {
             AutoGainStage s; s.prepare (fs);
-            auto x = voice (13.0, -1.0);
+            auto x = voice (13.0, T + 5.0);
             const auto g = run (s, x);
             const double out = peakDbOf (x, lastFrom, lastTo);
             logMessage ("    gain at the end " + juce::String (g.back(), 2) + " dB, output peak " + juce::String (out, 2) + " dBFS");
@@ -116,10 +119,21 @@ struct AutoGainTest : juce::UnitTest
             expectWithinAbsoluteError (out, AutoGainStage::targetPeakDb, 1.5);
         }
 
-        beginTest ("voice already at -6 dBFS: practically no gain");
+        beginTest ("shouting near full scale (peaks -1 dBFS): the cut stops at -12 dB");
         {
             AutoGainStage s; s.prepare (fs);
-            auto x = voice (13.0, -6.0);
+            auto x = voice (13.0, -1.0);
+            const auto g = run (s, x);
+            double lowest = 100.0;
+            for (auto v : g) lowest = std::min (lowest, v);
+            logMessage ("    lowest gain " + juce::String (lowest, 4) + " dB, output peak " + juce::String (peakDbOf (x, lastFrom, lastTo), 2) + " dBFS");
+            expectGreaterOrEqual (lowest, AutoGainStage::maxCutDb - 1.0e-9);
+        }
+
+        beginTest ("voice already at the target (" + dbfs (T) + "): practically no gain");
+        {
+            AutoGainStage s; s.prepare (fs);
+            auto x = voice (13.0, T);
             const auto g = run (s, x);
             double worst = 0.0;
             for (auto v : g) worst = std::max (worst, std::abs (v));
@@ -130,17 +144,17 @@ struct AutoGainTest : juce::UnitTest
         beginTest ("shouting after quiet speech: the gain comes down quickly, without clicks");
         {
             AutoGainStage s; s.prepare (fs);
-            auto quiet = voice (10.5, -16.0);
+            auto quiet = voice (10.5, T - 10.0);
             const auto g0 = run (s, quiet);
             const double before = g0.back();
-            auto shout = voice (3.5, -2.0, -200.0, 7);   // starts with a syllable at t = 0
-            std::vector<float> in = shout;
+            const double shoutDb = -3.0, needed = std::max (AutoGainStage::maxCutDb, T - shoutDb);
+            auto shout = voice (3.5, shoutDb, -200.0, 7);   // starts with a syllable at t = 0
             const auto g1 = run (s, shout);
             size_t blocksToTarget = g1.size();
             for (size_t b = 0; b < g1.size(); ++b)
-                if (g1[b] <= -4.0 + AutoGainStage::fastZoneDb) { blocksToTarget = b + 1; break; }
-            const int clicks = clickSamples (shout, dbToLin (-2.0 + before), 300.0);
-            logMessage ("    gain before " + juce::String (before, 2) + " dB; within 4 dB of the needed -4 dB after "
+                if (g1[b] <= needed + AutoGainStage::fastZoneDb) { blocksToTarget = b + 1; break; }
+            const int clicks = clickSamples (shout, dbToLin (shoutDb + before), 300.0);
+            logMessage ("    gain before " + juce::String (before, 2) + " dB; within 4 dB of the needed " + juce::String (needed, 0) + " dB after "
                         + juce::String ((double) blocksToTarget * block / fs * 1000.0, 0) + " ms; end " + juce::String (g1.back(), 2)
                         + " dB; samples over the click limit " + juce::String (clicks));
             expectLessThan ((double) blocksToTarget * block / fs, 0.25);
@@ -150,7 +164,7 @@ struct AutoGainTest : juce::UnitTest
         beginTest ("silence and quiet room noise hold the gain (no creeping up)");
         {
             AutoGainStage s; s.prepare (fs);
-            auto x = voice (10.5, -16.0);
+            auto x = voice (10.5, T - 10.0);
             run (s, x);
             const double held = s.getTargetGainDb();
             std::vector<float> silence ((size_t) (5.0 * fs), 0.0f);
@@ -176,20 +190,20 @@ struct AutoGainTest : juce::UnitTest
         beginTest ("speech over room noise still raises the gain");
         {
             AutoGainStage s; s.prepare (fs);
-            auto x = voice (13.0, -18.0, -60.0, 9);
+            auto x = voice (13.0, T - 12.0, -60.0, 9);
             const auto g = run (s, x);
             logMessage ("    gain at the end " + juce::String (g.back(), 2) + " dB");
-            expectGreaterThan (g.back(), 9.0);
+            expectGreaterThan (g.back(), AutoGainStage::maxBoostDb - 1.0);
         }
 
         beginTest ("switched off: glides back to exactly 0 dB, then the audio passes bit-exact");
         {
             AutoGainStage s; s.prepare (fs);
-            auto x = voice (10.5, -16.0);
+            auto x = voice (10.5, T - 10.0);
             run (s, x);
             const double start = s.getTargetGainDb();
             s.setEnabled (false);
-            auto y = voice (2.0, -16.0, -200.0, 11);
+            auto y = voice (2.0, T - 10.0, -200.0, 11);
             const auto g = run (s, y);
             bool monotonic = true;
             for (size_t b = 1; b < g.size(); ++b) monotonic = monotonic && g[b] <= g[b - 1];
