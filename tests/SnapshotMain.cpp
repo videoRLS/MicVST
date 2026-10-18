@@ -129,7 +129,7 @@ int main (int argc, char** argv)
         engine.getChain().addMonoToStereo();
         engine.getChain().addGain (6.0f);   // Kazanç-Zeile mit Regler
         engine.getChain().setBypass (1, true);
-        engine.getChain().addAutoGain();    // Otomatik-Kazanç-Zeile (kommt an Position 0)
+        engine.getChain().addAutoGain();    // Otomatik-Kazanç-Zeile (am Ende)
         engine.rebuildGraph();
         if (engine.onScanFinished) engine.onScanFinished();   // list view rebuilds its rows
         pump (800);

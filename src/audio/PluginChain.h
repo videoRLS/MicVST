@@ -46,8 +46,8 @@ public:
     void  setGainDb (int index, float gainDb);
     float getGainDb (int index) const;
 
-    // Otomatik Kazanç: höchstens eins, immer ganz VORN in der Kette (vor allen Effekten und vor dem
-    // manuellen Kazanç). addAutoGain fügt es an Position 0 ein; false, wenn schon eins da ist.
+    // Otomatik Kazanç: höchstens eins; Position wie bei jedem Glied frei wählbar. addAutoGain hängt
+    // es ans Ende an; false, wenn schon eins da ist.
     bool addAutoGain (bool enabled = true);
     bool hasAutoGain() const;
     bool isAutoGain (int index) const;
@@ -75,8 +75,6 @@ public:
     bool isOutputMono() const noexcept { return outputMono.load (std::memory_order_relaxed); }
 
 private:
-    void keepAutoGainFirst();   // nach Verschieben: Otomatik Kazanç zurück an Position 0
-
     juce::AudioProcessorGraph& graph;
     NodeID inputNode, outputNode;
     std::vector<Entry> chain;

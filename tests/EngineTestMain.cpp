@@ -1368,10 +1368,11 @@ namespace
     }
 
     //==============================================================================
-    // Built-in "Otomatik Kazanç" (auto gain), basic checks through the real engine: it changes the
-    // output (speech peaks to about -15 dBFS), the meters show the real values, silence holds the
-    // gain, switching on/off is click-free and returns to 0 dB, it stays first in the chain, and
-    // with auto gain off the manual Kazanç measures exactly as before.
+    // Built-in "Otomatik Kazanç" (auto gain), basic checks through the real engine: normal speech
+    // peaks near -15 dBFS at any microphone level (no fixed gain range), shouting near -17.5 dBFS,
+    // a sudden rise and the way back, long silence (last gain kept, no gate) and speaking again,
+    // never above -1 dBFS, free position in the chain, on/off, the manual Kazanç unchanged with auto
+    // gain off, save/restore.
     // Test signal: speech-like phrases (2.5 s of 150 ms syllables every 250 ms, then 1 s pause).
     float voiceSample (double t, double peakAmp)
     {
@@ -1382,16 +1383,20 @@ namespace
         return (float) (peakAmp * env * std::sin (twoPi * 300.0 * t));
     }
 
-    // voice until voiceSeconds, then nothing; plus white noise of noiseDb RMS throughout (-200 = none)
-    void voiceConfig (double peakDb, double voiceSeconds = 1.0e9, double noiseDb = -200.0)
+    // Voice whose peak level changes at given times: segments = { { from second, peak dBFS }, ... }
+    // (-200 = no voice); plus white noise of noiseDb RMS all the time (-200 = none).
+    void voiceConfig (std::vector<std::pair<double, double>> segments, double noiseDb = -200.0)
     {
         auto& cfg = vdev::config();
-        const double a = juce::Decibels::decibelsToGain (peakDb), rate = cfg.micRate;
+        const double rate = cfg.micRate;
         const double n = noiseDb > -150.0 ? juce::Decibels::decibelsToGain (noiseDb) * std::sqrt (3.0) : 0.0;
-        cfg.signal = [a, n, rate, voiceSeconds] (int, int64_t i)
+        for (auto& s : segments) s.second = s.second > -150.0 ? juce::Decibels::decibelsToGain (s.second) : 0.0;
+        cfg.signal = [segments, n, rate] (int, int64_t i)
         {
             const double t = (double) i / rate;
-            float v = t < voiceSeconds ? voiceSample (t, a) : 0.0f;
+            double a = 0.0;
+            for (auto& s : segments) if (t >= s.first) a = s.second;
+            float v = a > 0.0 ? voiceSample (t, a) : 0.0f;
             if (n > 0.0)
             {
                 uint32_t h = (uint32_t) i * 2654435761u; h ^= h >> 15; h *= 2246822519u; h ^= h >> 13;
@@ -1400,6 +1405,7 @@ namespace
             return v;
         };
     }
+    void voiceConfig (double peakDb) { voiceConfig ({ { 0.0, peakDb } }); }
 
     juce::String chainOrder (PluginChain& c)
     {
@@ -1409,57 +1415,169 @@ namespace
         return s;
     }
 
+    int autoGainIndex (PluginChain& c)
+    {
+        for (int i = 0; i < (int) c.entries().size(); ++i) if (c.isAutoGain (i)) return i;
+        return -1;
+    }
+
     void autoGainTest()
     {
         auto& cfg = vdev::config();
         const double fs = cfg.cableRate;
+        const double N = AutoGainStage::normalPeakDb, S = AutoGainStage::shoutPeakDb, C = AutoGainStage::ceilingDb;
         auto addAuto = [] (EngineRun& r, bool on)
         {
             r.engine->getChain().addAutoGain (on);
             const AudioEngine::ChainEdit edit (*r.engine);
             r.engine->rebuildGraph();
         };
-        auto peakDbOf = [] (const std::vector<float>& y, size_t from, size_t to)
+        auto edit = [] (EngineRun& r, std::function<void (PluginChain&)> f)
         {
+            const AudioEngine::ChainEdit ce (*r.engine);
+            f (r.engine->getChain());
+            r.engine->rebuildGraph();
+        };
+        auto peakDbOf = [&fs] (double fromSec, double toSec)
+        {
+            const auto& L = vdev::recorder().left;
             float m = 0.0f;
-            for (size_t i = from; i < std::min (to, y.size()); ++i) m = std::max (m, std::abs (y[i]));
+            for (size_t i = (size_t) (fromSec * fs); i < std::min ((size_t) (toSec * fs), L.size()); ++i) m = std::max (m, std::abs (L[i]));
             return juce::Decibels::gainToDecibels ((double) m, -200.0);
         };
-
-        pr ("## Otomatik Kazanç: speech peaks in -> out (48/48 kHz, buffer 480, 13 s, analysed from 6.8 s = after the first two phrases)");
-        pr ("| Chain | Input peaks | Output peaks | Expected | Gain shown in the row | Gain measured (out - in) | L = R | Clicks | Silent runs > 100 ms (3 = the phrase pauses) |");
-        pr ("|---|---:|---:|---:|---:|---:|---:|---:|---:|");
-        const double T = AutoGainStage::targetPeakDb;
-        auto speechRow = [&] (const juce::String& what, double peakDb, bool withAuto)
+        auto meters = [] (EngineRun& r)
         {
-            const double expectedDb = withAuto ? peakDb + std::clamp (T - peakDb, AutoGainStage::maxCutDb, AutoGainStage::maxBoostDb) : peakDb;
+            AutoGainStage::Meters m;
+            auto& c = r.engine->getChain();
+            c.takeAutoGainMeters (autoGainIndex (c), m);
+            return m;
+        };
+        double loudest = -200.0;   // every run with Otomatik Kazanç on: never above -1 dBFS
+        auto clicksInRun = [&fs, &loudest, &peakDbOf] (bool countLoudest)
+        {
+            const auto& L = vdev::recorder().left;
+            const double top = peakDbOf (0.0, 1.0e9);
+            if (countLoudest) loudest = std::max (loudest, top);
+            const size_t start = firstAudio (L) + (size_t) (0.05 * fs);
+            return clicks (L, start, L.size(), juce::Decibels::decibelsToGain (top), 300.0 / fs).events;
+        };
+
+        pr ("## Otomatik Kazanç: normal speech at different microphone levels (13 s, output analysed from 6.8 s)");
+        pr ("| Chain | Input peaks | Output peaks | Aim | Gain shown in the row | Gain measured (out - in) | L = R | Clicks |");
+        pr ("|---|---:|---:|---:|---:|---:|---:|---:|");
+        auto speechRow = [&] (const juce::String& what, double peakDb, std::function<void (EngineRun&)> setup, double aimDb, double inputToAuto)
+        {
             voiceConfig (peakDb);
             AutoGainStage::Meters m;
+            bool withAuto = false;
             {
                 EngineRun run (480, 13.0);
-                if (withAuto) addAuto (run, true);
+                setup (run);
+                withAuto = autoGainIndex (run.engine->getChain()) >= 0;
                 pump (13.0);
-                if (withAuto) run.engine->getChain().takeAutoGainMeters (0, m);
+                if (withAuto) m = meters (run);
                 pr ("    " + diagLine (*run.engine));
             }
             const auto& L = vdev::recorder().left;
             const auto& R = vdev::recorder().right;
-            const double out = peakDbOf (L, (size_t) (6.8 * fs), L.size());
+            const double out = peakDbOf (6.8, 1.0e9);
             bool same = true;
             for (size_t i = 0; i < std::min (L.size(), R.size()); ++i) same = same && juce::exactlyEqual (L[i], R[i]);
-            const size_t start = firstAudio (L) + (size_t) (0.05 * fs);
-            const auto clk = clicks (L, start, L.size(), juce::Decibels::decibelsToGain (std::max (out, peakDb)), 300.0 / fs);
-            const auto gaps = silences (L, start, fs, 4800);   // the pauses themselves are digital silence: only count holes > 100 ms
-            pr ("| " + what + " | " + db (peakDb, 2) + "FS | " + db (out, 2) + "FS | " + db (expectedDb, 1) + "FS | "
-                + (withAuto ? db (m.gainDb, 2) : juce::String ("-")) + " | " + db (out - peakDb, 2) + " | " + (same ? "yes" : "NO")
-                + " | " + juce::String (clk.events) + " | " + juce::String (gaps.count) + " |");
+            const int clk = clicksInRun (withAuto);
+            pr ("| " + what + " | " + db (peakDb, 2) + "FS | " + db (out, 2) + "FS | " + db (aimDb, 1) + "FS | "
+                + (withAuto ? db (m.gainDb, 2) : juce::String ("-")) + " | " + db (out - inputToAuto, 2) + " | " + (same ? "yes" : "NO")
+                + " | " + juce::String (clk) + " |");
         };
-        speechRow ("empty chain (reference)", T - 5.0, false);
-        speechRow ("Otomatik Kazanç, quiet voice", T - 5.0, true);
-        speechRow ("Otomatik Kazanç, very quiet voice (needs more than +" + juce::String (AutoGainStage::maxBoostDb, 0) + " dB)", T - 12.0, true);
-        speechRow ("Otomatik Kazanç, voice already at the target", T, true);
-        speechRow ("Otomatik Kazanç, loud voice", T + 5.0, true);
-        speechRow ("Otomatik Kazanç, shouting near full scale (cut limited to -12 dB)", -1.0, true);
+        auto autoOnly = [&addAuto] (EngineRun& r) { addAuto (r, true); };
+        speechRow ("empty chain (reference)", -25.0, [] (EngineRun&) {}, -25.0, -25.0);
+        speechRow ("Otomatik Kazanç, voice at -25 dBFS", -25.0, autoOnly, N, -25.0);
+        speechRow ("Otomatik Kazanç, very quiet voice (needs about +25 dB)", -40.0, autoOnly, N, -40.0);
+        speechRow ("Otomatik Kazanç, voice already at -15 dBFS", -15.0, autoOnly, N, -15.0);
+        speechRow ("Otomatik Kazanç, hot microphone (needs about -12 dB)", -3.0, autoOnly, N, -3.0);
+
+        pr ("");
+        pr ("## Otomatik Kazanç: shouting and back (voice -25 dBFS, from 14 s on 12 dB louder at -13 dBFS, from 24.5 s on -25 dBFS again)");
+        {
+            voiceConfig ({ { 0.0, -25.0 }, { 14.0, -13.0 }, { 24.5, -25.0 } });
+            {
+                EngineRun run (480, 35.0);
+                addAuto (run, true);
+                pump (35.0);
+                pr ("    " + diagLine (*run.engine));
+            }
+            const int clk = clicksInRun (true);
+            pr ("output peaks: normal phrase before " + db (peakDbOf (10.4, 13.2), 2) + "FS (aim " + db (N, 1) + "FS); first 0.5 s of shouting "
+                + db (peakDbOf (13.9, 14.6), 2) + "FS; last shouting phrase " + db (peakDbOf (20.9, 23.7), 2) + "FS (aim " + db (S, 1) + "FS)");
+            pr ("normal phrases after the shouting: " + db (peakDbOf (24.4, 27.2), 2) + "FS / " + db (peakDbOf (27.9, 30.7), 2) + "FS / "
+                + db (peakDbOf (31.4, 34.2), 2) + "FS; clicks " + juce::String (clk));
+        }
+
+        pr ("");
+        pr ("## Otomatik Kazanç: long silence and speaking again (voice -25 dBFS until 9.6 s, silence, from 21 s on 6 dB quieter; white noise -70 dBFS RMS all the time)");
+        {
+            voiceConfig ({ { 0.0, -25.0 }, { 9.6, -200.0 }, { 21.0, -31.0 } }, -70.0);
+            AutoGainStage::Meters a, b, c, d, e;
+            {
+                EngineRun run (480, 34.0);
+                addAuto (run, true);
+                pump (9.0);  a = meters (run);
+                pump (1.5);  b = meters (run);
+                pump (10.0); c = meters (run);
+                pump (1.0);  d = meters (run);
+                pump (12.0); e = meters (run);
+            }
+            const auto& L = vdev::recorder().left;
+            double s2 = 0.0; size_t n = 0;
+            for (size_t i = (size_t) (12.0 * fs); i < std::min (L.size(), (size_t) (20.0 * fs)); ++i, ++n) s2 += (double) L[i] * L[i];
+            const double noiseOut = juce::Decibels::gainToDecibels (std::sqrt (n > 0 ? s2 / (double) n : 0.0), -200.0);
+            clicksInRun (true);
+            pr ("gain shown: 9.0 s (speaking) " + db (a.gainDb, 4) + ", 10.5 s (silence) " + db (b.gainDb, 4) + ", 20.5 s (silence) " + db (c.gainDb, 4)
+                + ", 21.5 s (speaking again) " + db (d.gainDb, 4) + ", 33.5 s " + db (e.gainDb, 4));
+            pr ("noise in the output during the silence (12..20 s): " + db (noiseOut, 2) + "FS RMS = input -70 dBFS + kept gain " + db (c.gainDb, 2)
+                + " (no gate); last phrase " + db (peakDbOf (31.4, 34.2), 2) + "FS (aim " + db (N, 1) + "FS)");
+        }
+
+        pr ("");
+        pr ("## Otomatik Kazanç: a full-scale phrase right after quiet speech (voice -35 dBFS, from 14 s on 0 dBFS)");
+        {
+            voiceConfig ({ { 0.0, -35.0 }, { 14.0, 0.0 } });
+            AutoGainStage::Meters before;
+            {
+                EngineRun run (480, 18.0);
+                addAuto (run, true);
+                pump (13.5); before = meters (run);
+                pump (4.5);
+            }
+            clicksInRun (true);
+            pr ("gain before " + db (before.gainDb, 2) + "; output peak of the 0 dBFS phrase " + db (peakDbOf (13.9, 18.0), 3) + "FS (limit " + db (C, 1) + "FS)");
+        }
+
+        pr ("");
+        pr ("## Otomatik Kazanç: position in the chain is free");
+        {
+            voiceConfig (-25.0);
+            EngineRun run (480, 22.0);
+            run.engine->getChain().addGain (6.0f);
+            run.add (testDesc ("TestDelay", 10));
+            addAuto (run, true);
+            auto& c = run.engine->getChain();
+            pr ("added to a chain Kazanc, other: " + chainOrder (c));
+            pump (6.0);
+            edit (run, [] (PluginChain& ch) { ch.movePlugin (2, 0); });  pr ("moved to the top: " + chainOrder (c));                pump (3.0);
+            edit (run, [] (PluginChain& ch) { ch.movePlugin (0, 1); });  pr ("moved behind the Kazanc: " + chainOrder (c));         pump (3.0);
+            edit (run, [] (PluginChain& ch) { ch.movePlugin (2, 0); });  pr ("another element moved in front: " + chainOrder (c)); pump (3.0);
+            edit (run, [] (PluginChain& ch) { ch.movePlugin (1, 2); });  pr ("moved to the end again: " + chainOrder (c));         pump (6.0);
+            pr ("second Otomatik Kazanç refused: " + juce::String (c.addAutoGain() ? "NO (added)" : "yes"));
+            pr ("    " + diagLine (*run.engine));
+        }
+        pr ("clicks while audio ran through 4 moves: " + juce::String (clicksInRun (true)));
+        pr ("| Chain | Input peaks | Output peaks | Aim | Gain shown in the row | Gain measured (out - input of the auto gain) | L = R | Clicks |");
+        pr ("|---|---:|---:|---:|---:|---:|---:|---:|");
+        speechRow ("Kazanç +6 -> Otomatik Kazanç (auto gain behind the manual gain)", -25.0,
+                   [&addAuto] (EngineRun& r) { r.engine->getChain().addGain (6.0f); addAuto (r, true); }, N, -19.0);
+        speechRow ("Otomatik Kazanç -> Kazanç +6 (manual gain after it)", -25.0,
+                   [&addAuto, &edit] (EngineRun& r) { r.engine->getChain().addGain (6.0f); addAuto (r, true); edit (r, [] (PluginChain& ch) { ch.movePlugin (1, 0); }); },
+                   N + 6.0, -25.0);
 
         pr ("");
         pr ("## Otomatik Kazanç off: the manual Kazanç is unchanged (997 Hz, -20 dBFS in)");
@@ -1473,37 +1591,20 @@ namespace
         const double amp = 0.1;
         row ("Kazanç +6 (reference)", measureSine (997.0, amp, 8.0, 480, 4.0, [] (EngineRun& r)
              { r.engine->getChain().addGain (6.0f); const AudioEngine::ChainEdit e (*r.engine); r.engine->rebuildGraph(); }, 2.0), 6.0);
-        row ("Otomatik Kazanç (off) -> Kazanç +6", measureSine (997.0, amp, 8.0, 480, 4.0, [&addAuto] (EngineRun& r)
+        row ("Kazanç +6 -> Otomatik Kazanç (off)", measureSine (997.0, amp, 8.0, 480, 4.0, [&addAuto] (EngineRun& r)
              { r.engine->getChain().addGain (6.0f); addAuto (r, false); }, 2.0), 6.0);
         row ("Otomatik Kazanç (off) alone", measureSine (997.0, amp, 8.0, 480, 4.0, [&addAuto] (EngineRun& r) { addAuto (r, false); }), 0.0);
 
         pr ("");
-        pr ("## Otomatik Kazanç: position in the chain");
-        {
-            voiceConfig (-16.0);
-            EngineRun run (480, 3.0);
-            auto& c = run.engine->getChain();
-            c.addGain (6.0f);
-            addAuto (run, true);
-            pr ("added after a Kazanç: " + chainOrder (c));
-            { const AudioEngine::ChainEdit e (*run.engine); c.movePlugin (0, 1); run.engine->rebuildGraph(); }
-            pr ("after moving it behind the Kazanç: " + chainOrder (c));
-            { const AudioEngine::ChainEdit e (*run.engine); c.movePlugin (1, 0); run.engine->rebuildGraph(); }
-            pr ("after moving the Kazanç to the top: " + chainOrder (c));
-            pr ("second Otomatik Kazanç refused: " + juce::String (c.addAutoGain() ? "NO (added)" : "yes"));
-            pump (1.0);
-        }
-
-        pr ("");
-        pr ("## Otomatik Kazanç: saved and restored (captureState -> config.xml -> applyState)");
+        pr ("## Otomatik Kazanç: saved and restored (captureState -> config.xml -> applyState), position and on/off");
         for (bool on : { false, true })
         {
-            voiceConfig (-16.0);
+            voiceConfig (-25.0);
             MicVSTState saved;
             {
                 EngineRun run (480, 2.0);
                 run.engine->getChain().addGain (6.0f);
-                addAuto (run, on);
+                addAuto (run, on);   // at the end: Kazanc, Otomatik Kazanc
                 pump (0.5);
                 saved = run.engine->captureState();
             }
@@ -1515,39 +1616,16 @@ namespace
             run.engine->applyState (st);
             pump (0.5);
             auto& c = run.engine->getChain();
-            pr ("saved with Otomatik Kazanç " + juce::String (on ? "on" : "off") + " -> restored chain: " + chainOrder (c)
-                + "; Otomatik Kazanç " + (c.isAutoGain (0) ? (c.isAutoGainEnabled (0) ? "on" : "off") : "missing")
-                + "; Kazanç " + (c.isGain (1) ? db (c.getGainDb (1), 1) : juce::String ("missing")));
+            const int ai = autoGainIndex (c);
+            pr ("saved Kazanc, Otomatik Kazanc (" + juce::String (on ? "on" : "off") + ") -> restored: " + chainOrder (c)
+                + "; Otomatik Kazanç " + (ai >= 0 ? (c.isAutoGainEnabled (ai) ? "on" : "off") : "missing")
+                + "; Kazanç " + (c.isGain (0) ? db (c.getGainDb (0), 1) : juce::String ("missing")));
         }
 
         pr ("");
-        pr ("## Otomatik Kazanç: silence and room noise hold the gain (voice " + juce::String (T - 10.0, 0) + " dBFS until 9.6 s, white noise -70 dBFS RMS all the time)");
+        pr ("## Otomatik Kazanç: switched off and on during speech (voice -25 dBFS, 4 x off 2 s / on 2 s)");
         {
-            voiceConfig (T - 10.0, 9.6, -70.0);
-            AutoGainStage::Meters a, b, c;
-            {
-                EngineRun run (480, 17.0);
-                addAuto (run, true);
-                pump (9.0);  run.engine->getChain().takeAutoGainMeters (0, a);
-                pump (1.5);  run.engine->getChain().takeAutoGainMeters (0, b);
-                pump (6.0);  run.engine->getChain().takeAutoGainMeters (0, c);
-            }
-            const auto& L = vdev::recorder().left;
-            const double noiseOut = juce::Decibels::gainToDecibels (std::sqrt ([&]
-            {
-                double s = 0; size_t n = 0;
-                for (size_t i = (size_t) (12.0 * fs); i < std::min (L.size(), (size_t) (16.0 * fs)); ++i, ++n) s += (double) L[i] * L[i];
-                return n > 0 ? s / (double) n : 0.0;
-            }()), -200.0);
-            pr ("gain at 9.0 s (speaking) " + db (a.gainDb, 3) + ", at 10.5 s (noise only) " + db (b.gainDb, 3) + ", at 16.5 s " + db (c.gainDb, 3)
-                + "; speech detected at the three points: " + juce::String (a.speech ? "yes" : "no") + " / " + (b.speech ? "yes" : "no") + " / " + (c.speech ? "yes" : "no")
-                + "; noise in the output 12..16 s " + db (noiseOut, 1) + "FS RMS (input -70 dBFS + held gain)");
-        }
-
-        pr ("");
-        pr ("## Otomatik Kazanç: switched off and on during speech (voice " + juce::String (T - 10.0, 0) + " dBFS, 4 x off 2 s / on 2 s)");
-        {
-            voiceConfig (T - 10.0);
+            voiceConfig (-25.0);
             AutoGainStage::Meters offState;
             {
                 EngineRun run (480, 24.0);
@@ -1556,18 +1634,16 @@ namespace
                 for (int k = 0; k < 4; ++k)
                 {
                     run.engine->getChain().setAutoGainEnabled (0, false); pump (2.0);
-                    if (k == 3) run.engine->getChain().takeAutoGainMeters (0, offState);
+                    if (k == 3) offState = meters (run);
                     run.engine->getChain().setAutoGainEnabled (0, true);  pump (2.0);
                 }
                 pr ("    " + diagLine (*run.engine));
             }
-            const auto& L = vdev::recorder().left;
-            const size_t start = firstAudio (L) + (size_t) (0.05 * fs);
-            std::vector<size_t> where;
-            const auto clk = clicks (L, start, L.size(), juce::Decibels::decibelsToGain (T + 2.0), 300.0 / fs, 480, &where);
-            pr ("clicks " + juce::String (clk.events) + "; gain shown 2 s after switching off: " + db (offState.gainDb, 6));
-            for (size_t k = 0; k < std::min<size_t> (where.size(), 5); ++k) pr ("    click at " + juce::String ((double) where[k] / fs, 3) + " s");
+            pr ("clicks " + juce::String (clicksInRun (true)) + "; gain shown 2 s after switching off: " + db (offState.gainDb, 6));
         }
+
+        pr ("");
+        pr ("loudest output sample in all runs with Otomatik Kazanç on: " + db (loudest, 3) + "FS (must stay at or below " + db (C, 1) + "FS)");
     }
 }
 #endif

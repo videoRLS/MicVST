@@ -1058,10 +1058,10 @@ void AudioEngine::restoreChain (const juce::Array<PluginEntryState>& plugins)
             if (p.fileOrId == PluginChain::monoToStereoId)      pluginChain->addMonoToStereo();
             else if (p.fileOrId == PluginChain::stereoToMonoId) pluginChain->addStereoToMono();
             else if (p.fileOrId == PluginChain::gainId)         pluginChain->addGain();
-            else                                                pluginChain->addAutoGain();   // kommt an Position 0
+            else                                                pluginChain->addAutoGain();
             if (pluginChain->entries().size() == before)
                 continue;   // nicht angelegt: nie den Zustand/Bypass des vorherigen Glieds ändern
-            const int idx = p.fileOrId == PluginChain::autoGainId ? 0 : (int) before;
+            const int idx = (int) before;   // gespeicherte Position (wird am Ende angehängt)
             if (p.fileOrId == PluginChain::gainId || p.fileOrId == PluginChain::autoGainId)   // dB-Wert bzw. Ein/Aus
                 if (auto* node = graph.getNodeForId (pluginChain->entries()[(size_t) idx].node))
                     node->getProcessor()->setStateInformation (p.state.getData(), (int) p.state.getSize());

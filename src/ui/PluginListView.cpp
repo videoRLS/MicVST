@@ -111,11 +111,13 @@ PluginListView::Row::Row (PluginListView& ownerIn, int idx) : owner (ownerIn), i
     {
         autoToggle.setButtonText (tr ("Etkin"));
         autoToggle.setToggleState (owner.engine.getChain().isAutoGainEnabled (index), juce::dontSendNotification);
-        autoToggle.setTooltip (tr ("Otomatik Kazanç: konuşmanın tepe seviyesini yaklaşık -15 dBFS'ye getirir; gerektiği kadar, "
-                                   "en çok +6 dB yükseltir, yüksek seste -12 dB'ye kadar azaltır. Sessizlikte kazancı bekletir. "
-                                   "Zincirin en başında, manuel Kazanç'tan önce çalışır. Kapatınca kazanç yumuşakça 0 dB'ye döner.\n"
+        autoToggle.setTooltip (tr ("Otomatik Kazanç: sesinizi canlı analiz eder; normal konuşmada tepe seviyesini yaklaşık "
+                                   "-15 dBFS'ye, bağırırken yaklaşık -17,5 dBFS'ye getirir. Sabit kazanç ya da kazanç aralığı yoktur. "
+                                   "Sessizlikte son kazancı aynen korur; noise gate yoktur, ses hiç kesilmez. Çıkışta -1 dBFS "
+                                   "üstündeki tepeler sınırlanır (dijital kırpılma olmaz). Zincirdeki yeri sürükleyerek değiştirilebilir. "
+                                   "Kapatınca kazanç yumuşakça 0 dB'ye döner.\n"
                                    "Gösterge: uygulanan kazanç (giriş tepe -> çıkış tepe, dBFS). Beyaz: konuşma algılanıyor, "
-                                   "gri: bekletiliyor ya da kapalı."));
+                                   "gri: kazanç korunuyor ya da kapalı."));
         autoToggle.onClick = [this] { owner.autoGainToggled (index, autoToggle.getToggleState()); };
         addAndMakeVisible (autoToggle);
         startTimerHz (10);   // Live-Anzeige
@@ -483,10 +485,10 @@ void PluginListView::addFromPicker (const juce::PluginDescription& desc)
     if (desc.fileOrIdentifier == PluginChain::autoGainId)
     {
         if (engine.getChain().hasAutoGain())
-            return;   // nur eins (es steht schon ganz oben in der Kette)
+            return;   // nur eins
         {
             const AudioEngine::ChainEdit edit (engine);
-            engine.getChain().addAutoGain();   // an Position 0, eingeschaltet
+            engine.getChain().addAutoGain();   // ans Ende, eingeschaltet
             engine.rebuildGraph();
         }
         commitChange();

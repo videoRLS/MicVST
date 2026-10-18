@@ -169,7 +169,7 @@ bool PluginChain::addAutoGain (bool enabled)
     proc->setAutoGainEnabled (enabled);
     auto node = graph.addNode (std::move (proc));
     if (node == nullptr) return false;
-    chain.insert (chain.begin(), { node->nodeID, autoGainId, false });   // vor allem anderen
+    chain.push_back ({ node->nodeID, autoGainId, false });   // wie jedes Glied ans Ende; der Nutzer bestimmt die Position
     return true;
 }
 
@@ -221,18 +221,6 @@ bool PluginChain::takeAutoGainMeters (int index, AutoGainStage::Meters& out)
     return false;
 }
 
-void PluginChain::keepAutoGainFirst()
-{
-    for (size_t i = 1; i < chain.size(); ++i)
-        if (chain[i].fileOrId == autoGainId)
-        {
-            auto e = chain[i];
-            chain.erase (chain.begin() + (long) i);
-            chain.insert (chain.begin(), e);
-            return;
-        }
-}
-
 void PluginChain::removePlugin (int index)
 {
     if (! juce::isPositiveAndBelow (index, (int) chain.size())) return;
@@ -250,7 +238,6 @@ void PluginChain::movePlugin (int from, int to)
     auto e = chain[(size_t) from];
     chain.erase (chain.begin() + from);
     chain.insert (chain.begin() + to, e);
-    keepAutoGainFirst();   // Otomatik Kazanç bleibt vorn, alles andere dahinter
 }
 
 void PluginChain::setBypass (int index, bool b)

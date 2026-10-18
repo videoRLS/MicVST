@@ -122,7 +122,7 @@ Run-Test "mono"    @("mono")    120
 Run-Test "flutter" @("flutter") 300
 Run-Test "quality" @("quality") 900
 Run-Test "gain"    @("gain", "60") 900   # built-in Kazanç: level, channels, slider moved 60 s, edits, restore
-Run-Test "autogain" @("autogain") 300    # built-in Otomatik Kazanç: speech level, meters, silence hold, on/off, order
+Run-Test "autogain" @("autogain") 900    # built-in Otomatik Kazanç: speech levels, shouting, silence, clipping, position, on/off
 if ($vst3) { Run-Test "vst3" @("vst3") 900 }
 
 # Fidelity: exact input vs. recorded cable output (analysed below)
