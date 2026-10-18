@@ -40,6 +40,7 @@ FetchContent_MakeAvailable(JUCE)
 # --- Shared logic library (engine, state, audio helpers) ---
 add_library(MicVSTCore STATIC
     src/audio/AudioBridge.cpp
+    src/audio/BuiltInGain.cpp
     src/audio/RealtimeSupport.cpp
     src/audio/Metering.cpp
     src/audio/GraphConnections.cpp
@@ -114,6 +115,7 @@ target_sources(MicVSTTests PRIVATE
     tests/PickerTests.cpp
     tests/BridgeTests.cpp
     tests/TextTests.cpp
+    tests/GainTests.cpp
 )
 target_include_directories(MicVSTTests PRIVATE tests)
 target_compile_definitions(MicVSTTests PRIVATE

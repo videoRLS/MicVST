@@ -1051,11 +1051,20 @@ void AudioEngine::restoreChain (const juce::Array<PluginEntryState>& plugins)
 
     for (auto& p : plugins)
     {
-        if (p.fileOrId == PluginChain::monoToStereoId || p.fileOrId == PluginChain::stereoToMonoId)
+        if (p.fileOrId == PluginChain::monoToStereoId || p.fileOrId == PluginChain::stereoToMonoId
+             || p.fileOrId == PluginChain::gainId)
         {
-            if (p.fileOrId == PluginChain::monoToStereoId) pluginChain->addMonoToStereo();
-            else                                           pluginChain->addStereoToMono();
-            pluginChain->setBypass ((int) pluginChain->entries().size() - 1, p.bypassed);
+            const auto before = pluginChain->entries().size();
+            if (p.fileOrId == PluginChain::monoToStereoId)      pluginChain->addMonoToStereo();
+            else if (p.fileOrId == PluginChain::stereoToMonoId) pluginChain->addStereoToMono();
+            else                                                pluginChain->addGain();
+            if (pluginChain->entries().size() == before)
+                continue;   // nicht angelegt: nie den Zustand/Bypass des vorherigen Glieds ändern
+            const int idx = (int) before;
+            if (p.fileOrId == PluginChain::gainId)   // gespeicherter Kazanç-Wert (dB)
+                if (auto* node = graph.getNodeForId (pluginChain->entries()[(size_t) idx].node))
+                    node->getProcessor()->setStateInformation (p.state.getData(), (int) p.state.getSize());
+            pluginChain->setBypass (idx, p.bypassed);
             continue;
         }
 

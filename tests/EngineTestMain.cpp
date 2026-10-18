@@ -10,6 +10,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_formats/juce_audio_formats.h>
 #include "audio/AudioEngine.h"
+#include "audio/GainStage.h"
 #include <array>
 #include <cstdio>
 #include <cstdlib>
@@ -64,7 +65,7 @@ namespace
     // Test "plug-ins"
     struct TestProcessor : juce::AudioPluginInstance
     {
-        enum class Kind { gain, invert, delay, load, nan, huge, hang, thrower, slowPrepare, stall };
+        enum class Kind { gain, invert, delay, load, nan, huge, hang, thrower, slowPrepare, stall, stepGain };
         TestProcessor (Kind k, double p)
             : AudioPluginInstance (BusesProperties().withInput ("In", juce::AudioChannelSet::stereo())
                                                     .withOutput ("Out", juce::AudioChannelSet::stereo())),
@@ -79,7 +80,7 @@ namespace
                 case Kind::gain: return "TestGain"; case Kind::invert: return "TestInvert"; case Kind::delay: return "TestDelay";
                 case Kind::load: return "TestLoad"; case Kind::nan: return "TestNaN"; case Kind::huge: return "TestHuge";
                 case Kind::hang: return "TestHang"; case Kind::thrower: return "TestThrow"; case Kind::slowPrepare: return "TestSlowPrepare";
-                case Kind::stall: return "TestStall";
+                case Kind::stall: return "TestStall"; case Kind::stepGain: return "TestStepGain";
             }
             return "Test";
         }
@@ -137,6 +138,9 @@ namespace
                     if (blocks >= 200 && (int) ((blocks - 200) * blockMs) / 3000 != (int) ((blocks - 199) * blockMs) / 3000)
                         juce::Thread::sleep ((int) param);
                     break;
+                case Kind::stepGain:   // control for the Kazanç test: abrupt -30 dB <-> +12 dB every param blocks
+                    b.applyGain ((blocks / juce::jmax (1, (int) param)) % 2 == 0 ? 0.0316228f : 3.9810717f);
+                    break;
             }
             ++blocks;
         }
@@ -186,6 +190,7 @@ namespace
             if (id == "TestThrow")  { cb (std::make_unique<TestProcessor> (K::thrower, p), {}); return; }
             if (id == "TestSlowPrepare") { cb (std::make_unique<TestProcessor> (K::slowPrepare, p), {}); return; }
             if (id == "TestStall")  { cb (std::make_unique<TestProcessor> (K::stall, p), {}); return; }
+            if (id == "TestStepGain") { cb (std::make_unique<TestProcessor> (K::stepGain, p > 0 ? p : 5), {}); return; }
             cb (nullptr, "unknown test plug-in");
         }
     };
@@ -430,13 +435,17 @@ namespace
     struct SineResult { double gainDbL = 0, gainDbR = 0, thdnL = 0, thdnR = 0, thdnWorstL = 0, freqRatio = 0; int windows = 0, badWindows = 0;
                         Discontinuities clk; Silences gaps; };
 
-    SineResult measureSine (double freqHz, double amp, double seconds, int buffer, double analyseFrom = 4.0)
+    // setup: builds the chain before the measurement runs; outputGain: the chain's gain (the click
+    // detector's limit scales with the output amplitude).
+    SineResult measureSine (double freqHz, double amp, double seconds, int buffer, double analyseFrom = 4.0,
+                            std::function<void (EngineRun&)> setup = {}, double outputGain = 1.0)
     {
         auto& cfg = vdev::config();
         sineConfig (freqHz, amp, cfg.micRate);
         SineResult r;
         {
             EngineRun run (buffer, seconds);
+            if (setup) setup (run);
             pump (seconds);
             pr ("    " + diagLine (*run.engine));
         }
@@ -468,7 +477,7 @@ namespace
         r.thdnWorstL = worst (tl);
         r.windows = (int) gl.size();
         const size_t start = firstAudio (L) + (size_t) (0.05 * fs);
-        r.clk = clicks (L, start, L.size(), amp, cps);
+        r.clk = clicks (L, start, L.size(), amp * outputGain, cps);
         r.gaps = silences (L, start, fs);
         return r;
     }
@@ -1179,6 +1188,188 @@ namespace
 }
 
 #if MICVST_NEW_ENGINE
+namespace
+{
+    //==============================================================================
+    // Built-in "Kazanç" (gain): accuracy and transparency, the slider moved while audio runs (with
+    // a control that steps the gain abruptly, to show that the detector would see it), mono/stereo
+    // wiring, chain edits, restoring a saved chain, a different microphone rate and a long run.
+    void gainTest (double liveSeconds)
+    {
+        auto& cfg = vdev::config();
+        const double fs = cfg.cableRate;
+        const double toneHz = 997.0;
+        auto addGain = [] (EngineRun& r, float db)
+        {
+            r.engine->getChain().addGain (db);
+            const AudioEngine::ChainEdit edit (*r.engine);
+            r.engine->rebuildGraph();
+        };
+        auto row = [] (const juce::String& what, const SineResult& r, double expectedDb)
+        {
+            pr ("| " + what + " | " + db (r.gainDbL, 3) + " / " + db (r.gainDbR, 3) + " | " + db (expectedDb, 3)
+                + " | " + db (r.thdnL) + " / " + db (r.thdnR) + " | " + juce::String (r.clk.events) + " | " + juce::String (r.gaps.count) + " |");
+        };
+
+        pr ("## Kazanç: level and THD+N (997 Hz, -20 dBFS in, 48/48 kHz, buffer 480)");
+        pr ("| Chain | Gain L / R | Expected | THD+N L / R | Clicks | Gaps |");
+        pr ("|---|---:|---:|---:|---:|---:|");
+        const double amp = 0.1;
+        row ("empty chain (reference)", measureSine (toneHz, amp, 10.0, 480), 0.0);
+        for (float g : { 0.0f, 6.0f, 12.0f, -30.0f, 3.3f })
+            row ("Kazanç " + juce::String (g, 1) + " dB",
+                 measureSine (toneHz, amp, 10.0, 480, 4.0, [&addGain, g] (EngineRun& r) { addGain (r, g); }, GainStage::dbToGain (g)),
+                 (double) g);
+        row ("full-scale tone, Kazanç +12 dB (output +12 dBFS: float, not clipped in MicVST)",
+             measureSine (toneHz, 1.0, 10.0, 480, 4.0, [&addGain] (EngineRun& r) { addGain (r, 12.0f); }, 4.0), 12.0);
+
+        pr ("");
+        pr ("## Kazanç: channels");
+        pr ("| Microphone / chain | Gain L / R | Expected | THD+N L / R | Clicks | Gaps |");
+        pr ("|---|---:|---:|---:|---:|---:|");
+        cfg.micChannels = 1;
+        row ("mono mic -> Kazanç +6", measureSine (toneHz, amp, 8.0, 480, 4.0, [&addGain] (EngineRun& r) { addGain (r, 6.0f); }, 2.0), 6.0);
+        row ("mono mic -> Kazanç +6 -> Mono->Stereo -> Kazanç -6",
+             measureSine (toneHz, amp, 8.0, 480, 4.0, [&addGain] (EngineRun& r)
+             {
+                 addGain (r, 6.0f);
+                 r.engine->getChain().addMonoToStereo();
+                 addGain (r, -6.0f);
+             }), 0.0);
+        cfg.micChannels = 2;
+        row ("stereo mic -> Stereo->Mono -> Kazanç +12",
+             measureSine (toneHz, amp, 8.0, 480, 4.0, [&addGain] (EngineRun& r)
+             {
+                 r.engine->getChain().addStereoToMono();
+                 addGain (r, 12.0f);
+             }, 4.0), 12.0);
+
+        // --- the slider moved while audio runs ---------------------------------------------------
+        auto live = [&] (const juce::String& what, double seconds, bool control, bool load)
+        {
+            sineConfig (toneHz, amp, cfg.micRate);
+            double underruns = 0, skips = 0;
+            long rssBefore = 0, rssAfter = 0;
+            int changes = 0;
+            {
+                EngineRun run (480, seconds + 2.0);
+                if (load) run.add (testDesc ("TestLoad", 0.3));
+                if (control) run.add (testDesc ("TestStepGain", 5));
+                else         addGain (run, 0.0f);
+                const int gainIndex = (int) run.engine->getChain().entries().size() - 1;
+                pump (1.0);
+                rssBefore = rssKb();
+                std::mt19937 rng (17);
+                std::uniform_real_distribution<float> value (GainStage::minDb, GainStage::maxDb);
+                std::uniform_real_distribution<double> pause (0.015, 0.08);   // a dragged slider: 12..65 values/s
+                const auto end = juce::Time::getMillisecondCounterHiRes() + seconds * 1000.0;
+                while (juce::Time::getMillisecondCounterHiRes() < end)
+                {
+                    if (! control) run.engine->getChain().setGainDb (gainIndex, value (rng));
+                    ++changes;
+                    pump (pause (rng));
+                }
+                if (! control) run.engine->getChain().setGainDb (gainIndex, 6.0f);   // final value, held
+                pump (1.0);
+                rssAfter = rssKb();
+                const auto d = run.engine->getDiagnostics();
+                underruns = (double) d.bridge.underruns; skips = (double) d.inputSkips;
+                pr ("    " + diagLine (*run.engine));
+            }
+            const auto& L = vdev::recorder().left;
+            const double cps = toneHz / fs;
+            const size_t start = firstAudio (L) + (size_t) (0.05 * fs);
+            std::vector<size_t> where;
+            const auto clk = clicks (L, start, L.size(), amp * 4.0, cps, 480, &where);
+            const auto gaps = silences (L, start, fs);
+            juce::String held;
+            if (! control && L.size() > (size_t) (0.6 * fs))
+            {
+                const auto f = fitSine (L, L.size() - (size_t) (0.5 * fs), 8192, cps);
+                held = ", level after the last move " + db (juce::Decibels::gainToDecibels (f.amp / amp), 3) + " (expected +6.000 dB)";
+            }
+            pr ("| " + what + " | " + juce::String (changes) + " | " + juce::String (clk.events) + " | " + juce::String (gaps.count)
+                + " | " + juce::String ((int) underruns) + " / " + juce::String ((int) skips) + " | "
+                + juce::String ((rssAfter - rssBefore) / 1024.0, 1) + " MB |" + held);
+            for (size_t k = 0; k < std::min<size_t> (where.size(), 5); ++k)
+                pr ("    click at " + juce::String ((double) where[k] / fs, 3) + " s");
+        };
+
+        pr ("");
+        pr ("## Kazanç: slider moved during playback (new random value -30..+12 dB every 15-80 ms)");
+        pr ("| Run | Changes | Clicks | Gaps | Underruns / skips | RSS change |");
+        pr ("|---|---:|---:|---:|---:|---:|");
+        live ("control: abrupt steps -30 <-> +12 dB every 5 blocks (no ramp)", 6.0, true, false);
+        live ("Kazanç, " + juce::String (liveSeconds, 0) + " s", liveSeconds, false, false);
+        live ("Kazanç + 30 % plug-in load, " + juce::String (liveSeconds, 0) + " s", liveSeconds, false, true);
+        {
+            const auto oldMic = cfg.micRate;
+            cfg.micRate = 44100.0;   // microphone 44.1 kHz, cable 48 kHz (the bridge resamples)
+            live ("Kazanç, microphone 44.1 kHz -> cable 48 kHz, 20 s", 20.0, false, false);
+            cfg.micRate = oldMic;
+        }
+        cfg.micChannels = 1;
+        live ("Kazanç, mono microphone, 20 s", 20.0, false, false);
+        cfg.micChannels = 2;
+
+        // --- chain edits with a Kazanç in the chain ----------------------------------------------
+        pr ("");
+        pr ("## Kazanç: chain edits during playback (add, bypass, move, remove; 6 rounds)");
+        {
+            sineConfig (toneHz, amp, cfg.micRate);
+            {
+                EngineRun run (480, 30.0);
+                run.add (testDesc ("TestDelay", 100));
+                pump (1.0);
+                auto& e = *run.engine;
+                for (int i = 0; i < 6; ++i)
+                {
+                    e.getChain().addGain (6.0f); { const AudioEngine::ChainEdit ce (e); e.rebuildGraph(); } pump (0.5);
+                    { const AudioEngine::ChainEdit ce (e); e.getChain().setBypass (1, true);  e.rebuildGraph(); } pump (0.5);
+                    { const AudioEngine::ChainEdit ce (e); e.getChain().setBypass (1, false); e.rebuildGraph(); } pump (0.5);
+                    { const AudioEngine::ChainEdit ce (e); e.getChain().movePlugin (1, 0);    e.rebuildGraph(); } pump (0.5);
+                    { const AudioEngine::ChainEdit ce (e); e.getChain().removePlugin (0);     e.rebuildGraph(); } pump (0.5);
+                }
+                pr ("    " + diagLine (e));
+            }
+            const auto& L = vdev::recorder().left;
+            const size_t start = firstAudio (L) + (size_t) (0.05 * fs);
+            const auto clk = clicks (L, start, L.size(), amp * 2.0, toneHz / fs);
+            const auto gaps = silences (L, start, fs);
+            pr ("clicks " + juce::String (clk.events) + ", gaps (exact-zero runs, incl. the 5 ms edit fades' silent block) " + juce::String (gaps.count)
+                + " (" + juce::String (gaps.ms, 1) + " ms)");
+        }
+
+        // --- saved chain restored ----------------------------------------------------------------
+        pr ("");
+        pr ("## Kazanç: value survives captureState -> applyState (config.xml round trip)");
+        {
+            MicVSTState saved;
+            {
+                EngineRun run (480, 2.0);
+                addGain (run, 0.0f);
+                run.engine->getChain().setGainDb (0, 7.5f);
+                pump (0.5);
+                saved = run.engine->captureState();
+            }
+            const auto xml = toValueTree (saved).createXml();
+            const auto back = fromValueTree (juce::ValueTree::fromXml (*xml));
+            const auto r = measureSine (toneHz, amp, 8.0, 480, 4.0, [back] (EngineRun& run)
+            {
+                MicVSTState st = back;
+                st.inputDevice = "VMic"; st.outputDevice = "VCable"; st.bufferSize = 480;
+                run.engine->applyState (st);
+                pump (0.05);
+                raiseEngineThreads();
+            }, GainStage::dbToGain (7.5));
+            pr ("restored chain: " + juce::String (back.plugins.size()) + " element(s), '" + (back.plugins.isEmpty() ? juce::String() : back.plugins[0].fileOrId)
+                + "'; measured gain L " + db (r.gainDbL, 3) + " / R " + db (r.gainDbR, 3) + " (expected +7.500 dB), clicks " + juce::String (r.clk.events));
+        }
+    }
+}
+#endif
+
+#if MICVST_NEW_ENGINE
  #define NEWF(x) (x)
 #else
  #define NEWF(x) 0
@@ -1363,6 +1554,9 @@ int main (int argc, char** argv)
     else if (mode == "buffers") buffers();
     else if (mode == "edits") edits();
     else if (mode == "vst3") vst3();
+   #if MICVST_NEW_ENGINE
+    else if (mode == "gain") gainTest (argc > 2 ? std::atof (argv[2]) : 20.0);   // seconds per live-slider run
+   #endif
     else if (mode == "long") longRun (argc > 2 ? std::atof (argv[2]) : 10.0, false);
     else if (mode == "chaos") longRun (argc > 2 ? std::atof (argv[2]) : 10.0, true);
    #if MICVST_RT_PROBE
@@ -1411,6 +1605,13 @@ int main (int argc, char** argv)
                           { const AudioEngine::ChainEdit ce (e); e.getChain().movePlugin (1, 0); e.rebuildGraph(); } pump (0.5);
                           { const AudioEngine::ChainEdit ce (e); e.getChain().removePlugin (0); e.rebuildGraph(); } pump (0.5);
                       }
+                  });
+        scenario ("Kazanç: slider moved during playback (400 values)",
+                  [] (EngineRun& r) { r.engine->getChain().addGain (0.0f); const AudioEngine::ChainEdit ce (*r.engine); r.engine->rebuildGraph(); },
+                  [] (EngineRun& r)
+                  {
+                      std::mt19937 rng (5); std::uniform_real_distribution<float> v (GainStage::minDb, GainStage::maxDb);
+                      for (int i = 0; i < 400; ++i) { r.engine->getChain().setGainDb (0, v (rng)); pump (0.05); }
                   });
         scenario ("safety buffer changes (refill, trim)", [] (EngineRun&) {},
                   [] (EngineRun& r) { for (int i = 0; i < 4; ++i) { r.engine->setSafetyBufferMs (40); pump (2.5); r.engine->setSafetyBufferMs (10); pump (2.5); } });

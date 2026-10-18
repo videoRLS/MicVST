@@ -31,6 +31,12 @@ private:
     void requestRemove (int index);     // verzögertes Entfernen (Row löscht sich sonst selbst)
     void requestMove (int from, int to);
     void toggleBypass (int index);
+    void gainChanged (int index, float gainDb);   // Kazanç-Regler: live setzen, verzögert speichern
+
+    // Kazanç-Regler: Speichern erst 0,4-0,9 s nach der letzten Bewegung (timerCallback) - ein
+    // Ziehen erzeugt viele Werte, und jedes Speichern serialisiert alle Plugin-Zustände.
+    bool gainPersistPending = false;
+    juce::uint32 lastGainChangeMs = 0;
 
     // Per-Row gezeichneter Mülleimer-Button.
     struct TrashButton : juce::Button
@@ -41,8 +47,12 @@ private:
 
     // Eine Zeile: Handle + Name + Bypass + Trash. Das Handle-/Namensfeld behandelt
     // Drag (Umsortieren) und Doppelklick (Editor); Bypass/Trash sind Kind-Buttons.
+    // Kazanç-Zeilen (eingebauter Gain) tragen zusätzlich einen Regler zwischen Name und Latenz.
     struct Row : juce::Component
     {
+        static constexpr int latencyW  = 72;   // Latenz-Spalte links vom Bypass
+        static constexpr int gainNameW = 92;   // Platz für "Kazanç" vor dem Regler
+
         Row (PluginListView& ownerIn, int idx);
         void paint (juce::Graphics&) override;
         void resized() override;
@@ -56,6 +66,8 @@ private:
         int index;
         juce::TextButton bypassBtn;
         TrashButton trashBtn;
+        bool isGainRow = false;
+        juce::Slider gainSlider;   // nur in Kazanç-Zeilen sichtbar
         bool dragging = false;
         int  grabOffsetY = 0;
     };

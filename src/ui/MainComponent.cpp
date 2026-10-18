@@ -25,6 +25,8 @@ namespace
             "    - Stereo istediğiniz yere \"Mono -> Stereo\" ekleyin; ondan önceki kısım mono\n"
             "      çalışır (daha az işlemci). \"Stereo -> Mono\" da vardır. Mono biten zincir\n"
             "      kablonun iki kanalına da gönderilir.\n"
+            "    - \"Kazanç\" (Dahili) sesi -30 ile +12 dB arasında alçaltır/yükseltir; değeri\n"
+            "      satırdaki kaydırıcıyla değiştirin. Kırpılmaması için sınırlayıcıdan önce koyun.\n"
             "    - Sıralamak için soldaki tutamağı sürükleyin; çöp kutusu siler (onay sorar).\n"
             "    - Eklentinin penceresini açmak için adına çift tıklayın.\n"
             "    - \"VST3 klasörleri\" başka konumlardaki eklentileri ekler.\n"

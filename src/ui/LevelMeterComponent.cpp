@@ -28,13 +28,16 @@ void LevelMeterComponent::paint (juce::Graphics& g)
         g.fillRect (juce::Rectangle<float> (b.getX(), b.getY(), rmsX - b.getX(), b.getHeight()));
     }
 
-    // Peak-Hold als vertikale gelbe Linie.
+    // Peak-Hold als vertikale gelbe Linie. Ab 0 dBFS rot und am rechten Rand gehalten (vorher lag
+    // die Linie dann außerhalb und war unsichtbar): so viel Pegel wird beim Wandeln ins
+    // 24-Bit-Format des Kabels abgeschnitten (z. B. nach zu viel Kazanç ohne Limiter dahinter).
     const float peakDb = juce::Decibels::gainToDecibels (level.peak, meterScale::minDb);
     if (peakDb > meterScale::minDb)
     {
-        g.setColour (juce::Colours::yellow);
-        const float px = dbX (peakDb);
-        g.drawLine (px, b.getY(), px, b.getBottom(), 2.0f);
+        const bool over = level.peak >= 1.0f;
+        g.setColour (over ? juce::Colours::red : juce::Colours::yellow);
+        const float px = juce::jmin (dbX (peakDb), b.getRight() - 1.5f);
+        g.drawLine (px, b.getY(), px, b.getBottom(), over ? 3.0f : 2.0f);
     }
 
     g.setColour (juce::Colours::white.withAlpha (0.25f));

@@ -1,4 +1,5 @@
 #include "audio/PluginChain.h"
+#include "audio/BuiltInGain.h"
 
 namespace
 {
@@ -129,6 +130,37 @@ void PluginChain::addStereoToMono()
     chain.push_back ({ node->nodeID, stereoToMonoId, false });
 }
 
+void PluginChain::addGain (float gainDb)
+{
+    auto proc = std::make_unique<BuiltInGainProcessor>();
+    proc->setGainDb (gainDb);   // before it joins the graph: prepareToPlay starts it at this value
+    auto node = graph.addNode (std::move (proc));
+    if (node == nullptr) return;
+    chain.push_back ({ node->nodeID, gainId, false });
+}
+
+bool PluginChain::isGain (int index) const
+{
+    return juce::isPositiveAndBelow (index, (int) chain.size()) && chain[(size_t) index].fileOrId == gainId;
+}
+
+void PluginChain::setGainDb (int index, float gainDb)
+{
+    if (! isGain (index)) return;
+    if (auto* node = graph.getNodeForId (chain[(size_t) index].node))
+        if (auto* gain = dynamic_cast<BuiltInGainProcessor*> (node->getProcessor()))
+            gain->setGainDb (gainDb);
+}
+
+float PluginChain::getGainDb (int index) const
+{
+    if (isGain (index))
+        if (auto* node = graph.getNodeForId (chain[(size_t) index].node))
+            if (auto* gain = dynamic_cast<BuiltInGainProcessor*> (node->getProcessor()))
+                return gain->getGainDb();
+    return 0.0f;
+}
+
 void PluginChain::removePlugin (int index)
 {
     if (! juce::isPositiveAndBelow (index, (int) chain.size())) return;
@@ -188,7 +220,11 @@ void PluginChain::rebuildConnections()
     std::vector<NodeChannels> seq;
     seq.push_back (channelsOf (inputNode));
     for (auto& e : chain)
-        if (! e.bypassed) seq.push_back (channelsOf (e.node));   // gebypasste Glieder überspringen
+        if (! e.bypassed)   // gebypasste Glieder überspringen
+        {
+            seq.push_back (channelsOf (e.node));
+            seq.back().passThrough = (e.fileOrId == gainId);   // Gain übernimmt die Breite davor
+        }
     seq.push_back (channelsOf (outputNode));
 
     int channelsIntoOutput = 0;

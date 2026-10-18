@@ -127,6 +127,7 @@ int main (int argc, char** argv)
         engine.getChain().addMonoToStereo();
         engine.getChain().addStereoToMono();
         engine.getChain().addMonoToStereo();
+        engine.getChain().addGain (6.0f);   // Kazanç-Zeile mit Regler
         engine.getChain().setBypass (1, true);
         engine.rebuildGraph();
         if (engine.onScanFinished) engine.onScanFinished();   // list view rebuilds its rows
@@ -172,6 +173,7 @@ int main (int argc, char** argv)
         juce::Array<juce::PluginDescription> entries;
         auto add = [&] (const char* n, const juce::String& m) { juce::PluginDescription d; d.name = n; d.manufacturerName = m; d.fileOrIdentifier = n; entries.add (d); };
         add ("Mono -> Stereo", tr ("Dahili")); add ("Stereo -> Mono", tr ("Dahili"));
+        { juce::PluginDescription d; d.name = tr ("Kazanç (Gain)"); d.manufacturerName = tr ("Dahili"); d.fileOrIdentifier = "builtin:gain"; entries.add (d); }
         add ("Pro-Q 4", "FabFilter"); add ("Pro-C 3", "FabFilter"); add ("Pro-DS", "FabFilter");
         add ("soothe2", "oeksound"); add ("CLA-2A Mono", "Waves"); add ("TDR VOS SlickEQ GE", "Tokyo Dawn Labs");
         add ("Plugin", {});

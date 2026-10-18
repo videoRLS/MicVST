@@ -1,4 +1,5 @@
 #include "ui/PluginListView.h"
+#include "audio/GainStage.h"
 #include "audio/PluginChain.h"
 #include "ui/PluginPicker.h"
 #include "Text.h"
@@ -12,8 +13,23 @@ namespace
     {
         if (e.fileOrId == PluginChain::monoToStereoId) return "Mono -> Stereo";
         if (e.fileOrId == PluginChain::stereoToMonoId) return "Stereo -> Mono";
+        if (e.fileOrId == PluginChain::gainId)         return tr ("Kazanç");
         // Name des Plugins selbst (eine Datei kann viele enthalten), sonst der Dateiname
         return e.pluginName.isNotEmpty() ? e.pluginName : juce::File (e.fileOrId).getFileNameWithoutExtension();
+    }
+
+    // Kazanç-Wert für den Regler: "+6,0 dB", "0,0 dB", "-12,5 dB" (türkisches Dezimalkomma).
+    juce::String gainText (double db)
+    {
+        double r = std::round (db * 10.0) / 10.0;
+        if (std::abs (r) < 0.05) r = 0.0;   // nie "-0,0 dB"
+        return (r > 0.0 ? "+" : "") + micvst::trNumber (r, 1) + " dB";
+    }
+
+    double gainFromText (const juce::String& text)
+    {
+        // "6", "6,5", "+6.5 dB", "-3" ... (Komma oder Punkt)
+        return text.replaceCharacter (',', '.').retainCharacters ("-.0123456789").getDoubleValue();
     }
 }
 
@@ -71,6 +87,23 @@ PluginListView::Row::Row (PluginListView& ownerIn, int idx) : owner (ownerIn), i
 
     trashBtn.onClick = [this] { owner.requestRemove (index); };
     addAndMakeVisible (trashBtn);
+
+    isGainRow = owner.engine.getChain().isGain (index);
+    if (isGainRow)
+    {
+        gainSlider.setSliderStyle (juce::Slider::LinearHorizontal);
+        gainSlider.setTextBoxStyle (juce::Slider::TextBoxRight, false, 66, rowH - 8);
+        gainSlider.setRange (GainStage::minDb, GainStage::maxDb, 0.1);
+        gainSlider.textFromValueFunction = [] (double v) { return gainText (v); };
+        gainSlider.valueFromTextFunction = [] (const juce::String& t) { return gainFromText (t); };
+        gainSlider.setValue (owner.engine.getChain().getGainDb (index), juce::dontSendNotification);
+        gainSlider.setDoubleClickReturnValue (true, GainStage::defaultDb);
+        gainSlider.setTooltip (tr ("Kazanç: -30 dB ile +12 dB arası, 0,1 dB adımlarla (değer kutusuna da yazılabilir). "
+                                   "Çift tıklama 0 dB'ye döndürür. Sesin kırpılmaması için Kazanç'ı sınırlayıcıdan "
+                                   "(limiter) önce kullanın; Çıkış göstergesindeki tepe çizgisi 0 dB'de kırmızı olur."));
+        gainSlider.onValueChange = [this] { owner.gainChanged (index, (float) gainSlider.getValue()); };
+        addAndMakeVisible (gainSlider);
+    }
 }
 
 bool PluginListView::Row::overHandle (juce::Point<int> p) const { return p.x < 24; }
@@ -81,6 +114,14 @@ void PluginListView::Row::resized()
     trashBtn.setBounds (r.removeFromRight (28));
     r.removeFromRight (4);
     bypassBtn.setBounds (r.removeFromRight (80));
+
+    if (isGainRow)
+    {
+        // zwischen dem Namen und der Latenz-Spalte (gleiche Geometrie wie in paint)
+        const int latLeft = bypassBtn.getX() - 8 - latencyW;
+        const int x0 = 28 + gainNameW;
+        gainSlider.setBounds (x0, 3, juce::jmax (40, latLeft - 8 - x0), getHeight() - 6);
+    }
 }
 
 void PluginListView::Row::paint (juce::Graphics& g)
@@ -101,7 +142,7 @@ void PluginListView::Row::paint (juce::Graphics& g)
             g.fillEllipse ((float) (8 + cxn * 6), (float) (b.getCentreY() - 6 + cyn * 6), 2.6f, 2.6f);
 
     // Latenz-Spalte links vom Bypass: gemeldete Plugin-Latenz in ms (Lookahead etc.).
-    constexpr int latW = 72;
+    constexpr int latW = latencyW;
     const int latRight = bypassBtn.getX() - 8;
     const int latLeft  = latRight - latW;
 
@@ -114,10 +155,11 @@ void PluginListView::Row::paint (juce::Graphics& g)
             latText = micvst::trNumber (ms, 1) + " ms";
         }
 
-    // Name (auf den Platz links der Latenz-Spalte begrenzt).
+    // Name (auf den Platz links der Latenz-Spalte begrenzt; in Kazanç-Zeilen vor dem Regler).
     const auto name = displayName (e);
     g.setColour (e.bypassed ? juce::Colours::grey : juce::Colours::white);
-    g.drawText (name, 28, 0, latLeft - 6 - 28, b.getHeight(), juce::Justification::centredLeft);
+    const int nameW = isGainRow ? gainNameW - 6 : latLeft - 6 - 28;
+    g.drawText (name, 28, 0, nameW, b.getHeight(), juce::Justification::centredLeft);
 
     g.setColour (juce::Colours::grey);
     g.setFont (juce::Font (juce::FontOptions (12.0f)));
@@ -216,6 +258,21 @@ void PluginListView::timerCallback()
 {
     for (auto* r : rows)
         r->repaint();   // nur neu zeichnen; die Latenz wird in Row::paint frisch gelesen
+
+    if (gainPersistPending && juce::Time::getMillisecondCounter() - lastGainChangeMs >= 400)
+    {
+        gainPersistPending = false;
+        engine.requestPersist();
+    }
+}
+
+void PluginListView::gainChanged (int index, float gainDb)
+{
+    // Kein ChainEdit, kein Graph-Umbau: nur der Zielwert ändert sich (atomar); der Plugin-Thread
+    // gleitet in ~40 ms dorthin (GainStage).
+    engine.getChain().setGainDb (index, gainDb);
+    gainPersistPending = true;
+    lastGainChangeMs = juce::Time::getMillisecondCounter();
 }
 
 void PluginListView::resized()
@@ -345,6 +402,10 @@ void PluginListView::showPluginPicker()
     s2m.name = "Stereo -> Mono"; s2m.manufacturerName = tr ("Dahili");
     s2m.fileOrIdentifier = PluginChain::stereoToMonoId;
     entries.add (s2m);
+    juce::PluginDescription gain;
+    gain.name = tr ("Kazanç (Gain)"); gain.manufacturerName = tr ("Dahili");
+    gain.fileOrIdentifier = PluginChain::gainId;
+    entries.add (gain);
     entries.addArray (engine.getKnownPlugins().getTypes());
 
     // SafePointer: die CallOutBox lebt auf dem Desktop und kann die View überleben.
@@ -360,12 +421,14 @@ void PluginListView::showPluginPicker()
 void PluginListView::addFromPicker (const juce::PluginDescription& desc)
 {
     if (desc.fileOrIdentifier == PluginChain::monoToStereoId
-         || desc.fileOrIdentifier == PluginChain::stereoToMonoId)
+         || desc.fileOrIdentifier == PluginChain::stereoToMonoId
+         || desc.fileOrIdentifier == PluginChain::gainId)
     {
         {
             const AudioEngine::ChainEdit edit (engine);
-            if (desc.fileOrIdentifier == PluginChain::monoToStereoId) engine.getChain().addMonoToStereo();
-            else                                                      engine.getChain().addStereoToMono();
+            if (desc.fileOrIdentifier == PluginChain::monoToStereoId)      engine.getChain().addMonoToStereo();
+            else if (desc.fileOrIdentifier == PluginChain::stereoToMonoId) engine.getChain().addStereoToMono();
+            else                                                           engine.getChain().addGain();   // 0 dB
             engine.rebuildGraph();
         }
         commitChange();

@@ -10,6 +10,16 @@ Focus: sound quality under heavy background load (e.g. a GPU/AI video render), n
 the chain or the devices change, and a completely Turkish interface. Measurements and what could
 not be tested: [docs/TEST_RAPORU_1.2.1.md](docs/TEST_RAPORU_1.2.1.md) (Turkish).
 
+### Added
+- Built-in "Kazanç" (gain) element next to "Mono -> Stereo" / "Stereo -> Mono" (picker, "Dahili"),
+  like OBS Studio's Gain filter: -30 to +12 dB in 0.1 dB steps, set with a slider (or typed) right
+  in its chain row; double-click returns to 0 dB. Changes while audio runs are handed to the plugin
+  thread lock-free and glide to the new value (99 % after ~40 ms; neither the level nor its slope
+  ever jumps, also while the slider is dragged), so no click or zipper noise; 0 dB is bit-exact
+  passthrough. It keeps the channel width of the part of the chain it sits in (mono stays mono),
+  and its value is saved with the chain. The output meter's peak mark turns red at 0 dBFS (the
+  level at which the cable's 24-bit format clips) instead of disappearing past the right edge.
+
 ### Changed
 - Process priority class is now HIGH (was "above normal"); scan processes stay "below normal".
 - The plugin chain runs on its own thread (MMCSS "Pro Audio") behind a lock-free input queue; the
