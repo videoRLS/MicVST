@@ -7,25 +7,26 @@
 // It analyses the real input block by block and sets ONE gain for all channels.
 //
 //  * Levels (approximate aims, not fixed output levels): normal speech peaks about -15 dBFS,
-//    shouting peaks about -17.5 dBFS. "Shouting" is judged against the speaker's own natural level
-//    (learned from the voice): from 3 dB above it the aim slides smoothly towards -17.5 dBFS,
+//    shouting peaks about -12 dBFS. "Shouting" is judged against the speaker's own natural level
+//    (learned from the voice): from 3 dB above it the aim slides smoothly towards -12 dBFS,
 //    reached 9 dB above it.
-//  * Analysis: phrase level = the loudest block peak (instantly), held 1 s (refreshed by every
-//    syllable within 1 dB of it), then following quieter speech at 2 dB/s - or at 12 dB/s when the
-//    voice is clearly (6 dB) quieter, e.g. after shouting. The gain follows phrases, not
+//  * Analysis: phrase level = the loudest block peak (instantly), held 1 s, then following quieter
+//    speech at 2 dB/s down to the recent syllable peaks (never below them, so no ripple between
+//    syllables) - or at 12 dB/s when the voice is clearly (6 dB) quieter, e.g. after shouting. The gain follows phrases, not
 //    syllables, so the voice keeps its dynamics.
-//  * Gain: no fixed gain value or range - it is the aim minus the analysed level. Up: exponential
-//    approach (time constant 0.35 s, 2..18 dB/s of voiced time); down: time constant 0.3 s, or
-//    30 ms when the voice is more than 4 dB too loud. A two-stage glide (6 ms each) makes every
-//    change click-free.
+//  * Gain: no fixed value - it is the aim minus the analysed level, limited to -6.5 ... +6.5 dB
+//    (only as much as needed inside that range). Up: exponential approach (time constant 0.35 s,
+//    2..18 dB/s of voiced time); down: time constant 0.15 s, or 30 ms when the voice is more than
+//    3 dB too loud. A two-stage glide (6 ms each) makes every change click-free.
 //  * Silence: NO noise gate, nothing is ever muted or faded. The gain moves only on blocks with
 //    voice (RMS above -50 dBFS and 10 dB above the tracked noise floor); between words and in
 //    silence the last gain is kept exactly (no ramp, no reset) and speaking again continues from
 //    it. The level analysis keeps its clock running through short pauses between words (300 ms
 //    hangover), so the hold/decay times are real speaking time.
-//  * Output protection, separate from the gain control: peaks above -1 dBFS are limited at once
-//    (no digital clipping; hold 10 ms, release 80 ms). Normal levels never reach it, so it does
-//    not compress the voice.
+//  * Output ceiling, separate from the gain control: a soft limiter - peaks above -12.3 dBFS are
+//    bent smoothly towards -10.3 dBFS (tanh curve, attack 0.3 ms, no look-ahead), an instant guard
+//    makes sure no sample ever exceeds -10 dBFS; the reduction is held 10 ms and released in 80 ms.
+//    Normal speech (-15 dBFS) stays below its knee: not compressed.
 //  * Off: the gain returns to 0 dB at 12 dB/s; then the block is not touched (bit-exact).
 //  * No look-ahead, no added latency. Realtime: no allocation, no locks; on/off and the meters
 //    cross threads through atomics.
@@ -34,7 +35,7 @@ class AutoGainStage
 public:
     // levels
     static constexpr double normalPeakDb        = -15.0;
-    static constexpr double shoutPeakDb         = -17.5;
+    static constexpr double shoutPeakDb         = -12.0;
     static constexpr double shoutStartDb        = 3.0;     // above the natural level: aim starts to slide ...
     static constexpr double shoutFullDb         = 9.0;     // ... and is fully the shouting aim here
     // speech detection (decides only whether the analysis runs; the audio is never gated)
@@ -43,7 +44,6 @@ public:
     static constexpr double hangoverSeconds     = 0.3;
     // level analysis (times count speech only)
     static constexpr double peakHoldSeconds     = 1.0;
-    static constexpr double holdRefreshDb       = 1.0;     // syllables this close to the level renew the hold
     static constexpr double levelDecayDbPerSec  = 2.0;
     static constexpr double recentHoldSeconds   = 0.3;     // short-term level (syllables) ...
     static constexpr double recentDecayDbPerSec = 15.0;
@@ -53,17 +53,22 @@ public:
     static constexpr double naturalLearnTau     = 0.3;
     static constexpr double naturalUpTau        = 20.0;    // ... then follows a louder voice slowly
     static constexpr double naturalDownTau      = 6.0;     // ... and a quieter one a bit faster
-    // gain movement
+    // gain range and movement
+    static constexpr double maxBoostDb          = 6.5;
+    static constexpr double maxCutDb            = -6.5;
     static constexpr double riseTau             = 0.35;
     static constexpr double riseMinDbPerSec     = 2.0;
     static constexpr double riseMaxDbPerSec     = 18.0;
-    static constexpr double fallTau             = 0.3;
-    static constexpr double fastZoneDb          = 4.0;
+    static constexpr double fallTau             = 0.15;
+    static constexpr double fastZoneDb          = 3.0;
     static constexpr double fastFallTau         = 0.03;
     static constexpr double offReturnDbPerSec   = 12.0;
     static constexpr double smoothingSeconds    = 0.006;   // each of the two glide stages
-    // output protection
-    static constexpr double ceilingDb           = -1.0;
+    // output ceiling (soft limiter)
+    static constexpr double ceilingDb           = -10.0;
+    static constexpr double limiterMarginDb     = 0.3;     // the curve aims this far under the ceiling ...
+    static constexpr double limiterKneeDb       = 2.0;     // ... and starts this far under that
+    static constexpr double limiterAttackSeconds = 0.0003;
     static constexpr double limiterHoldSeconds  = 0.01;
     static constexpr double limiterReleaseSeconds = 0.08;
     // noise floor tracking (for the speech detection)
@@ -80,6 +85,7 @@ public:
         sampleRate = newSampleRate > 0.0 ? newSampleRate : 48000.0;
         glideCoeff = 1.0 - std::exp (-1.0 / (smoothingSeconds * sampleRate));
         limiterReleaseCoeff = 1.0 - std::exp (-1.0 / (limiterReleaseSeconds * sampleRate));
+        limiterAttackCoeff = 1.0 - std::exp (-1.0 / (limiterAttackSeconds * sampleRate));
         limiterHoldSamples = (int) std::lround (limiterHoldSeconds * sampleRate);
         reset();
     }
@@ -143,7 +149,7 @@ public:
             if (speech)
                 analyse (peakDb, active, dt);
             if (active)
-                moveGainTowards (currentAimDb() - levelDb, dt);
+                moveGainTowards (std::clamp (currentAimDb() - levelDb, maxCutDb, maxBoostDb), dt);
             // no voice in this block (pause, silence): the last gain is kept exactly
         }
         else
@@ -153,7 +159,7 @@ public:
                                   : std::min (0.0, gainDb + offReturnDbPerSec * dt);
         }
 
-        // --- apply: glide + output protection, sample by sample ----------------------------------
+        // --- apply: glide + output ceiling, sample by sample -------------------------------------
         float peakOut = 0.0f;
         if (! on && glideSettled && gainDb == 0.0 && glide2 == 0.0 && limiterGain == 1.0)
         {
@@ -162,7 +168,6 @@ public:
         else
         {
             const double target = gainDb;
-            const double ceiling = ceilingLinear;
             for (int i = 0; i < numSamples; ++i)
             {
                 if (! glideSettled || glide2 != target)
@@ -186,14 +191,22 @@ public:
                     if (channels[c] != nullptr)
                         a = std::max (a, std::abs ((double) channels[c][i]) * currentGain);
 
-                const double need = (on && a > ceiling) ? ceiling / a : 1.0;
-                if (need < limiterGain)       { limiterGain = need; limiterHold = limiterHoldSamples; }
+                // soft limiter: above the knee the peak is bent smoothly towards the ceiling
+                double want = 1.0;
+                if (on && a > kneeLinear)
+                {
+                    const double x = 20.0 * std::log10 (a), k0 = ceilingDb - limiterMarginDb - limiterKneeDb;
+                    want = std::exp ((k0 + limiterKneeDb * std::tanh ((x - k0) / limiterKneeDb) - x) * dbToLog);
+                }
+                if (want < limiterGain)       { limiterGain += (want - limiterGain) * limiterAttackCoeff; limiterHold = limiterHoldSamples; }
                 else if (limiterHold > 0)     --limiterHold;
                 else if (limiterGain < 1.0)
                 {
-                    limiterGain = std::min (need, limiterGain + (1.0 - limiterGain) * limiterReleaseCoeff);
-                    if (limiterGain > 1.0 - 1.0e-7 && need >= 1.0) limiterGain = 1.0;
+                    limiterGain = std::min (want, limiterGain + (1.0 - limiterGain) * limiterReleaseCoeff);
+                    if (limiterGain > 1.0 - 1.0e-7 && want >= 1.0) limiterGain = 1.0;
                 }
+                if (on && a * limiterGain > ceilingLinear)   // guard: no sample ever above the ceiling
+                    limiterGain = ceilingLinear / a;
 
                 const float g = (float) (currentGain * limiterGain);
                 for (int c = 0; c < numChannels; ++c)
@@ -237,7 +250,8 @@ public:
 
 private:
     static constexpr double dbToLog = 0.11512925464970228;          // ln(10) / 20
-    static constexpr double ceilingLinear = 0.89125093813374556;    // -1 dBFS
+    static constexpr double ceilingLinear = 0.31622776601683794;    // -10 dBFS
+    static constexpr double kneeLinear    = 0.24266100950824160;    // -12.3 dBFS (ceiling - margin - knee)
 
     static double toDb (double linear) noexcept { return linear > 1.0e-6 ? 20.0 * std::log10 (linear) : -120.0; }
 
@@ -271,10 +285,10 @@ private:
             else if (recentHold > 0.0) recentHold -= dt;
             else                       recentDb = std::max (peakDb, recentDb - recentDecayDbPerSec * dt);
 
-            if (peakDb >= levelDb - holdRefreshDb) { levelDb = std::max (levelDb, peakDb); holdLeft = peakHoldSeconds; }
+            if (peakDb >= levelDb)                { levelDb = peakDb; holdLeft = peakHoldSeconds; }
             else if (levelDb - recentDb > dropDb) levelDb = std::max (recentDb, levelDb - dropFollowDbPerSec * dt);
             else if (holdLeft > 0.0)              holdLeft -= dt;
-            else                                  levelDb = std::max (peakDb, levelDb - levelDecayDbPerSec * dt);
+            else                                  levelDb = std::max (recentDb, levelDb - levelDecayDbPerSec * dt);
         }
 
         if (active)
@@ -313,6 +327,7 @@ private:
     double sampleRate = 48000.0;
     double glideCoeff = 1.0 - 0.99653379;           // 6 ms at 48 kHz until prepare() is called
     double limiterReleaseCoeff = 1.0 - 0.99973961;  // 80 ms at 48 kHz
+    double limiterAttackCoeff = 1.0 - 0.93291196;   // 0.3 ms at 48 kHz
     int    limiterHoldSamples = 480;
     double gainDb = 0.0;                            // the gain the analysis asks for (dB)
     double glide1 = 0.0, glide2 = 0.0;              // glide states (dB); glide2 is applied

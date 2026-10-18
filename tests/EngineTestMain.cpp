@@ -1369,10 +1369,9 @@ namespace
 
     //==============================================================================
     // Built-in "Otomatik Kazanç" (auto gain), basic checks through the real engine: normal speech
-    // peaks near -15 dBFS at any microphone level (no fixed gain range), shouting near -17.5 dBFS,
-    // a sudden rise and the way back, long silence (last gain kept, no gate) and speaking again,
-    // never above -1 dBFS, free position in the chain, on/off, the manual Kazanç unchanged with auto
-    // gain off, save/restore.
+    // peaks near -15 dBFS (gain -6.5 ... +6.5 dB), shouting near -12 dBFS, a sudden rise and the way
+    // back, long silence (last gain kept, no gate) and speaking again, never above -10 dBFS, free
+    // position in the chain, on/off, the manual Kazanç unchanged with auto gain off, save/restore.
     // Test signal: speech-like phrases (2.5 s of 150 ms syllables every 250 ms, then 1 s pause).
     float voiceSample (double t, double peakAmp)
     {
@@ -1489,16 +1488,17 @@ namespace
                 + " | " + juce::String (clk) + " |");
         };
         auto autoOnly = [&addAuto] (EngineRun& r) { addAuto (r, true); };
-        speechRow ("empty chain (reference)", -25.0, [] (EngineRun&) {}, -25.0, -25.0);
-        speechRow ("Otomatik Kazanç, voice at -25 dBFS", -25.0, autoOnly, N, -25.0);
-        speechRow ("Otomatik Kazanç, very quiet voice (needs about +25 dB)", -40.0, autoOnly, N, -40.0);
+        speechRow ("empty chain (reference)", -20.0, [] (EngineRun&) {}, -20.0, -20.0);
+        speechRow ("Otomatik Kazanç, voice at -20 dBFS (needs +5 dB)", -20.0, autoOnly, N, -20.0);
+        speechRow ("Otomatik Kazanç, voice at -10 dBFS (needs -5 dB)", -10.0, autoOnly, N, -10.0);
         speechRow ("Otomatik Kazanç, voice already at -15 dBFS", -15.0, autoOnly, N, -15.0);
-        speechRow ("Otomatik Kazanç, hot microphone (needs about -12 dB)", -3.0, autoOnly, N, -3.0);
+        speechRow ("Otomatik Kazanç, very quiet voice -30 dBFS (boost stops at +6.5 dB: expected -23.5)", -30.0, autoOnly, -30.0 + AutoGainStage::maxBoostDb, -30.0);
+        speechRow ("Otomatik Kazanç, hot microphone -2 dBFS (cut stops at -6.5 dB, the ceiling holds -10)", -2.0, autoOnly, C, -2.0);
 
         pr ("");
-        pr ("## Otomatik Kazanç: shouting and back (voice -25 dBFS, from 14 s on 12 dB louder at -13 dBFS, from 24.5 s on -25 dBFS again)");
+        pr ("## Otomatik Kazanç: shouting and back (voice -20 dBFS, from 14 s on 12 dB louder at -8 dBFS, from 24.5 s on -20 dBFS again)");
         {
-            voiceConfig ({ { 0.0, -25.0 }, { 14.0, -13.0 }, { 24.5, -25.0 } });
+            voiceConfig ({ { 0.0, -20.0 }, { 14.0, -8.0 }, { 24.5, -20.0 } });
             {
                 EngineRun run (480, 35.0);
                 addAuto (run, true);
@@ -1513,9 +1513,9 @@ namespace
         }
 
         pr ("");
-        pr ("## Otomatik Kazanç: long silence and speaking again (voice -25 dBFS until 9.6 s, silence, from 21 s on 6 dB quieter; white noise -70 dBFS RMS all the time)");
+        pr ("## Otomatik Kazanç: long silence and speaking again (voice -20 dBFS until 9.6 s, silence, from 21 s on 3 dB louder; white noise -70 dBFS RMS all the time)");
         {
-            voiceConfig ({ { 0.0, -25.0 }, { 9.6, -200.0 }, { 21.0, -31.0 } }, -70.0);
+            voiceConfig ({ { 0.0, -20.0 }, { 9.6, -200.0 }, { 21.0, -17.0 } }, -70.0);
             AutoGainStage::Meters a, b, c, d, e;
             {
                 EngineRun run (480, 34.0);
@@ -1538,9 +1538,9 @@ namespace
         }
 
         pr ("");
-        pr ("## Otomatik Kazanç: a full-scale phrase right after quiet speech (voice -35 dBFS, from 14 s on 0 dBFS)");
+        pr ("## Otomatik Kazanç: a full-scale phrase right after quiet speech (voice -25 dBFS, from 14 s on 0 dBFS)");
         {
-            voiceConfig ({ { 0.0, -35.0 }, { 14.0, 0.0 } });
+            voiceConfig ({ { 0.0, -25.0 }, { 14.0, 0.0 } });
             AutoGainStage::Meters before;
             {
                 EngineRun run (480, 18.0);
@@ -1555,7 +1555,7 @@ namespace
         pr ("");
         pr ("## Otomatik Kazanç: position in the chain is free");
         {
-            voiceConfig (-25.0);
+            voiceConfig (-20.0);
             EngineRun run (480, 22.0);
             run.engine->getChain().addGain (6.0f);
             run.add (testDesc ("TestDelay", 10));
@@ -1573,11 +1573,11 @@ namespace
         pr ("clicks while audio ran through 4 moves: " + juce::String (clicksInRun (true)));
         pr ("| Chain | Input peaks | Output peaks | Aim | Gain shown in the row | Gain measured (out - input of the auto gain) | L = R | Clicks |");
         pr ("|---|---:|---:|---:|---:|---:|---:|---:|");
-        speechRow ("Kazanç +6 -> Otomatik Kazanç (auto gain behind the manual gain)", -25.0,
-                   [&addAuto] (EngineRun& r) { r.engine->getChain().addGain (6.0f); addAuto (r, true); }, N, -19.0);
-        speechRow ("Otomatik Kazanç -> Kazanç +6 (manual gain after it)", -25.0,
+        speechRow ("Kazanç +6 -> Otomatik Kazanç (auto gain behind the manual gain)", -20.0,
+                   [&addAuto] (EngineRun& r) { r.engine->getChain().addGain (6.0f); addAuto (r, true); }, N, -14.0);
+        speechRow ("Otomatik Kazanç -> Kazanç +6 (manual gain after it)", -20.0,
                    [&addAuto, &edit] (EngineRun& r) { r.engine->getChain().addGain (6.0f); addAuto (r, true); edit (r, [] (PluginChain& ch) { ch.movePlugin (1, 0); }); },
-                   N + 6.0, -25.0);
+                   N + 6.0, -20.0);
 
         pr ("");
         pr ("## Otomatik Kazanç off: the manual Kazanç is unchanged (997 Hz, -20 dBFS in)");
@@ -1599,7 +1599,7 @@ namespace
         pr ("## Otomatik Kazanç: saved and restored (captureState -> config.xml -> applyState), position and on/off");
         for (bool on : { false, true })
         {
-            voiceConfig (-25.0);
+            voiceConfig (-20.0);
             MicVSTState saved;
             {
                 EngineRun run (480, 2.0);
@@ -1623,9 +1623,9 @@ namespace
         }
 
         pr ("");
-        pr ("## Otomatik Kazanç: switched off and on during speech (voice -25 dBFS, 4 x off 2 s / on 2 s)");
+        pr ("## Otomatik Kazanç: switched off and on during speech (voice -20 dBFS, 4 x off 2 s / on 2 s)");
         {
-            voiceConfig (-25.0);
+            voiceConfig (-20.0);
             AutoGainStage::Meters offState;
             {
                 EngineRun run (480, 24.0);

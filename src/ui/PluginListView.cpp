@@ -112,10 +112,10 @@ PluginListView::Row::Row (PluginListView& ownerIn, int idx) : owner (ownerIn), i
         autoToggle.setButtonText (tr ("Etkin"));
         autoToggle.setToggleState (owner.engine.getChain().isAutoGainEnabled (index), juce::dontSendNotification);
         autoToggle.setTooltip (tr ("Otomatik Kazanç: sesinizi canlı analiz eder; normal konuşmada tepe seviyesini yaklaşık "
-                                   "-15 dBFS'ye, bağırırken yaklaşık -17,5 dBFS'ye getirir. Sabit kazanç ya da kazanç aralığı yoktur. "
-                                   "Sessizlikte son kazancı aynen korur; noise gate yoktur, ses hiç kesilmez. Çıkışta -1 dBFS "
-                                   "üstündeki tepeler sınırlanır (dijital kırpılma olmaz). Zincirdeki yeri sürükleyerek değiştirilebilir. "
-                                   "Kapatınca kazanç yumuşakça 0 dB'ye döner.\n"
+                                   "-15 dBFS'ye, bağırırken yaklaşık -12 dBFS'ye getirir. Kazanç sesinize göre, gerektiği kadar "
+                                   "-6,5 ile +6,5 dB arasında değişir. Hiçbir tepe -10 dBFS'yi geçmez (yumuşak sınırlayıcı). "
+                                   "Sessizlikte son kazancı aynen korur; noise gate yoktur, ses hiç kesilmez. Zincirdeki yeri "
+                                   "sürükleyerek değiştirilebilir. Kapatınca kazanç yumuşakça 0 dB'ye döner.\n"
                                    "Gösterge: uygulanan kazanç (giriş tepe -> çıkış tepe, dBFS). Beyaz: konuşma algılanıyor, "
                                    "gri: kazanç korunuyor ya da kapalı."));
         autoToggle.onClick = [this] { owner.autoGainToggled (index, autoToggle.getToggleState()); };

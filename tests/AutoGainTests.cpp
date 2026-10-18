@@ -1,6 +1,7 @@
 // Basic tests for the built-in "Otomatik Kazanç" (Auto Gain): normal speech near -15 dBFS, shouting
-// near -17.5 dBFS, sudden rises, speech pauses and long silence (last gain kept, no gate), resuming,
-// no clipping / no jumps, no fixed gain range, switching off, meters = real values, the processor.
+// near -12 dBFS, the -6.5 ... +6.5 dB gain range, sudden rises, speech pauses and long silence (last
+// gain kept, no gate), resuming, the -10 dBFS soft ceiling, no jumps, switching off, meters = real
+// values, the processor.
 // (Test names are ASCII: the runner prints them as Latin-1.)
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "audio/AutoGain.h"
@@ -87,8 +88,8 @@ struct AutoGainTest : juce::UnitTest
     {
         const double normal = AutoGainStage::normalPeakDb, shout = AutoGainStage::shoutPeakDb;
 
-        beginTest ("normal speech: peaks led to about -15 dBFS, from a quiet and from a loud microphone");
-        for (double in : { -25.0, -5.0 })
+        beginTest ("normal speech: peaks led to about -15 dBFS, from a quieter and from a louder microphone");
+        for (double in : { -20.0, -10.0 })
         {
             AutoGainStage s; s.prepare (fs);
             auto x = voice (13.0, in);
@@ -98,75 +99,88 @@ struct AutoGainTest : juce::UnitTest
             expectWithinAbsoluteError (out, normal, 1.0);
         }
 
-        beginTest ("no fixed gain range: very quiet speech gets more than +12 dB, a hot signal is cut by more than 12 dB");
+        beginTest ("gain range: only as much as needed, at most +6.5 dB up and 6.5 dB down");
         {
+            AutoGainStage m; m.prepare (fs);
+            auto v = voice (13.0, -18.0);
+            const auto gm = run (m, v);
+            logMessage ("    -18 dBFS voice: gain " + d2 (gm.back()) + " dB (needs +3)");
+            expectWithinAbsoluteError (gm.back(), 3.0, 0.3);
+
             AutoGainStage s; s.prepare (fs);
-            auto x = voice (16.5, -42.0);
+            auto x = voice (13.0, -30.0);
             const auto g = run (s, x);
-            const double out = peakDbOf (x, 14.0, 16.5);
-            logMessage ("    -42 dBFS voice: gain " + d2 (g.back()) + " dB, output peaks " + d2 (out) + " dBFS");
-            expectGreaterThan (g.back(), 20.0);
-            expectWithinAbsoluteError (out, normal, 1.5);
+            double highest = -100.0;
+            for (auto v2 : g) highest = std::max (highest, v2);
+            logMessage ("    -30 dBFS voice: highest gain " + juce::String (highest, 4) + " dB, output peaks " + d2 (peakDbOf (x, 10.5, 13.0)) + " dBFS");
+            expectLessOrEqual (highest, AutoGainStage::maxBoostDb + 1.0e-9);
+            expectGreaterThan (g.back(), AutoGainStage::maxBoostDb - 0.1);
 
             AutoGainStage h; h.prepare (fs);
-            auto y = voice (13.0, -1.0);
+            auto y = voice (13.0, -2.0);
             const auto gh = run (h, y);
-            logMessage ("    -1 dBFS voice: gain " + d2 (gh.back()) + " dB, output peaks " + d2 (peakDbOf (y, 10.5, 13.0)) + " dBFS");
-            expectLessThan (gh.back(), -12.0);
+            double lowest = 100.0;
+            for (auto v2 : gh) lowest = std::min (lowest, v2);
+            const double outHot = peakDbOf (y, 0.0, 13.0);
+            logMessage ("    -2 dBFS voice: lowest gain " + juce::String (lowest, 4) + " dB, loudest output " + juce::String (outHot, 3) + " dBFS");
+            expectGreaterOrEqual (lowest, AutoGainStage::maxCutDb - 1.0e-9);
+            expectLessThan (outHot, AutoGainStage::ceilingDb + 0.001, "the ceiling holds the rest");
         }
 
-        beginTest ("shouting (12 dB over the natural voice): peaks at about -17.5 dBFS, no clipping, no clicks");
+        beginTest ("shouting (12 dB over the natural voice): peaks at about -12 dBFS, never above -10 dBFS, no clicks");
         {
             AutoGainStage s; s.prepare (fs);
-            auto calm = voice (14.0, -25.0);
+            auto calm = voice (14.0, -20.0);
             run (s, calm);
-            auto loud = voice (10.5, -13.0, -200.0, 2);
+            auto loud = voice (10.5, -8.0, -200.0, 2);
             const auto g = run (s, loud);
             const double lastShout = peakDbOf (loud, 7.0, 9.5), firstSyllables = peakDbOf (loud, 0.0, 0.5);
             const int clicks = clickSamples (loud, dbToLin (peakDbOf (loud, 0.0, 10.5)), 300.0);
             logMessage ("    natural level " + d2 (s.getNaturalLevelDb()) + " dBFS, aim " + d2 (s.getAimDb()) + " dBFS; output peaks of the shouting "
                         + d2 (lastShout) + " dBFS (first 0.5 s: " + d2 (firstSyllables) + "); gain " + d2 (g.back()) + " dB; click samples " + juce::String (clicks));
             expectWithinAbsoluteError (lastShout, shout, 1.0);
-            expectLessThan (peakDbOf (loud, 0.0, 10.5), AutoGainStage::ceilingDb + 0.01, "never above -1 dBFS");
+            expectLessThan (peakDbOf (loud, 0.0, 10.5), AutoGainStage::ceilingDb + 0.001, "never above -10 dBFS");
             expectEquals (clicks, 0);
         }
 
         beginTest ("a slightly raised voice (+3 dB) stays a normal voice; between that and shouting the aim slides smoothly");
         {
             AutoGainStage s; s.prepare (fs);
-            auto calm = voice (14.0, -25.0);
+            auto calm = voice (14.0, -20.0);
             run (s, calm);
-            auto raised = voice (6.0, -22.0, -200.0, 3);
+            auto raised = voice (6.0, -17.0, -200.0, 3);
             run (s, raised);
             const double aimRaised = s.getAimDb();
-            auto louder = voice (6.0, -19.0, -200.0, 4);
+            auto louder = voice (6.0, -14.0, -200.0, 4);
             run (s, louder);
             const double aimLouder = s.getAimDb();
             logMessage ("    aim at +3 dB: " + d2 (aimRaised) + " dBFS, at +6 dB: " + d2 (aimLouder) + " dBFS");
             expectWithinAbsoluteError (aimRaised, normal, 0.3);
-            expect (aimLouder < normal - 0.3 && aimLouder > shout + 0.3, "in between");
+            expect (aimLouder > normal + 0.3 && aimLouder < shout - 0.3, "in between");
         }
 
-        beginTest ("sudden rise of the voice: the output is back near the aim within 0.2 s");
+        beginTest ("sudden rise of the voice (12 dB at once): the ceiling catches the first syllable, the gain does the rest");
         {
             AutoGainStage s; s.prepare (fs);
-            auto calm = voice (14.0, -30.0);
+            auto calm = voice (14.0, -21.0);
             run (s, calm);
-            auto jump = voice (3.5, -14.0, -200.0, 5);   // a phrase 16 dB louder, starting at once
+            auto jump = voice (3.5, -9.0, -200.0, 5);
             run (s, jump);
-            const double first50 = peakDbOf (jump, 0.0, 0.05), after = peakDbOf (jump, 0.25, 2.5);
-            logMessage ("    first 50 ms " + d2 (first50) + " dBFS, from 0.25 s on " + d2 (after) + " dBFS");
-            expectLessThan (after, normal + 1.0);
+            const double first = peakDbOf (jump, 0.0, 0.25), second = peakDbOf (jump, 0.25, 0.5), later = peakDbOf (jump, 0.75, 2.5);
+            logMessage ("    first syllable " + d2 (first) + " dBFS, second " + d2 (second) + " dBFS, from 0.75 s on " + d2 (later) + " dBFS (aim " + d2 (s.getAimDb()) + ")");
+            expectLessThan (first, AutoGainStage::ceilingDb + 0.001);
+            expectLessThan (second, AutoGainStage::ceilingDb - 0.5, "second syllable already under the ceiling's knee region");
+            expectWithinAbsoluteError (later, shout, 0.7);
         }
 
         beginTest ("after shouting, normal speech is back near -15 dBFS within a few seconds");
         {
             AutoGainStage s; s.prepare (fs);
-            auto calm = voice (14.0, -25.0);
+            auto calm = voice (14.0, -20.0);
             run (s, calm);
-            auto loud = voice (7.0, -13.0, -200.0, 6);
+            auto loud = voice (7.0, -8.0, -200.0, 6);
             run (s, loud);
-            auto back = voice (10.5, -25.0, -200.0, 7);
+            auto back = voice (10.5, -20.0, -200.0, 7);
             run (s, back);
             const double second = peakDbOf (back, 3.5, 6.0), third = peakDbOf (back, 7.0, 9.5);
             logMessage ("    normal phrases after the shouting: " + d2 (peakDbOf (back, 0.0, 2.5)) + " / " + d2 (second) + " / " + d2 (third) + " dBFS");
@@ -202,7 +216,7 @@ struct AutoGainTest : juce::UnitTest
         beginTest ("pauses between words and phrases: no gain jumps, breaths and word ends untouched");
         {
             AutoGainStage s; s.prepare (fs);
-            auto x = voice (20.0, -25.0, -60.0, 10);
+            auto x = voice (20.0, -20.0, -60.0, 10);
             const auto g = run (s, x);
             double lo = 1.0e9, hi = -1.0e9, step = 0.0;
             for (size_t b = (size_t) (10.0 * fs / block); b < g.size(); ++b)
@@ -217,32 +231,32 @@ struct AutoGainTest : juce::UnitTest
         beginTest ("speaking again after silence continues from the kept gain and keeps adapting");
         {
             AutoGainStage s; s.prepare (fs);
-            auto x = voice (13.0, -25.0);
+            auto x = voice (13.0, -17.0);
             run (s, x);
             const double held = s.getTargetGainDb();
             auto zeros = std::vector<float> ((size_t) (8.0 * fs), 0.0f);
             run (s, zeros);
-            auto again = voice (13.0, -31.0, -200.0, 11);   // 6 dB quieter than before
+            auto again = voice (13.0, -21.0, -200.0, 11);   // 4 dB quieter than before
             const auto g = run (s, again);
             const double out = peakDbOf (again, 10.5, 13.0);
             logMessage ("    kept " + d2 (held) + " dB; after the first speech block " + d2 (g[0]) + " dB; at the end " + d2 (g.back())
                         + " dB, output peaks " + d2 (out) + " dBFS");
             expectWithinAbsoluteError (g[0], held, 0.2);
-            expectGreaterThan (g.back(), held + 4.0);
+            expectGreaterThan (g.back(), held + 3.5);
             expectWithinAbsoluteError (out, normal, 1.0);
         }
 
         beginTest ("natural dynamics inside a phrase are kept (soft syllables stay 6 dB softer)");
         {
             AutoGainStage s; s.prepare (fs);
-            auto x = voice (13.0, -25.0, -200.0, 12, { 0.0, -6.0 });
+            auto x = voice (13.0, -20.0, -200.0, 12, { 0.0, -6.0 });
             run (s, x);
             const double loudSyl = peakDbOf (x, 10.5, 10.65), softSyl = peakDbOf (x, 10.75, 10.9);
             logMessage ("    loud syllable " + d2 (loudSyl) + " dBFS, soft syllable " + d2 (softSyl) + " dBFS");
             expectWithinAbsoluteError (loudSyl - softSyl, 6.0, 0.3);
         }
 
-        beginTest ("no digital clipping: a full-scale burst after quiet speech (gain about +20 dB) never exceeds -1 dBFS");
+        beginTest ("the ceiling: a full-scale phrase right after quiet speech (gain +6.5 dB) never exceeds -10 dBFS");
         {
             AutoGainStage s; s.prepare (fs);
             auto x = voice (13.0, -35.0);
@@ -255,14 +269,29 @@ struct AutoGainTest : juce::UnitTest
             expectLessThan (peak, AutoGainStage::ceilingDb + 0.001);
         }
 
+        beginTest ("normal speech stays below the limiter's knee: not compressed at all");
+        {
+            AutoGainStage s; s.prepare (fs);
+            auto x = voice (13.0, -20.0, -200.0, 16, { 0.0, -2.0, -4.0 });
+            double deepest = 0.0;
+            for (size_t p = 0; p < x.size(); p += (size_t) block)
+            {
+                float* ch[] = { x.data() + p };
+                s.process (ch, 1, block);
+                if (p > (size_t) (4.0 * fs)) deepest = std::min (deepest, s.getLimiterGainDb());
+            }
+            logMessage ("    deepest limiter gain after 4 s: " + juce::String (deepest, 6) + " dB; output peaks " + d2 (peakDbOf (x, 10.5, 13.0)) + " dBFS");
+            expectEquals (deepest, 0.0);
+        }
+
         beginTest ("switched off: glides back to exactly 0 dB, then the audio passes bit-exact");
         {
             AutoGainStage s; s.prepare (fs);
-            auto x = voice (13.0, -25.0);
+            auto x = voice (13.0, -20.0);
             run (s, x);
             const double start = s.getTargetGainDb();
             s.setEnabled (false);
-            auto y = voice (2.0, -25.0, -200.0, 14);
+            auto y = voice (2.0, -20.0, -200.0, 14);
             const auto g = run (s, y);
             bool monotonic = true;
             for (size_t b = 1; b < g.size(); ++b) monotonic = monotonic && g[b] <= g[b - 1];
