@@ -111,10 +111,15 @@ namespace rt
     ProcessSetup configureRealtimeProcess() noexcept
     {
         ProcessSetup r;
-        // Above normal (not HIGH): the audio threads themselves run in the MMCSS realtime band
-        // anyway; this only keeps MicVST's other threads ahead of ordinary background work
-        // without starving games or OBS.
-        r.priorityRaised = SetPriorityClass (GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS) != FALSE;
+        // HIGH (not REALTIME), as the user wants it (1.2.0 and earlier 1.2.1 builds: "above normal"). The
+        // audio threads run in the MMCSS realtime band anyway (MMCSS does not depend on the process
+        // class); HIGH lifts MicVST's other threads (UI/meters, device changes, saving the state,
+        // plug-in windows) above normal applications. REALTIME is deliberately not used: it would
+        // put those threads above Windows' own input and audio handling.
+        // No privilege needed (only REALTIME requires SeIncreaseBasePriorityPrivilege); not
+        // inherited by the scan child processes (Windows passes only IDLE/BELOW_NORMAL on), which
+        // set their own below-normal class anyway (configureBackgroundProcess).
+        r.priorityRaised = SetPriorityClass (GetCurrentProcess(), HIGH_PRIORITY_CLASS) != FALSE;
         // "HighQoS": ControlMask selects the mechanism, StateMask = 0 turns it off. Two separate
         // calls, so an older Windows that does not know the timer flag still applies the first.
         r.executionThrottlingOff = setProcessThrottling (executionSpeed, 0);

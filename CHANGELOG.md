@@ -11,6 +11,7 @@ the chain or the devices change, and a completely Turkish interface. Measurement
 not be tested: [docs/TEST_RAPORU_1.2.1.md](docs/TEST_RAPORU_1.2.1.md) (Turkish).
 
 ### Changed
+- Process priority class is now HIGH (was "above normal"); scan processes stay "below normal".
 - The plugin chain runs on its own thread (MMCSS "Pro Audio") behind a lock-free input queue; the
   microphone's capture thread only copies the audio (microseconds). In 1.2.0 the chain ran on the
   capture thread: whenever plugin blocks took longer than ~20 ms in total, Windows' capture buffer

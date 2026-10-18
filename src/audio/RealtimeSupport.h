@@ -7,7 +7,7 @@ namespace rt
 {
     struct ProcessSetup
     {
-        bool priorityRaised = false;            // ABOVE_NORMAL_PRIORITY_CLASS
+        bool priorityRaised = false;            // HIGH_PRIORITY_CLASS
         bool executionThrottlingOff = false;    // EcoQoS / power throttling disabled
         bool timerThrottlingOff = false;        // timer resolution honoured while hidden (Win 11)
     };
