@@ -1,4 +1,5 @@
 #include "audio/PluginChain.h"
+#include "audio/BuiltInAutoGain.h"
 #include "audio/BuiltInGain.h"
 
 namespace
@@ -161,6 +162,77 @@ float PluginChain::getGainDb (int index) const
     return 0.0f;
 }
 
+bool PluginChain::addAutoGain (bool enabled)
+{
+    if (hasAutoGain()) return false;   // nur eins: zwei Regler würden gegeneinander arbeiten
+    auto proc = std::make_unique<BuiltInAutoGainProcessor>();
+    proc->setAutoGainEnabled (enabled);
+    auto node = graph.addNode (std::move (proc));
+    if (node == nullptr) return false;
+    chain.insert (chain.begin(), { node->nodeID, autoGainId, false });   // vor allem anderen
+    return true;
+}
+
+bool PluginChain::hasAutoGain() const
+{
+    for (auto& e : chain)
+        if (e.fileOrId == autoGainId) return true;
+    return false;
+}
+
+bool PluginChain::isAutoGain (int index) const
+{
+    return juce::isPositiveAndBelow (index, (int) chain.size()) && chain[(size_t) index].fileOrId == autoGainId;
+}
+
+namespace
+{
+    BuiltInAutoGainProcessor* autoGainProcessor (juce::AudioProcessorGraph& graph, NodeID id)
+    {
+        if (auto* node = graph.getNodeForId (id))
+            return dynamic_cast<BuiltInAutoGainProcessor*> (node->getProcessor());
+        return nullptr;
+    }
+}
+
+void PluginChain::setAutoGainEnabled (int index, bool enabled)
+{
+    if (isAutoGain (index))
+        if (auto* p = autoGainProcessor (graph, chain[(size_t) index].node))
+            p->setAutoGainEnabled (enabled);
+}
+
+bool PluginChain::isAutoGainEnabled (int index) const
+{
+    if (isAutoGain (index))
+        if (auto* p = autoGainProcessor (graph, chain[(size_t) index].node))
+            return p->isAutoGainEnabled();
+    return false;
+}
+
+bool PluginChain::takeAutoGainMeters (int index, AutoGainStage::Meters& out)
+{
+    if (isAutoGain (index))
+        if (auto* p = autoGainProcessor (graph, chain[(size_t) index].node))
+        {
+            out = p->takeMeters();
+            return true;
+        }
+    return false;
+}
+
+void PluginChain::keepAutoGainFirst()
+{
+    for (size_t i = 1; i < chain.size(); ++i)
+        if (chain[i].fileOrId == autoGainId)
+        {
+            auto e = chain[i];
+            chain.erase (chain.begin() + (long) i);
+            chain.insert (chain.begin(), e);
+            return;
+        }
+}
+
 void PluginChain::removePlugin (int index)
 {
     if (! juce::isPositiveAndBelow (index, (int) chain.size())) return;
@@ -178,6 +250,7 @@ void PluginChain::movePlugin (int from, int to)
     auto e = chain[(size_t) from];
     chain.erase (chain.begin() + from);
     chain.insert (chain.begin() + to, e);
+    keepAutoGainFirst();   // Otomatik Kazanç bleibt vorn, alles andere dahinter
 }
 
 void PluginChain::setBypass (int index, bool b)
@@ -223,7 +296,7 @@ void PluginChain::rebuildConnections()
         if (! e.bypassed)   // gebypasste Glieder überspringen
         {
             seq.push_back (channelsOf (e.node));
-            seq.back().passThrough = (e.fileOrId == gainId);   // Gain übernimmt die Breite davor
+            seq.back().passThrough = (e.fileOrId == gainId || e.fileOrId == autoGainId);   // übernehmen die Breite davor
         }
     seq.push_back (channelsOf (outputNode));
 

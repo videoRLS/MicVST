@@ -1,6 +1,6 @@
 # Runs MicVSTEngineTest (MicVST's real AudioEngine between virtual devices with WASAPI-like timing,
 # real threads, MMCSS) on the Windows CI machine and writes every result to $Out:
-#   <mode>.txt for edits, devices, hotplug, faults, latency, buffers, mono, flutter, quality, gain,
+#   <mode>.txt for edits, devices, hotplug, faults, latency, buffers, mono, flutter, quality, gain, autogain,
 #   long, chaos, vst3 (only when a Windows VST3 bundle could be downloaded), dump_*.json + integrity.txt.
 # Each run has a time limit; a run that does not finish (deadlock, hang) is killed and reported.
 # The tests' own verdicts are in the text files; this script fails only if a run crashed or hung.
@@ -122,6 +122,7 @@ Run-Test "mono"    @("mono")    120
 Run-Test "flutter" @("flutter") 300
 Run-Test "quality" @("quality") 900
 Run-Test "gain"    @("gain", "60") 900   # built-in Kazanç: level, channels, slider moved 60 s, edits, restore
+Run-Test "autogain" @("autogain") 300    # built-in Otomatik Kazanç: speech level, meters, silence hold, on/off, order
 if ($vst3) { Run-Test "vst3" @("vst3") 900 }
 
 # Fidelity: exact input vs. recorded cable output (analysed below)

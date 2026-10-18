@@ -14,6 +14,7 @@ namespace
         if (e.fileOrId == PluginChain::monoToStereoId) return "Mono -> Stereo";
         if (e.fileOrId == PluginChain::stereoToMonoId) return "Stereo -> Mono";
         if (e.fileOrId == PluginChain::gainId)         return tr ("Kazanç");
+        if (e.fileOrId == PluginChain::autoGainId)     return tr ("Otomatik Kazanç");
         // Name des Plugins selbst (eine Datei kann viele enthalten), sonst der Dateiname
         return e.pluginName.isNotEmpty() ? e.pluginName : juce::File (e.fileOrId).getFileNameWithoutExtension();
     }
@@ -104,6 +105,41 @@ PluginListView::Row::Row (PluginListView& ownerIn, int idx) : owner (ownerIn), i
         gainSlider.onValueChange = [this] { owner.gainChanged (index, (float) gainSlider.getValue()); };
         addAndMakeVisible (gainSlider);
     }
+
+    isAutoGainRow = owner.engine.getChain().isAutoGain (index);
+    if (isAutoGainRow)
+    {
+        autoToggle.setButtonText (tr ("Etkin"));
+        autoToggle.setToggleState (owner.engine.getChain().isAutoGainEnabled (index), juce::dontSendNotification);
+        autoToggle.setTooltip (tr ("Otomatik Kazanç: konuşmanın tepe seviyesini yaklaşık -6 dBFS'ye getirir; gerektiği kadar, "
+                                   "en çok +12 dB yükseltir, yüksek seste -12 dB'ye kadar azaltır. Sessizlikte kazancı bekletir. "
+                                   "Zincirin en başında, manuel Kazanç'tan önce çalışır. Kapatınca kazanç yumuşakça 0 dB'ye döner.\n"
+                                   "Gösterge: uygulanan kazanç (giriş tepe -> çıkış tepe, dBFS). Beyaz: konuşma algılanıyor, "
+                                   "gri: bekletiliyor ya da kapalı."));
+        autoToggle.onClick = [this] { owner.autoGainToggled (index, autoToggle.getToggleState()); };
+        addAndMakeVisible (autoToggle);
+        startTimerHz (10);   // Live-Anzeige
+    }
+}
+
+juce::Rectangle<int> PluginListView::Row::autoInfoArea() const
+{
+    const int x0 = 28 + autoNameW + autoToggleW + 6;
+    const int latLeft = bypassBtn.getX() - 8 - latencyW;
+    return { x0, 0, juce::jmax (0, latLeft - 6 - x0), getHeight() };
+}
+
+void PluginListView::Row::timerCallback()
+{
+    AutoGainStage::Meters m;
+    if (! owner.engine.getChain().takeAutoGainMeters (index, m))
+        return;
+    constexpr float fallPerTick = 1.5f;   // Spitzen fallen mit 15 dB/s (lesbar), steigen sofort
+    shownInDb   = juce::jmax (m.inPeakDb,  shownInDb  - fallPerTick);
+    shownOutDb  = juce::jmax (m.outPeakDb, shownOutDb - fallPerTick);
+    shownGainDb = m.gainDb;
+    shownSpeech = m.speech;
+    repaint (autoInfoArea());
 }
 
 bool PluginListView::Row::overHandle (juce::Point<int> p) const { return p.x < 24; }
@@ -122,6 +158,9 @@ void PluginListView::Row::resized()
         const int x0 = 28 + gainNameW;
         gainSlider.setBounds (x0, 3, juce::jmax (40, latLeft - 8 - x0), getHeight() - 6);
     }
+
+    if (isAutoGainRow)
+        autoToggle.setBounds (28 + autoNameW, 3, autoToggleW, getHeight() - 6);
 }
 
 void PluginListView::Row::paint (juce::Graphics& g)
@@ -158,12 +197,22 @@ void PluginListView::Row::paint (juce::Graphics& g)
     // Name (auf den Platz links der Latenz-Spalte begrenzt; in Kazanç-Zeilen vor dem Regler).
     const auto name = displayName (e);
     g.setColour (e.bypassed ? juce::Colours::grey : juce::Colours::white);
-    const int nameW = isGainRow ? gainNameW - 6 : latLeft - 6 - 28;
+    const int nameW = isGainRow ? gainNameW - 6 : isAutoGainRow ? autoNameW - 6 : latLeft - 6 - 28;
     g.drawText (name, 28, 0, nameW, b.getHeight(), juce::Justification::centredLeft);
 
     g.setColour (juce::Colours::grey);
     g.setFont (juce::Font (juce::FontOptions (12.0f)));
     g.drawText (latText, latLeft, 0, latW, b.getHeight(), juce::Justification::centredRight);
+
+    if (isAutoGainRow)
+    {
+        // "+9,4 dB  (-21 → -8 dBFS)": angewendete Verstärkung, Eingangs- und Ausgangsspitze des Glieds
+        auto peak = [] (float db) { return juce::String (juce::roundToInt (juce::jmax (-90.0f, db))); };
+        const auto info = gainText (shownGainDb) + "  (" + peak (shownInDb) + tr (" → ") + peak (shownOutDb) + " dBFS)";
+        const bool adapting = autoToggle.getToggleState() && shownSpeech && ! e.bypassed;
+        g.setColour (adapting ? juce::Colours::white : juce::Colours::grey);
+        g.drawText (info, autoInfoArea(), juce::Justification::centredLeft);
+    }
 }
 
 void PluginListView::Row::mouseDown (const juce::MouseEvent& e)
@@ -264,6 +313,13 @@ void PluginListView::timerCallback()
         gainPersistPending = false;
         engine.requestPersist();
     }
+}
+
+void PluginListView::autoGainToggled (int index, bool on)
+{
+    // Kein Graph-Umbau: nur der Schalter (atomar). Aus = der Auto-Anteil gleitet auf 0 dB zurück.
+    engine.getChain().setAutoGainEnabled (index, on);
+    engine.requestPersist();
 }
 
 void PluginListView::gainChanged (int index, float gainDb)
@@ -406,6 +462,10 @@ void PluginListView::showPluginPicker()
     gain.name = tr ("Kazanç (Gain)"); gain.manufacturerName = tr ("Dahili");
     gain.fileOrIdentifier = PluginChain::gainId;
     entries.add (gain);
+    juce::PluginDescription autoGain;
+    autoGain.name = tr ("Otomatik Kazanç (Auto Gain)"); autoGain.manufacturerName = tr ("Dahili");
+    autoGain.fileOrIdentifier = PluginChain::autoGainId;
+    entries.add (autoGain);
     entries.addArray (engine.getKnownPlugins().getTypes());
 
     // SafePointer: die CallOutBox lebt auf dem Desktop und kann die View überleben.
@@ -420,6 +480,19 @@ void PluginListView::showPluginPicker()
 
 void PluginListView::addFromPicker (const juce::PluginDescription& desc)
 {
+    if (desc.fileOrIdentifier == PluginChain::autoGainId)
+    {
+        if (engine.getChain().hasAutoGain())
+            return;   // nur eins (es steht schon ganz oben in der Kette)
+        {
+            const AudioEngine::ChainEdit edit (engine);
+            engine.getChain().addAutoGain();   // an Position 0, eingeschaltet
+            engine.rebuildGraph();
+        }
+        commitChange();
+        return;
+    }
+
     if (desc.fileOrIdentifier == PluginChain::monoToStereoId
          || desc.fileOrIdentifier == PluginChain::stereoToMonoId
          || desc.fileOrIdentifier == PluginChain::gainId)

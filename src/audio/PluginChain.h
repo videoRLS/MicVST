@@ -1,5 +1,6 @@
 #pragma once
 #include <juce_audio_processors/juce_audio_processors.h>
+#include "audio/AutoGain.h"
 #include "audio/GraphConnections.h"
 #include <atomic>
 #include <vector>
@@ -14,6 +15,7 @@ public:
     static constexpr const char* monoToStereoId = "builtin:mono2stereo";
     static constexpr const char* stereoToMonoId = "builtin:stereo2mono";
     static constexpr const char* gainId         = "builtin:gain";   // "Kazanç" (BuiltInGain.h)
+    static constexpr const char* autoGainId     = "builtin:autogain";   // "Otomatik Kazanç" (BuiltInAutoGain.h)
 
     // pluginId/-Name/-Uid identifizieren das Plugin INNERHALB seiner Datei: eine VST3-Datei
     // kann viele Plugins enthalten (Waves-WaveShell, LSP-Bündel). Nur über den Dateipfad
@@ -44,6 +46,17 @@ public:
     void  setGainDb (int index, float gainDb);
     float getGainDb (int index) const;
 
+    // Otomatik Kazanç: höchstens eins, immer ganz VORN in der Kette (vor allen Effekten und vor dem
+    // manuellen Kazanç). addAutoGain fügt es an Position 0 ein; false, wenn schon eins da ist.
+    bool addAutoGain (bool enabled = true);
+    bool hasAutoGain() const;
+    bool isAutoGain (int index) const;
+    // Message-Thread, lock-frei. Aus = der Auto-Anteil gleitet auf 0 dB zurück.
+    void setAutoGainEnabled (int index, bool enabled);
+    bool isAutoGainEnabled (int index) const;
+    // Pegel seit dem letzten Aufruf + aktuell angewendete Verstärkung; false = kein Auto-Gain-Glied.
+    bool takeAutoGainMeters (int index, AutoGainStage::Meters& out);
+
     void removePlugin (int index);
     void movePlugin (int from, int to);
     void setBypass (int index, bool shouldBypass);
@@ -62,6 +75,8 @@ public:
     bool isOutputMono() const noexcept { return outputMono.load (std::memory_order_relaxed); }
 
 private:
+    void keepAutoGainFirst();   // nach Verschieben: Otomatik Kazanç zurück an Position 0
+
     juce::AudioProcessorGraph& graph;
     NodeID inputNode, outputNode;
     std::vector<Entry> chain;

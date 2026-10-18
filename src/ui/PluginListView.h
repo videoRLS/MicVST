@@ -32,6 +32,7 @@ private:
     void requestMove (int from, int to);
     void toggleBypass (int index);
     void gainChanged (int index, float gainDb);   // Kazanç-Regler: live setzen, verzögert speichern
+    void autoGainToggled (int index, bool on);     // Otomatik Kazanç ein/aus (sofort speichern)
 
     // Kazanç-Regler: Speichern erst 0,4-0,9 s nach der letzten Bewegung (timerCallback) - ein
     // Ziehen erzeugt viele Werte, und jedes Speichern serialisiert alle Plugin-Zustände.
@@ -47,11 +48,14 @@ private:
 
     // Eine Zeile: Handle + Name + Bypass + Trash. Das Handle-/Namensfeld behandelt
     // Drag (Umsortieren) und Doppelklick (Editor); Bypass/Trash sind Kind-Buttons.
-    // Kazanç-Zeilen (eingebauter Gain) tragen zusätzlich einen Regler zwischen Name und Latenz.
-    struct Row : juce::Component
+    // Kazanç-Zeilen (eingebauter Gain) tragen zusätzlich einen Regler zwischen Name und Latenz;
+    // die Otomatik-Kazanç-Zeile einen Ein/Aus-Schalter und eine Live-Anzeige (10 Hz).
+    struct Row : juce::Component, private juce::Timer
     {
         static constexpr int latencyW  = 72;   // Latenz-Spalte links vom Bypass
         static constexpr int gainNameW = 92;   // Platz für "Kazanç" vor dem Regler
+        static constexpr int autoNameW = 128;  // Platz für "Otomatik Kazanç" vor dem Schalter
+        static constexpr int autoToggleW = 64;
 
         Row (PluginListView& ownerIn, int idx);
         void paint (juce::Graphics&) override;
@@ -68,6 +72,14 @@ private:
         TrashButton trashBtn;
         bool isGainRow = false;
         juce::Slider gainSlider;   // nur in Kazanç-Zeilen sichtbar
+
+        // Otomatik Kazanç: Schalter + Anzeige "Verstärkung (Eingang -> Ausgang, Spitze dBFS)"
+        bool isAutoGainRow = false;
+        juce::ToggleButton autoToggle;
+        float shownInDb = -120.0f, shownOutDb = -120.0f, shownGainDb = 0.0f;   // Anzeige-Werte (Spitzen fallen langsam)
+        bool  shownSpeech = false;
+        void timerCallback() override;   // nur Otomatik-Kazanç-Zeilen: Messwerte holen, neu zeichnen
+        juce::Rectangle<int> autoInfoArea() const;
         bool dragging = false;
         int  grabOffsetY = 0;
     };
