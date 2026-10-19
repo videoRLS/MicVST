@@ -112,7 +112,14 @@ not be tested: [docs/TEST_RAPORU_1.2.1.md](docs/TEST_RAPORU_1.2.1.md) (Turkish).
   fade (a click). Now the queue never plays across that point and the output fades there.
 - Clicks when the chain is edited during playback (add, remove, move, bypass): the output fades
   out (5 ms), the graph switches while muted, then fades in. Measured on virtual devices: 1.2.0
-  clicked on 11 of 13 edits, 1.2.1 on none.
+  clicked on 11 of 13 edits, 1.2.1 on none. The fade-in now also waits until the chain's own
+  delay has run through: elements with latency (Otomatik Kazanç's 3 ms look-ahead, a look-ahead
+  limiter, a linear-phase EQ) still play audio from before the edit until then, e.g. at the level
+  before a bypass, and fading in over that seam clicked whenever the chain's latency was longer
+  than one block (found in the long engine test: Otomatik Kazanç + 240 samples of plug-in latency
+  at a 256-sample buffer clicked on bypass on/off; the same happened without Otomatik Kazanç with
+  300 samples of latency). The edit's silence is longer by the chain's latency, rounded up to
+  whole blocks.
 - Clicks on the cable when MicVST quits or a device/buffer setting is changed: the output now
   fades out and drains before the device stops (1.2.0: two clicked samples per change).
 - VST3 files that contain several plugins (Waves WaveShell, LSP, ...): every entry came back as

@@ -1047,8 +1047,10 @@ namespace
         };
 
         const bool withAutoGain = envSet ("ETEST_LONG_AUTOGAIN");
+        // ETEST_LONG_DELAY: another delay (samples, reported as latency) instead of 240
+        const int delaySamples = juce::jlimit (1, 8000, juce::SystemStats::getEnvironmentVariable ("ETEST_LONG_DELAY", "240").getIntValue());
         pr ("## Long run" + juce::String (chaos ? " with changes during playback" : "") + ": " + juce::String (minutes, 0)
-            + " min real time, chain gain 0.5 + delay 240 smp + load 30 %" + (withAutoGain ? juce::String (" + Otomatik Kazanç") : juce::String())
+            + " min real time, chain gain 0.5 + delay " + juce::String (delaySamples) + " smp + load 30 %" + (withAutoGain ? juce::String (" + Otomatik Kazanç") : juce::String())
             + ", 997 Hz -6 dBFS, buffer 480, streamed analysis");
         pr ("| t (min) | RSS (MB) | process CPU (%) | clicks (unexplained) | gaps (unexplained) | THD+N in 43 ms windows, median / worst (event-free 2 s slices) | speed p-p within a slice (ppm) | level (dBFS) | MicVST |");
         pr ("|---:|---:|---:|---:|---:|---:|---:|---:|---|");
@@ -1056,7 +1058,7 @@ namespace
             EngineRun run (480, seconds);
             auto& e = *run.engine;
             run.add (testDesc ("TestGain", 0.5));
-            run.add (testDesc ("TestDelay", 240));
+            run.add (testDesc ("TestDelay", delaySamples));
             run.add (testDesc ("TestLoad", 0.3));
             if (withAutoGain)   // ETEST_LONG_AUTOGAIN: the built-in Otomatik Kazanç at the end of the chain
             {
@@ -1422,14 +1424,30 @@ namespace
     }
     void voiceConfig (double peakDb) { voiceConfig ({ { 0.0, peakDb } }); }
 
-    // Realistic synthetic speech (SpeechSynth.h) at the given typical level, looped.
-    void talkConfig (double typicalDb, unsigned seed, double noiseDb = -65.0, double seconds = 60.0)
+    // Realistic synthetic speech (SpeechSynth.h) at the given typical level, looped; returns it.
+    std::shared_ptr<std::vector<float>> talkConfig (double typicalDb, unsigned seed, double noiseDb = -65.0, double seconds = 60.0)
     {
         auto& cfg = vdev::config();
         speech::Params p;
         p.fs = cfg.micRate; p.peakDb = typicalDb; p.seed = seed; p.noiseDb = noiseDb; p.plosiveDb = -10.0;
         auto data = std::make_shared<std::vector<float>> (speech::generate (seconds, p).x);
         cfg.signal = [data] (int, int64_t i) { return (*data)[(size_t) (i % (int64_t) data->size())]; };
+        return data;
+    }
+
+    // What Otomatik Kazanç alone (AutoGainStage, no engine) makes of the first `seconds` of x, in
+    // blocks of 480 like the engine's plug-in thread here - the reference for the engine's output.
+    std::vector<float> autoGainOffline (const std::vector<float>& x, double seconds, double fs)
+    {
+        std::vector<float> y (x.begin(), x.begin() + (long) std::min (x.size(), (size_t) (seconds * fs)));
+        const auto stage = std::make_unique<AutoGainStage>();
+        stage->prepare (fs);
+        for (size_t i = 0; i < y.size(); i += 480)
+        {
+            float* ch[] = { y.data() + i };
+            stage->process (ch, 1, (int) std::min<size_t> (480, y.size() - i));
+        }
+        return y;
     }
 
     juce::String chainOrder (PluginChain& c)
@@ -1532,11 +1550,19 @@ namespace
 
         pr ("");
         pr ("## Otomatik Kazanç: realistic synthetic speech (SpeechSynth, 45 s, output analysed from 15 s; typical = level of the loudest 20 % of the voiced 10 ms windows)");
-        pr ("| Input typical | Output typical | Expected | Loudest output | Gain shown at the end |");
-        pr ("|---:|---:|---:|---:|---:|");
+        pr ("Expected: the same input through AutoGainStage alone (no engine; the aim -20 dBFS within the gain range 0 ... +6 dB). The typical-level measure is not exactly "
+            "scale-invariant with room noise (which windows count as voiced depends on the loudest one), so it is compared with that reference, not with input + gain.");
+        pr ("| Input typical (set / measured) | Output typical | Expected (Otomatik Kazanç alone) | Difference | Loudest output (alone) | Gain shown at the end |");
+        pr ("|---:|---:|---:|---:|---:|---:|");
         for (double in : { -30.0, -26.0, -23.0, -20.0, -16.0 })
         {
-            talkConfig (in, 7);
+            const auto data = talkConfig (in, 7);
+            const auto alone = autoGainOffline (*data, 45.0, fs);
+            const auto a0 = std::min (alone.size(), (size_t) (15.0 * fs));
+            const double inMeasured = speech::typicalLevel (data->data() + a0, std::min (data->size(), (size_t) (45.0 * fs)) - a0, fs);
+            const double expected = speech::typicalLevel (alone.data() + a0, alone.size() - a0, fs);
+            float aloneMax = 0.0f;
+            for (size_t i = a0; i < alone.size(); ++i) aloneMax = std::max (aloneMax, std::abs (alone[i]));
             AutoGainStage::Meters m;
             {
                 EngineRun run (480, 45.0);
@@ -1547,9 +1573,9 @@ namespace
             const auto& L = vdev::recorder().left;
             const auto from = std::min (L.size(), (size_t) (15.0 * fs));
             const double outTyp = speech::typicalLevel (L.data() + from, L.size() - from, fs);
-            const double expected = juce::jlimit (in, in + AutoGainStage::maxBoostDb, N);
             loudest = std::max (loudest, peakDbOf (15.0, 1.0e9));
-            pr ("| " + db (in, 1) + "FS | " + db (outTyp, 2) + "FS | " + db (expected, 1) + "FS (+-1) | " + db (peakDbOf (15.0, 1.0e9), 2) + "FS | " + db (m.gainDb, 2) + " |");
+            pr ("| " + db (in, 1) + "FS / " + db (inMeasured, 2) + "FS | " + db (outTyp, 2) + "FS | " + db (expected, 2) + "FS | " + db (outTyp - expected, 2)
+                + " | " + db (peakDbOf (15.0, 1.0e9), 2) + "FS (" + db (juce::Decibels::gainToDecibels ((double) aloneMax, -200.0), 2) + "FS) | " + db (m.gainDb, 2) + " |");
         }
 
         pr ("");
@@ -1727,7 +1753,8 @@ namespace
 
         pr ("");
         pr ("loudest output sample in the runs where Otomatik Kazanç is the last gain stage: " + db (loudest, 3) + "FS (must stay at or below "
-            + db (C, 1) + "FS; the bridge's resampler after the chain may add a few thousandths of a dB)");
+            + db (C, 1) + "FS; the bridge's resampler after the chain may add a little) -> "
+            + (loudest <= C + 0.1 ? "OK (at most 0.1 dB over)" : "OVER by more than 0.1 dB"));
     }
 }
 #endif

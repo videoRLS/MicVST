@@ -611,18 +611,26 @@ void AudioEngine::applyEditFade (juce::AudioBuffer<float>& block, double sr) noe
 {
     // Plug-in thread. During a chain edit: fade out, then silence (acknowledged to the message
     // thread, which only then switches the graph); after the edit one more silent block (the
-    // graph hands the new render sequence over at the start of a block), then fade back in.
+    // graph hands the new render sequence over at the start of a block, so the new chain runs
+    // from this block or the next) plus as long as the chain delays the audio, then fade back in.
+    // The wait for the delay: elements with latency (Otomatik Kazanç's 3 ms look-ahead, a
+    // look-ahead limiter, a linear-phase EQ) still play audio from before the edit until their
+    // delay lines have run through - e.g. at the level before a bypass. Fading in while that
+    // seam is still to come would put it into the audible audio as a click.
+    const int n = block.getNumSamples();
     const bool editing = chainEditDepth.load (std::memory_order_acquire) > 0;
     const auto generation = chainEditGeneration.load (std::memory_order_acquire);
     if (generation != seenEditGeneration)
     {
         seenEditGeneration = generation;
         if (! editing && editGain <= 0.0f)
-            editSettleBlocks = 1;
+        {
+            const int drain = juce::jlimit (0, (int) sr, editDrainSamples.load (std::memory_order_relaxed));   // at most 1 s
+            editSettleBlocks = 1 + (drain + n - 1) / juce::jmax (1, n);
+        }
     }
 
     const float step = 1.0f / (float) juce::jmax (1.0, editFadeSeconds * sr);
-    const int n = block.getNumSamples();
 
     if (editing || editSettleBlocks > 0)
     {
@@ -661,6 +669,8 @@ void AudioEngine::beginChainEdit()
     if (chainEditDepth.fetch_add (1, std::memory_order_acq_rel) > 0)
         return;   // nested: already muted
 
+    editLatencyBefore = graph.getLatencySamples();   // the chain's delay before the edit (endChainEdit)
+
     // Wait (briefly) until the plug-in thread has faded the output out - only if it runs and
     // gets audio; otherwise nothing is audible anyway.
     if (! processingThread.isThreadRunning() || ! inputRunningFlag.load() || inputStallSeconds > 0)
@@ -674,6 +684,11 @@ void AudioEngine::beginChainEdit()
 
 void AudioEngine::endChainEdit()
 {
+    // The outermost edit ends: how long the chain still plays audio from before the edit (the
+    // larger delay of the old and the new chain), published before the generation that the
+    // plug-in thread waits for.
+    if (chainEditDepth.load (std::memory_order_relaxed) == 1)
+        editDrainSamples.store (juce::jmax (editLatencyBefore, graph.getLatencySamples()), std::memory_order_relaxed);
     if (chainEditDepth.fetch_sub (1, std::memory_order_acq_rel) == 1)
         chainEditGeneration.fetch_add (1, std::memory_order_acq_rel);
 }

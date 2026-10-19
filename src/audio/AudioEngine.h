@@ -285,6 +285,8 @@ private:
     std::atomic<int>      chainEditDepth { 0 };
     std::atomic<uint32_t> chainEditGeneration { 0 };
     std::atomic<bool>     outputMutedForEdit { false };
+    std::atomic<int>      editDrainSamples { 0 };   // the chain's delay around the last edit (applyEditFade)
+    int      editLatencyBefore = 0;    // message thread only
     float    editGain = 1.0f;          // plug-in thread only
     int      editSettleBlocks = 0;     // plug-in thread only
     uint32_t seenEditGeneration = 0;   // plug-in thread only
