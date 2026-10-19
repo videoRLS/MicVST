@@ -3,9 +3,9 @@
 #include "audio/AutoGain.h"
 
 // Built-in chain element "Otomatik Kazanç" (Auto Gain), next to "Kazanç" in the picker group
-// "Dahili". See AutoGain.h for the DSP. PluginChain keeps it at the very front of the chain (before
-// every effect and before the manual Kazanç), allows only one, and wires it as a pass-through
-// element (it keeps the channel width of the microphone).
+// "Dahili". See AutoGain.h for the DSP. Its position in the chain is free like any element's;
+// PluginChain allows only one and wires it as a pass-through element (it keeps the channel width of
+// the microphone). Its latency is the limiter's look-ahead (1.5 ms), reported to the graph.
 //
 // State (config.xml): <MicVSTAutoGain version="1" enabled="1"/> - only the on/off switch; the gain
 // is learned again from the voice after every start.
@@ -16,7 +16,11 @@ public:
 
     const juce::String getName() const override;
 
-    void prepareToPlay (double sampleRate, int) override { stage.prepare (sampleRate); }
+    void prepareToPlay (double sampleRate, int) override
+    {
+        stage.prepare (sampleRate);
+        setLatencySamples (stage.getLatencySamples());
+    }
     void releaseResources() override {}
     void reset() override { stage.reset(); }   // PluginChain calls it while the node is suspended
     void processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer&) override

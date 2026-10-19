@@ -1369,9 +1369,10 @@ namespace
 
     //==============================================================================
     // Built-in "Otomatik Kazanç" (auto gain), basic checks through the real engine: normal speech
-    // peaks near -15 dBFS (gain -6.5 ... +6.5 dB), shouting near -12 dBFS, a sudden rise and the way
-    // back, long silence (last gain kept, no gate) and speaking again, never above -10 dBFS, free
-    // position in the chain, on/off, the manual Kazanç unchanged with auto gain off, save/restore.
+    // peaks near -15 dBFS (gain 0 ... +6.5 dB), shouting near -12 dBFS, a sudden rise and the way
+    // back, long silence (last gain kept, no gate) and speaking again, never above -10 dBFS, the
+    // 1.5 ms look-ahead latency, free position in the chain, on/off, the manual Kazanç unchanged with
+    // auto gain off, save/restore.
     // Test signal: speech-like phrases (2.5 s of 150 ms syllables every 250 ms, then 1 s pause).
     float voiceSample (double t, double peakAmp)
     {
@@ -1498,15 +1499,16 @@ namespace
         auto autoOnly = [&addAuto] (EngineRun& r) { addAuto (r, true); };
         speechRow ("empty chain (reference)", -20.0, [] (EngineRun&) {}, -20.0, -20.0);
         speechRow ("Otomatik Kazanç, voice at -20 dBFS (needs +5 dB)", -20.0, autoOnly, N, -20.0);
-        speechRow ("Otomatik Kazanç, voice at -10 dBFS (needs -5 dB)", -10.0, autoOnly, N, -10.0);
+        speechRow ("Otomatik Kazanç, voice at -17 dBFS (needs +2 dB)", -17.0, autoOnly, N, -17.0);
         speechRow ("Otomatik Kazanç, voice already at -15 dBFS", -15.0, autoOnly, N, -15.0);
         speechRow ("Otomatik Kazanç, very quiet voice -30 dBFS (boost stops at +6.5 dB: expected -23.5)", -30.0, autoOnly, -30.0 + AutoGainStage::maxBoostDb, -30.0);
-        speechRow ("Otomatik Kazanç, hot microphone -2 dBFS (cut stops at -6.5 dB, the ceiling holds -10)", -2.0, autoOnly, C, -2.0);
+        speechRow ("Otomatik Kazanç, voice at -12 dBFS (above the aim: no reduction, stays -12)", -12.0, autoOnly, -12.0, -12.0);
+        speechRow ("Otomatik Kazanç, hot microphone -2 dBFS (gain stays 0 dB, the ceiling holds -10)", -2.0, autoOnly, C, -2.0);
 
         pr ("");
-        pr ("## Otomatik Kazanç: shouting and back (voice -20 dBFS, from 14 s on 12 dB louder at -8 dBFS, from 24.5 s on -20 dBFS again)");
+        pr ("## Otomatik Kazanç: shouting and back (voice -21 dBFS, from 14 s on 8 dB louder at -13 dBFS, from 24.5 s on -21 dBFS again)");
         {
-            voiceConfig ({ { 0.0, -20.0 }, { 14.0, -8.0 }, { 24.5, -20.0 } });
+            voiceConfig ({ { 0.0, -21.0 }, { 14.0, -13.0 }, { 24.5, -21.0 } });
             {
                 EngineRun run (480, 35.0);
                 addAuto (run, true);
@@ -1583,11 +1585,35 @@ namespace
         pr ("clicks while audio ran through 4 moves: " + juce::String (clicksInRun (false)));   // ends with Kazanc +6 after it
         pr ("| Chain | Input peaks | Output peaks | Aim | Gain shown in the row | Gain measured (out - input of the auto gain) | L = R | Clicks |");
         pr ("|---|---:|---:|---:|---:|---:|---:|---:|");
-        speechRow ("Kazanç +6 -> Otomatik Kazanç (auto gain behind the manual gain)", -20.0,
-                   [&addAuto] (EngineRun& r) { r.engine->getChain().addGain (6.0f); addAuto (r, true); }, N, -14.0);
+        speechRow ("Kazanç +3 -> Otomatik Kazanç (auto gain behind the manual gain)", -20.0,
+                   [&addAuto] (EngineRun& r) { r.engine->getChain().addGain (3.0f); addAuto (r, true); }, N, -17.0);
         speechRow ("Otomatik Kazanç -> Kazanç +6 (manual gain after it)", -20.0,
                    [&addAuto, &edit] (EngineRun& r) { r.engine->getChain().addGain (6.0f); addAuto (r, true); edit (r, [] (PluginChain& ch) { ch.movePlugin (1, 0); }); },
                    N + 6.0, -20.0, false);
+
+        pr ("");
+        pr ("## Otomatik Kazanç: latency (the limiter's 1.5 ms look-ahead)");
+        {
+            // the chain's latency as the engine adds it to the shown latency (graph latency); the shown
+            // total also contains the bridge's fill level, which moves a little from run to run
+            voiceConfig (-20.0);
+            int without = 0, with = 0, withOff = 0, reported = 0;
+            { EngineRun run (480, 2.0); pump (1.0); without = run.engine->getGraph().getLatencySamples(); }
+            {
+                EngineRun run (480, 3.0);
+                addAuto (run, true);
+                pump (1.0);
+                with = run.engine->getGraph().getLatencySamples();
+                if (auto* node = run.engine->getGraph().getNodeForId (run.engine->getChain().entries()[0].node))
+                    reported = node->getProcessor()->getLatencySamples();
+                run.engine->getChain().setAutoGainEnabled (0, false);
+                pump (1.0);
+                withOff = run.engine->getGraph().getLatencySamples();
+            }
+            pr ("chain latency: empty " + juce::String (without) + " samples, with Otomatik Kazanç " + juce::String (with) + " samples (+"
+                + juce::String ((with - without) / 48.0, 2) + " ms, expected +1.50), switched off " + juce::String (withOff)
+                + " samples (unchanged); the element reports " + juce::String (reported) + " samples (expected 72 at 48 kHz)");
+        }
 
         pr ("");
         pr ("## Otomatik Kazanç off: the manual Kazanç is unchanged (997 Hz, -20 dBFS in)");

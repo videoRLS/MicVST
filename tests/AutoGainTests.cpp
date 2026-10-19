@@ -1,7 +1,7 @@
 // Basic tests for the built-in "Otomatik Kazanç" (Auto Gain): normal speech near -15 dBFS, shouting
-// near -12 dBFS, the -6.5 ... +6.5 dB gain range, sudden rises, speech pauses and long silence (last
-// gain kept, no gate), resuming, the -10 dBFS soft ceiling, no jumps, switching off, meters = real
-// values, the processor.
+// near -12 dBFS, the 0 ... +6.5 dB gain range, sudden rises, short clicks, speech pauses and long
+// silence (last gain kept, no gate), resuming, the -10 dBFS soft ceiling with 1.5 ms look-ahead, the
+// latency, no jumps, switching off, meters = real values, the processor.
 // (Test names are ASCII: the runner prints them as Latin-1.)
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "audio/AutoGain.h"
@@ -89,7 +89,7 @@ struct AutoGainTest : juce::UnitTest
         const double normal = AutoGainStage::normalPeakDb, shout = AutoGainStage::shoutPeakDb;
 
         beginTest ("normal speech: peaks led to about -15 dBFS, from a quieter and from a louder microphone");
-        for (double in : { -20.0, -10.0 })
+        for (double in : { -20.0, -17.0 })
         {
             AutoGainStage s; s.prepare (fs);
             auto x = voice (13.0, in);
@@ -99,7 +99,7 @@ struct AutoGainTest : juce::UnitTest
             expectWithinAbsoluteError (out, normal, 1.0);
         }
 
-        beginTest ("gain range: only as much as needed, at most +6.5 dB up and 6.5 dB down");
+        beginTest ("gain range: only as much as needed, at most +6.5 dB up, never below 0 dB");
         {
             AutoGainStage m; m.prepare (fs);
             auto v = voice (13.0, -18.0);
@@ -123,21 +123,23 @@ struct AutoGainTest : juce::UnitTest
             for (auto v2 : gh) lowest = std::min (lowest, v2);
             const double outHot = peakDbOf (y, 0.0, 13.0);
             logMessage ("    -2 dBFS voice: lowest gain " + juce::String (lowest, 4) + " dB, loudest output " + juce::String (outHot, 3) + " dBFS");
-            expectGreaterOrEqual (lowest, AutoGainStage::maxCutDb - 1.0e-9);
+            expectGreaterOrEqual (lowest, 0.0, "never below 0 dB");
             expectLessThan (outHot, AutoGainStage::ceilingDb + 0.001, "the ceiling holds the rest");
         }
 
         beginTest ("shouting (12 dB over the natural voice): peaks at about -12 dBFS, never above -10 dBFS, no clicks");
         {
             AutoGainStage s; s.prepare (fs);
-            auto calm = voice (14.0, -20.0);
+            auto calm = voice (14.0, -26.0);
             run (s, calm);
-            auto loud = voice (10.5, -8.0, -200.0, 2);
+            const int guardsBefore = s.getGuardCount();
+            auto loud = voice (10.5, -14.0, -200.0, 2);
             const auto g = run (s, loud);
             const double lastShout = peakDbOf (loud, 7.0, 9.5), firstSyllables = peakDbOf (loud, 0.0, 0.5);
             const int clicks = clickSamples (loud, dbToLin (peakDbOf (loud, 0.0, 10.5)), 300.0);
             logMessage ("    natural level " + d2 (s.getNaturalLevelDb()) + " dBFS, aim " + d2 (s.getAimDb()) + " dBFS; output peaks of the shouting "
-                        + d2 (lastShout) + " dBFS (first 0.5 s: " + d2 (firstSyllables) + "); gain " + d2 (g.back()) + " dB; click samples " + juce::String (clicks));
+                        + d2 (lastShout) + " dBFS (first 0.5 s: " + d2 (firstSyllables) + "); gain " + d2 (g.back()) + " dB; click samples " + juce::String (clicks)
+                        + "; samples the guard had to catch " + juce::String (s.getGuardCount() - guardsBefore));
             expectWithinAbsoluteError (lastShout, shout, 1.0);
             expectLessThan (peakDbOf (loud, 0.0, 10.5), AutoGainStage::ceilingDb + 0.001, "never above -10 dBFS");
             expectEquals (clicks, 0);
@@ -162,12 +164,15 @@ struct AutoGainTest : juce::UnitTest
         beginTest ("sudden rise of the voice (12 dB at once): the ceiling catches the first syllable, the gain does the rest");
         {
             AutoGainStage s; s.prepare (fs);
-            auto calm = voice (14.0, -21.0);
+            auto calm = voice (14.0, -26.0);
             run (s, calm);
-            auto jump = voice (3.5, -9.0, -200.0, 5);
+            const int guardsBefore = s.getGuardCount();
+            auto jump = voice (3.5, -14.0, -200.0, 5);
             run (s, jump);
             const double first = peakDbOf (jump, 0.0, 0.25), second = peakDbOf (jump, 0.25, 0.5), later = peakDbOf (jump, 0.75, 2.5);
-            logMessage ("    first syllable " + d2 (first) + " dBFS, second " + d2 (second) + " dBFS, from 0.75 s on " + d2 (later) + " dBFS (aim " + d2 (s.getAimDb()) + ")");
+            logMessage ("    first syllable " + d2 (first) + " dBFS, second " + d2 (second) + " dBFS, from 0.75 s on " + d2 (later) + " dBFS (aim " + d2 (s.getAimDb())
+                        + "); click samples " + juce::String (clickSamples (jump, dbToLin (first), 300.0)) + ", guard " + juce::String (s.getGuardCount() - guardsBefore));
+            expectEquals (clickSamples (jump, dbToLin (first), 300.0), 0, "look-ahead: no clicks even at the first syllable");
             expectLessThan (first, AutoGainStage::ceilingDb + 0.001);
             expectLessThan (second, AutoGainStage::ceilingDb - 0.5, "second syllable already under the ceiling's knee region");
             expectWithinAbsoluteError (later, shout, 0.7);
@@ -201,9 +206,10 @@ struct AutoGainTest : juce::UnitTest
             for (auto v : g) unchanged = unchanged && v == held;
             double worstRatioErr = 0.0;
             const double expectedGain = dbToLin (heldApplied);
-            for (size_t i = 0; i < in.size(); ++i)
-                if (std::abs (in[i]) > 1.0e-4f)
-                    worstRatioErr = std::max (worstRatioErr, std::abs ((double) quiet[i] / in[i] - expectedGain) / expectedGain);
+            const auto L = (size_t) s.getLatencySamples();   // the output is the input of 1.5 ms earlier
+            for (size_t i = L; i < in.size(); ++i)
+                if (std::abs (in[i - L]) > 1.0e-4f)
+                    worstRatioErr = std::max (worstRatioErr, std::abs ((double) quiet[i] / in[i - L] - expectedGain) / expectedGain);
             auto zeros = std::vector<float> ((size_t) (10.0 * fs), 0.0f);
             const auto gz = run (s, zeros);
             for (auto v : gz) unchanged = unchanged && v == held;
@@ -284,7 +290,7 @@ struct AutoGainTest : juce::UnitTest
             expectEquals (deepest, 0.0);
         }
 
-        beginTest ("switched off: glides back to exactly 0 dB, then the audio passes bit-exact");
+        beginTest ("switched off: glides back to exactly 0 dB, then the audio passes bit-exact (1.5 ms later)");
         {
             AutoGainStage s; s.prepare (fs);
             auto x = voice (13.0, -20.0);
@@ -303,7 +309,10 @@ struct AutoGainTest : juce::UnitTest
             auto z = voice (1.0, -6.0, -60.0, 15);
             const auto orig = z;
             run (s, z);
-            expect (z == orig, "off and at 0 dB: not a single bit changed");
+            const auto L = (size_t) s.getLatencySamples();
+            bool exact = true;
+            for (size_t i = L; i < z.size(); ++i) exact = exact && juce::exactlyEqual (z[i], orig[i - L]);
+            expect (exact, "off and at 0 dB: not a single bit changed, only delayed");
             expectWithinAbsoluteError (s.getAppliedGainDb(), 0.0, 1.0e-12);
         }
 
@@ -337,12 +346,71 @@ struct AutoGainTest : juce::UnitTest
             const auto in = tone;
             run (s, tone);
             const auto m = s.takeMeters();
-            const double realGain = linToDb (std::abs ((double) tone.back() / in.back()));
+            const double realGain = linToDb (std::abs ((double) tone.back() / in[in.size() - 1 - (size_t) s.getLatencySamples()]));
             logMessage ("    meter gain " + juce::String (m.gainDb, 3) + " dB, real gain of the last sample " + juce::String (realGain, 3)
                         + " dB; peaks in " + d2 (m.inPeakDb) + " / out " + d2 (m.outPeakDb) + " dBFS");
             expectWithinAbsoluteError ((double) m.gainDb, realGain, 0.05);
             expectWithinAbsoluteError ((double) m.inPeakDb, -20.0, 0.1);
             expectWithinAbsoluteError ((double) m.outPeakDb, peakDbOf (tone, 0.0, 1.0), 0.01);
+        }
+
+        beginTest ("short clicks and bursts (0.5 ms, 12 dB over the voice) do not pull the gain down; the ceiling still catches them");
+        {
+            AutoGainStage s; s.prepare (fs);
+            auto x = voice (13.0, -20.0);
+            run (s, x);
+            const double before = s.getTargetGainDb();
+            auto y = voice (7.0, -20.0, -200.0, 21);
+            for (double t = 0.1; t < 6.9; t += 0.35)   // a 0.5 ms click of -8 dBFS every 350 ms, in speech and in pauses
+            {
+                const auto at = (size_t) (t * fs);
+                for (size_t k = 0; k < 24 && at + k < y.size(); ++k) y[at + k] += (float) dbToLin (-8.0);
+            }
+            const auto g = run (s, y);
+            double lowest = 100.0;
+            for (auto v : g) lowest = std::min (lowest, v);
+            const double outPeak = peakDbOf (y, 0.0, 7.0);
+            logMessage ("    gain before " + d2 (before) + " dB, lowest while clicking " + d2 (lowest) + " dB; loudest output " + juce::String (outPeak, 3) + " dBFS");
+            expectGreaterThan (lowest, before - 0.3, "the gain stays");
+            expectLessThan (outPeak, AutoGainStage::ceilingDb + 0.001);
+        }
+
+        beginTest ("latency: exactly 1.5 ms at 44.1, 48 and 96 kHz; the output is the input that much later");
+        {
+            for (double rate : { 44100.0, 48000.0, 96000.0 })
+            {
+                AutoGainStage s; s.prepare (rate);
+                expectEquals (s.getLatencySamples(), (int) std::lround (0.0015 * rate));
+            }
+            AutoGainStage s; s.prepare (fs);
+            s.setEnabled (false);
+            std::vector<float> x ((size_t) block * 2, 0.0f);
+            x[100] = 0.5f;
+            run (s, x);
+            const auto L = (size_t) s.getLatencySamples();
+            expectEquals (x[100 + L], 0.5f, "impulse arrives exactly 72 samples later");
+            float elsewhere = 0.0f;
+            for (size_t i = 0; i < x.size(); ++i) if (i != 100 + L) elsewhere = std::max (elsewhere, std::abs (x[i]));
+            expectEquals (elsewhere, 0.0f);
+        }
+
+        beginTest ("hold 20 ms: a deep loud voice (80 Hz) is limited without ripple");
+        {
+            AutoGainStage s; s.prepare (fs);
+            std::vector<float> x ((size_t) (2.0 * fs));
+            for (size_t i = 0; i < x.size(); ++i) x[i] = (float) (dbToLin (-7.0) * std::sin (twoPi * 80.0 * (double) i / fs));
+            run (s, x);
+            double lo = 1.0, hi = 0.0;
+            const auto period = (size_t) (fs / 80.0);
+            for (size_t p = (size_t) (1.0 * fs); p + period <= x.size(); p += period)
+            {
+                float m = 0.0f;
+                for (size_t i = p; i < p + period; ++i) m = std::max (m, std::abs (x[i]));
+                lo = std::min (lo, (double) m); hi = std::max (hi, (double) m);
+            }
+            logMessage ("    peaks per cycle between " + juce::String (linToDb (lo), 3) + " and " + juce::String (linToDb (hi), 3) + " dBFS");
+            expectLessThan (linToDb (hi) - linToDb (lo), 0.05, "no ripple");
+            expectLessThan (linToDb (hi), AutoGainStage::ceilingDb + 0.001);
         }
 
         beginTest ("stereo: both channels get the same gain");
@@ -370,14 +438,18 @@ struct BuiltInAutoGainTest : juce::UnitTest
 
     void runTest() override
     {
-        beginTest ("name, channels, on by default, no latency");
+        beginTest ("name, channels, on by default, latency = the 1.5 ms look-ahead");
         {
             BuiltInAutoGainProcessor p;
             expectEquals (p.getName(), juce::String::fromUTF8 ("Otomatik Kazanç"));
             expectEquals (p.getTotalNumInputChannels(), 2);
             expectEquals (p.getTotalNumOutputChannels(), 2);
             expect (p.isAutoGainEnabled());
-            expectEquals (p.getLatencySamples(), 0);
+            expectEquals (p.getLatencySamples(), 72, "before prepare: 48 kHz");
+            p.prepareToPlay (44100.0, 512);
+            expectEquals (p.getLatencySamples(), 66, "44.1 kHz");
+            p.prepareToPlay (96000.0, 512);
+            expectEquals (p.getLatencySamples(), 144, "96 kHz");
         }
 
         beginTest ("on/off survives the config.xml round trip; damaged state is ignored");

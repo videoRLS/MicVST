@@ -10,6 +10,7 @@ BuiltInAutoGainProcessor::BuiltInAutoGainProcessor()
           .withInput  ("In",  juce::AudioChannelSet::stereo(), true)
           .withOutput ("Out", juce::AudioChannelSet::stereo(), true))
 {
+    setLatencySamples (AutoGainStage::latencyFor (48000.0));   // until prepareToPlay knows the real rate
 }
 
 const juce::String BuiltInAutoGainProcessor::getName() const
