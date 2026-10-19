@@ -57,6 +57,10 @@ jobs:
 
   new:
     runs-on: windows-latest
+    # "[hizli]" in the commit message: build and publish MicVST.exe only, no tests (for a quick
+    # listening test by the user; the full run follows with a normal commit)
+    env:
+      QUICK: ${{ contains(github.event.head_commit.message, '[hizli]') }}
     steps:
       - uses: actions/checkout@v7
 
@@ -68,10 +72,11 @@ jobs:
           if (Test-Path tests/StressMain.cpp) { $targets += " MicVSTStress" }
           if (Test-Path tests/SnapshotMain.cpp) { $targets += " MicVSTSnapshot" }
           if (Test-Path tests/EngineTestMain.cpp) { $targets += " MicVSTEngineTest" }
+          if ($env:QUICK -eq 'true') { $targets = "MicVST"; New-Item -ItemType Directory -Force results | Out-Null; "quick build: MicVST.exe only, no tests" | Set-Content results/QUICK-BUILD-NO-TESTS.txt }
           ./tools/ci-build.ps1 -Source . -Build build -Targets $targets -Out results
 
       - name: Unit tests
-        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && env.QUICK != 'true' }}
         shell: pwsh
         run: |
           ./build/MicVSTTests_artefacts/Release/MicVSTTests.exe 2>&1 | Tee-Object -FilePath results/unit-tests.txt
@@ -80,30 +85,30 @@ jobs:
           if ($code -ne 0) { exit $code }
 
       - name: Closed box - no networking library in the exe
-        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && env.QUICK != 'true' }}
         # informational while the old update checker still exists, mandatory afterwards
         continue-on-error: ${{ hashFiles('src/net/UpdateChecker.h') != '' }}
         shell: pwsh
         run: ./tools/check-no-network.ps1 build/MicVST_artefacts/Release/MicVST.exe results/imports.txt 2>&1 | Tee-Object -FilePath results/network-check.txt
 
       - name: Audio path measurements (simulation + real Windows threads under full CPU load)
-        if: ${{ !cancelled() && steps.build.outcome == 'success' && hashFiles('tests/StressMain.cpp') != '' }}
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && env.QUICK != 'true' && hashFiles('tests/StressMain.cpp') != '' }}
         shell: pwsh
         run: ./build/MicVSTStress_artefacts/Release/MicVSTStress.exe results/measurements.md
 
       - name: Simulated day (24 h of virtual time, random disturbances, deterministic)
-        if: ${{ !cancelled() && steps.build.outcome == 'success' && hashFiles('tests/StressMain.cpp') != '' }}
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && env.QUICK != 'true' && hashFiles('tests/StressMain.cpp') != '' }}
         continue-on-error: true
         shell: pwsh
         run: ./build/MicVSTStress_artefacts/Release/MicVSTStress.exe results/day-simulation.md --day 24
 
       - name: UI snapshots (Turkish texts with the Windows fonts)
-        if: ${{ !cancelled() && steps.build.outcome == 'success' && hashFiles('tests/SnapshotMain.cpp') != '' }}
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && env.QUICK != 'true' && hashFiles('tests/SnapshotMain.cpp') != '' }}
         shell: pwsh
         run: ./build/MicVSTSnapshot_artefacts/Release/MicVSTSnapshot.exe results/ui
 
       - name: Engine test (real AudioEngine + virtual WASAPI-like devices, real threads, MMCSS)
-        if: ${{ !cancelled() && steps.build.outcome == 'success' && hashFiles('tests/EngineTestMain.cpp') != '' }}
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && env.QUICK != 'true' && hashFiles('tests/EngineTestMain.cpp') != '' }}
         continue-on-error: true
         shell: pwsh
         env:
@@ -111,7 +116,7 @@ jobs:
         run: ./tools/ci-enginetest.ps1 -Exe build/MicVSTEngineTest_artefacts/Release/MicVSTEngineTest.exe -Out results/engine -LongMinutes 20
 
       - name: Closed box at run time (network, files, DLLs of the running MicVST.exe)
-        if: ${{ !cancelled() && steps.build.outcome == 'success' && hashFiles('tools/ci-runtime-check.ps1') != '' }}
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && env.QUICK != 'true' && hashFiles('tools/ci-runtime-check.ps1') != '' }}
         continue-on-error: true
         shell: pwsh
         run: ./tools/ci-runtime-check.ps1 -Exe build/MicVST_artefacts/Release/MicVST.exe -Out results/runtime

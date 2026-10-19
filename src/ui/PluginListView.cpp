@@ -113,7 +113,7 @@ PluginListView::Row::Row (PluginListView& ownerIn, int idx) : owner (ownerIn), i
         autoToggle.setToggleState (owner.engine.getChain().isAutoGainEnabled (index), juce::dontSendNotification);
         autoToggle.setTooltip (tr ("Otomatik Kazanç: sesinizi canlı analiz eder; normal konuşmada tepe seviyesini yaklaşık "
                                    "-15 dBFS'ye, bağırırken yaklaşık -12 dBFS'ye getirir. Kazanç sesinize göre, gerektiği kadar "
-                                   "0 ile +6,5 dB arasında değişir (sesi hiç kısmaz); kısa tıklar ve darbeler kazancı etkilemez. "
+                                   "-4 ile +8 dB arasında değişir; kısa tıklar ve darbeler kazancı etkilemez. "
                                    "Hiçbir tepe -10 dBFS'yi geçmez (1,5 ms ileri bakışlı yumuşak sınırlayıcı). "
                                    "Sessizlikte son kazancı aynen korur; noise gate yoktur, ses hiç kesilmez. Zincirdeki yeri "
                                    "sürükleyerek değiştirilebilir. Kapatınca kazanç yumuşakça 0 dB'ye döner.\n"

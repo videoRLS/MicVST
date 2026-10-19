@@ -20,8 +20,8 @@
 //    quieter speech at 2 dB/s down to the recent syllable peaks (never below them, so no ripple
 //    between syllables) - or at 12 dB/s when the voice is clearly (6 dB) quieter, e.g. after
 //    shouting. The gain follows phrases, not syllables, so the voice keeps its dynamics.
-//  * Gain: no fixed value - it is the aim minus the analysed level, limited to 0 ... +6.5 dB: it
-//    only ever raises the voice (only as much as needed), never lowers it below its own level.
+//  * Gain: no fixed value - it is the aim minus the analysed level, limited to -4 ... +8 dB (only
+//    as much as needed inside that range).
 //    Up: exponential approach (time constant 0.35 s, 2..18 dB/s of voiced time); down (back
 //    towards 0 dB): time constant 0.15 s, or 30 ms when the voice is more than 3 dB too loud.
 //    A two-stage glide (6 ms each) makes every change click-free.
@@ -70,8 +70,8 @@ public:
     static constexpr double naturalUpTau        = 20.0;    // ... then follows a louder voice slowly
     static constexpr double naturalDownTau      = 6.0;     // ... and a quieter one a bit faster
     // gain range and movement
-    static constexpr double maxBoostDb          = 6.5;
-    static constexpr double maxCutDb            = 0.0;     // never below the voice's own level
+    static constexpr double maxBoostDb          = 8.0;
+    static constexpr double maxCutDb            = -4.0;
     static constexpr double riseTau             = 0.35;
     static constexpr double riseMinDbPerSec     = 2.0;
     static constexpr double riseMaxDbPerSec     = 18.0;
