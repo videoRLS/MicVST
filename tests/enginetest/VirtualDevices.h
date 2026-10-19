@@ -167,6 +167,8 @@ namespace vdev
     {
         std::atomic<bool> mic { true }, cable { true };
         std::atomic<bool> micFrozen { false }, cableFrozen { false };   // listed, open, but no callbacks (hung driver)
+        std::atomic<bool> micOpenFails { false }, cableOpenFails { false };   // listed, but open() fails (held exclusively by another program)
+        std::atomic<int>  openAttempts { 0 };                                  // open() calls of VMic / VCable
         std::atomic<float> speakerPeak { 0.0f };
         std::atomic<int64_t> speakerSamples { 0 };
     };
@@ -205,6 +207,9 @@ namespace vdev
         juce::String open (const juce::BigInteger& ins, const juce::BigInteger& outs, double sr, int bs) override
         {
             close();
+            if (getName() == "VMic" || getName() == "VCable") ++presence().openAttempts;
+            if ((getName() == "VMic" && presence().micOpenFails.load()) || (getName() == "VCable" && presence().cableOpenFails.load()))
+                return "Device in use (exclusive mode)";
             activeIns  = input ? ins : juce::BigInteger();
             if (input) activeIns.setRange (config().micChannels, 32, false);
             activeOuts = input ? juce::BigInteger() : outs;

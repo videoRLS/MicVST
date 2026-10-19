@@ -1,0 +1,156 @@
+name: kararlilik-uzun
+
+# Long runs on Windows for the kararlilik/** branches, started by "[uzun]" in the commit message
+# (or by hand). GitHub-hosted runners stop a job after 6 h, so the long jobs run in parallel,
+# up to 5.5 h each, every one on its own machine:
+#   long     - MicVSTEngineTest long: the real AudioEngine with Otomatik Kazanç in the chain, a
+#              steady tone; clicks, gaps, THD+N, memory and CPU every minute
+#   chaos    - MicVSTEngineTest chaos: the same with chain edits every 20 s and a device change
+#              every 5 min
+#   app      - the real MicVST.exe with its window open: memory, handles, GDI/USER objects,
+#              threads, CPU, log size, config.xml writes every minute
+#   simweek  - a simulated week of the audio bridge (MicVSTStress --day 168) and 24 h of audio
+#              through the Otomatik Kazanç soak (MicVSTTests AutoGain, MICVST_SOAK_HOURS=24)
+#   win11arm - Windows 11 (ARM64 runner): unit tests and the main engine-test modes, built for ARM64
+# Each job pushes its results to ci-sonuclari/<branch>-uzun-<job>.
+on:
+  push:
+    branches: [ 'kararlilik/**' ]
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: "minutes for long / chaos / app (at most about 330)"
+        default: "330"
+
+permissions:
+  contents: write
+
+env:
+  MINUTES: ${{ github.event.inputs.minutes || '330' }}
+
+jobs:
+  long:
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[uzun]') }}
+    runs-on: windows-latest
+    timeout-minutes: 358
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build
+        shell: pwsh
+        run: ./tools/ci-build.ps1 -Source . -Build build -Targets "MicVSTEngineTest" -Out results
+      - name: Long run with Otomatik Kazanç
+        continue-on-error: true
+        shell: pwsh
+        env:
+          ETEST_LONG_AUTOGAIN: "1"
+        run: ./tools/ci-run-timed.ps1 -Exe build/MicVSTEngineTest_artefacts/Release/MicVSTEngineTest.exe -OutFile results/long.txt -TimeoutSeconds ([int] $env:MINUTES * 60 + 900) -Arguments @("long", $env:MINUTES)
+      - name: Publish
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./tools/ci-publish.ps1 -Dir results -Branch "ci-sonuclari/${{ github.ref_name }}-uzun-long" -Message "MicVST ${{ github.ref_name }} long"
+
+  chaos:
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[uzun]') }}
+    runs-on: windows-latest
+    timeout-minutes: 358
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build
+        shell: pwsh
+        run: ./tools/ci-build.ps1 -Source . -Build build -Targets "MicVSTEngineTest" -Out results
+      - name: Chaos run with Otomatik Kazanç
+        continue-on-error: true
+        shell: pwsh
+        env:
+          ETEST_LONG_AUTOGAIN: "1"
+        run: ./tools/ci-run-timed.ps1 -Exe build/MicVSTEngineTest_artefacts/Release/MicVSTEngineTest.exe -OutFile results/chaos.txt -TimeoutSeconds ([int] $env:MINUTES * 60 + 900) -Arguments @("chaos", $env:MINUTES)
+      - name: Publish
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./tools/ci-publish.ps1 -Dir results -Branch "ci-sonuclari/${{ github.ref_name }}-uzun-chaos" -Message "MicVST ${{ github.ref_name }} chaos"
+
+  app:
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[uzun]') }}
+    runs-on: windows-latest
+    timeout-minutes: 358
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build
+        shell: pwsh
+        run: ./tools/ci-build.ps1 -Source . -Build build -Targets "MicVST" -Out results
+      - name: MicVST.exe long run
+        continue-on-error: true
+        shell: pwsh
+        run: ./tools/ci-app-soak.ps1 -Exe build/MicVST_artefacts/Release/MicVST.exe -Out results/app -Minutes ([double] $env:MINUTES)
+      - name: Publish
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./tools/ci-publish.ps1 -Dir results -Branch "ci-sonuclari/${{ github.ref_name }}-uzun-app" -Message "MicVST ${{ github.ref_name }} app"
+
+  simweek:
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[uzun]') }}
+    runs-on: windows-latest
+    timeout-minutes: 358
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build
+        shell: pwsh
+        run: ./tools/ci-build.ps1 -Source . -Build build -Targets "MicVSTStress MicVSTTests" -Out results
+      - name: Simulated week of the audio bridge
+        continue-on-error: true
+        shell: pwsh
+        run: ./tools/ci-run-timed.ps1 -Exe build/MicVSTStress_artefacts/Release/MicVSTStress.exe -OutFile results/week-stdout.txt -TimeoutSeconds 14400 -Arguments @("results/week-simulation.md", "--day", "168")
+      - name: 24 h of audio through Otomatik Kazanç (soak)
+        continue-on-error: true
+        shell: pwsh
+        env:
+          MICVST_SOAK_HOURS: "24"
+        run: ./tools/ci-run-timed.ps1 -Exe build/MicVSTTests_artefacts/Release/MicVSTTests.exe -OutFile results/autogain-soak-24h.txt -TimeoutSeconds 7200 -Arguments @("AutoGain")
+      - name: Publish
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./tools/ci-publish.ps1 -Dir results -Branch "ci-sonuclari/${{ github.ref_name }}-uzun-simweek" -Message "MicVST ${{ github.ref_name }} simweek"
+
+  win11arm:
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[uzun]') }}
+    runs-on: windows-11-arm
+    timeout-minutes: 358
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build (ARM64)
+        shell: pwsh
+        run: ./tools/ci-build.ps1 -Source . -Build build -Targets "MicVSTTests MicVSTEngineTest" -Out results -Arch ARM64
+      - name: System
+        shell: pwsh
+        run: |
+          Get-CimInstance Win32_OperatingSystem | Select-Object Caption, Version, BuildNumber, OSArchitecture | Format-List | Out-File results/system.txt
+          Get-CimInstance Win32_Processor | Select-Object Name, NumberOfLogicalProcessors | Format-List | Out-File -Append results/system.txt
+      - name: Unit tests
+        continue-on-error: true
+        shell: pwsh
+        run: ./tools/ci-run-timed.ps1 -Exe build/MicVSTTests_artefacts/Release/MicVSTTests.exe -OutFile results/unit-tests.txt -TimeoutSeconds 3600
+      - name: Engine test modes
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $e = "build/MicVSTEngineTest_artefacts/Release/MicVSTEngineTest.exe"
+          foreach ($m in @("quality", "latency", "devices", "hotplug", "openfail", "faults", "edits", "gain", "autogain")) {
+            ./tools/ci-run-timed.ps1 -Exe $e -OutFile "results/engine/$m.txt" -TimeoutSeconds 1800 -Arguments @($m)
+          }
+          $env:ETEST_LONG_AUTOGAIN = "1"
+          ./tools/ci-run-timed.ps1 -Exe $e -OutFile "results/engine/long.txt" -TimeoutSeconds 7200 -Arguments @("long", "60")
+      - name: Publish
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./tools/ci-publish.ps1 -Dir results -Branch "ci-sonuclari/${{ github.ref_name }}-uzun-win11arm" -Message "MicVST ${{ github.ref_name }} win11arm"

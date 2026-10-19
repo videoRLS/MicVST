@@ -4,13 +4,14 @@ param(
     [Parameter(Mandatory = $true)][string] $Source,
     [Parameter(Mandatory = $true)][string] $Build,
     [Parameter(Mandatory = $true)][string] $Targets,
-    [Parameter(Mandatory = $true)][string] $Out
+    [Parameter(Mandatory = $true)][string] $Out,
+    [string] $Arch = "x64"   # ARM64 for the Windows 11 ARM runner
 )
 $ErrorActionPreference = "Stop"
 New-Item -ItemType Directory -Force $Out | Out-Null
 
 # FETCHCONTENT_QUIET=OFF: the JUCE download/patch output (cmake/PatchJuce.cmake) lands in configure.log.
-$cfg = Measure-Command { cmake -S $Source -B $Build -A x64 -DFETCHCONTENT_QUIET=OFF 2>&1 | Tee-Object -FilePath "$Out/configure.log" | Out-Host }
+$cfg = Measure-Command { cmake -S $Source -B $Build -A $Arch -DFETCHCONTENT_QUIET=OFF 2>&1 | Tee-Object -FilePath "$Out/configure.log" | Out-Host }
 if ($LASTEXITCODE -ne 0) { throw "configure failed" }
 
 # Which JUCE was fetched, and does its WASAPI backend carry the MicVST realtime patch?

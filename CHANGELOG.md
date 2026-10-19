@@ -40,8 +40,9 @@ not be tested: [docs/TEST_RAPORU_1.2.1.md](docs/TEST_RAPORU_1.2.1.md) (Turkish).
   noise gate: nothing is ever muted or faded; the gain moves only on blocks with voice, so between
   words and in silence the last gain is kept exactly and speaking again continues from it. Broken
   input (NaN, infinite, beyond +24 dBFS) is passed on but ignored by the analysis. A separate soft
-  limiter with 3 ms look-ahead keeps every peak at or below -10 dBFS (gentle from -12.3 dBFS, hold
-  20 ms, release 80 ms); typical speech and the shouting aim are below it, it acts on plosives,
+  limiter with 3 ms look-ahead keeps every peak at or below -10 dBFS - also between the samples
+  (true peak, 4x oversampled detection), so the engine's resampler and the D/A converter do not
+  bring plosives over it (gentle from -12.3 dBFS, hold 20 ms, release 80 ms); typical speech and the shouting aim are below it, it acts on plosives,
   pops, clicks and the first moments of a syllable louder than -15 dBFS. Latency: the 3 ms
   look-ahead (reported, shown in the row; unchanged when switched off). Its position in the
   chain is free (added at the end, moved like any element); only one can be added; the row has an
@@ -88,6 +89,17 @@ not be tested: [docs/TEST_RAPORU_1.2.1.md](docs/TEST_RAPORU_1.2.1.md) (Turkish).
   longer opens a different device when the device list changes.
 
 ### Fixed
+- A chosen device that is listed but cannot be opened (held exclusively by another program, a
+  driver error) started an endless reconnect loop: every failed attempt sent a device-change
+  message, which started the next attempt at once. Measured in the engine test (30 s): 2.7 million
+  open attempts, 8 million log lines and 2.7 million config.xml saves - a busy CPU core and a log
+  file growing without limit. Now it is retried after 1, 2, 4 and 8 s and then every 10 s (it opens
+  by itself within 10 s once it is free), logged once (and on every 30th attempt); "Ses: çalışıyor /
+  durdu" is logged only when it changes.
+- config.xml is only written when its content changed (repeated device notifications wrote the
+  same file again and again).
+- log.txt was only shortened at start; during a long session (weeks in the tray) it could grow
+  without limit. It is now cut back to the newest 256 KB whenever it reaches 2 MB.
 - A plugin that outputs NaN, infinite or absurd values (> +24 dBFS) no longer reaches the cable
   (or crashes the next plugin): the whole block is silenced and the sound fades in again (2 ms)
   once the plugin recovers; counted in the dropout tooltip and the log. A plugin that throws an

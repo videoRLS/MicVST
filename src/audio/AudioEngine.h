@@ -248,7 +248,14 @@ private:
     juce::String wantedInput, wantedOutput;   // chosen devices (also while unplugged)
     bool reconnecting = false;
     int lastMissingState = 0;                 // for logging changes only
+    int lastRunningLogged = -1;               // "Ses: çalışıyor / durdu" logged on changes only
     void reconnectIfNeeded();
+    // A chosen device that is listed but cannot be opened (another program holds it exclusively, a
+    // driver error) is retried with a growing pause (1, 2, 4, 8, then every 10 s) from the timer -
+    // not on every change message: each failed attempt sends one itself, which used to start the
+    // next attempt at once (an endless loop of log lines and config.xml writes).
+    struct ReopenBackoff { juce::uint32 nextMs = 0; int failures = 0; };
+    ReopenBackoff inputReopen, outputReopen;
     int safetyBufferMs = 0;                // 0 = Auto
     double preferredInputRate = 48000.0;
     LevelMeter inputMeter, outputMeter;

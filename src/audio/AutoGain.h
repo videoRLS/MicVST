@@ -104,6 +104,8 @@ public:
     static constexpr double lookAheadSeconds    = 0.003;
     static constexpr double limiterHoldSeconds  = 0.02;
     static constexpr double limiterReleaseSeconds = 0.08;
+    static constexpr int    truePeakTaps        = 12;      // inter-sample peaks: 4x oversampling, 12 taps per phase
+    static constexpr int    truePeakPhases      = 3;       // the points 1/4, 2/4 and 3/4 between two samples
     // noise floor tracking (for the speech detection)
     static constexpr double floorRiseDbPerSec   = 3.0;
     static constexpr double floorFallSeconds    = 0.25;
@@ -116,7 +118,26 @@ public:
         return std::clamp ((int) std::lround (lookAheadSeconds * (rate > 0.0 ? rate : 48000.0)), 1, maxLookAheadSamples);
     }
 
-    AutoGainStage() noexcept { reset(); }
+    AutoGainStage() noexcept
+    {
+        // windowed-sinc interpolators for the true-peak detection (point k + phase/4 between the
+        // 6th and 7th of 12 samples), each normalised to unity gain at DC
+        for (int ph = 0; ph < truePeakPhases; ++ph)
+        {
+            const double at = 5.0 + (ph + 1) * 0.25;
+            double sum = 0.0;
+            for (int k = 0; k < truePeakTaps; ++k)
+            {
+                const double t = (double) k - at;
+                const double sinc = std::abs (t) < 1.0e-12 ? 1.0 : std::sin (3.141592653589793 * t) / (3.141592653589793 * t);
+                const double w = 0.5 + 0.5 * std::cos (3.141592653589793 * t / 6.5);
+                truePeakCoeffs[(size_t) (ph * truePeakTaps + k)] = sinc * w;
+                sum += sinc * w;
+            }
+            for (int k = 0; k < truePeakTaps; ++k) truePeakCoeffs[(size_t) (ph * truePeakTaps + k)] /= sum;
+        }
+        reset();
+    }
 
     //==============================================================================
     void setEnabled (bool shouldBeOn) noexcept { enabled.store (shouldBeOn, std::memory_order_relaxed); }
@@ -145,6 +166,8 @@ public:
         limiterHold = 0;
         delay.fill (0.0f);
         delayPos = 0;
+        truePeakHistory.fill (0.0f);
+        truePeakPos = 0;
         wants.fill (1.0);
         wantPos = wantsBelowOne = 0;
         histogram.fill (0);
@@ -286,6 +309,10 @@ public:
                     aOut = std::max (aOut, magnitude (out[(size_t) c]));
                 }
             delayPos = delayPos + 1 < L ? delayPos + 1 : 0;
+            for (int c = 0; c < numChannels; ++c)   // the last 12 input samples for the true-peak detection
+                if (const float* x = channels[c])
+                    truePeakHistory[(size_t) (c * truePeakTaps + truePeakPos)] = magnitude (x[i]) > 0.0 ? x[i] : 0.0f;
+            truePeakPos = truePeakPos + 1 < truePeakTaps ? truePeakPos + 1 : 0;   // now the oldest
 
             if (idle)   // off and back at 0 dB: only the delay (bit-exact)
             {
@@ -311,9 +338,29 @@ public:
             }
 
             // look-ahead soft limiter: what the newest sample will need, the smallest need of all
-            // samples still in the delay line, approached so it is in place when they come out
+            // samples still in the delay line, approached so it is in place when they come out.
+            // The level includes the inter-sample peaks between the samples 6 and 7 back (the
+            // resampler after the chain and any D/A converter reconstruct them), so the ceiling
+            // also holds as a true peak.
+            double aDet = aNew;
+            if (on)
+            {
+                for (int c = 0; c < numChannels; ++c)
+                {
+                    if (channels[c] == nullptr) continue;
+                    const float* h = truePeakHistory.data() + c * truePeakTaps;
+                    for (int ph = 0; ph < truePeakPhases; ++ph)
+                    {
+                        const double* k = truePeakCoeffs.data() + ph * truePeakTaps;
+                        double y = 0.0;
+                        for (int j = 0, idx = truePeakPos; j < truePeakTaps; ++j, idx = idx + 1 < truePeakTaps ? idx + 1 : 0)
+                            y += k[j] * (double) h[idx];
+                        aDet = std::max (aDet, std::abs (y));
+                    }
+                }
+            }
             double want = 1.0;
-            if (const double a = aNew * currentGain; on && a > kneeLinear)
+            if (const double a = aDet * currentGain; on && a > kneeLinear)
             {
                 const double xDb = 20.0 * std::log10 (a), k0 = ceilingDb - limiterMarginDb - limiterKneeDb;
                 want = std::exp ((k0 + limiterKneeDb * std::tanh ((xDb - k0) / limiterKneeDb) - xDb) * dbToLog);
@@ -505,6 +552,9 @@ private:
     std::array<float, (size_t) (maxChannels * maxLookAheadSamples)> delay {};
     int    delayPos = 0;
     std::array<double, (size_t) (maxLookAheadSamples + 1)> wants {};   // limiter needs of the samples in the delay
+    std::array<double, (size_t) (truePeakPhases * truePeakTaps)> truePeakCoeffs {};
+    std::array<float, (size_t) (maxChannels * truePeakTaps)> truePeakHistory {};   // the last 12 input samples per channel
+    int    truePeakPos = 0;
     int    wantPos = 0, wantsBelowOne = 0;
     std::array<int, (size_t) detectBins> histogram {};   // sustained-peak detection (current window)
     int    histCount = 0;

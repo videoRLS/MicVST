@@ -40,14 +40,15 @@ static unsigned int findTypesWithSehGuard (juce::VST3PluginFormat& format,
 
 // %APPDATA%\MicVST\log.txt: Türkischer Kopf, Uhrzeit vor jeder Zeile (Ereignisse lassen sich so
 // zeitlich zuordnen), jede Zeile sofort geschrieben (übersteht einen Absturz), beim Start auf
-// die neuesten 256 KB gekürzt. Ersetzt juce::FileLogger (englischer Kopf, keine Uhrzeiten).
+// die neuesten 256 KB gekürzt - und auch im laufenden Betrieb (Wochen im Tray), sobald die Datei
+// 2 MB erreicht. Ersetzt juce::FileLogger (englischer Kopf, keine Uhrzeiten).
 class MicVSTLogger final : public juce::Logger
 {
 public:
-    explicit MicVSTLogger (const juce::File& f)
+    explicit MicVSTLogger (const juce::File& f) : file (f)
     {
         f.getParentDirectory().createDirectory();
-        juce::FileLogger::trimFileSize (f, 256 * 1024);
+        juce::FileLogger::trimFileSize (f, keepBytes);
         stream = std::make_unique<juce::FileOutputStream> (f);   // hängt ans Dateiende an
         if (stream->failedToOpen())
             stream.reset();
@@ -71,8 +72,18 @@ private:
             return;
         stream->writeText (text, false, false, "\r\n");   // UTF-8, Windows-Zeilenenden
         stream->flush();
+        if (stream->getPosition() > maxBytes)   // langer Betrieb: wieder auf die neuesten 256 KB kürzen
+        {
+            stream.reset();
+            juce::FileLogger::trimFileSize (file, keepBytes);
+            stream = std::make_unique<juce::FileOutputStream> (file);
+            if (stream->failedToOpen())
+                stream.reset();
+        }
     }
 
+    static constexpr juce::int64 keepBytes = 256 * 1024, maxBytes = 2 * 1024 * 1024;
+    const juce::File file;
     std::unique_ptr<juce::FileOutputStream> stream;
     juce::CriticalSection lock;
     const juce::String userHome { juce::File::getSpecialLocation (juce::File::userHomeDirectory).getFullPathName() };

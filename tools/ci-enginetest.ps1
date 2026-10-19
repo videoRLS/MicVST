@@ -1,7 +1,7 @@
 # Runs MicVSTEngineTest (MicVST's real AudioEngine between virtual devices with WASAPI-like timing,
 # real threads, MMCSS) on the Windows CI machine and writes every result to $Out:
-#   <mode>.txt for edits, devices, hotplug, faults, latency, buffers, mono, flutter, quality, gain, autogain,
-#   long, chaos, vst3 (only when a Windows VST3 bundle could be downloaded), dump_*.json + integrity.txt.
+#   <mode>.txt for edits, devices, hotplug, openfail, faults, latency, buffers, mono, flutter, quality, gain,
+#   autogain, long, chaos (both with Otomatik Kazanç in the chain), vst3 (only when a Windows VST3 bundle could be downloaded), dump_*.json + integrity.txt.
 # Each run has a time limit; a run that does not finish (deadlock, hang) is killed and reported.
 # The tests' own verdicts are in the text files; this script fails only if a run crashed or hung.
 param(
@@ -114,6 +114,7 @@ Run-Test "edits"   @("edits")   300
 Remove-Item Env:ETEST_LOG
 Run-Test "devices" @("devices") 180
 Run-Test "hotplug" @("hotplug") 300
+Run-Test "openfail" @("openfail") 300   # a listed device that cannot be opened: retries, log lines, recovery
 Run-Test "faults"  @("faults")  300
 Run-Test "msgblock" @("msgblock", "1", "3000", "6") 300   # UI thread blocked 3 s right after each device change
 Run-Test "latency" @("latency") 300
@@ -149,8 +150,10 @@ if ($vst3) { $dumps += ,@("i_mt_vst3", "multitone", "-3", "20", "vst3"); $dumps 
 $names = @()
 foreach ($d in $dumps) { Run-Test ("dump_" + $d[0]) (@("dump") + $d) 180; $names += $d[0] }
 
+$env:ETEST_LONG_AUTOGAIN = "1"   # long runs with Otomatik Kazanç at the end of the chain
 Run-Test "long" @("long", "$LongMinutes") ([int] ($LongMinutes * 60 + 600))
 Run-Test "chaos" @("chaos", "10") 1500   # changes during playback every 20 s, device buffer change every 5 min
+Remove-Item Env:ETEST_LONG_AUTOGAIN
 
 try {
     python -m pip install --quiet numpy scipy 2>&1 | Out-Null

@@ -11,6 +11,7 @@
 #include <juce_audio_formats/juce_audio_formats.h>
 #include "audio/AudioEngine.h"
 #include "audio/GainStage.h"
+#include "SpeechSynth.h"
 #include <array>
 #include <cstdio>
 #include <cstdlib>
@@ -246,6 +247,11 @@ namespace
     }
 
     void pump (double seconds) { juce::MessageManager::getInstance()->runDispatchLoopUntil ((int) (seconds * 1000.0)); }
+
+    // every line the engine logs (the test's logger counts and keeps them)
+    std::atomic<int> logLineCount { 0 };
+    std::mutex logLinesMutex;
+    juce::StringArray keptLogLines;
 
     struct EngineRun
     {
@@ -1040,8 +1046,10 @@ namespace
             analysed += (int64_t) y.size();
         };
 
+        const bool withAutoGain = envSet ("ETEST_LONG_AUTOGAIN");
         pr ("## Long run" + juce::String (chaos ? " with changes during playback" : "") + ": " + juce::String (minutes, 0)
-            + " min real time, chain gain 0.5 + delay 240 smp + load 30 %, 997 Hz -6 dBFS, buffer 480, streamed analysis");
+            + " min real time, chain gain 0.5 + delay 240 smp + load 30 %" + (withAutoGain ? juce::String (" + Otomatik Kazanç") : juce::String())
+            + ", 997 Hz -6 dBFS, buffer 480, streamed analysis");
         pr ("| t (min) | RSS (MB) | process CPU (%) | clicks (unexplained) | gaps (unexplained) | THD+N in 43 ms windows, median / worst (event-free 2 s slices) | speed p-p within a slice (ppm) | level (dBFS) | MicVST |");
         pr ("|---:|---:|---:|---:|---:|---:|---:|---:|---|");
         {
@@ -1050,6 +1058,12 @@ namespace
             run.add (testDesc ("TestGain", 0.5));
             run.add (testDesc ("TestDelay", 240));
             run.add (testDesc ("TestLoad", 0.3));
+            if (withAutoGain)   // ETEST_LONG_AUTOGAIN: the built-in Otomatik Kazanç at the end of the chain
+            {
+                e.getChain().addAutoGain (true);
+                const AudioEngine::ChainEdit edit (e);
+                e.rebuildGraph();
+            }
             const double start = juce::Time::getMillisecondCounterHiRes() * 0.001;
             // ETEST_CHANGE_EVERY / ETEST_DEVICE_EVERY (s): other intervals for the chaos mode
             const double changeEvery = juce::jmax (2.0, juce::SystemStats::getEnvironmentVariable ("ETEST_CHANGE_EVERY", "20").getDoubleValue());
@@ -1368,12 +1382,13 @@ namespace
     }
 
     //==============================================================================
-    // Built-in "Otomatik Kazanç" (auto gain), basic checks through the real engine: normal speech
-    // peaks near -15 dBFS (gain 0 ... +6.5 dB), shouting near -12 dBFS, a sudden rise and the way
-    // back, long silence (last gain kept, no gate) and speaking again, never above -10 dBFS, the
-    // 1.5 ms look-ahead latency, free position in the chain, on/off, the manual Kazanç unchanged with
-    // auto gain off, save/restore.
-    // Test signal: speech-like phrases (2.5 s of 150 ms syllables every 250 ms, then 1 s pause).
+    // Built-in "Otomatik Kazanç" (auto gain), checks through the real engine: typical speech near
+    // -20 dBFS (gain 0 ... +6 dB), shouting near -15 dBFS, a sudden rise and the way back, long
+    // silence (last gain kept, no gate) and speaking again, never above -10 dBFS, the 3 ms look-ahead
+    // latency, free position in the chain, on/off, the manual Kazanç unchanged with auto gain off,
+    // save/restore, realistic synthetic speech (tests/SpeechSynth.h).
+    // Simple test signal (clicks are counted on it): speech-like phrases (2.5 s of 150 ms 300 Hz
+    // syllables every 250 ms, then 1 s pause) - every syllable at the same level.
     float voiceSample (double t, double peakAmp)
     {
         const double inPhrase = std::fmod (t, 3.5);
@@ -1406,6 +1421,16 @@ namespace
         };
     }
     void voiceConfig (double peakDb) { voiceConfig ({ { 0.0, peakDb } }); }
+
+    // Realistic synthetic speech (SpeechSynth.h) at the given typical level, looped.
+    void talkConfig (double typicalDb, unsigned seed, double noiseDb = -65.0, double seconds = 60.0)
+    {
+        auto& cfg = vdev::config();
+        speech::Params p;
+        p.fs = cfg.micRate; p.peakDb = typicalDb; p.seed = seed; p.noiseDb = noiseDb; p.plosiveDb = -10.0;
+        auto data = std::make_shared<std::vector<float>> (speech::generate (seconds, p).x);
+        cfg.signal = [data] (int, int64_t i) { return (*data)[(size_t) (i % (int64_t) data->size())]; };
+    }
 
     juce::String chainOrder (PluginChain& c)
     {
@@ -1498,17 +1523,39 @@ namespace
         };
         auto autoOnly = [&addAuto] (EngineRun& r) { addAuto (r, true); };
         speechRow ("empty chain (reference)", -20.0, [] (EngineRun&) {}, -20.0, -20.0);
-        speechRow ("Otomatik Kazanç, voice at -20 dBFS (needs +5 dB)", -20.0, autoOnly, N, -20.0);
-        speechRow ("Otomatik Kazanç, voice at -17 dBFS (needs +2 dB)", -17.0, autoOnly, N, -17.0);
-        speechRow ("Otomatik Kazanç, voice already at -15 dBFS", -15.0, autoOnly, N, -15.0);
-        speechRow ("Otomatik Kazanç, very quiet voice -30 dBFS (boost stops at +6.5 dB: expected -23.5)", -30.0, autoOnly, -30.0 + AutoGainStage::maxBoostDb, -30.0);
-        speechRow ("Otomatik Kazanç, voice at -12 dBFS (above the aim: no reduction, stays -12)", -12.0, autoOnly, -12.0, -12.0);
+        speechRow ("Otomatik Kazanç, voice at -26 dBFS (needs +6 dB)", -26.0, autoOnly, N, -26.0);
+        speechRow ("Otomatik Kazanç, voice at -23 dBFS (needs +3 dB)", -23.0, autoOnly, N, -23.0);
+        speechRow ("Otomatik Kazanç, voice already at -20 dBFS", -20.0, autoOnly, N, -20.0);
+        speechRow ("Otomatik Kazanç, very quiet voice -30 dBFS (boost stops at +6 dB: expected -24)", -30.0, autoOnly, -30.0 + AutoGainStage::maxBoostDb, -30.0);
+        speechRow ("Otomatik Kazanç, voice at -15 dBFS (above the aim: no reduction, stays -15)", -15.0, autoOnly, -15.0, -15.0);
         speechRow ("Otomatik Kazanç, hot microphone -2 dBFS (gain stays 0 dB, the ceiling holds -10)", -2.0, autoOnly, C, -2.0);
 
         pr ("");
-        pr ("## Otomatik Kazanç: shouting and back (voice -21 dBFS, from 14 s on 8 dB louder at -13 dBFS, from 24.5 s on -21 dBFS again)");
+        pr ("## Otomatik Kazanç: realistic synthetic speech (SpeechSynth, 45 s, output analysed from 15 s; typical = level of the loudest 20 % of the voiced 10 ms windows)");
+        pr ("| Input typical | Output typical | Expected | Loudest output | Gain shown at the end |");
+        pr ("|---:|---:|---:|---:|---:|");
+        for (double in : { -30.0, -26.0, -23.0, -20.0, -16.0 })
         {
-            voiceConfig ({ { 0.0, -21.0 }, { 14.0, -13.0 }, { 24.5, -21.0 } });
+            talkConfig (in, 7);
+            AutoGainStage::Meters m;
+            {
+                EngineRun run (480, 45.0);
+                addAuto (run, true);
+                pump (45.0);
+                m = meters (run);
+            }
+            const auto& L = vdev::recorder().left;
+            const auto from = std::min (L.size(), (size_t) (15.0 * fs));
+            const double outTyp = speech::typicalLevel (L.data() + from, L.size() - from, fs);
+            const double expected = juce::jlimit (in, in + AutoGainStage::maxBoostDb, N);
+            loudest = std::max (loudest, peakDbOf (15.0, 1.0e9));
+            pr ("| " + db (in, 1) + "FS | " + db (outTyp, 2) + "FS | " + db (expected, 1) + "FS (+-1) | " + db (peakDbOf (15.0, 1.0e9), 2) + "FS | " + db (m.gainDb, 2) + " |");
+        }
+
+        pr ("");
+        pr ("## Otomatik Kazanç: shouting and back (voice -24 dBFS, from 14 s on 10 dB louder at -14 dBFS, from 24.5 s on -24 dBFS again)");
+        {
+            voiceConfig ({ { 0.0, -24.0 }, { 14.0, -14.0 }, { 24.5, -24.0 } });
             {
                 EngineRun run (480, 35.0);
                 addAuto (run, true);
@@ -1592,7 +1639,7 @@ namespace
                    N + 6.0, -20.0, false);
 
         pr ("");
-        pr ("## Otomatik Kazanç: latency (the limiter's 1.5 ms look-ahead)");
+        pr ("## Otomatik Kazanç: latency (the limiter's 3 ms look-ahead)");
         {
             // the chain's latency as the engine adds it to the shown latency (graph latency); the shown
             // total also contains the bridge's fill level, which moves a little from run to run
@@ -1611,8 +1658,8 @@ namespace
                 withOff = run.engine->getGraph().getLatencySamples();
             }
             pr ("chain latency: empty " + juce::String (without) + " samples, with Otomatik Kazanç " + juce::String (with) + " samples (+"
-                + juce::String ((with - without) / 48.0, 2) + " ms, expected +1.50), switched off " + juce::String (withOff)
-                + " samples (unchanged); the element reports " + juce::String (reported) + " samples (expected 72 at 48 kHz)");
+                + juce::String ((with - without) / 48.0, 2) + " ms, expected +3.00), switched off " + juce::String (withOff)
+                + " samples (unchanged); the element reports " + juce::String (reported) + " samples (expected 144 at 48 kHz)");
         }
 
         pr ("");
@@ -1802,6 +1849,11 @@ int main (int argc, char** argv)
     {
         void logMessage (const juce::String& m) override
         {
+            ++logLineCount;
+            {
+                const std::lock_guard<std::mutex> g (logLinesMutex);
+                if (keptLogLines.size() < 20000) keptLogLines.add (m);
+            }
             // with the cable-timeline time when a recording runs (to line log lines up with findings)
             const double t0 = vdev::recorder().outputStart.load();
             if (envSet ("ETEST_LOG"))
@@ -2108,6 +2160,57 @@ int main (int argc, char** argv)
         }
     }
    #endif
+    else if (mode == "openfail")
+    {
+        // A device that is listed but cannot be opened (another program holds it exclusively, a
+        // driver error): how often does MicVST retry, how much does it log and how often does it ask
+        // the app to save config.xml (onDeviceChanged), does it come back by itself once the device
+        // can be opened again?
+        sineConfig (997.0, 0.5, 48000);
+        auto openNow = [] (AudioEngine& e, bool input)
+        {
+            auto* d = (input ? e.getInputDeviceManager() : e.getOutputDeviceManager()).getCurrentAudioDevice();
+            return d != nullptr && d->isOpen();
+        };
+        for (bool input : { false, true })
+        {
+            const juce::String which (input ? "microphone" : "cable");
+            int changed = 0;
+            EngineRun run (480, 70.0);
+            auto& e = *run.engine;
+            e.onDeviceChanged = [&changed] { ++changed; };
+            pump (2.0);
+            (input ? vdev::presence().micOpenFails : vdev::presence().cableOpenFails) = true;
+            if (input) vdev::setPresent (false, true); else vdev::setPresent (true, false);
+            pump (1.0);
+            const int log0 = logLineCount.load(), ch0 = changed, at0 = vdev::presence().openAttempts.load();
+            { const std::lock_guard<std::mutex> g (logLinesMutex); keptLogLines.clear(); }
+            vdev::setPresent (true, true);   // listed again - but it cannot be opened
+            pump (30.0);
+            const int log1 = logLineCount.load(), ch1 = changed, at1 = vdev::presence().openAttempts.load();
+            pr ("  " + which + " listed but cannot be opened, 30 s: open attempts " + juce::String (at1 - at0) + ", log lines " + juce::String (log1 - log0)
+                + ", device-change callbacks (MicVST saves config.xml on each) " + juce::String (ch1 - ch0) + ", device open now: " + (openNow (e, input) ? "yes" : "no"));
+            {
+                const std::lock_guard<std::mutex> g (logLinesMutex);
+                std::map<juce::String, int> kinds;
+                for (auto& l : keptLogLines) ++kinds[l.substring (0, 48)];
+                for (auto& k : kinds) pr ("      " + juce::String (k.second) + " x '" + k.first + "...'");
+            }
+            (input ? vdev::presence().micOpenFails : vdev::presence().cableOpenFails) = false;
+            const double t0 = juce::Time::getMillisecondCounterHiRes() * 0.001;
+            double back = -1.0;
+            while (juce::Time::getMillisecondCounterHiRes() * 0.001 - t0 < 35.0)
+            {
+                pump (0.1);
+                if (openNow (e, input)) { back = juce::Time::getMillisecondCounterHiRes() * 0.001 - t0; break; }
+            }
+            pump (1.0);
+            pr ("  " + which + " can be opened again: open after " + (back >= 0.0 ? juce::String (back, 1) + " s" : juce::String ("NOT within 35 s"))
+                + "; " + diagLine (e));
+        }
+        vdev::presence().micOpenFails = false; vdev::presence().cableOpenFails = false;
+        vdev::setPresent (true, true);
+    }
     else if (mode == "hotplug")
     {
         // Microphone and cable unplugged and plugged in again while MicVST runs. Which device does

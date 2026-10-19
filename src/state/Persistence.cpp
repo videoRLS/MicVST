@@ -80,9 +80,19 @@ bool saveState (const MicVSTState& s)
 {
     auto f = configFile();
     f.getParentDirectory().createDirectory();
-    if (auto xml = toValueTree (s).createXml())
-        return xml->writeTo (f);
-    return false;
+    auto xml = toValueTree (s).createXml();
+    if (xml == nullptr)
+        return false;
+    // Unchanged content (e.g. repeated device notifications) is not written again: spares the disk.
+    // Message thread only.
+    static juce::String lastWritten;
+    const auto text = xml->toString();
+    if (text == lastWritten && f.existsAsFile())
+        return true;
+    if (! xml->writeTo (f))   // via a temporary file, replaced at once
+        return false;
+    lastWritten = text;
+    return true;
 }
 
 MicVSTState loadState()

@@ -97,7 +97,12 @@ void AudioEngine::changeListenerCallback (juce::ChangeBroadcaster*)
 {
     // A device came or went (or a device was opened/closed).
     reconnectIfNeeded();
-    juce::Logger::writeToLog (isRunning() ? tr ("Ses: çalışıyor") : tr ("Ses: durdu (cihaz bağlı değil mi?)"));
+    const int running = isRunning() ? 1 : 0;
+    if (running != lastRunningLogged)
+    {
+        juce::Logger::writeToLog (running != 0 ? tr ("Ses: çalışıyor") : tr ("Ses: durdu (cihaz bağlı değil mi?)"));
+        lastRunningLogged = running;
+    }
     if (onStatusChanged) onStatusChanged();
     if (onDeviceChanged) onDeviceChanged();
 }
@@ -131,16 +136,48 @@ void AudioEngine::reconnectIfNeeded()
 
     if (in == back || out == back)
     {
-        juce::Logger::writeToLog (tr ("Cihaz yeniden bağlandı, açılıyor: ") + (in == back ? wantedInput : juce::String())
-                                  + (in == back && out == back ? " / " : "") + (out == back ? wantedOutput : juce::String()));
+        // After a failed attempt the device waits for its retry time (the timer calls this again).
+        const auto nowMs = juce::Time::getMillisecondCounter();
+        auto due = [nowMs] (const ReopenBackoff& b) { return b.failures == 0 || (juce::int32) (nowMs - b.nextMs) >= 0; };
+        const bool tryIn = in == back && due (inputReopen), tryOut = out == back && due (outputReopen);
+        if (! tryIn && ! tryOut)
+            return;
+
+        if ((tryIn && inputReopen.failures == 0) || (tryOut && outputReopen.failures == 0))
+            juce::Logger::writeToLog (tr ("Cihaz yeniden bağlandı, açılıyor: ") + (tryIn ? wantedInput : juce::String())
+                                      + (tryIn && tryOut ? " / " : "") + (tryOut ? wantedOutput : juce::String()));
         openDevices (wantedInput, wantedOutput, preferredBufferSize);
         {
             const ChainEdit edit (*this);
             rebuildGraph();   // the microphone's channel count may differ
         }
+
+        auto result = [nowMs] (ReopenBackoff& b, bool tried, MicVSTDeviceManager& dm, const juce::String& name)
+        {
+            if (! tried)
+                return;
+            auto* d = dm.getCurrentAudioDevice();
+            if (d != nullptr && d->isOpen())
+            {
+                if (b.failures > 0)
+                    juce::Logger::writeToLog ("'" + name + tr ("' açıldı (") + juce::String (b.failures + 1) + tr (". denemede)"));
+                b = {};
+                return;
+            }
+            ++b.failures;
+            const int delayMs = juce::jmin (10000, 1000 << juce::jmin (b.failures - 1, 4));
+            b.nextMs = nowMs + (juce::uint32) delayMs;
+            if (b.failures == 1 || b.failures % 30 == 0)
+                juce::Logger::writeToLog ("'" + name + tr ("' listede ama açılamıyor (başka bir program tek başına kullanıyor olabilir) - ")
+                                          + juce::String (b.failures) + tr (". deneme; kendiliğinden yeniden denenecek (en çok 10 sn arayla)"));
+        };
+        result (inputReopen, tryIn, inputDevices, wantedInput);
+        result (outputReopen, tryOut, outputDevices, wantedOutput);
         lastMissingState = 0;
         return;
     }
+    if (in != back) inputReopen = {};     // open again, unplugged or not wanted: start over next time
+    if (out != back) outputReopen = {};
 
     const int missingState = (in == missing ? 1 : 0) | (out == missing ? 2 : 0);
     if (missingState != lastMissingState && missingState != 0)
@@ -693,6 +730,10 @@ AudioEngine::Diagnostics AudioEngine::getDiagnostics()
 
 void AudioEngine::timerCallback()
 {
+    // --- a chosen device that is listed but could not be opened: retry when its pause is over ----
+    if ((inputReopen.failures > 0 || outputReopen.failures > 0) && ! reconnecting)
+        reconnectIfNeeded();
+
     // --- watchdog: an open device that delivered no callback for 3 s gets reopened ---------
     auto check = [] (juce::AudioDeviceManager& dm, uint64_t beats, uint64_t& last, int& stalled)
     {

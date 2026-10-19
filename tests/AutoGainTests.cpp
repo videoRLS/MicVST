@@ -128,6 +128,33 @@ namespace
         return worst;
     }
 
+    // True peak (dBFS): the highest value of the band-limited signal between the samples (8x,
+    // windowed sinc over +-32 samples) - what a resampler or a D/A converter reconstructs.
+    double truePeakDbOf (const std::vector<float>& y, double fromSec, double toSec, double rate = fs)
+    {
+        const auto a = std::min (y.size(), (size_t) (fromSec * rate)), b = std::min (y.size(), (size_t) (toSec * rate));
+        double m = 0.0;
+        for (size_t i = a; i < b; ++i) m = std::max (m, (double) std::abs (y[i]));
+        const double sampleMax = m;
+        for (size_t i = a + 32; i + 32 < b; ++i)
+        {
+            if (std::abs (y[i]) < 0.25 * sampleMax) continue;   // inter-sample peaks sit next to big samples
+            for (int q = 1; q < 8; ++q)
+            {
+                const double frac = q / 8.0;
+                double v = 0.0;
+                for (int k = -31; k <= 32; ++k)
+                {
+                    const double t = (double) k - frac;
+                    const double sinc = std::sin (juce::MathConstants<double>::pi * t) / (juce::MathConstants<double>::pi * t);
+                    v += y[(size_t) ((long) i + k)] * sinc * (0.5 + 0.5 * std::cos (juce::MathConstants<double>::pi * t / 32.5));
+                }
+                m = std::max (m, std::abs (v));
+            }
+        }
+        return linToDb (m);
+    }
+
     std::vector<float> sine (double seconds, double freq, double db, double rate = fs)
     {
         std::vector<float> x ((size_t) (seconds * rate));
@@ -363,6 +390,40 @@ struct AutoGainTest : juce::UnitTest
                     expectLessOrEqual (m, ceilingLin, t.name);
                     expect (finite);
                 }
+            }
+        }
+
+        beginTest ("the ceiling also holds as a true peak (inter-sample peaks of plosives and noise, as after the engine's resampler)");
+        {
+            struct Case { const char* name; double plosive, pop; };
+            const Case cases[] = { { "speech, strong plosives (+8 dB)", 8.0, -200.0 }, { "speech, breath pops (+12 dB)", -30.0, 12.0 }, { "speech, normal plosives", -10.0, -200.0 } };
+            for (auto& c : cases)
+            {
+                AutoGainStage s; s.prepare (fs);
+                auto sp = talk (40.0, -24.0, 36, -65.0, c.plosive, c.pop);
+                run (s, sp.x);
+                const double spk = peakDbOf (sp.x, 10.0, 40.0), tp = truePeakDbOf (sp.x, 10.0, 40.0);
+                logMessage ("    " + juce::String (c.name) + ": sample peak " + juce::String (spk, 3) + " dBFS, true peak " + juce::String (tp, 3) + " dBFS");
+                expectLessOrEqual (spk, ceiling + 1.0e-5);
+                expectLessThan (tp, ceiling + 0.3, "true peak at most 0.3 dB over (4x detection)");
+            }
+            for (bool limited : { true, false })
+            {
+                AutoGainStage s; s.prepare (fs);
+                auto quiet = talk (20.0, -40.0, 37);
+                run (s, quiet.x);
+                std::mt19937 rng (38);
+                std::normal_distribution<double> nd (0.0, 0.3);
+                std::vector<double> raw ((size_t) (5.0 * fs));
+                for (auto& v : raw) v = juce::jlimit (-1.0, 1.0, nd (rng));
+                if (limited) speech::bandLimit (raw, fs);
+                std::vector<float> noise (raw.begin(), raw.end());
+                run (s, noise);
+                const double spk = peakDbOf (noise, 1.0, 5.0), tp = truePeakDbOf (noise, 1.0, 5.0);
+                logMessage ("    white noise near 0 dBFS, " + juce::String (limited ? "band-limited to 20 kHz (as from a microphone)" : "full band up to 24 kHz (purely digital)")
+                            + ", gain +6 dB: sample peak " + juce::String (spk, 3) + " dBFS, true peak " + juce::String (tp, 3) + " dBFS");
+                expectLessOrEqual (spk, ceiling + 1.0e-5);
+                expectLessThan (tp, ceiling + (limited ? 0.3 : 2.0));
             }
         }
 

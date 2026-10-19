@@ -43,6 +43,37 @@ namespace speech
 
     inline double dbToLin (double db) { return std::pow (10.0, db / 20.0); }
 
+    // Band limit as a microphone's A/D converter does (nothing above 20 kHz, or 0.45 x the rate):
+    // zero-phase 95-tap Kaiser-windowed sinc low-pass, in place.
+    inline void bandLimit (std::vector<double>& x, double fs)
+    {
+        const int half = 47;
+        const double fc = std::min (20000.0, 0.45 * fs) / fs, beta = 8.0;
+        auto i0 = [] (double v) { double sum = 1.0, t = 1.0; for (int k = 1; k < 30; ++k) { t *= (v / (2.0 * k)) * (v / (2.0 * k)); sum += t; } return sum; };
+        std::vector<double> h ((size_t) (2 * half + 1));
+        double norm = 0.0;
+        for (int k = -half; k <= half; ++k)
+        {
+            const double sinc = k == 0 ? 2.0 * fc : std::sin (6.283185307179586 * fc * k) / (3.141592653589793 * k);
+            const double r = (double) k / (half + 1.0);
+            h[(size_t) (k + half)] = sinc * i0 (beta * std::sqrt (1.0 - r * r)) / i0 (beta);
+            norm += h[(size_t) (k + half)];
+        }
+        for (auto& v : h) v /= norm;
+        std::vector<double> y (x.size(), 0.0);
+        for (size_t n = 0; n < x.size(); ++n)
+        {
+            double acc = 0.0;
+            for (int k = -half; k <= half; ++k)
+            {
+                const long m = (long) n - k;
+                if (m >= 0 && m < (long) x.size()) acc += h[(size_t) (k + half)] * x[(size_t) m];
+            }
+            y[n] = acc;
+        }
+        x.swap (y);
+    }
+
     // Sustained peak (dB) and RMS (dB) of every complete 10 ms window - the stage's measure.
     struct Window { double sustainedDb, rmsDb; size_t start; };
     inline std::vector<Window> windows (const float* y, size_t n, double fs)
@@ -201,6 +232,8 @@ namespace speech
             }
             pos += pause;
         }
+
+        bandLimit (raw, fs);   // as recorded through a real microphone / A-D converter
 
         // calibrate: typical level = peakDb
         std::vector<float> tmp (total);
