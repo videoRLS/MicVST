@@ -1,0 +1,9 @@
+# MicVST engine test (1.2.1) - devices
+  underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.5 ppm, shown latency 55.0 ms, cpu 0 %
+| Change | Clicks within 1 s after | Longest silence (ms) |
+|---|---:|---:|
+| buffer -> 256 | 0 | 106.8 |
+| buffer -> 960 | 0 | 160.5 |
+| buffer -> 480 | 0 | 169.7 |
+| program exit | 0 | 136.5 |
+-- exit code 0, 12.5 s, peak working set 24 MB
