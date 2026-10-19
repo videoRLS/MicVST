@@ -16,16 +16,16 @@
 //    longer, so they count fully (a sine reads 0.1 dB under its peak); clicks, lip smacks and bursts
 //    shorter than 1 ms are ignored: the gain does not drop because of them (the limiter below still
 //    catches them).
-//  * Analysis: phrase level = the loudest sustained peak (instantly), held 1 s, then following
-//    quieter speech at 2 dB/s down to the recent syllable peaks (never below them, so no ripple
-//    between syllables) - or at 12 dB/s when the voice is clearly (6 dB) quieter, e.g. after
-//    shouting. The gain follows phrases, not syllables, so the voice keeps its dynamics.
-//  * Real level changes are followed quickly: when the recent syllable peaks stay more than 4 dB
-//    under the phrase level for 0.4 s of voiced time (several syllables - not a single soft word
-//    or a breath), the voice has really become quieter (further from the mic, speaking softly):
-//    the phrase level then follows it at 20 dB/s and the gain rises faster (time constant 0.15 s,
-//    up to 20 dB/s) until it has caught up. Variations inside a phrase never trigger this.
-//  * Gain: no fixed value - it is the aim minus the analysed level, limited to 0 ... +8 dB: it
+//  * Analysis: the "typical level" is a statistic of the syllables: the sustained peaks of the
+//    voiced 10 ms windows of the last 1.5 s of speech (pauses add nothing) are kept in a histogram;
+//    the typical level is the one the loudest 20 % of them reach. A single strong syllable, a
+//    single soft word or the ups and downs inside a phrase hardly change it - the gain stays put
+//    and the voice keeps its natural dynamics. A real change (further from the mic, speaking
+//    lastingly softer or louder) shifts the whole distribution, and the gain follows by itself.
+//  * Loud parts: syllables keep their own dynamics up to the shouting level; a syllable that would
+//    come out louder than -15 dBFS raises the level at once (syllable envelope: instant, held
+//    0.3 s, then 15 dB/s), so the gain drops quickly and it comes out at about -15 dBFS.
+//  * Gain: no fixed value - it is the aim minus the analysed level, limited to 0 ... +6 dB: it
 //    only raises the voice (only as much as needed), never lowers it below its own level.
 //    Up: exponential approach (time constant 0.35 s, 2..18 dB/s of voiced time); down (back
 //    towards 0 dB): time constant 0.15 s, or 30 ms when the voice is more than 3 dB too loud.
@@ -64,24 +64,16 @@ public:
     static constexpr double detectMinSeconds    = 0.001;   // a level must be present this long (in total) per window
     static constexpr int    detectBins          = 448;     // 0.25 dB steps from -100 to +12 dBFS
     // level analysis (times count speech only)
-    static constexpr double peakHoldSeconds     = 1.0;
-    static constexpr double levelDecayDbPerSec  = 2.0;
-    static constexpr double recentHoldSeconds   = 0.3;     // short-term level (syllables) ...
+    static constexpr int    typicalWindows      = 150;     // voiced 10 ms windows looked back over (1.5 s of speech)
+    static constexpr double typicalTopShare     = 0.2;     // typical level: reached by the loudest 20 % of them
+    static constexpr double recentHoldSeconds   = 0.3;     // syllable envelope (for loud parts)
     static constexpr double recentDecayDbPerSec = 15.0;
-    static constexpr double dropDb              = 6.0;     // ... this far under the phrase level:
-    static constexpr double dropFollowDbPerSec  = 12.0;    //     the phrase level follows it this fast
     static constexpr double naturalLearnSeconds = 3.0;     // natural level: learned quickly at first ...
     static constexpr double naturalLearnTau     = 0.3;
     static constexpr double naturalUpTau        = 20.0;    // ... then follows a louder voice slowly
     static constexpr double naturalDownTau      = 6.0;     // ... and a quieter one a bit faster
-    // real level changes (a lastingly quieter voice) are followed quickly
-    static constexpr double sustainedDropDb     = 4.0;     // syllable peaks this far under the phrase level ...
-    static constexpr double sustainedSeconds    = 0.4;     // ... for this long (voiced time):
-    static constexpr double catchUpDbPerSec     = 20.0;    //     the phrase level follows this fast ...
-    static constexpr double catchUpRiseTau      = 0.15;    //     ... and the gain rises with this time constant
-    static constexpr double catchUpRiseMaxDbPerSec = 20.0;
     // gain range and movement
-    static constexpr double maxBoostDb          = 8.0;
+    static constexpr double maxBoostDb          = 6.0;
     static constexpr double maxCutDb            = 0.0;     // never below the voice's own level
     static constexpr double riseTau             = 0.35;
     static constexpr double riseMinDbPerSec     = 2.0;
@@ -173,6 +165,8 @@ public:
         // --- analysis of the incoming (undelayed) block -------------------------------------------
         float peakIn = 0.0f;
         double sumSquares = 0.0, blockSustainedDb = -200.0;
+        std::array<int, 64> doneBins {};   // the windows completed in this block (bins)
+        int doneCount = 0;
         for (int i = 0; i < numSamples; ++i)
         {
             double a = 0.0;
@@ -194,6 +188,7 @@ public:
                     if ((acc += histogram[(size_t) b]) >= detectMin) break;
                 sustainedDb = b > 0 ? (double) b * 0.25 - 100.0 + 0.125 : -120.0;
                 sustainedValid = true;
+                if (b > 0 && doneCount < (int) doneBins.size()) doneBins[(size_t) doneCount++] = b;
                 blockSustainedDb = std::max (blockSustainedDb, sustainedDb);
                 histogram.fill (0);
                 histCount = 0;
@@ -220,6 +215,9 @@ public:
         const bool on = enabled.load (std::memory_order_relaxed);
         if (on)
         {
+            if (active)   // only voiced windows describe the voice; pauses add nothing
+                for (int k = 0; k < doneCount; ++k)
+                    addTypicalWindow (doneBins[(size_t) k]);
             if (speech)
                 analyse (peakDb, active, dt);
             if (active)
@@ -348,7 +346,8 @@ public:
     double getAppliedGainDb() const noexcept  { return glide2 + getLimiterGainDb(); }
     double getLimiterGainDb() const noexcept  { return 20.0 * std::log10 (std::max (1.0e-9, limiterGain)); }
     double getNoiseFloorDb() const noexcept   { return noiseFloorDb; }
-    double getLevelDb() const noexcept        { return levelDb; }                // phrase peak level (input)
+    double getLevelDb() const noexcept        { return levelDb; }                // the level the gain uses (input)
+    double getTypicalDb() const noexcept      { return typicalDb; }              // typical syllable level (input)
     double getNaturalLevelDb() const noexcept { return naturalDb; }              // the speaker's natural level
     double getAimDb() const noexcept          { return currentAimDb(); }         // current output aim
     int    getGuardCount() const noexcept     { return guardCount; }             // samples the guard had to catch
@@ -369,19 +368,40 @@ private:
     void forgetVoice() noexcept
     {
         levelValid = naturalValid = false;
-        levelDb = recentDb = naturalDb = -120.0;
-        holdLeft = recentHold = quietSeconds = 0.0;
-        catchingUp = riseFast = false;
+        levelDb = recentDb = typicalDb = naturalDb = -120.0;
+        recentHold = 0.0;
         learnLeft = naturalLearnSeconds;
+        typicalHist.fill (0);
+        typicalRing.fill (0);
+        typicalPos = typicalFill = 0;
     }
 
-    // Phrase level, short-term level and (from blocks with voice) the speaker's natural level.
+    // One voiced 10 ms window into the typical-level histogram (the oldest one leaves it).
+    void addTypicalWindow (int bin) noexcept
+    {
+        if (typicalFill == typicalWindows) --typicalHist[(size_t) typicalRing[(size_t) typicalPos]];
+        else                               ++typicalFill;
+        typicalRing[(size_t) typicalPos] = (short) bin;
+        ++typicalHist[(size_t) bin];
+        typicalPos = typicalPos + 1 < typicalWindows ? typicalPos + 1 : 0;
+    }
+
+    // The level the loudest share of the recent voiced windows reaches.
+    double typicalFromHistogram() const noexcept
+    {
+        const int need = std::max (1, (int) std::ceil ((double) typicalFill * typicalTopShare));
+        int acc = 0, b = detectBins - 1;
+        for (; b > 0; --b)
+            if ((acc += typicalHist[(size_t) b]) >= need) break;
+        return (double) b * 0.25 - 100.0 + 0.125;
+    }
+
+    // Typical level, syllable envelope, the speaker's natural level and the level the gain uses.
     void analyse (double peakDb, bool active, double dt) noexcept
     {
         if (! levelValid)
         {
-            levelDb = recentDb = peakDb;
-            holdLeft = peakHoldSeconds;
+            recentDb = peakDb;
             recentHold = recentHoldSeconds;
             levelValid = true;
         }
@@ -390,54 +410,28 @@ private:
             if (peakDb >= recentDb)    { recentDb = peakDb; recentHold = recentHoldSeconds; }
             else if (recentHold > 0.0) recentHold -= dt;
             else                       recentDb = std::max (peakDb, recentDb - recentDecayDbPerSec * dt);
-
-            // a real, lasting change to a quieter voice: the syllable peaks stay clearly under the
-            // phrase level they had before (the reference, taken when they first fell below it) for a
-            // while; any syllable back near that level starts over. Counted on voiced blocks only;
-            // pauses neither count nor reset.
-            if (active && ! catchingUp)
-            {
-                if (quietSeconds <= 0.0) quietRefDb = levelDb;
-                if (quietRefDb - recentDb > sustainedDropDb)
-                {
-                    quietSeconds += dt;
-                    if (quietSeconds >= sustainedSeconds) catchingUp = riseFast = true;
-                }
-                else
-                {
-                    quietSeconds = 0.0;
-                }
-            }
-
-            if (peakDb >= levelDb)                { levelDb = peakDb; holdLeft = peakHoldSeconds; catchingUp = false; quietSeconds = 0.0; }
-            else if (catchingUp)
-            {
-                if (active)   // follows the voice down to its recent syllable peaks, then normal again
-                {
-                    levelDb = std::max (recentDb, levelDb - catchUpDbPerSec * dt);
-                    if (levelDb - recentDb < 0.25) { catchingUp = false; quietSeconds = 0.0; }
-                }
-            }
-            else if (levelDb - recentDb > dropDb) levelDb = std::max (recentDb, levelDb - dropFollowDbPerSec * dt);
-            else if (holdLeft > 0.0)              holdLeft -= dt;
-            else                                  levelDb = std::max (recentDb, levelDb - levelDecayDbPerSec * dt);
         }
+
+        typicalDb = typicalFill > 0 ? typicalFromHistogram() : recentDb;
 
         if (active)
         {
-            if (! naturalValid) { naturalDb = levelDb; naturalValid = true; }
-            const double tau = learnLeft > 0.0 ? naturalLearnTau : (levelDb > naturalDb ? naturalUpTau : naturalDownTau);
-            naturalDb += (levelDb - naturalDb) * (1.0 - std::exp (-dt / tau));
+            if (! naturalValid) { naturalDb = typicalDb; naturalValid = true; }
+            const double tau = learnLeft > 0.0 ? naturalLearnTau : (typicalDb > naturalDb ? naturalUpTau : naturalDownTau);
+            naturalDb += (typicalDb - naturalDb) * (1.0 - std::exp (-dt / tau));
             learnLeft = std::max (0.0, learnLeft - dt);
         }
+
+        // syllables keep their dynamics up to the shouting level; louder ones raise the level
+        levelDb = std::max (typicalDb, recentDb - (shoutPeakDb - currentAimDb()));
     }
 
-    // Normal speech -> -20 dBFS; the more the voice rises above its natural level, the closer to
-    // -15 dBFS (smooth, no steps).
+    // Typical speech -> -20 dBFS; the more the typical level rises above the natural level, the
+    // closer to -15 dBFS (smooth, no steps).
     double currentAimDb() const noexcept
     {
         if (! naturalValid) return normalPeakDb;
-        const double s = std::clamp ((levelDb - naturalDb - shoutStartDb) / (shoutFullDb - shoutStartDb), 0.0, 1.0);
+        const double s = std::clamp ((typicalDb - naturalDb - shoutStartDb) / (shoutFullDb - shoutStartDb), 0.0, 1.0);
         return normalPeakDb + (shoutPeakDb - normalPeakDb) * s * s * (3.0 - 2.0 * s);
     }
 
@@ -446,17 +440,9 @@ private:
         if (! std::isfinite (desired)) return;
         const double diff = desired - gainDb;
         if (diff > 0.0)
-        {
-            const double tau = riseFast ? catchUpRiseTau : riseTau, maxRate = riseFast ? catchUpRiseMaxDbPerSec : riseMaxDbPerSec;
-            gainDb = std::min (desired, gainDb + std::clamp (diff / tau, riseMinDbPerSec, maxRate) * dt);
-        }
+            gainDb = std::min (desired, gainDb + std::clamp (diff / riseTau, riseMinDbPerSec, riseMaxDbPerSec) * dt);
         else if (diff < 0.0)
-        {
             gainDb += diff * (1.0 - std::exp (-dt / (-diff > fastZoneDb ? fastFallTau : fallTau)));
-        }
-        // the faster rise after a real level change lasts until the gain has caught up
-        if (riseFast && ! catchingUp && desired - gainDb < 0.25)
-            riseFast = false;
     }
 
     std::atomic<bool>  enabled { true };
@@ -487,9 +473,11 @@ private:
     bool   sustainedValid = false;
     int    guardCount = 0;
     double levelDb = -120.0, recentDb = -120.0, naturalDb = -120.0;
-    double holdLeft = 0.0, recentHold = 0.0, learnLeft = naturalLearnSeconds;
-    double quietSeconds = 0.0, quietRefDb = -120.0; // voiced time the voice has been lastingly quieter, than this
-    bool   catchingUp = false, riseFast = false;    // following a real level change
+    double recentHold = 0.0, learnLeft = naturalLearnSeconds;
+    double typicalDb = -120.0;                      // the typical level (input)
+    std::array<int, (size_t) detectBins> typicalHist {};       // voiced windows of the last 1.5 s of speech
+    std::array<short, (size_t) typicalWindows> typicalRing {}; // their bins, oldest first out
+    int    typicalPos = 0, typicalFill = 0;
     double noiseFloorDb = -120.0;
     double hangover = 0.0;
     bool   levelValid = false, naturalValid = false, floorValid = false;
