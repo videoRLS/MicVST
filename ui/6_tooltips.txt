@@ -1,0 +1,35 @@
+---
+Mikrofonunuzu buradan seçin.
+---
+Buradan "CABLE Input" seçin; Discord, OBS gibi programlarda mikrofon olarak "CABLE Output" seçin.
+---
+Ses bloklarının boyutu. Küçük değer: daha az gecikme ama işlemciye daha çok yük. "Otomatik" cihazın kendi değerini kullanır.
+---
+Mikrofonla kablo arasında yedekte tutulan ses. Ağır oyun veya video işleme gibi anlık yüklerde çıtırtıyı önler. "Otomatik" 10 ms ile başlar, ses kesilirse kendiliğinden artar. Büyük değer: daha sağlam, biraz daha fazla gecikme.
+---
+Çıkışta ses kesildi: 0
+Zincir yetişemedi, ses atlandı: 0
+Mikrofon sürücüsünde kayıp: 0
+Eklenti işleme takıldı: 0
+Eklentiden geçersiz ses (susturuldu): 0
+Gecikme düzeltmesi: 0
+Cihaz yeniden açıldı: 0
+Geç kalan eklenti bloğu (kesinti olmadan telafi edildi): 0
+Saat farkı mikrofon/kablo: +1 ppm
+---
+Eklentiyi geçici olarak devre dışı bırak (ses onu atlar)
+---
+Eklentiyi zincirden kaldır
+---
+Kazanç: -30 dB ile +12 dB arası, 0,1 dB adımlarla (değer kutusuna da yazılabilir). Çift tıklama 0 dB'ye döndürür. Sesin kırpılmaması için Kazanç'ı sınırlayıcıdan (limiter) önce kullanın; Çıkış göstergesindeki tepe çizgisi 0 dB'de kırmızı olur.
+---
+Otomatik Kazanç: sesinizi canlı analiz eder; normal konuşmada tepe seviyesini yaklaşık -20 dBFS'ye, bağırırken yaklaşık -15 dBFS'ye getirir. Kazanç sesinize göre, gerektiği kadar 0 ile +6 dB arasında yavaşça değişir (sesi hiç kısmaz): hecelerin ve cümlelerin doğal iniş çıkışlarını büyük ölçüde korur, sesiniz kalıcı olarak değişince birkaç saniyede takip eder; kısa tıklar, "p" patlamaları ve darbeler kazancı düşürmez. Hiçbir tepe -10 dBFS'yi geçmez (3 ms ileri bakışlı yumuşak sınırlayıcı). Sessizlikte son kazancı aynen korur; noise gate yoktur, ses hiç kesilmez. Zincirdeki yeri sürükleyerek değiştirilebilir. Kapatınca kazanç yumuşakça 0 dB'ye döner.
+Gösterge: uygulanan kazanç (giriş tepe -> çıkış tepe, dBFS). Beyaz: konuşma algılanıyor, gri: kazanç korunuyor ya da kapalı.
+---
+Şu an taranan eklentiyi atla
+---
+Hızlı kurulum rehberi
+---
+MicVST tamamen çevrimdışı çalışır (internete bağlanmaz)
+---
+Windows açılınca MicVST'yi pencere açmadan, simge olarak başlatır

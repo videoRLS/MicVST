@@ -1,0 +1,4 @@
+# MicVST engine test (1.2.1) - dump
+  underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -2.7 ppm, shown latency 53.6 ms, cpu 0 %
+  written: dump_i_mt_44to48_{in,out}.f32 + .json
+-- exit code 0, 22.8 s, peak working set 41 MB

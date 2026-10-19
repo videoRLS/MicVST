@@ -1,0 +1,25 @@
+# MicVST engine test (1.2.1) - edits
+## Chain edits during playback (997 Hz -6 dBFS; one edit per second)
+  [log] Kurulum: giriş 'VMic' 48000 Hz, tampon 480 | çıkış 'VCable' 48000 Hz, tampon 480
+  [log 0.003 s] Giriş başladı: 'VMic' 48000 Hz, tampon 480 | kanal 2 / [L, R]
+  [log 0.005 s] Çıkış başladı: 'VCable' 48000 Hz, tampon 480 | kanal 2
+  [log 0.034 s] Ses: çalışıyor
+  [log 1.004 s] Eklenti iş parçacığı: MMCSS 'Pro Audio' (cihaz iş parçacıklarının bir altında)
+  underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.2 ppm, shown latency 55.4 ms, cpu 0 %
+| Edit | Clicks within the following second (cable timeline, incl. latency) | Gap (ms) |
+|---|---:|---:|
+| bypass gain on | 0 | 14.2 |
+| bypass gain off | 0 | 14.2 |
+| add invert | 0 | 14.4 |
+| remove invert | 0 | 14.5 |
+| add delay 240 smp | 0 | 24.5 |
+| bypass delay on | 0 | 24.6 |
+| bypass delay off | 0 | 24.7 |
+| move delay to front | 0 | 24.7 |
+| add mono->stereo | 0 | 24.6 |
+| add stereo->mono | 0 | 24.7 |
+| remove stereo->mono | 0 | 24.6 |
+| remove gain | 0 | 24.5 |
+| remove all | 0 | 24.4 |
+total click events in the whole run: 0 (in edit windows: 0)
+-- exit code 0, 21.4 s, peak working set 25 MB

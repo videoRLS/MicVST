@@ -1,0 +1,19 @@
+# MicVST engine test (1.2.1) - faults
+## Faulty plug-ins during playback (997 Hz -6 dBFS)
+| Phase | Output finite | Peak | Silent samples |
+|---|---|---:|---:|
+| normal | yes | 0.500 | 0.0 % |
+| plug-in outputs NaN from block 50 on | yes | 0.000 | 100.0 % |
+  invalid blocks counted: 251
+| NaN plug-in removed | yes | 0.500 | 0.0 % |
+| plug-in outputs 1e30 (unstable) | yes | 0.000 | 100.0 % |
+| huge plug-in removed | yes | 0.500 | 0.0 % |
+| plug-in throws an exception once | yes | 0.500 | 1.0 % |
+| after a 1.5 s hang inside the plug-in (last 2 s) | yes | 0.500 | 0.0 % |
+  hang: underruns +1, queue overflows +14, skips +2
+  slow plug-in (prepare 400 ms) added: the add call took 411.517 ms, longest silence 14.2 ms
+  plug-in that cannot be loaded: addPlugin failed as expected ("unknown test plug-in"), chain size 0
+| after the failed load | yes | 0.500 | 0.0 % |
+  underruns 1, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 2, queue overflows 14, device gaps 0, safety 15 ms, drift -1.0 ppm, shown latency 60.4 ms, cpu 0 %
+whole run: click events 0
+-- exit code 0, 31.7 s, peak working set 28 MB

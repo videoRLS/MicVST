@@ -1,0 +1,369 @@
+=== i_noise_m12: signal noise -12 dBFS, chain empty, mic channels 2, buffer 480, 20 s, mic 48000 Hz -> cable 48000 Hz
+    engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.8 ppm, shown latency 55.4 ms, cpu 0 %
+    peak in -7.57 dBFS (true peak -6.34), peak out -8.29 dBFS (true peak outside recorded events -8.00), samples |out| >= 1.0: 0, non-finite: 0
+    recorded events: program stop (planned fade-out): 1
+    909 of 909 1024-sample windows located (0 with a 4096 window, 0 periodic ones by continuity); quiet (< -50 dB re the signal) 0, not matching the input (rho < 0.5) 0, ambiguous (periodic) 0, single outliers (> 1.5 samples off the running median) 0
+    latency capture -> playback: median 44.73 ms, p1..p99 44.69..44.74, min 44.69, max 44.74 ms (shown by MicVST: 55.4 ms)
+    continuity: latency drops (audio skipped/lost) 0 (-0 samples), rises (silence inserted / audio repeated) 0 (0 samples)
+    latency jumps: 0
+    playback speed vs. capture (1 s pieces): median -1.7 ppm, p95 |.| 6, max |.| 7 ppm (0.01 cent)
+    not judged (no located window within 2048 samples): 0.7 % of the analysed time
+    detector floor (residual peak / piece RMS): median 0.0004, p99 0.0018, p99.9 0.0022 -> threshold 2.0 % of the piece RMS
+    clicks / discontinuities (residual > 2.0 % of the piece RMS and > -60 dB re the signal; in pauses > -50 dB re the signal; 256-sample pieces, both channels): 0
+    level out/in per 1024 window: median -0.0000 dB, p1..p99 -0.000..+0.000 dB
+    windows with the level off by > 0.5 dB: 0
+    => unexplained findings: 0
+=== i_noise_m60: signal noise -60 dBFS, chain empty, mic channels 2, buffer 480, 20 s, mic 48000 Hz -> cable 48000 Hz
+    engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -1.1 ppm, shown latency 55.4 ms, cpu 0 %
+    peak in -55.57 dBFS (true peak -54.34), peak out -56.00 dBFS (true peak outside recorded events -56.00), samples |out| >= 1.0: 0, non-finite: 0
+    recorded events: program stop (planned fade-out): 1
+    908 of 908 1024-sample windows located (0 with a 4096 window, 0 periodic ones by continuity); quiet (< -50 dB re the signal) 0, not matching the input (rho < 0.5) 0, ambiguous (periodic) 0, single outliers (> 1.5 samples off the running median) 0
+    latency capture -> playback: median 44.73 ms, p1..p99 44.67..44.74, min 44.67, max 44.74 ms (shown by MicVST: 55.4 ms)
+    continuity: latency drops (audio skipped/lost) 0 (-0 samples), rises (silence inserted / audio repeated) 0 (0 samples)
+    latency jumps: 0
+    playback speed vs. capture (1 s pieces): median -2.6 ppm, p95 |.| 9, max |.| 11 ppm (0.02 cent)
+    not judged (no located window within 2048 samples): 0.7 % of the analysed time
+    detector floor (residual peak / piece RMS): median 0.0005, p99 0.0023, p99.9 0.0029 -> threshold 2.3 % of the piece RMS
+    clicks / discontinuities (residual > 2.3 % of the piece RMS and > -60 dB re the signal; in pauses > -50 dB re the signal; 256-sample pieces, both channels): 0
+    level out/in per 1024 window: median -0.0000 dB, p1..p99 -0.000..+0.000 dB
+    windows with the level off by > 0.5 dB: 0
+    => unexplained findings: 0
+=== i_mt_m3: signal multitone -3 dBFS, chain empty, mic channels 2, buffer 480, 20 s, mic 48000 Hz -> cable 48000 Hz
+    engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.3 ppm, shown latency 55.4 ms, cpu 0 %
+    peak in -3.00 dBFS (true peak -2.87), peak out -3.89 dBFS (true peak outside recorded events -3.35), samples |out| >= 1.0: 0, non-finite: 0
+    recorded events: program stop (planned fade-out): 1
+    907 of 907 1024-sample windows located (0 with a 4096 window, 0 periodic ones by continuity); quiet (< -50 dB re the signal) 0, not matching the input (rho < 0.5) 0, ambiguous (periodic) 0, single outliers (> 1.5 samples off the running median) 0
+    latency capture -> playback: median 44.73 ms, p1..p99 44.73..44.75, min 44.73, max 44.75 ms (shown by MicVST: 55.4 ms)
+    continuity: latency drops (audio skipped/lost) 0 (-0 samples), rises (silence inserted / audio repeated) 0 (0 samples)
+    latency jumps: 0
+    playback speed vs. capture (1 s pieces): median +0.4 ppm, p95 |.| 3, max |.| 4 ppm (0.01 cent)
+    not judged (no located window within 2048 samples): 0.8 % of the analysed time
+    detector floor (residual peak / piece RMS): median 0.0002, p99 0.0011, p99.9 0.0014 -> threshold 2.0 % of the piece RMS
+    clicks / discontinuities (residual > 2.0 % of the piece RMS and > -60 dB re the signal; in pauses > -50 dB re the signal; 256-sample pieces, both channels): 0
+    level out/in per 1024 window: median -0.0001 dB, p1..p99 -0.000..+0.000 dB
+    windows with the level off by > 0.5 dB: 0
+    => unexplained findings: 0
+    multitone (24 tones 40 Hz-18 kHz, 4096-sample windows, 114 windows; 0 windows at recorded events left out):
+      TD+N (all that is not one of the tones): median -105.6 dB, p95 -93.8 dB, worst -91.8 dB
+      frequency response (gain per tone, median over windows): -0.0001 .. -0.0000 dB (18000 / 41 Hz)
+            40.9 Hz: gain -0.0000 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+           196.9 Hz: gain -0.0000 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+           969.4 Hz: gain -0.0000 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+          4770.4 Hz: gain -0.0000 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+         10582.9 Hz: gain -0.0000 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+         18000.4 Hz: gain -0.0001 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+      L/R balance over all tones: +0.00000 .. +0.00000 dB; L/R phase +0.0000 .. +0.0000 deg
+=== i_mt_m40: signal multitone -40 dBFS, chain empty, mic channels 2, buffer 480, 20 s, mic 48000 Hz -> cable 48000 Hz
+    engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.6 ppm, shown latency 55.4 ms, cpu 0 %
+    peak in -40.00 dBFS (true peak -39.87), peak out -40.58 dBFS (true peak outside recorded events -40.36), samples |out| >= 1.0: 0, non-finite: 0
+    recorded events: program stop (planned fade-out): 1
+    908 of 908 1024-sample windows located (0 with a 4096 window, 0 periodic ones by continuity); quiet (< -50 dB re the signal) 0, not matching the input (rho < 0.5) 0, ambiguous (periodic) 0, single outliers (> 1.5 samples off the running median) 0
+    latency capture -> playback: median 44.73 ms, p1..p99 44.70..44.74, min 44.70, max 44.74 ms (shown by MicVST: 55.4 ms)
+    continuity: latency drops (audio skipped/lost) 0 (-0 samples), rises (silence inserted / audio repeated) 0 (0 samples)
+    latency jumps: 0
+    playback speed vs. capture (1 s pieces): median -1.7 ppm, p95 |.| 5, max |.| 6 ppm (0.01 cent)
+    not judged (no located window within 2048 samples): 0.7 % of the analysed time
+    detector floor (residual peak / piece RMS): median 0.0002, p99 0.0010, p99.9 0.0012 -> threshold 2.0 % of the piece RMS
+    clicks / discontinuities (residual > 2.0 % of the piece RMS and > -60 dB re the signal; in pauses > -50 dB re the signal; 256-sample pieces, both channels): 0
+    level out/in per 1024 window: median -0.0000 dB, p1..p99 -0.000..+0.000 dB
+    windows with the level off by > 0.5 dB: 0
+    => unexplained findings: 0
+    multitone (24 tones 40 Hz-18 kHz, 4096-sample windows, 114 windows; 0 windows at recorded events left out):
+      TD+N (all that is not one of the tones): median -104.1 dB, p95 -95.2 dB, worst -87.9 dB
+      frequency response (gain per tone, median over windows): -0.0001 .. -0.0000 dB (18000 / 41 Hz)
+            40.9 Hz: gain -0.0000 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+           196.9 Hz: gain -0.0000 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+           969.4 Hz: gain -0.0000 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+          4770.4 Hz: gain -0.0000 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+         10582.9 Hz: gain -0.0000 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+         18000.4 Hz: gain -0.0001 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+      L/R balance over all tones: +0.00000 .. +0.00000 dB; L/R phase +0.0000 .. +0.0000 deg
+=== i_sine_m01: signal sine -0.1 dBFS, chain empty, mic channels 2, buffer 480, 20 s, mic 48000 Hz -> cable 48000 Hz
+    engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.3 ppm, shown latency 55.4 ms, cpu 0 %
+    peak in -0.10 dBFS (true peak -0.09), peak out -0.10 dBFS (true peak outside recorded events -0.09), samples |out| >= 1.0: 0, non-finite: 0
+    recorded events: program stop (planned fade-out): 1
+    sine fit per 1024-sample window (913 windows; 0 at recorded events left out): level -0.0000 dB (p1..p99 -0.0000..+0.0000), windows off by > 0.5 dB: 0
+    speed (fitted frequency): median -0.6 ppm, max |.| 3 ppm; THD+N median -138.6 dB, p95 -129.9 dB, worst -125.0 dB
+    discontinuities (second difference above limit): 0
+    L == R exactly: True
+=== i_voice: signal voice -6 dBFS, chain empty, mic channels 2, buffer 480, 20 s, mic 48000 Hz -> cable 48000 Hz
+    engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 2.5 ppm, shown latency 55.4 ms, cpu 0 %
+    peak in -6.00 dBFS (true peak -5.99), peak out -7.55 dBFS (true peak outside recorded events -7.54), samples |out| >= 1.0: 0, non-finite: 0
+    recorded events: program stop (planned fade-out): 1
+    848 of 908 1024-sample windows located (330 with a 4096 window, 61 periodic ones by continuity); quiet (< -50 dB re the signal) 59, not matching the input (rho < 0.5) 0, ambiguous (periodic) 1, single outliers (> 1.5 samples off the running median) 0
+    latency capture -> playback: median 44.76 ms, p1..p99 44.72..45.21, min 44.72, max 45.21 ms (shown by MicVST: 55.4 ms)
+    continuity: latency drops (audio skipped/lost) 0 (-0 samples), rises (silence inserted / audio repeated) 0 (0 samples)
+    latency jumps: 0
+    playback speed vs. capture (1 s pieces): median +23.0 ppm, p95 |.| 62, max |.| 65 ppm (0.11 cent)
+    not judged (no located window within 2048 samples): 3.4 % of the analysed time
+    detector floor (residual peak / piece RMS): median 0.0002, p99 0.0018, p99.9 0.0028 -> threshold 2.0 % of the piece RMS
+    clicks / discontinuities (residual > 2.0 % of the piece RMS and > -60 dB re the signal; in pauses > -50 dB re the signal; 256-sample pieces, both channels): 0
+    level out/in per 1024 window: median -0.0000 dB, p1..p99 -0.000..+0.000 dB
+    windows with the level off by > 0.5 dB: 0
+    => unexplained findings: 0
+    L/R level difference +0.00000 dB, L == R exactly: True
+=== i_music: signal music -6 dBFS, chain empty, mic channels 2, buffer 480, 20 s, mic 48000 Hz -> cable 48000 Hz
+    engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.0 ppm, shown latency 55.4 ms, cpu 0 %
+    peak in -6.00 dBFS (true peak -6.00), peak out -7.79 dBFS (true peak outside recorded events -7.84), samples |out| >= 1.0: 0, non-finite: 0
+    recorded events: program stop (planned fade-out): 1
+    906 of 907 1024-sample windows located (225 with a 4096 window, 313 periodic ones by continuity); quiet (< -50 dB re the signal) 0, not matching the input (rho < 0.5) 0, ambiguous (periodic) 1, single outliers (> 1.5 samples off the running median) 0
+    latency capture -> playback: median 44.73 ms, p1..p99 44.73..44.73, min 44.73, max 44.73 ms (shown by MicVST: 55.4 ms)
+    continuity: latency drops (audio skipped/lost) 0 (-0 samples), rises (silence inserted / audio repeated) 0 (0 samples)
+    latency jumps: 0
+    playback speed vs. capture (1 s pieces): median +0.2 ppm, p95 |.| 2, max |.| 2 ppm (0.00 cent)
+    not judged (no located window within 2048 samples): 0.8 % of the analysed time
+    detector floor (residual peak / piece RMS): median 0.0000, p99 0.0017, p99.9 0.0032 -> threshold 2.0 % of the piece RMS
+    clicks / discontinuities (residual > 2.0 % of the piece RMS and > -60 dB re the signal; in pauses > -50 dB re the signal; 256-sample pieces, both channels): 0
+    level out/in per 1024 window: median -0.0001 dB, p1..p99 -0.000..+0.000 dB
+    windows with the level off by > 0.5 dB: 0
+    => unexplained findings: 0
+=== i_silence: signal silence 0 dBFS, chain empty, mic channels 2, buffer 480, 12 s, mic 48000 Hz -> cable 48000 Hz
+    engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 1.3 ppm, shown latency 55.3 ms, cpu 0 %
+    peak in -240.00 dBFS (true peak -240.00), peak out -240.00 dBFS (true peak outside recorded events -240.00), samples |out| >= 1.0: 0, non-finite: 0
+    silence in: max |out| over the whole run = 0
+=== i_mono_noise: signal noise -12 dBFS, chain empty, mic channels 1, buffer 480, 20 s, mic 48000 Hz -> cable 48000 Hz
+    engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.0 ppm, shown latency 55.4 ms, cpu 0 %
+    peak in -7.57 dBFS (true peak -6.34), peak out -7.97 dBFS (true peak outside recorded events -7.97), samples |out| >= 1.0: 0, non-finite: 0
+    recorded events: program stop (planned fade-out): 1
+    908 of 908 1024-sample windows located (0 with a 4096 window, 0 periodic ones by continuity); quiet (< -50 dB re the signal) 0, not matching the input (rho < 0.5) 0, ambiguous (periodic) 0, single outliers (> 1.5 samples off the running median) 0
+    latency capture -> playback: median 44.73 ms, p1..p99 44.73..44.73, min 44.73, max 44.73 ms (shown by MicVST: 55.4 ms)
+    continuity: latency drops (audio skipped/lost) 0 (-0 samples), rises (silence inserted / audio repeated) 0 (0 samples)
+    latency jumps: 0
+    playback speed vs. capture (1 s pieces): median +0.0 ppm, p95 |.| 1, max |.| 1 ppm (0.00 cent)
+    not judged (no located window within 2048 samples): 0.7 % of the analysed time
+    detector floor (residual peak / piece RMS): median 0.0006, p99 0.0026, p99.9 0.0035 -> threshold 2.6 % of the piece RMS
+    clicks / discontinuities (residual > 2.6 % of the piece RMS and > -60 dB re the signal; in pauses > -50 dB re the signal; 256-sample pieces, both channels): 0
+    level out/in per 1024 window: median -0.0000 dB, p1..p99 -0.000..+0.000 dB
+    windows with the level off by > 0.5 dB: 0
+    => unexplained findings: 0
+    L/R level difference +0.00000 dB, L == R exactly: True
+=== i_noise_b128: signal noise -12 dBFS, chain empty, mic channels 2, buffer 128, 20 s, mic 48000 Hz -> cable 48000 Hz
+    engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -1.7 ppm, shown latency 24.6 ms, cpu 0 %
+    peak in -7.57 dBFS (true peak -6.34), peak out -7.60 dBFS (true peak outside recorded events -7.98), samples |out| >= 1.0: 0, non-finite: 0
+    recorded events: program stop (planned fade-out): 1
+    906 of 906 1024-sample windows located (0 with a 4096 window, 0 periodic ones by continuity); quiet (< -50 dB re the signal) 0, not matching the input (rho < 0.5) 0, ambiguous (periodic) 0, single outliers (> 1.5 samples off the running median) 0
+    latency capture -> playback: median 21.34 ms, p1..p99 21.23..21.36, min 21.23, max 21.36 ms (shown by MicVST: 24.6 ms)
+    continuity: latency drops (audio skipped/lost) 0 (-0 samples), rises (silence inserted / audio repeated) 0 (0 samples)
+    latency jumps: 0
+    playback speed vs. capture (1 s pieces): median -4.9 ppm, p95 |.| 16, max |.| 19 ppm (0.03 cent)
+    not judged (no located window within 2048 samples): 0.9 % of the analysed time
+    detector floor (residual peak / piece RMS): median 0.0007, p99 0.0039, p99.9 0.0050 -> threshold 3.9 % of the piece RMS
+    clicks / discontinuities (residual > 3.9 % of the piece RMS and > -60 dB re the signal; in pauses > -50 dB re the signal; 256-sample pieces, both channels): 0
+    level out/in per 1024 window: median -0.0000 dB, p1..p99 -0.000..+0.000 dB
+    windows with the level off by > 0.5 dB: 0
+    => unexplained findings: 0
+=== i_noise_b2048: signal noise -12 dBFS, chain empty, mic channels 2, buffer 2048, 20 s, mic 48000 Hz -> cable 48000 Hz
+    engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 1.3 ppm, shown latency 192.5 ms, cpu 0 %
+    peak in -7.57 dBFS (true peak -6.34), peak out -8.12 dBFS (true peak outside recorded events -7.99), samples |out| >= 1.0: 0, non-finite: 0
+    recorded events: program stop (planned fade-out): 1
+    916 of 916 1024-sample windows located (0 with a 4096 window, 0 periodic ones by continuity); quiet (< -50 dB re the signal) 0, not matching the input (rho < 0.5) 0, ambiguous (periodic) 0, single outliers (> 1.5 samples off the running median) 0
+    latency capture -> playback: median 149.38 ms, p1..p99 149.36..149.44, min 149.36, max 149.44 ms (shown by MicVST: 192.5 ms)
+    continuity: latency drops (audio skipped/lost) 0 (-0 samples), rises (silence inserted / audio repeated) 0 (0 samples)
+    latency jumps: 0
+    playback speed vs. capture (1 s pieces): median +2.6 ppm, p95 |.| 10, max |.| 11 ppm (0.02 cent)
+    not judged (no located window within 2048 samples): 0.2 % of the analysed time
+    detector floor (residual peak / piece RMS): median 0.0006, p99 0.0028, p99.9 0.0037 -> threshold 2.8 % of the piece RMS
+    clicks / discontinuities (residual > 2.8 % of the piece RMS and > -60 dB re the signal; in pauses > -50 dB re the signal; 256-sample pieces, both channels): 0
+    level out/in per 1024 window: median -0.0000 dB, p1..p99 -0.000..+0.000 dB
+    windows with the level off by > 0.5 dB: 0
+    => unexplained findings: 0
+=== i_mt_44to48: signal multitone -3 dBFS, chain empty, mic channels 2, buffer 441, 20 s, mic 44100 Hz -> cable 48000 Hz
+    engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -2.7 ppm, shown latency 53.6 ms, cpu 0 %
+    peak in -2.68 dBFS (true peak -2.55), peak out -3.21 dBFS (true peak outside recorded events -3.03), samples |out| >= 1.0: 0, non-finite: 0
+    recorded events: program stop (planned fade-out): 1
+    909 of 909 1024-sample windows located (0 with a 4096 window, 0 periodic ones by continuity); quiet (< -50 dB re the signal) 0, not matching the input (rho < 0.5) 0, ambiguous (periodic) 0, single outliers (> 1.5 samples off the running median) 0
+    latency capture -> playback: median 43.01 ms, p1..p99 42.81..43.04, min 42.81, max 43.04 ms (shown by MicVST: 53.6 ms)
+    continuity: latency drops (audio skipped/lost) 0 (-0 samples), rises (silence inserted / audio repeated) 0 (0 samples)
+    latency jumps: 0
+    playback speed vs. capture (1 s pieces): median -9.1 ppm, p95 |.| 29, max |.| 32 ppm (0.06 cent)
+    not judged (no located window within 2048 samples): 0.8 % of the analysed time
+    detector floor (residual peak / piece RMS): median 0.0023, p99 0.0043, p99.9 0.0053 -> threshold 4.3 % of the piece RMS
+    clicks / discontinuities (residual > 4.3 % of the piece RMS and > -60 dB re the signal; in pauses > -50 dB re the signal; 256-sample pieces, both channels): 0
+    level out/in per 1024 window: median -0.0041 dB, p1..p99 -0.001..+0.001 dB
+    windows with the level off by > 0.5 dB: 0
+    => unexplained findings: 0
+    multitone (24 tones 40 Hz-18 kHz, 4096-sample windows, 114 windows; 0 windows at recorded events left out):
+      TD+N (all that is not one of the tones): median -91.2 dB, p95 -78.2 dB, worst -75.7 dB
+      frequency response (gain per tone, median over windows): -0.0208 .. -0.0000 dB (18000 / 41 Hz)
+            40.9 Hz: gain -0.0000 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+           196.9 Hz: gain -0.0003 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+           969.4 Hz: gain -0.0050 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+          4770.4 Hz: gain -0.0013 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+         10582.9 Hz: gain -0.0133 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+         18000.4 Hz: gain -0.0208 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+      L/R balance over all tones: +0.00000 .. +0.00000 dB; L/R phase +0.0000 .. +0.0000 deg
+=== i_mt_48to441: signal multitone -3 dBFS, chain empty, mic channels 2, buffer 480, 20 s, mic 48000 Hz -> cable 44100 Hz
+    engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -1.8 ppm, shown latency 57.9 ms, cpu 0 %
+    peak in -3.31 dBFS (true peak -2.86), peak out -3.35 dBFS (true peak outside recorded events -3.35), samples |out| >= 1.0: 0, non-finite: 0
+    recorded events: program stop (planned fade-out): 1
+    835 of 835 1024-sample windows located (0 with a 4096 window, 0 periodic ones by continuity); quiet (< -50 dB re the signal) 0, not matching the input (rho < 0.5) 0, ambiguous (periodic) 0, single outliers (> 1.5 samples off the running median) 0
+    latency capture -> playback: median 46.72 ms, p1..p99 46.64..46.75, min 46.64, max 46.75 ms (shown by MicVST: 57.9 ms)
+    continuity: latency drops (audio skipped/lost) 0 (-0 samples), rises (silence inserted / audio repeated) 0 (0 samples)
+    latency jumps: 0
+    playback speed vs. capture (1 s pieces): median -4.3 ppm, p95 |.| 15, max |.| 16 ppm (0.03 cent)
+    not judged (no located window within 2048 samples): 0.7 % of the analysed time
+    detector floor (residual peak / piece RMS): median 0.0020, p99 0.0030, p99.9 0.0036 -> threshold 3.0 % of the piece RMS
+    clicks / discontinuities (residual > 3.0 % of the piece RMS and > -60 dB re the signal; in pauses > -50 dB re the signal; 256-sample pieces, both channels): 0
+    level out/in per 1024 window: median -0.0041 dB, p1..p99 -0.001..+0.001 dB
+    windows with the level off by > 0.5 dB: 0
+    => unexplained findings: 0
+    multitone (24 tones 40 Hz-18 kHz, 4096-sample windows, 105 windows; 0 windows at recorded events left out):
+      TD+N (all that is not one of the tones): median -93.9 dB, p95 -84.7 dB, worst -78.0 dB
+      frequency response (gain per tone, median over windows): -0.0208 .. -0.0000 dB (18000 / 257 Hz)
+            40.9 Hz: gain -0.0000 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+           196.9 Hz: gain -0.0003 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+           969.4 Hz: gain -0.0050 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+          4770.4 Hz: gain -0.0013 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+         10582.9 Hz: gain -0.0132 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+         18000.4 Hz: gain -0.0208 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+      L/R balance over all tones: +0.00000 .. +0.00000 dB; L/R phase +0.0000 .. +0.0000 deg
+=== i_noise_testdelay: signal noise -12 dBFS, chain testdelay240, mic channels 2, buffer 480, 20 s, mic 48000 Hz -> cable 48000 Hz
+    engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.3 ppm, shown latency 60.4 ms, cpu 0 %
+    peak in -7.57 dBFS (true peak -6.34), peak out -7.59 dBFS (true peak outside recorded events -8.01), samples |out| >= 1.0: 0, non-finite: 0
+    recorded events: program stop (planned fade-out): 1
+    909 of 909 1024-sample windows located (0 with a 4096 window, 0 periodic ones by continuity); quiet (< -50 dB re the signal) 0, not matching the input (rho < 0.5) 0, ambiguous (periodic) 0, single outliers (> 1.5 samples off the running median) 0
+    latency capture -> playback: median 49.73 ms, p1..p99 49.72..49.73, min 49.72, max 49.73 ms (shown by MicVST: 60.4 ms)
+    continuity: latency drops (audio skipped/lost) 0 (-0 samples), rises (silence inserted / audio repeated) 0 (0 samples)
+    latency jumps: 0
+    playback speed vs. capture (1 s pieces): median -0.3 ppm, p95 |.| 3, max |.| 4 ppm (0.01 cent)
+    not judged (no located window within 2048 samples): 0.7 % of the analysed time
+    detector floor (residual peak / piece RMS): median 0.0004, p99 0.0019, p99.9 0.0024 -> threshold 2.0 % of the piece RMS
+    clicks / discontinuities (residual > 2.0 % of the piece RMS and > -60 dB re the signal; in pauses > -50 dB re the signal; 256-sample pieces, both channels): 0
+    level out/in per 1024 window: median -0.0000 dB, p1..p99 -0.000..+0.000 dB
+    windows with the level off by > 0.5 dB: 0
+    => unexplained findings: 0
+=== i_voice_cablestall: signal voice -6 dBFS, chain cablestall, mic channels 2, buffer 480, 20 s, mic 48000 Hz -> cable 48000 Hz
+    engine: underruns 0, trims 6, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 2.5 ppm, shown latency 54.0 ms, cpu 0 %
+    peak in -6.00 dBFS (true peak -5.99), peak out -7.55 dBFS (true peak outside recorded events -7.54), samples |out| >= 1.0: 0, non-finite: 0
+    recorded events: MicVST: trim: 6, injected cable stall (test): 6, program stop (planned fade-out): 1
+    828 of 907 1024-sample windows located (317 with a 4096 window, 63 periodic ones by continuity); quiet (< -50 dB re the signal) 68, not matching the input (rho < 0.5) 0, ambiguous (periodic) 11, single outliers (> 1.5 samples off the running median) 4
+    latency capture -> playback: median 45.13 ms, p1..p99 40.27..105.59, min 40.21, max 107.35 ms (shown by MicVST: 54.0 ms)
+    continuity: latency drops (audio skipped/lost) 8 (17396 samples), rises (silence inserted / audio repeated) 7 (17277 samples)
+    latency jumps: 15 (injected cable stall (test) 7, MicVST: trim 8, UNEXPLAINED 0)
+    playback speed vs. capture (1 s pieces): median +51.6 ppm, p95 |.| 499, max |.| 501 ppm (0.87 cent)
+    not judged (no located window within 2048 samples): 3.4 % of the analysed time
+    detector floor (residual peak / piece RMS): median 0.0009, p99 0.0066, p99.9 0.0197 -> threshold 6.6 % of the piece RMS
+    clicks / discontinuities (residual > 6.6 % of the piece RMS and > -60 dB re the signal; in pauses > -50 dB re the signal; 256-sample pieces, both channels): 0
+    level out/in per 1024 window: median -0.0000 dB, p1..p99 -0.000..+0.001 dB
+    windows with the level off by > 0.5 dB: 0
+    MicVST splices (6):
+      trim at 3.32 s: skipped +659 samples, HF excess +4.8 dB, level over the splice -0.13 dB
+      trim at 6.30 s: skipped +3015 samples, HF excess +4.7 dB, level over the splice -0.12 dB
+      trim at 9.32 s: skipped +2733 samples, HF excess +4.7 dB, level over the splice -0.34 dB
+      trim at 12.34 s: skipped +3138 samples, HF excess +4.7 dB, level over the splice +0.23 dB
+      trim at 15.31 s: skipped +2536 samples, HF excess +4.8 dB, level over the splice -0.17 dB
+      trim at 18.34 s: skipped +3103 samples, HF excess +1.2 dB, level over the splice -1.67 dB
+    => unexplained findings: 0
+    L/R level difference +0.00000 dB, L == R exactly: True
+=== i_music_cablestall: signal music -6 dBFS, chain cablestall, mic channels 2, buffer 480, 20 s, mic 48000 Hz -> cable 48000 Hz
+    engine: underruns 0, trims 6, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.7 ppm, shown latency 60.0 ms, cpu 0 %
+    peak in -6.00 dBFS (true peak -6.00), peak out -7.79 dBFS (true peak outside recorded events -7.84), samples |out| >= 1.0: 0, non-finite: 0
+    recorded events: MicVST: trim: 6, injected cable stall (test): 6, program stop (planned fade-out): 1
+    863 of 908 1024-sample windows located (203 with a 4096 window, 295 periodic ones by continuity); quiet (< -50 dB re the signal) 11, not matching the input (rho < 0.5) 0, ambiguous (periodic) 34, single outliers (> 1.5 samples off the running median) 6
+    latency capture -> playback: median 46.20 ms, p1..p99 44.25..105.90, min 44.25, max 108.39 ms (shown by MicVST: 60.0 ms)
+    continuity: latency drops (audio skipped/lost) 5 (14051 samples), rises (silence inserted / audio repeated) 7 (14519 samples)
+    latency jumps: 12 (injected cable stall (test) 7, MicVST: trim 5, UNEXPLAINED 0)
+    playback speed vs. capture (1 s pieces): median +449.5 ppm, p95 |.| 498, max |.| 501 ppm (0.87 cent)
+    not judged (no located window within 2048 samples): 2.3 % of the analysed time
+    detector floor (residual peak / piece RMS): median 0.0003, p99 0.0477, p99.9 1.7538 -> threshold 20.0 % of the piece RMS
+    clicks / discontinuities (residual > 20.0 % of the piece RMS and > -60 dB re the signal; in pauses > -50 dB re the signal; 256-sample pieces, both channels): 2 (MicVST: trim 2, UNEXPLAINED 0)
+    level out/in per 1024 window: median -0.0001 dB, p1..p99 -0.002..+0.001 dB
+    windows with the level off by > 0.5 dB: 3 (MicVST: trim 3, UNEXPLAINED 0)
+    MicVST splices (6):
+      trim at 3.34 s: skipped +2621 samples, HF excess -36.2 dB, level over the splice -2.88 dB
+      trim at 6.31 s: skipped +2939 samples, HF excess +0.1 dB, level over the splice +0.49 dB
+      trim at 9.33 s: skipped +2939 samples, HF excess -0.2 dB, level over the splice -1.95 dB
+      trim at 12.31 s: not measured (a cable stall lies between the same two located windows; jump -127 samples = both together)
+      trim at 15.33 s: skipped +2936 samples, HF excess +4.5 dB, level over the splice +4.04 dB
+      trim at 18.30 s: skipped +2614 samples, HF excess +1.1 dB, level over the splice -0.06 dB
+    => unexplained findings: 0
+=== i_voice_pluginstall: signal voice -6 dBFS, chain pluginstall, mic channels 2, buffer 480, 20 s, mic 48000 Hz -> cable 48000 Hz
+    engine: underruns 5, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 5, queue overflows 0, device gaps 0, safety 35 ms, drift -0.9 ppm, shown latency 80.4 ms, cpu 0 %
+    peak in -6.00 dBFS (true peak -5.99), peak out -7.55 dBFS (true peak outside recorded events -7.54), samples |out| >= 1.0: 0, non-finite: 0
+    recorded events: MicVST: underrun: 5, MicVST: input-skip: 5, program stop (planned fade-out): 1
+    796 of 908 1024-sample windows located (309 with a 4096 window, 58 periodic ones by continuity); quiet (< -50 dB re the signal) 102, not matching the input (rho < 0.5) 0, ambiguous (periodic) 10, single outliers (> 1.5 samples off the running median) 7
+    latency capture -> playback: median 54.68 ms, p1..p99 44.70..69.68, min 44.70, max 69.68 ms (shown by MicVST: 80.4 ms)
+    continuity: latency drops (audio skipped/lost) 0 (-0 samples), rises (silence inserted / audio repeated) 4 (1241 samples)
+    latency jumps: 4 (MicVST: input-skip 4, UNEXPLAINED 0)
+    playback speed vs. capture (1 s pieces): median -0.5 ppm, p95 |.| 283, max |.| 494 ppm (0.85 cent)
+    not judged (no located window within 2048 samples): 7.0 % of the analysed time
+    detector floor (residual peak / piece RMS): median 0.0001, p99 0.0663, p99.9 1.4699 -> threshold 20.0 % of the piece RMS
+    clicks / discontinuities (residual > 20.0 % of the piece RMS and > -60 dB re the signal; in pauses > -50 dB re the signal; 256-sample pieces, both channels): 4 (MicVST: input-skip 3, MicVST: underrun 1, UNEXPLAINED 0)
+    level out/in per 1024 window: median +0.0000 dB, p1..p99 -0.002..+0.001 dB
+    windows with the level off by > 0.5 dB: 3 (MicVST: input-skip 3, UNEXPLAINED 0)
+    MicVST splices (5):
+      input-skip at 5.33 s: skipped -240 samples, HF excess +4.8 dB, level over the splice -4.43 dB
+      input-skip at 8.50 s: skipped -239 samples, HF excess +4.9 dB, level over the splice -6.29 dB
+      input-skip at 11.71 s: skipped -524 samples, HF excess +31.1 dB, level over the splice -5.05 dB
+      input-skip at 14.87 s: no latency jump found
+      input-skip at 18.09 s: skipped -240 samples, HF excess +4.8 dB, level over the splice -13.71 dB
+    => unexplained findings: 0
+    L/R level difference +0.00000 dB, L == R exactly: True
+=== i_mt_vst3: signal multitone -3 dBFS, chain vst3, mic channels 2, buffer 480, 20 s, mic 48000 Hz -> cable 48000 Hz
+    engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.2 ppm, shown latency 55.3 ms, cpu 3 %
+    compared with: the offline rendering of the same vst3 plug-ins (same state, same blocks); plug-in latency reported to the graph 0 samples
+    peak in -20.77 dBFS (true peak -20.76), peak out -21.26 dBFS (true peak outside recorded events -21.26), samples |out| >= 1.0: 0, non-finite: 0
+    recorded events: program stop (planned fade-out): 1, chain edit (planned fade): 1
+    459 of 881 1024-sample windows located (3 with a 4096 window, 1 periodic ones by continuity); quiet (< -50 dB re the signal) 0, not matching the input (rho < 0.5) 2, ambiguous (periodic) 420, single outliers (> 1.5 samples off the running median) 336
+    latency capture -> playback: median 193.37 ms, p1..p99 44.58..387.34, min 42.44, max 412.89 ms (shown by MicVST: 55.3 ms)
+    continuity: latency drops (audio skipped/lost) 134 (355073 samples), rises (silence inserted / audio repeated) 156 (363035 samples)
+    latency jumps: 290 (UNEXPLAINED 290)
+      unexplained at t=  1.135 s (cable timeline)
+      unexplained at t=  1.157 s (cable timeline)
+      unexplained at t=  1.221 s (cable timeline)
+      unexplained at t=  1.242 s (cable timeline)
+      unexplained at t=  1.285 s (cable timeline)
+      unexplained at t=  1.327 s (cable timeline)
+    not judged (no located window within 2048 samples): 6.0 % of the analysed time
+    detector floor (residual peak / piece RMS): median 1.4704, p99 2.6454, p99.9 3.2806 -> threshold 20.0 % of the piece RMS
+    clicks / discontinuities (residual > 20.0 % of the piece RMS and > -60 dB re the signal; in pauses > -50 dB re the signal; 256-sample pieces, both channels): 53 (UNEXPLAINED 53)
+      unexplained at t=  1.370 s (cable timeline)
+      unexplained at t=  1.605 s (cable timeline)
+      unexplained at t=  1.946 s (cable timeline)
+      unexplained at t=  2.117 s (cable timeline)
+      unexplained at t=  2.223 s (cable timeline)
+      unexplained at t=  2.373 s (cable timeline)
+    level out/in per 1024 window: median -0.6601 dB, p1..p99 -6.036..+5.836 dB
+    windows with the level off by > 0.5 dB: 50 (UNEXPLAINED 50)
+      unexplained at t=  1.957 s (cable timeline)
+      unexplained at t=  3.429 s (cable timeline)
+      unexplained at t=  4.517 s (cable timeline)
+      unexplained at t=  4.538 s (cable timeline)
+      unexplained at t=  4.559 s (cable timeline)
+      unexplained at t=  5.647 s (cable timeline)
+    => unexplained findings: 393
+    multitone (24 tones 40 Hz-18 kHz, 4096-sample windows, 110 windows; 0 windows at recorded events left out):
+      TD+N (all that is not one of the tones): median -13.1 dB, p95 -8.1 dB, worst -4.5 dB
+      frequency response (gain per tone, median over windows): +15.3250 .. +49.6656 dB (335 / 53 Hz)
+            40.9 Hz: gain +31.4904 dB, L-R +0.04861 dB, L-R phase +1.1090 deg
+           196.9 Hz: gain +24.9773 dB, L-R -1.10378 dB, L-R phase -30.9572 deg
+           969.4 Hz: gain +23.0795 dB, L-R +0.50190 dB, L-R phase -48.6477 deg
+          4770.4 Hz: gain +29.0219 dB, L-R +0.42470 dB, L-R phase -9.3051 deg
+         10582.9 Hz: gain +28.8333 dB, L-R -0.22827 dB, L-R phase -7.0339 deg
+         18000.4 Hz: gain +28.8345 dB, L-R +1.12308 dB, L-R phase -5.5008 deg
+      L/R balance over all tones: -1.39025 .. +2.31751 dB; L/R phase -48.6477 .. +13.6233 deg
+=== i_mt_vst3byp: signal multitone -3 dBFS, chain vst3-bypassed, mic channels 2, buffer 480, 20 s, mic 48000 Hz -> cable 48000 Hz
+    engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.2 ppm, shown latency 55.4 ms, cpu 0 %
+    peak in -3.00 dBFS (true peak -2.87), peak out -3.84 dBFS (true peak outside recorded events -3.35), samples |out| >= 1.0: 0, non-finite: 0
+    recorded events: program stop (planned fade-out): 1, chain edit (planned fade): 1
+    908 of 908 1024-sample windows located (0 with a 4096 window, 0 periodic ones by continuity); quiet (< -50 dB re the signal) 0, not matching the input (rho < 0.5) 0, ambiguous (periodic) 0, single outliers (> 1.5 samples off the running median) 0
+    latency capture -> playback: median 44.73 ms, p1..p99 44.73..44.74, min 44.73, max 44.74 ms (shown by MicVST: 55.4 ms)
+    continuity: latency drops (audio skipped/lost) 0 (-0 samples), rises (silence inserted / audio repeated) 0 (0 samples)
+    latency jumps: 0
+    playback speed vs. capture (1 s pieces): median -0.4 ppm, p95 |.| 1, max |.| 1 ppm (0.00 cent)
+    not judged (no located window within 2048 samples): 0.8 % of the analysed time
+    detector floor (residual peak / piece RMS): median 0.0002, p99 0.0009, p99.9 0.0011 -> threshold 2.0 % of the piece RMS
+    clicks / discontinuities (residual > 2.0 % of the piece RMS and > -60 dB re the signal; in pauses > -50 dB re the signal; 256-sample pieces, both channels): 0
+    level out/in per 1024 window: median -0.0001 dB, p1..p99 -0.000..+0.000 dB
+    windows with the level off by > 0.5 dB: 0
+    => unexplained findings: 0
+    multitone (24 tones 40 Hz-18 kHz, 4096-sample windows, 114 windows; 0 windows at recorded events left out):
+      TD+N (all that is not one of the tones): median -107.3 dB, p95 -98.4 dB, worst -94.4 dB
+      frequency response (gain per tone, median over windows): -0.0001 .. -0.0000 dB (18000 / 41 Hz)
+            40.9 Hz: gain -0.0000 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+           196.9 Hz: gain -0.0000 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+           969.4 Hz: gain -0.0000 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+          4770.4 Hz: gain -0.0000 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+         10582.9 Hz: gain -0.0000 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+         18000.4 Hz: gain -0.0001 dB, L-R +0.00000 dB, L-R phase +0.0000 deg
+      L/R balance over all tones: +0.00000 .. +0.00000 dB; L/R phase +0.0000 .. +0.0000 deg

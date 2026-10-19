@@ -1,0 +1,19 @@
+# MicVST engine test (1.2.1) - chaos
+## Long run with changes during playback: 10 min real time, chain gain 0.5 + delay 240 smp + load 30 % + Otomatik KazanÃ§, 997 Hz -6 dBFS, buffer 480, streamed analysis
+| t (min) | RSS (MB) | process CPU (%) | clicks (unexplained) | gaps (unexplained) | THD+N in 43 ms windows, median / worst (event-free 2 s slices) | speed p-p within a slice (ppm) | level (dBFS) | MicVST |
+|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| 1.0 | 28.5 | 38.7 | 0 (0) | 2 (0) | -125.0 dB / -106.5 dB (5) | 16 | -12.043 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.1 ppm, shown latency 63.4 ms, cpu 32 % |
+| 2.0 | 38.4 | 37.3 | 0 (0) | 3 (0) | -129.3 dB / -118.1 dB (5) | 1 | -12.043 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.1 ppm, shown latency 63.5 ms, cpu 32 % |
+| 3.0 | 29.8 | 37.4 | 0 (0) | 2 (0) | -129.8 dB / -117.7 dB (5) | 2 | -12.043 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.0 ppm, shown latency 63.4 ms, cpu 32 % |
+| 4.0 | 26.3 | 37.5 | 0 (0) | 3 (0) | -129.0 dB / -118.6 dB (5) | 1 | -12.043 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 40 ms, drift 1.8 ppm, shown latency 93.3 ms, cpu 32 % |
+| 5.0 | 27.3 | 37.2 | 0 (0) | 3 (0) | -110.0 dB / -98.4 dB (5) | 39 | -12.043 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 40 ms, drift 0.1 ppm, shown latency 73.4 ms, cpu 32 % |
+| 6.0 | 27.4 | 37.2 | 1 (0) | 4 (0) | -114.3 dB / -109.3 dB (5) | 12 | -12.043 | underruns 0, trims 1, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 1, safety 10 ms, drift 11.0 ppm, shown latency 44.9 ms, cpu 32 % |
+| 7.0 | 27.2 | 37.4 | 0 (0) | 2 (0) | -101.2 dB / -93.5 dB (5) | 86 | -12.043 | underruns 0, trims 1, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 1, safety 10 ms, drift 2.5 ppm, shown latency 44.1 ms, cpu 32 % |
+| 8.0 | 27.2 | 37.0 | 0 (0) | 3 (0) | -128.5 dB / -117.9 dB (5) | 1 | -12.043 | underruns 0, trims 1, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 1, safety 40 ms, drift 0.7 ppm, shown latency 74.3 ms, cpu 32 % |
+| 9.0 | 25.9 | 37.8 | 0 (0) | 3 (0) | -118.2 dB / -104.8 dB (5) | 15 | -12.043 | underruns 0, trims 1, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 1, safety 40 ms, drift 0.9 ppm, shown latency 73.7 ms, cpu 32 % |
+| 10.0 | 26.8 | 37.4 | 0 (0) | 3 (0) | -127.6 dB / -114.4 dB (5) | 2 | -12.043 | underruns 0, trims 1, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 1, safety 10 ms, drift 6.4 ppm, shown latency 64.5 ms, cpu 31 % |
+recorded 10.1 min: clicks 1 (unexplained 0), gaps 29 (805 ms; unexplained 0), worst THD+N in a 43 ms window of an event-free slice -93.5 dB, RSS 28.5 -> 26.8 MB (slope over the second half -14.84 MB/h)
+  click: cable late (test machine): 1
+  gap: cable late (test machine): 1
+  gap: planned change: 28
+-- exit code 0, 603.3 s, peak working set 38 MB

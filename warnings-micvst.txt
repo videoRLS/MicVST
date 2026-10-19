@@ -1,0 +1,6 @@
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\xmemory(732,82): warning C4244:
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\xmemory(732,82): warning C4244:             _Objty=float
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\xmemory(732,82): warning C4244:         ]
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\xmemory(732,82): warning C4244:         with
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\xmemory(732,82): warning C4244: 'initializing': conversion from 'double' to '_Objty', possible loss of data
+D:\a\MicVST\MicVST\tests\AutoGainTests.cpp(859,32): warning C4996: 'getenv': This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.

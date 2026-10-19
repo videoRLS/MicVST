@@ -1,0 +1,12 @@
+RegSetValue HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Notifications\Data\418A073AA3BC2475
+RegSetValue HKLM\System\CurrentControlSet\Services\bam\State\UserSettings\S-1-5-21-4239583824-265399229-1323058055-500\\Device\HarddiskVolume5\a\MicVST\MicVST\build\MicVST_artefacts\Release\MicVST.exe
+SetDispositionInformationEx %USERPROFILE%\AppData\Local\Temp\micvst_scan.xml
+SetRenameInformationFile %USERPROFILE%\AppData\Local\Temp\micvst_scan_temp34a9fc74.xml
+SetRenameInformationFile %USERPROFILE%\AppData\Roaming\MicVST\config_temp611ad733.xml
+SetRenameInformationFile %USERPROFILE%\AppData\Roaming\MicVST\plugin_cache_temp11571eb1.xml
+WriteFile %USERPROFILE%\AppData\Local\Temp\micvst_scan_temp34a9fc74.xml
+WriteFile %USERPROFILE%\AppData\Roaming\MicVST\config_temp611ad733.xml
+WriteFile %USERPROFILE%\AppData\Roaming\MicVST\log.txt
+WriteFile %USERPROFILE%\AppData\Roaming\MicVST\plugin_cache_temp11571eb1.xml
+WriteFile C:\$LogFile
+WriteFile C:\$Mft

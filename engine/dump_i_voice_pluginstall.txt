@@ -1,0 +1,4 @@
+# MicVST engine test (1.2.1) - dump
+  underruns 5, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 5, queue overflows 0, device gaps 0, safety 35 ms, drift -0.9 ppm, shown latency 80.4 ms, cpu 0 %
+  written: dump_i_voice_pluginstall_{in,out}.f32 + .json
+-- exit code 0, 20.3 s, peak working set 42 MB

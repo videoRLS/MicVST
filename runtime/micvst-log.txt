@@ -1,0 +1,57 @@
+
+**********************************************************
+MicVST günlüğü - başlangıç: 19.10.2026 22:09:56
+[22:09:56] MicVST 1.2.1 (JUCE v9.0.4, internet erişimi yok)
+[22:09:56] İşlem: öncelik yüksek tamam, güç kısıtlaması kapalı tamam, zamanlayıcı kısıtlaması kapalı tamam
+[22:09:57] Eklenti önbelleği yok ya da bozuk -> tam tarama
+[22:09:57] Sanal kablo bulunamadı -> çıkış 'yok'
+[22:09:57] Mikrofon bulunamadı -> giriş 'yok'
+[22:09:57] Kurulum: giriş (yok) | çıkış (yok)
+[22:09:57] Tarama (yeni): C:\Program Files\Common Files\VST3\Airwindows Consolidated.vst3
+[22:09:57] Tarama: 1 dosya taranacak
+[22:09:57] Ses: durdu (cihaz bağlı değil mi?)
+
+**********************************************************
+MicVST günlüğü - başlangıç: 19.10.2026 22:11:00
+[22:11:00] MicVST 1.2.1 (JUCE v9.0.4, internet erişimi yok)
+[22:11:00] İşlem: öncelik yüksek tamam, güç kısıtlaması kapalı tamam, zamanlayıcı kısıtlaması kapalı tamam
+[22:11:00] Kurulum: giriş (yok) | çıkış (yok)
+[22:11:00] Tarama: 0 dosya taranacak
+[22:11:00] Ses: durdu (cihaz bağlı değil mi?)
+
+**********************************************************
+MicVST günlüğü - başlangıç: 19.10.2026 22:11:51
+[22:11:51] MicVST 1.2.1 (JUCE v9.0.4, internet erişimi yok)
+[22:11:51] İşlem: öncelik yüksek tamam, güç kısıtlaması kapalı tamam, zamanlayıcı kısıtlaması kapalı tamam
+[22:11:51] Kurulum: giriş (yok) | çıkış (yok)
+[22:11:52] Tarama: 0 dosya taranacak
+[22:11:52] Ses: durdu (cihaz bağlı değil mi?)
+
+**********************************************************
+MicVST günlüğü - başlangıç: 19.10.2026 22:12:45
+[22:12:45] MicVST 1.2.1 (JUCE v9.0.4, internet erişimi yok)
+[22:12:45] İşlem: öncelik yüksek tamam, güç kısıtlaması kapalı tamam, zamanlayıcı kısıtlaması kapalı tamam
+[22:12:45] Kurulum: giriş (yok) | çıkış (yok)
+[22:12:46] Tarama: 0 dosya taranacak
+[22:12:46] Ses: durdu (cihaz bağlı değil mi?)
+
+**********************************************************
+MicVST günlüğü - başlangıç: 19.10.2026 22:13:33
+[22:13:33] MicVST 1.2.1 (JUCE v9.0.4, internet erişimi yok)
+[22:13:33] İşlem: öncelik yüksek tamam, güç kısıtlaması kapalı tamam, zamanlayıcı kısıtlaması kapalı tamam
+[22:13:33] Eklenti önbelleği yok ya da bozuk -> tam tarama
+[22:13:33] Kurulum: giriş (yok) | çıkış (yok)
+[22:13:33] Tarama (yeni): C:\Program Files\Common Files\VST3\Airwindows Consolidated.vst3
+[22:13:33] Tarama: 1 dosya taranacak
+[22:13:33] Ses: durdu (cihaz bağlı değil mi?)
+
+**********************************************************
+MicVST günlüğü - başlangıç: 19.10.2026 22:14:32
+[22:14:32] MicVST 1.2.1 (JUCE v9.0.4, internet erişimi yok)
+[22:14:32] İşlem: öncelik yüksek tamam, güç kısıtlaması kapalı tamam, zamanlayıcı kısıtlaması kapalı tamam
+[22:14:32] Kurulum: giriş (yok) [Cihaz bulunamadı: Olmayan Mikrofon] | çıkış (yok) [Cihaz bulunamadı: CABLE Input (VB-Audio Virtual Cable)]
+[22:14:32] Zincirin geri yüklenmesi eklenti taramasını bekliyor
+[22:14:33] Tarama: 0 dosya taranacak
+[22:14:33] Eklenti bulunamadı: Olmayan - C:\Program Files\Common Files\VST3\Olmayan.vst3
+[22:14:33] Seçili cihaz bağlı değil, takılınca yeniden açılacak: Olmayan Mikrofon / CABLE Input (VB-Audio Virtual Cable)
+[22:14:33] Ses: durdu (cihaz bağlı değil mi?)
