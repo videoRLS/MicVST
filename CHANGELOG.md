@@ -26,8 +26,11 @@ not be tested: [docs/TEST_RAPORU_1.2.1.md](docs/TEST_RAPORU_1.2.1.md) (Turkish).
   at least 1 ms in total), so clicks, lip smacks and bursts shorter than that do not move the gain.
   No fixed gain value: the gain is the aim minus the analysed phrase level (loudest peak, held 1 s,
   then following quieter speech at 2 dB/s, or 12 dB/s when the voice is clearly quieter, e.g.
-  after shouting), limited to 0 ... +6 dB - it only raises the voice, as much as needed, never
-  lowers it. It rises with a 0.35 s time constant (2..18 dB/s) and falls with 0.15 s, or 30 ms when
+  after shouting), limited to 0 ... +8 dB - it only raises the voice, as much as needed, never
+  lowers it. A real level change (the syllable peaks staying more than 4 dB under the phrase
+  level for 0.4 s of voiced time, e.g. further from the mic) is followed quickly: the phrase level
+  at 20 dB/s and the gain with a 0.15 s time constant (up to 20 dB/s) until it has caught up;
+  variations inside a phrase never trigger this. It rises with a 0.35 s time constant (2..18 dB/s) and falls with 0.15 s, or 30 ms when
   more than 3 dB too loud, through a click-free glide. No noise gate: nothing is ever muted or
   faded; the gain moves only on blocks with voice, so between words and in silence the last gain
   is kept exactly and speaking again continues from it. A separate soft limiter with 3 ms

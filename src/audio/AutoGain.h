@@ -20,7 +20,12 @@
 //    quieter speech at 2 dB/s down to the recent syllable peaks (never below them, so no ripple
 //    between syllables) - or at 12 dB/s when the voice is clearly (6 dB) quieter, e.g. after
 //    shouting. The gain follows phrases, not syllables, so the voice keeps its dynamics.
-//  * Gain: no fixed value - it is the aim minus the analysed level, limited to 0 ... +6 dB: it
+//  * Real level changes are followed quickly: when the recent syllable peaks stay more than 4 dB
+//    under the phrase level for 0.4 s of voiced time (several syllables - not a single soft word
+//    or a breath), the voice has really become quieter (further from the mic, speaking softly):
+//    the phrase level then follows it at 20 dB/s and the gain rises faster (time constant 0.15 s,
+//    up to 20 dB/s) until it has caught up. Variations inside a phrase never trigger this.
+//  * Gain: no fixed value - it is the aim minus the analysed level, limited to 0 ... +8 dB: it
 //    only raises the voice (only as much as needed), never lowers it below its own level.
 //    Up: exponential approach (time constant 0.35 s, 2..18 dB/s of voiced time); down (back
 //    towards 0 dB): time constant 0.15 s, or 30 ms when the voice is more than 3 dB too loud.
@@ -69,8 +74,14 @@ public:
     static constexpr double naturalLearnTau     = 0.3;
     static constexpr double naturalUpTau        = 20.0;    // ... then follows a louder voice slowly
     static constexpr double naturalDownTau      = 6.0;     // ... and a quieter one a bit faster
+    // real level changes (a lastingly quieter voice) are followed quickly
+    static constexpr double sustainedDropDb     = 4.0;     // syllable peaks this far under the phrase level ...
+    static constexpr double sustainedSeconds    = 0.4;     // ... for this long (voiced time):
+    static constexpr double catchUpDbPerSec     = 20.0;    //     the phrase level follows this fast ...
+    static constexpr double catchUpRiseTau      = 0.15;    //     ... and the gain rises with this time constant
+    static constexpr double catchUpRiseMaxDbPerSec = 20.0;
     // gain range and movement
-    static constexpr double maxBoostDb          = 6.0;
+    static constexpr double maxBoostDb          = 8.0;
     static constexpr double maxCutDb            = 0.0;     // never below the voice's own level
     static constexpr double riseTau             = 0.35;
     static constexpr double riseMinDbPerSec     = 2.0;
@@ -359,7 +370,8 @@ private:
     {
         levelValid = naturalValid = false;
         levelDb = recentDb = naturalDb = -120.0;
-        holdLeft = recentHold = 0.0;
+        holdLeft = recentHold = quietSeconds = 0.0;
+        catchingUp = riseFast = false;
         learnLeft = naturalLearnSeconds;
     }
 
@@ -379,7 +391,33 @@ private:
             else if (recentHold > 0.0) recentHold -= dt;
             else                       recentDb = std::max (peakDb, recentDb - recentDecayDbPerSec * dt);
 
-            if (peakDb >= levelDb)                { levelDb = peakDb; holdLeft = peakHoldSeconds; }
+            // a real, lasting change to a quieter voice: the syllable peaks stay clearly under the
+            // phrase level they had before (the reference, taken when they first fell below it) for a
+            // while; any syllable back near that level starts over. Counted on voiced blocks only;
+            // pauses neither count nor reset.
+            if (active && ! catchingUp)
+            {
+                if (quietSeconds <= 0.0) quietRefDb = levelDb;
+                if (quietRefDb - recentDb > sustainedDropDb)
+                {
+                    quietSeconds += dt;
+                    if (quietSeconds >= sustainedSeconds) catchingUp = riseFast = true;
+                }
+                else
+                {
+                    quietSeconds = 0.0;
+                }
+            }
+
+            if (peakDb >= levelDb)                { levelDb = peakDb; holdLeft = peakHoldSeconds; catchingUp = false; quietSeconds = 0.0; }
+            else if (catchingUp)
+            {
+                if (active)   // follows the voice down to its recent syllable peaks, then normal again
+                {
+                    levelDb = std::max (recentDb, levelDb - catchUpDbPerSec * dt);
+                    if (levelDb - recentDb < 0.25) { catchingUp = false; quietSeconds = 0.0; }
+                }
+            }
             else if (levelDb - recentDb > dropDb) levelDb = std::max (recentDb, levelDb - dropFollowDbPerSec * dt);
             else if (holdLeft > 0.0)              holdLeft -= dt;
             else                                  levelDb = std::max (recentDb, levelDb - levelDecayDbPerSec * dt);
@@ -408,9 +446,17 @@ private:
         if (! std::isfinite (desired)) return;
         const double diff = desired - gainDb;
         if (diff > 0.0)
-            gainDb = std::min (desired, gainDb + std::clamp (diff / riseTau, riseMinDbPerSec, riseMaxDbPerSec) * dt);
+        {
+            const double tau = riseFast ? catchUpRiseTau : riseTau, maxRate = riseFast ? catchUpRiseMaxDbPerSec : riseMaxDbPerSec;
+            gainDb = std::min (desired, gainDb + std::clamp (diff / tau, riseMinDbPerSec, maxRate) * dt);
+        }
         else if (diff < 0.0)
+        {
             gainDb += diff * (1.0 - std::exp (-dt / (-diff > fastZoneDb ? fastFallTau : fallTau)));
+        }
+        // the faster rise after a real level change lasts until the gain has caught up
+        if (riseFast && ! catchingUp && desired - gainDb < 0.25)
+            riseFast = false;
     }
 
     std::atomic<bool>  enabled { true };
@@ -442,6 +488,8 @@ private:
     int    guardCount = 0;
     double levelDb = -120.0, recentDb = -120.0, naturalDb = -120.0;
     double holdLeft = 0.0, recentHold = 0.0, learnLeft = naturalLearnSeconds;
+    double quietSeconds = 0.0, quietRefDb = -120.0; // voiced time the voice has been lastingly quieter, than this
+    bool   catchingUp = false, riseFast = false;    // following a real level change
     double noiseFloorDb = -120.0;
     double hangover = 0.0;
     bool   levelValid = false, naturalValid = false, floorValid = false;
