@@ -207,14 +207,25 @@ struct StdoutLogger : juce::Logger
     }
 };
 
-int main (int, char**)
+int main (int argc, char** argv)
 {
     StdoutLogger logger;
     juce::Logger::setCurrentLogger (&logger);
 
     juce::UnitTestRunner runner;
     runner.setAssertOnFailure (false);
-    runner.runAllTests();
+    if (argc > 1)   // MicVSTTests <name> [<name> ...]: only these tests
+    {
+        juce::Array<juce::UnitTest*> chosen;
+        for (auto* t : juce::UnitTest::getAllTests())
+            for (int i = 1; i < argc; ++i)
+                if (t->getName() == juce::String (argv[i])) chosen.add (t);
+        runner.runTests (chosen);
+    }
+    else
+    {
+        runner.runAllTests();
+    }
 
     int failures = 0;
     for (int i = 0; i < runner.getNumResults(); ++i)

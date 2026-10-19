@@ -17,30 +17,41 @@
 //    shorter than 1 ms are ignored: the gain does not drop because of them (the limiter below still
 //    catches them).
 //  * Analysis: the "typical level" is a statistic of the syllables: the sustained peaks of the
-//    voiced 10 ms windows of the last 1.5 s of speech (pauses add nothing) are kept in a histogram;
-//    the typical level is the one the loudest 20 % of them reach. A single strong syllable, a
-//    single soft word or the ups and downs inside a phrase hardly change it - the gain stays put
-//    and the voice keeps its natural dynamics. A real change (further from the mic, speaking
-//    lastingly softer or louder) shifts the whole distribution, and the gain follows by itself.
+//    voiced 10 ms windows of the last 3 s of speech (pauses add nothing) are kept in a histogram;
+//    the typical level is the one the loudest 20 % of them reach. A single strong syllable or a
+//    single soft word hardly changes it, and the slow gain (below) leaves most of the ups and downs
+//    of phrases alone (measured with realistic synthetic speech: the gain moves about 1.5 dB inside
+//    a phrase, about 80 % of the loudness differences between phrases are kept). A real change
+//    (further from the mic, speaking lastingly softer or louder) shifts the whole distribution,
+//    and the gain follows within about 3-4 s.
 //  * Loud parts: syllables keep their own dynamics up to the shouting level; a syllable that would
 //    come out louder than -15 dBFS raises the level at once (syllable envelope: instant, held
-//    0.3 s, then 15 dB/s), so the gain drops quickly and it comes out at about -15 dBFS.
+//    0.3 s, then 15 dB/s), so the gain drops quickly and it comes out at about -15 dBFS. Only a
+//    level that lasts at least 40 ms counts (every one of the last four 10 ms windows reaches it):
+//    plosive bursts and pops ("p", "t", breath on the capsule, 1-30 ms) do not pull the gain down
+//    for the next second - the limiter below catches their peaks.
+//  * Broken input (NaN, infinite or beyond +24 dBFS, e.g. from a faulty plug-in before this
+//    element) is passed on unchanged (the engine silences such blocks) but ignored by the analysis
+//    and the limiter, so the gain and the limiter are not disturbed once the input is valid again.
 //  * Gain: no fixed value - it is the aim minus the analysed level, limited to 0 ... +6 dB: it
 //    only raises the voice (only as much as needed), never lowers it below its own level.
-//    Up: exponential approach (time constant 0.35 s, 2..18 dB/s of voiced time); down (back
-//    towards 0 dB): time constant 0.15 s, or 30 ms when the voice is more than 3 dB too loud.
-//    A two-stage glide (6 ms each) makes every change click-free.
+//    Up: exponential approach (time constant 1 s, 2..6 dB/s of voiced time); down (back towards
+//    0 dB): time constant 0.5 s, or 30 ms when the voice is more than 3 dB too loud (shouting).
+//    A two-stage glide (6 ms each) makes every change click-free. Right after switching on, the
+//    gain waits until 100 ms of voice have been measured.
 //  * Silence: NO noise gate, nothing is ever muted or faded. The gain moves only on blocks with
 //    voice (RMS above -50 dBFS and 10 dB above the tracked noise floor); between words and in
 //    silence the last gain is kept exactly (no ramp, no reset) and speaking again continues from
-//    it. The level analysis keeps its clock running through short pauses between words (300 ms
-//    hangover), so the hold/decay times are real speaking time.
+//    it. The syllable envelope keeps its clock running through short pauses between words (300 ms
+//    hangover).
 //  * Output ceiling, separate from the gain control: a soft limiter with 3 ms look-ahead - the
 //    audio passes a 3 ms delay while the limiter sees it undelayed, so the reduction for a
 //    coming peak is already in place when the peak leaves the delay. Peaks above -12.3 dBFS are
 //    bent smoothly towards -10.3 dBFS (tanh curve), an instant guard makes sure no sample ever
-//    exceeds -10 dBFS; the reduction is held 20 ms and released in 80 ms. Normal speech
-//    (-20 dBFS) and shouting (-15 dBFS) stay below its knee: not compressed.
+//    exceeds -10 dBFS; the reduction is held 20 ms and released in 80 ms. Typical speech
+//    (-20 dBFS) and the shouting aim (-15 dBFS) are below its knee; it acts only on peaks:
+//    plosives, pops, clicks and the first moments of a syllable louder than -15 dBFS, before the
+//    gain has come down.
 //  * Latency: exactly the look-ahead (144 samples at 48 kHz), reported to the host; it stays the same
 //    when the stage is switched off, so on/off never shifts the audio.
 //  * Off: the gain returns to 0 dB at 12 dB/s; then the audio only passes the delay (bit-exact,
@@ -64,10 +75,13 @@ public:
     static constexpr double detectMinSeconds    = 0.001;   // a level must be present this long (in total) per window
     static constexpr int    detectBins          = 448;     // 0.25 dB steps from -100 to +12 dBFS
     // level analysis (times count speech only)
-    static constexpr int    typicalWindows      = 150;     // voiced 10 ms windows looked back over (1.5 s of speech)
+    static constexpr int    typicalWindows      = 300;     // voiced 10 ms windows looked back over (3 s of speech)
     static constexpr double typicalTopShare     = 0.2;     // typical level: reached by the loudest 20 % of them
+    static constexpr int    minTypicalWindows   = 10;      // the gain moves once 100 ms of voice are measured
     static constexpr double recentHoldSeconds   = 0.3;     // syllable envelope (for loud parts)
     static constexpr double recentDecayDbPerSec = 15.0;
+    static constexpr int    loudPersistWindows  = 4;       // ... fed with levels lasting 4 windows (40 ms)
+    static constexpr double invalidAbove        = 15.848931924611133;   // +24 dBFS: beyond this the input is broken
     static constexpr double naturalLearnSeconds = 3.0;     // natural level: learned quickly at first ...
     static constexpr double naturalLearnTau     = 0.3;
     static constexpr double naturalUpTau        = 20.0;    // ... then follows a louder voice slowly
@@ -75,10 +89,10 @@ public:
     // gain range and movement
     static constexpr double maxBoostDb          = 6.0;
     static constexpr double maxCutDb            = 0.0;     // never below the voice's own level
-    static constexpr double riseTau             = 0.35;
+    static constexpr double riseTau             = 1.0;
     static constexpr double riseMinDbPerSec     = 2.0;
-    static constexpr double riseMaxDbPerSec     = 18.0;
-    static constexpr double fallTau             = 0.15;
+    static constexpr double riseMaxDbPerSec     = 6.0;
+    static constexpr double fallTau             = 0.5;
     static constexpr double fastZoneDb          = 3.0;
     static constexpr double fastFallTau         = 0.03;
     static constexpr double offReturnDbPerSec   = 12.0;
@@ -137,6 +151,9 @@ public:
         histCount = 0;
         sustainedDb = -120.0;
         sustainedValid = false;
+        persistRing.fill (-120.0);
+        persistPos = persistFill = 0;
+        persistentDb = -120.0;
         guardCount = 0;
         forgetVoice();
         floorValid = false;
@@ -164,8 +181,8 @@ public:
 
         // --- analysis of the incoming (undelayed) block -------------------------------------------
         float peakIn = 0.0f;
-        double sumSquares = 0.0, blockSustainedDb = -200.0;
-        std::array<int, 64> doneBins {};   // the windows completed in this block (bins)
+        double sumSquares = 0.0, blockLoudDb = -200.0;
+        std::array<int, 256> doneBins {};   // the windows completed in this block (bins)
         int doneCount = 0;
         for (int i = 0; i < numSamples; ++i)
         {
@@ -173,14 +190,14 @@ public:
             for (int c = 0; c < numChannels; ++c)
                 if (const float* x = channels[c])
                 {
-                    const double v = (double) x[i];
-                    a = std::max (a, std::abs (v));
+                    const double v = magnitude (x[i]);
+                    a = std::max (a, v);
                     sumSquares += v * v;
                 }
             peakIn = std::max (peakIn, (float) a);
 
             // sustained peak: histogram of the 10 ms window, read when it is full
-            ++histogram[(size_t) (a > 1.0e-5 ? std::clamp ((int) ((20.0 * std::log10 (a) + 100.0) * 4.0), 0, detectBins - 1) : 0)];
+            ++histogram[(size_t) (a > 1.0e-5 ? (int) std::clamp ((20.0 * std::log10 (a) + 100.0) * 4.0, 0.0, (double) (detectBins - 1)) : 0)];
             if (++histCount >= detectWindow)
             {
                 int acc = 0, b = detectBins - 1;
@@ -189,7 +206,17 @@ public:
                 sustainedDb = b > 0 ? (double) b * 0.25 - 100.0 + 0.125 : -120.0;
                 sustainedValid = true;
                 if (b > 0 && doneCount < (int) doneBins.size()) doneBins[(size_t) doneCount++] = b;
-                blockSustainedDb = std::max (blockSustainedDb, sustainedDb);
+                // the level present in every one of the last 4 windows (40 ms): syllables, not bursts
+                persistRing[(size_t) persistPos] = sustainedDb;
+                persistPos = persistPos + 1 < loudPersistWindows ? persistPos + 1 : 0;
+                persistFill = std::min (persistFill + 1, loudPersistWindows);
+                persistentDb = -120.0;
+                if (persistFill == loudPersistWindows)
+                {
+                    persistentDb = persistRing[0];
+                    for (int k = 1; k < loudPersistWindows; ++k) persistentDb = std::min (persistentDb, persistRing[(size_t) k]);
+                }
+                blockLoudDb = std::max (blockLoudDb, persistentDb);
                 histogram.fill (0);
                 histCount = 0;
             }
@@ -197,8 +224,8 @@ public:
 
         const double dt = (double) numSamples / sampleRate;
         const double rmsDb = toDb (std::sqrt (sumSquares / (double) (counted * numSamples)));
-        // blocks shorter than the window reuse the last window; before the first one, the block peak
-        const double peakDb = blockSustainedDb > -200.0 ? blockSustainedDb : (sustainedValid ? sustainedDb : toDb ((double) peakIn));
+        // blocks shorter than the window reuse the last value
+        const double loudDb = blockLoudDb > -200.0 ? blockLoudDb : persistentDb;
 
         // --- voice detection (not a gate: it only decides whether the gain may move) ----------
         if (rmsDb > -100.0)   // digital silence (muted device, dropout) says nothing about the room
@@ -219,10 +246,12 @@ public:
                 for (int k = 0; k < doneCount; ++k)
                     addTypicalWindow (doneBins[(size_t) k]);
             if (speech)
-                analyse (peakDb, active, dt);
-            if (active)
+                analyse (loudDb, active, dt);
+            if (active && typicalFill >= minTypicalWindows)
                 moveGainTowards (std::clamp (currentAimDb() - levelDb, maxCutDb, maxBoostDb), dt);
-            // no voice in this block (pause, silence): the last gain is kept exactly
+            // no voice in this block (pause, silence): the last gain is kept exactly; right after
+            // switching on, the gain waits until 100 ms of voice have been measured (a click or a
+            // breath alone says nothing about the level)
         }
         else
         {
@@ -253,8 +282,8 @@ public:
                     float& slot = delay[(size_t) (c * maxLookAheadSamples + delayPos)];
                     out[(size_t) c] = slot;
                     slot = x[i];
-                    aNew = std::max (aNew, (double) std::abs (x[i]));
-                    aOut = std::max (aOut, (double) std::abs (out[(size_t) c]));
+                    aNew = std::max (aNew, magnitude (x[i]));
+                    aOut = std::max (aOut, magnitude (out[(size_t) c]));
                 }
             delayPos = delayPos + 1 < L ? delayPos + 1 : 0;
 
@@ -359,6 +388,14 @@ private:
 
     static double toDb (double linear) noexcept { return linear > 1.0e-6 ? 20.0 * std::log10 (linear) : -120.0; }
 
+    // |x| of a valid sample; NaN, infinite and absurd values (beyond +24 dBFS) count as 0 for the
+    // analysis and the limiter (they are passed on unchanged - the engine silences such blocks).
+    static double magnitude (float x) noexcept
+    {
+        const double a = std::abs ((double) x);
+        return a <= invalidAbove ? a : 0.0;   // false for NaN
+    }
+
     static void storeMax (std::atomic<float>& a, float v) noexcept
     {
         float current = a.load (std::memory_order_relaxed);
@@ -397,19 +434,21 @@ private:
     }
 
     // Typical level, syllable envelope, the speaker's natural level and the level the gain uses.
-    void analyse (double peakDb, bool active, double dt) noexcept
+    // loudDb: the level present in each of the last four 10 ms windows (bursts shorter than that do
+    // not reach the syllable envelope).
+    void analyse (double loudDb, bool active, double dt) noexcept
     {
         if (! levelValid)
         {
-            recentDb = peakDb;
+            recentDb = loudDb;
             recentHold = recentHoldSeconds;
             levelValid = true;
         }
         else
         {
-            if (peakDb >= recentDb)    { recentDb = peakDb; recentHold = recentHoldSeconds; }
+            if (loudDb >= recentDb)    { recentDb = loudDb; recentHold = recentHoldSeconds; }
             else if (recentHold > 0.0) recentHold -= dt;
-            else                       recentDb = std::max (peakDb, recentDb - recentDecayDbPerSec * dt);
+            else                       recentDb = std::max (loudDb, recentDb - recentDecayDbPerSec * dt);
         }
 
         typicalDb = typicalFill > 0 ? typicalFromHistogram() : recentDb;
@@ -470,6 +509,9 @@ private:
     std::array<int, (size_t) detectBins> histogram {};   // sustained-peak detection (current window)
     int    histCount = 0;
     double sustainedDb = -120.0;                    // the last full window's sustained peak
+    std::array<double, (size_t) loudPersistWindows> persistRing {};   // the last windows' sustained peaks
+    int    persistPos = 0, persistFill = 0;
+    double persistentDb = -120.0;                   // the level present in all of them
     bool   sustainedValid = false;
     int    guardCount = 0;
     double levelDb = -120.0, recentDb = -120.0, naturalDb = -120.0;

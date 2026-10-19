@@ -421,6 +421,7 @@ struct PathScopeTest : juce::UnitTest
     PathScopeTest() : juce::UnitTest ("pathIsInsideAnyFolder") {}
     void runTest() override
     {
+       #if JUCE_WINDOWS   // drive-letter paths are only absolute paths on Windows
         const juce::StringArray folders { "C:\\Plugins", "D:\\VST3" };
         beginTest ("children match, prefix-siblings do not");
         expect (pathIsInsideAnyFolder ("C:\\Plugins\\X.vst3", folders));
@@ -432,6 +433,17 @@ struct PathScopeTest : juce::UnitTest
         expect (pathIsInsideAnyFolder ("c:\\plugins\\x.vst3", folders));
         beginTest ("empty folder entries are ignored");
         expect (! pathIsInsideAnyFolder ("C:\\Anything\\X.vst3", juce::StringArray { "" }));
+       #else
+        const juce::StringArray folders { "/opt/Plugins", "/media/VST3" };
+        beginTest ("children match, prefix-siblings do not");
+        expect (pathIsInsideAnyFolder ("/opt/Plugins/X.vst3", folders));
+        expect (pathIsInsideAnyFolder ("/opt/Plugins/Vendor/Deep/X.vst3", folders));
+        expect (pathIsInsideAnyFolder ("/media/VST3/A.vst3", folders));
+        expect (! pathIsInsideAnyFolder ("/opt/Plugins2/X.vst3", folders));
+        expect (! pathIsInsideAnyFolder ("/srv/Other/X.vst3", folders));
+        beginTest ("empty folder entries are ignored");
+        expect (! pathIsInsideAnyFolder ("/opt/Anything/X.vst3", juce::StringArray { "" }));
+       #endif
     }
 };
 static PathScopeTest pathScopeTest;

@@ -25,19 +25,25 @@ not be tested: [docs/TEST_RAPORU_1.2.1.md](docs/TEST_RAPORU_1.2.1.md) (Turkish).
   the aim slides smoothly). The level is a "sustained peak" (per 10 ms, the highest level held for
   at least 1 ms in total), so clicks, lip smacks and bursts shorter than that do not move the gain.
   No fixed gain value: the gain is the aim minus the analysed "typical level" - the level the
-  loudest 20 % of the voiced 10 ms windows of the last 1.5 s of speech reach (pauses add nothing).
-  A single strong syllable, a single soft word or the ups and downs inside a phrase hardly change
-  it, so the voice keeps its natural dynamics; a lasting change (further from the mic, speaking
-  softer or louder) shifts it and the gain follows. Syllables keep their own dynamics up to the
-  shouting level; one that would come out above -15 dBFS raises the level at once (syllable
-  envelope held 0.3 s), so the gain drops quickly. The gain is limited to 0 ... +6 dB - it only
-  raises the voice, as much as needed, never lowers it. It rises with a 0.35 s time constant (2..18 dB/s) and falls with 0.15 s, or 30 ms when
-  more than 3 dB too loud, through a click-free glide. No noise gate: nothing is ever muted or
-  faded; the gain moves only on blocks with voice, so between words and in silence the last gain
-  is kept exactly and speaking again continues from it. A separate soft limiter with 3 ms
-  look-ahead keeps every peak at or below -10 dBFS (gentle from -12.3 dBFS, hold 20 ms, release
-  80 ms), so speech and shouting never reach it and sudden peaks are caught smoothly. Latency: the
-  3 ms look-ahead (reported, shown in the row; unchanged when switched off). Its position in the
+  loudest 20 % of the voiced 10 ms windows of the last 3 s of speech reach (pauses add nothing).
+  A single strong syllable or a single soft word hardly changes it and the slow gain leaves most
+  of the ups and downs of phrases alone (realistic synthetic speech: about 1.5 dB of gain movement
+  inside a phrase, about 80 % of the loudness differences between phrases kept); a lasting change
+  (further from the mic, speaking softer or louder) shifts it and the gain follows within about
+  3-4 s (a lastingly louder voice is first treated as a raised voice and settles as the natural
+  level adapts, about 10 s). Syllables keep their own dynamics up to the shouting level; one that
+  stays above -15 dBFS for at least 40 ms raises the level at once (syllable envelope held 0.3 s),
+  so the gain drops quickly - plosives and breath pops shorter than that do not pull the gain down.
+  The gain is limited to 0 ... +6 dB - it only raises the voice, as much as needed, never lowers
+  it. It rises with a 1 s time constant (2..6 dB/s) and falls with 0.5 s, or 30 ms when more than
+  3 dB too loud, through a click-free glide; after switching on it waits for 100 ms of voice. No
+  noise gate: nothing is ever muted or faded; the gain moves only on blocks with voice, so between
+  words and in silence the last gain is kept exactly and speaking again continues from it. Broken
+  input (NaN, infinite, beyond +24 dBFS) is passed on but ignored by the analysis. A separate soft
+  limiter with 3 ms look-ahead keeps every peak at or below -10 dBFS (gentle from -12.3 dBFS, hold
+  20 ms, release 80 ms); typical speech and the shouting aim are below it, it acts on plosives,
+  pops, clicks and the first moments of a syllable louder than -15 dBFS. Latency: the 3 ms
+  look-ahead (reported, shown in the row; unchanged when switched off). Its position in the
   chain is free (added at the end, moved like any element); only one can be added; the row has an
   on/off box and a live readout (applied gain, input and output peak). Switched off, the gain
   glides back to 0 dB (12 dB/s) and the audio then passes bit-exact (3 ms later).
