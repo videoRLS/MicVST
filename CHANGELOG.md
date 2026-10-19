@@ -29,13 +29,13 @@ not be tested: [docs/TEST_RAPORU_1.2.1.md](docs/TEST_RAPORU_1.2.1.md) (Turkish).
   after shouting), limited to -4 ... +8 dB - only as much as needed inside that range. It rises with a 0.35 s time constant (2..18 dB/s) and falls with 0.15 s, or 30 ms when
   more than 3 dB too loud, through a click-free glide. No noise gate: nothing is ever muted or
   faded; the gain moves only on blocks with voice, so between words and in silence the last gain
-  is kept exactly and speaking again continues from it. A separate soft limiter with 1.5 ms
-  look-ahead keeps every peak at or below -10 dBFS (gentle from -12.3 dBFS, hold 20 ms, release
-  80 ms), so normal speech is not compressed and sudden peaks are caught smoothly. Latency: the
-  1.5 ms look-ahead (reported, shown in the row; unchanged when switched off). Its position in the
+  is kept exactly and speaking again continues from it. A separate soft limiter with 3 ms
+  look-ahead keeps every peak at or below -6 dBFS (gentle from -8.3 dBFS, hold 20 ms, release
+  80 ms), so speech and shouting never reach it and sudden peaks are caught smoothly. Latency: the
+  3 ms look-ahead (reported, shown in the row; unchanged when switched off). Its position in the
   chain is free (added at the end, moved like any element); only one can be added; the row has an
   on/off box and a live readout (applied gain, input and output peak). Switched off, the gain
-  glides back to 0 dB (12 dB/s) and the audio then passes bit-exact (1.5 ms later).
+  glides back to 0 dB (12 dB/s) and the audio then passes bit-exact (3 ms later).
 
 ### Changed
 - Process priority class is now HIGH (was "above normal"); scan processes stay "below normal".

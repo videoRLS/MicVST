@@ -29,7 +29,7 @@ namespace
             "      satırdaki kaydırıcıyla değiştirin. Kırpılmaması için sınırlayıcıdan önce koyun.\n"
             "    - \"Otomatik Kazanç\" (Dahili) sesinizi canlı analiz eder: normal konuşmada tepe\n"
             "      seviyesi yaklaşık -15 dBFS, bağırırken yaklaşık -12 dBFS olur; hiçbir tepe\n"
-            "      -10 dBFS'yi geçmez. Kazanç -4 ile +8 dB arasında değişir,\n"
+            "      -6 dBFS'yi geçmez. Kazanç -4 ile +8 dB arasında değişir,\n"
             "      sessizlikte korunur (noise gate yok). Zincirde istediğiniz yere\n"
             "      taşıyabilirsiniz; satırdaki kutuyla açılıp kapatılır.\n"
             "    - Sıralamak için soldaki tutamağı sürükleyin; çöp kutusu siler (onay sorar).\n"

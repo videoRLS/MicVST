@@ -30,16 +30,16 @@
 //    silence the last gain is kept exactly (no ramp, no reset) and speaking again continues from
 //    it. The level analysis keeps its clock running through short pauses between words (300 ms
 //    hangover), so the hold/decay times are real speaking time.
-//  * Output ceiling, separate from the gain control: a soft limiter with 1.5 ms look-ahead - the
-//    audio passes a 1.5 ms delay while the limiter sees it undelayed, so the reduction for a
-//    coming peak is already in place when the peak leaves the delay. Peaks above -12.3 dBFS are
-//    bent smoothly towards -10.3 dBFS (tanh curve), an instant guard makes sure no sample ever
-//    exceeds -10 dBFS; the reduction is held 20 ms and released in 80 ms. Normal speech
+//  * Output ceiling, separate from the gain control: a soft limiter with 3 ms look-ahead - the
+//    audio passes a 3 ms delay while the limiter sees it undelayed, so the reduction for a
+//    coming peak is already in place when the peak leaves the delay. Peaks above -8.3 dBFS are
+//    bent smoothly towards -6.3 dBFS (tanh curve), an instant guard makes sure no sample ever
+//    exceeds -6 dBFS; the reduction is held 20 ms and released in 80 ms. Normal speech
 //    (-15 dBFS) stays below its knee: not compressed.
-//  * Latency: exactly the look-ahead (72 samples at 48 kHz), reported to the host; it stays the same
+//  * Latency: exactly the look-ahead (144 samples at 48 kHz), reported to the host; it stays the same
 //    when the stage is switched off, so on/off never shifts the audio.
 //  * Off: the gain returns to 0 dB at 12 dB/s; then the audio only passes the delay (bit-exact,
-//    1.5 ms later).
+//    3 ms later).
 //  * Realtime: no allocation at all (fixed buffers), no locks; on/off and the meters cross threads
 //    through atomics.
 class AutoGainStage
@@ -81,10 +81,10 @@ public:
     static constexpr double offReturnDbPerSec   = 12.0;
     static constexpr double smoothingSeconds    = 0.006;   // each of the two glide stages
     // output ceiling (soft limiter with look-ahead)
-    static constexpr double ceilingDb           = -10.0;
+    static constexpr double ceilingDb           = -6.0;
     static constexpr double limiterMarginDb     = 0.3;     // the curve aims this far under the ceiling ...
     static constexpr double limiterKneeDb       = 2.0;     // ... and starts this far under that
-    static constexpr double lookAheadSeconds    = 0.0015;
+    static constexpr double lookAheadSeconds    = 0.003;
     static constexpr double limiterHoldSeconds  = 0.02;
     static constexpr double limiterReleaseSeconds = 0.08;
     // noise floor tracking (for the speech detection)
@@ -92,7 +92,7 @@ public:
     static constexpr double floorFallSeconds    = 0.25;
     // fixed buffer sizes (no allocation anywhere)
     static constexpr int maxChannels = 8;
-    static constexpr int maxLookAheadSamples = 512;        // 1.5 ms up to 341 kHz
+    static constexpr int maxLookAheadSamples = 1024;       // 3 ms up to 341 kHz
 
     static int latencyFor (double rate) noexcept
     {
@@ -344,8 +344,8 @@ public:
 
 private:
     static constexpr double dbToLog = 0.11512925464970228;          // ln(10) / 20
-    static constexpr double ceilingLinear = 0.31622776601683794;    // -10 dBFS
-    static constexpr double kneeLinear    = 0.24266100950824160;    // -12.3 dBFS (ceiling - margin - knee)
+    static constexpr double ceilingLinear = 0.50118723362727224;    // -6 dBFS
+    static constexpr double kneeLinear    = 0.38459178204535355;    // -8.3 dBFS (ceiling - margin - knee)
 
     static double toDb (double linear) noexcept { return linear > 1.0e-6 ? 20.0 * std::log10 (linear) : -120.0; }
 
@@ -419,10 +419,10 @@ private:
 
     // plug-in thread only (and prepare/reset while it does not process this stage)
     double sampleRate = 48000.0;
-    int    lookAhead = 72;                          // 1.5 ms at 48 kHz until prepare() is called
+    int    lookAhead = 144;                         // 3 ms at 48 kHz until prepare() is called
     double glideCoeff = 1.0 - 0.99653379;           // 6 ms at 48 kHz
     double limiterReleaseCoeff = 1.0 - 0.99973961;  // 80 ms at 48 kHz
-    double limiterAttackCoeff = 1.0 - 0.93291196;   // 5 time constants within 72 samples
+    double limiterAttackCoeff = 1.0 - 0.96587368;   // 5 time constants within 144 samples
     int    limiterHoldSamples = 960;                // 20 ms at 48 kHz
     int    detectWindow = 480, detectMin = 48;      // 10 ms / 1 ms at 48 kHz
     double gainDb = 0.0;                            // the gain the analysis asks for (dB)
