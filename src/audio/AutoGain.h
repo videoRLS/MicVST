@@ -30,13 +30,24 @@
 //    level that lasts at least 40 ms counts (every one of the last four 10 ms windows reaches it):
 //    plosive bursts and pops ("p", "t", breath on the capsule, 1-30 ms) do not pull the gain down
 //    for the next second - the limiter below catches their peaks.
+//  * After shouting: a shout fills the 3 s of the typical level with loud windows, which would
+//    keep the gain down for 3-4 s of normal speech afterwards. So a raised-voice episode is
+//    followed (typical level 4.5 dB or more above the natural level); if it was a shout (typical
+//    level 8 dB or more above it) and the voice then comes back down - the level of the last
+//    0.5 s of voice within 3 dB of the natural level from before and 9 dB or more under the
+//    episode's typical level, for 0.5 s of voice - the shout's windows are taken out of the
+//    typical level and the gain returns to its former value with a 0.5 s time constant (normal
+//    speech back within 0.5 dB about 3.5 s after a 4 s shout instead of about 6.5 s). Normal
+//    speech, lasting changes (closer to / further from the mic, also 6-10 dB louder for minutes)
+//    and raised voices are not affected (measured: identical gain, differences below 0.01 dB).
 //  * Broken input (NaN, infinite or beyond +24 dBFS, e.g. from a faulty plug-in before this
 //    element) is passed on unchanged (the engine silences such blocks) but ignored by the analysis
 //    and the limiter, so the gain and the limiter are not disturbed once the input is valid again.
 //  * Gain: no fixed value - it is the aim minus the analysed level, limited to 0 ... +6 dB: it
 //    only raises the voice (only as much as needed), never lowers it below its own level.
-//    Up: exponential approach (time constant 1 s, 2..6 dB/s of voiced time); down (back towards
-//    0 dB): time constant 0.5 s, or 30 ms when the voice is more than 3 dB too loud (shouting).
+//    Up: exponential approach (time constant 1 s, 2..6 dB/s of voiced time; 0.5 s when returning
+//    after a shout); down (back towards 0 dB): time constant 0.5 s, or 30 ms when the voice is
+//    more than 3 dB too loud (shouting).
 //    A two-stage glide (6 ms each) makes every change click-free. Right after switching on, the
 //    gain waits until 100 ms of voice have been measured.
 //  * Silence: NO noise gate, nothing is ever muted or faded. The gain moves only on blocks with
@@ -88,6 +99,17 @@ public:
     static constexpr double naturalLearnTau     = 0.3;
     static constexpr double naturalUpTau        = 20.0;    // ... then follows a louder voice slowly
     static constexpr double naturalDownTau      = 6.0;     // ... and a quieter one a bit faster
+    // after shouting (see the header)
+    static constexpr double raisedStartDb       = 4.5;     // typical this far above the natural level: a raised-voice episode
+    static constexpr double shoutEpisodeDb      = 8.0;     // ... it was a shout if the typical level rose this far above it
+    static constexpr double returnMarginDb      = 3.0;     // back: the last 0.5 s of voice within this of the natural level ...
+    static constexpr double returnDropDb        = 9.0;     // ... and this far under the episode's typical level ...
+    static constexpr double returnHoldSeconds   = 0.5;     // ... for this much voice
+    static constexpr int    shortWindows        = 50;      // the last 0.5 s of voice
+    static constexpr double caughtUpDb          = 1.5;     // the natural level reached a lastingly louder voice: no episode
+    static constexpr double shoutWindowDb       = 6.0;     // windows this far above the natural level belong to the shout
+    static constexpr int    episodeLeadWindows  = 100;     // the shout began up to 1 s of voice before the episode was seen
+    static constexpr double restoreTau          = 0.5;     // the gain returns after a shout with this time constant
     // gain range and movement
     static constexpr double maxBoostDb          = 6.0;
     static constexpr double maxCutDb            = 0.0;     // never below the voice's own level
@@ -180,6 +202,7 @@ public:
         persistPos = persistFill = 0;
         persistentDb = -120.0;
         guardCount = 0;
+        shoutsForgotten = 0;
         forgetVoice();
         floorValid = false;
         noiseFloorDb = -120.0;
@@ -272,6 +295,8 @@ public:
                     addTypicalWindow (doneBins[(size_t) k]);
             if (speech)
                 analyse (loudDb, active, dt);
+            if (active)
+                followRaisedVoice (dt);
             if (active && typicalFill >= minTypicalWindows)
                 moveGainTowards (std::clamp (currentAimDb() - levelDb, maxCutDb, maxBoostDb), dt);
             // no voice in this block (pause, silence): the last gain is kept exactly; right after
@@ -429,13 +454,17 @@ public:
     double getNaturalLevelDb() const noexcept { return naturalDb; }              // the speaker's natural level
     double getAimDb() const noexcept          { return currentAimDb(); }         // current output aim
     int    getGuardCount() const noexcept     { return guardCount; }             // samples the guard had to catch
+    long long getShoutsForgotten() const noexcept { return shoutsForgotten; }    // shouts taken out of the typical level
 
     // Tests (long soak): the incrementally kept counters still match what they count.
     bool checkInvariants() const noexcept
     {
         int sum = 0;
         for (auto c : typicalHist) { if (c < 0) return false; sum += c; }
-        if (sum != typicalFill || typicalFill < 0 || typicalFill > typicalWindows) return false;
+        if (sum != typicalFill || typicalFill < 0 || typicalFill > ringCount || ringCount > typicalWindows) return false;
+        int valid = 0;
+        for (int k = 0; k < ringCount; ++k) if (typicalRing[(size_t) k] >= 0) ++valid;
+        if (valid != typicalFill) return false;
         int below = 0;
         for (int k = 0; k < lookAhead + 1; ++k) if (wants[(size_t) k] < 1.0) ++below;
         return below == wantsBelowOne && std::isfinite (gainDb) && std::isfinite (limiterGain) && limiterGain > 0.0 && limiterGain <= 1.0
@@ -471,17 +500,112 @@ private:
         learnLeft = naturalLearnSeconds;
         typicalHist.fill (0);
         typicalRing.fill (0);
-        typicalPos = typicalFill = 0;
+        typicalPos = typicalFill = ringCount = 0;
+        windowIndex = 0;
+        episode = restoring = false;
     }
 
-    // One voiced 10 ms window into the typical-level histogram (the oldest one leaves it).
+    // One voiced 10 ms window into the typical-level histogram (the oldest one leaves it). Ring
+    // entries are bins; -1 marks a window already taken out (after a shout).
     void addTypicalWindow (int bin) noexcept
     {
-        if (typicalFill == typicalWindows) --typicalHist[(size_t) typicalRing[(size_t) typicalPos]];
-        else                               ++typicalFill;
+        if (ringCount == typicalWindows)
+        {
+            const short old = typicalRing[(size_t) typicalPos];
+            if (old >= 0) { --typicalHist[(size_t) old]; --typicalFill; }
+        }
+        else
+            ++ringCount;
         typicalRing[(size_t) typicalPos] = (short) bin;
         ++typicalHist[(size_t) bin];
+        ++typicalFill;
         typicalPos = typicalPos + 1 < typicalWindows ? typicalPos + 1 : 0;
+        if (episode && binDb (bin) > episodeNaturalDb + returnMarginDb)
+            lastLoudIndex = windowIndex;
+        ++windowIndex;
+    }
+
+    static double binDb (int bin) noexcept { return (double) bin * 0.25 - 100.0 + 0.125; }
+
+    // The level the loudest 20 % of the last 0.5 s of voice reach (like the typical level).
+    double shortTermDb() const noexcept
+    {
+        std::array<short, (size_t) shortWindows> v {};
+        int n = 0;
+        for (int d = 0, pos = typicalPos; d < ringCount && n < shortWindows; ++d)
+        {
+            pos = pos > 0 ? pos - 1 : typicalWindows - 1;
+            if (typicalRing[(size_t) pos] >= 0) v[(size_t) n++] = typicalRing[(size_t) pos];
+        }
+        if (n == 0) return -120.0;
+        const int need = std::max (1, (int) std::ceil ((double) n * typicalTopShare));
+        std::nth_element (v.begin(), v.begin() + (need - 1), v.begin() + n, [] (short a, short b) { return a > b; });
+        return binDb (v[(size_t) (need - 1)]);
+    }
+
+    // Takes the windows of a shout out of the typical level: those with an index in [from, to]
+    // and any louder than aboveDb.
+    void forgetShout (long long from, long long to, double aboveDb) noexcept
+    {
+        for (int d = 0, pos = typicalPos; d < ringCount; ++d)
+        {
+            pos = pos > 0 ? pos - 1 : typicalWindows - 1;
+            const long long index = windowIndex - 1 - d;
+            short& b = typicalRing[(size_t) pos];
+            if (b >= 0 && ((index >= from && index <= to) || binDb (b) > aboveDb))
+            {
+                --typicalHist[(size_t) b];
+                --typicalFill;
+                b = -1;
+            }
+        }
+    }
+
+    // Raised-voice episodes: when a shout is over, its windows leave the typical level at once
+    // and the gain returns to where it was (see the header).
+    void followRaisedVoice (double dt) noexcept
+    {
+        if (! naturalValid || learnLeft > 0.0 || typicalFill < minTypicalWindows)
+            return;
+        if (! episode)
+        {
+            if (typicalDb - naturalDb >= raisedStartDb)
+            {
+                episode = true;
+                restoring = false;
+                episodeNaturalDb = naturalDb;
+                peakTypicalDb = typicalDb;
+                episodeStartIndex = windowIndex - episodeLeadWindows;
+                lastLoudIndex = windowIndex - 1;
+                returnVoiced = 0.0;
+            }
+            return;
+        }
+        peakTypicalDb = std::max (peakTypicalDb, typicalDb);
+        const double shortDb = shortTermDb();
+        if (shortDb <= std::min (episodeNaturalDb + returnMarginDb, peakTypicalDb - returnDropDb))
+        {
+            returnVoiced += dt;
+            if (returnVoiced >= returnHoldSeconds)
+            {
+                if (peakTypicalDb - episodeNaturalDb >= shoutEpisodeDb)   // a shout: forget it
+                {
+                    forgetShout (episodeStartIndex, lastLoudIndex, episodeNaturalDb + shoutWindowDb);
+                    if (typicalFill > 0)
+                        typicalDb = typicalFromHistogram();
+                    levelDb = std::max (typicalDb, recentDb - (shoutPeakDb - currentAimDb()));
+                    restoring = true;
+                    ++shoutsForgotten;
+                }
+                episode = false;
+            }
+        }
+        else
+        {
+            returnVoiced = 0.0;
+            if (typicalDb - naturalDb < caughtUpDb)   // a lasting change: the natural level caught up
+                episode = false;
+        }
     }
 
     // The level the loudest share of the recent voiced windows reaches.
@@ -539,8 +663,10 @@ private:
     {
         if (! std::isfinite (desired)) return;
         const double diff = desired - gainDb;
+        if (restoring && diff < 0.5)
+            restoring = false;   // back where it was (or a new aim): the normal speed again
         if (diff > 0.0)
-            gainDb = std::min (desired, gainDb + std::clamp (diff / riseTau, riseMinDbPerSec, riseMaxDbPerSec) * dt);
+            gainDb = std::min (desired, gainDb + std::clamp (diff / (restoring ? restoreTau : riseTau), riseMinDbPerSec, riseMaxDbPerSec) * dt);
         else if (diff < 0.0)
             gainDb += diff * (1.0 - std::exp (-dt / (-diff > fastZoneDb ? fastFallTau : fallTau)));
     }
@@ -581,9 +707,14 @@ private:
     double levelDb = -120.0, recentDb = -120.0, naturalDb = -120.0;
     double recentHold = 0.0, learnLeft = naturalLearnSeconds;
     double typicalDb = -120.0;                      // the typical level (input)
-    std::array<int, (size_t) detectBins> typicalHist {};       // voiced windows of the last 1.5 s of speech
-    std::array<short, (size_t) typicalWindows> typicalRing {}; // their bins, oldest first out
-    int    typicalPos = 0, typicalFill = 0;
+    std::array<int, (size_t) detectBins> typicalHist {};       // voiced windows of the last 3 s of speech
+    std::array<short, (size_t) typicalWindows> typicalRing {}; // their bins, oldest first out (-1: taken out)
+    int    typicalPos = 0, typicalFill = 0, ringCount = 0;    // ringCount: windows written, typicalFill: counted
+    long long windowIndex = 0;                                 // voiced windows so far (index of the next one)
+    bool   episode = false, restoring = false;                 // raised-voice episode / gain returning after a shout
+    double episodeNaturalDb = -120.0, peakTypicalDb = -120.0, returnVoiced = 0.0;
+    long long episodeStartIndex = 0, lastLoudIndex = 0;
+    long long shoutsForgotten = 0;
     double noiseFloorDb = -120.0;
     double hangover = 0.0;
     bool   levelValid = false, naturalValid = false, floorValid = false;

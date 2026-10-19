@@ -763,6 +763,62 @@ struct AutoGainTest : juce::UnitTest
             }
         }
 
+        beginTest ("after a shout the gain returns within seconds; lasting louder voices and normal speech are not affected");
+        {
+            // 8 voices: 40 s normal speech (-24 dBFS), 4 s shouting (+10 dB), 12 s normal speech again
+            const int voices = 8;
+            std::vector<double> sum (5600, 0.0);
+            long long forgotten = 0;
+            for (int v = 0; v < voices; ++v)
+            {
+                auto a = talk (40.0, -24.0, (unsigned) (900 + v * 17), -65.0, -15.0);
+                auto b = talk (4.0, -14.0, (unsigned) (901 + v * 17), -65.0, -15.0);
+                auto c = talk (12.0, -24.0, (unsigned) (902 + v * 17), -65.0, -15.0);
+                std::vector<float> x = a.x;
+                x.insert (x.end(), b.x.begin(), b.x.end());
+                x.insert (x.end(), c.x.begin(), c.x.end());
+                const auto sOwner = newStage (fs); auto& s = *sOwner;
+                const auto g = run (s, x);
+                for (size_t k = 0; k < std::min (sum.size(), g.size()); ++k) sum[k] += g[k] / voices;
+                forgotten += s.getShoutsForgotten();
+                expectLessOrEqual (peakDbOf (x, 20.0, 56.0), ceiling + 1.0e-5);
+            }
+            const double before = mean (sum, 3000, 4000);
+            auto after = [&] (double fromSec, double toSec) { return mean (sum, (size_t) (4400 + fromSec * 100), (size_t) (4400 + toSec * 100)) - before; };
+            logMessage ("    shout +10 dB for 4 s: gain before " + d2 (before) + " dB; after the shout, relative to before: 0-1 s " + d2 (after (0, 1))
+                        + ", 1-2 s " + d2 (after (1, 2)) + ", 2-3 s " + d2 (after (2, 3)) + ", 3-4 s " + d2 (after (3, 4)) + ", 4-5 s " + d2 (after (4, 5))
+                        + " dB; the shout was forgotten in " + juce::String (forgotten) + " of " + juce::String (voices) + " voices");
+            expectGreaterOrEqual ((int) forgotten, 6, "the shout is recognised and forgotten when the voice comes back down");
+            expectGreaterThan (after (3, 4), -1.5, "normal speech is back (within 1.5 dB) 3-4 s after the shout");
+            expectLessThan (after (4, 6), 1.0, "and does not overshoot");
+
+            // lastingly louder voices (closer to the mic, speaking louder for minutes) and normal
+            // speech: nothing may be forgotten there - the gain stays exactly as without this
+            long long lastingForgotten = 0, normalForgotten = 0;
+            for (double delta : { 6.0, 8.0 })
+                for (int v = 0; v < voices; ++v)
+                {
+                    auto p = talk (40.0, -27.0, (unsigned) (300 + v), -65.0, v % 3 == 0 ? 3.0 : -20.0);
+                    auto q = talk (90.0, -27.0 + delta, (unsigned) (600 + v), -65.0, v % 3 == 0 ? 3.0 : -20.0);
+                    std::vector<float> x = p.x;
+                    x.insert (x.end(), q.x.begin(), q.x.end());
+                    const auto sOwner = newStage (fs); auto& s = *sOwner;
+                    run (s, x);
+                    lastingForgotten += s.getShoutsForgotten();
+                }
+            for (int v = 0; v < voices; ++v)
+            {
+                auto p = talk (120.0, -24.0 + 2.0 * (v % 4), (unsigned) (700 + v), -65.0, v % 3 == 0 ? 3.0 : -20.0);
+                const auto sOwner = newStage (fs); auto& s = *sOwner;
+                run (s, p.x);
+                normalForgotten += s.getShoutsForgotten();
+            }
+            logMessage ("    forgotten shouts in lastingly louder voices (+6 / +8 dB, 2 x 8 voices x 90 s): " + juce::String (lastingForgotten)
+                        + "; in normal speech (8 voices x 120 s): " + juce::String (normalForgotten));
+            expectEquals ((int) lastingForgotten, 0, "a lastingly louder voice is not a shout");
+            expectEquals ((int) normalForgotten, 0, "normal speech is not touched");
+        }
+
         beginTest ("naturalness: how much the gain moves inside phrases and between phrases (measured, see the log)");
         {
             std::vector<double> ranges, slopes, per100;

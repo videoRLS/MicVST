@@ -34,6 +34,13 @@ not be tested: [docs/TEST_RAPORU_1.2.1.md](docs/TEST_RAPORU_1.2.1.md) (Turkish).
   level adapts, about 10 s). Syllables keep their own dynamics up to the shouting level; one that
   stays above -15 dBFS for at least 40 ms raises the level at once (syllable envelope held 0.3 s),
   so the gain drops quickly - plosives and breath pops shorter than that do not pull the gain down.
+  After a shout (the typical level rose 8 dB or more above the natural level) the shout's windows
+  leave the typical level as soon as the voice is back down (the last 0.5 s of voice within 3 dB
+  of the natural level and 9 dB under the shout, for 0.5 s of voice) and the gain returns with a
+  0.5 s time constant: normal speech is back within 0.5 dB about 3.5 s after a 4 s shout instead
+  of about 6.5 s. Normal speech, lasting changes and raised voices are not affected: in the tests
+  (-6 ... +10 dB lasting changes, normal speech; 16 voices x 160 s each) the gain is identical,
+  differences below 0.01 dB.
   The gain is limited to 0 ... +6 dB - it only raises the voice, as much as needed, never lowers
   it. It rises with a 1 s time constant (2..6 dB/s) and falls with 0.5 s, or 30 ms when more than
   3 dB too loud, through a click-free glide; after switching on it waits for 100 ms of voice. No
