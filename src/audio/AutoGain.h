@@ -48,7 +48,9 @@
 //    audio passes a 3 ms delay while the limiter sees it undelayed, so the reduction for a
 //    coming peak is already in place when the peak leaves the delay. Peaks above -12.3 dBFS are
 //    bent smoothly towards -10.3 dBFS (tanh curve), an instant guard makes sure no sample ever
-//    exceeds -10 dBFS; the reduction is held 20 ms and released in 80 ms. Typical speech
+//    exceeds -10 dBFS; the reduction is held 20 ms and released in 80 ms. The level it reacts to
+//    includes the peaks between the samples (true peak, 8x oversampled), so the resampler after
+//    the chain and D/A converters do not bring plosives over the ceiling. Typical speech
 //    (-20 dBFS) and the shouting aim (-15 dBFS) are below its knee; it acts only on peaks:
 //    plosives, pops, clicks and the first moments of a syllable louder than -15 dBFS, before the
 //    gain has come down.
@@ -104,8 +106,8 @@ public:
     static constexpr double lookAheadSeconds    = 0.003;
     static constexpr double limiterHoldSeconds  = 0.02;
     static constexpr double limiterReleaseSeconds = 0.08;
-    static constexpr int    truePeakTaps        = 12;      // inter-sample peaks: 4x oversampling, 12 taps per phase
-    static constexpr int    truePeakPhases      = 3;       // the points 1/4, 2/4 and 3/4 between two samples
+    static constexpr int    truePeakTaps        = 12;      // inter-sample peaks: 8x oversampling, 12 taps per phase
+    static constexpr int    truePeakPhases      = 7;       // the points 1/8 ... 7/8 between two samples
     // noise floor tracking (for the speech detection)
     static constexpr double floorRiseDbPerSec   = 3.0;
     static constexpr double floorFallSeconds    = 0.25;
@@ -120,11 +122,11 @@ public:
 
     AutoGainStage() noexcept
     {
-        // windowed-sinc interpolators for the true-peak detection (point k + phase/4 between the
-        // 6th and 7th of 12 samples), each normalised to unity gain at DC
+        // windowed-sinc interpolators for the true-peak detection (the points 1/8 ... 7/8 between
+        // the 6th and 7th of 12 samples), each normalised to unity gain at DC
         for (int ph = 0; ph < truePeakPhases; ++ph)
         {
-            const double at = 5.0 + (ph + 1) * 0.25;
+            const double at = 5.0 + (ph + 1) / (double) (truePeakPhases + 1);
             double sum = 0.0;
             for (int k = 0; k < truePeakTaps; ++k)
             {
@@ -339,7 +341,7 @@ public:
 
             // look-ahead soft limiter: what the newest sample will need, the smallest need of all
             // samples still in the delay line, approached so it is in place when they come out.
-            // The level includes the inter-sample peaks between the samples 6 and 7 back (the
+            // The level includes the inter-sample peaks between the samples 6 and 7 back (8x; the
             // resampler after the chain and any D/A converter reconstruct them), so the ceiling
             // also holds as a true peak.
             double aDet = aNew;
@@ -427,6 +429,18 @@ public:
     double getNaturalLevelDb() const noexcept { return naturalDb; }              // the speaker's natural level
     double getAimDb() const noexcept          { return currentAimDb(); }         // current output aim
     int    getGuardCount() const noexcept     { return guardCount; }             // samples the guard had to catch
+
+    // Tests (long soak): the incrementally kept counters still match what they count.
+    bool checkInvariants() const noexcept
+    {
+        int sum = 0;
+        for (auto c : typicalHist) { if (c < 0) return false; sum += c; }
+        if (sum != typicalFill || typicalFill < 0 || typicalFill > typicalWindows) return false;
+        int below = 0;
+        for (int k = 0; k < lookAhead + 1; ++k) if (wants[(size_t) k] < 1.0) ++below;
+        return below == wantsBelowOne && std::isfinite (gainDb) && std::isfinite (limiterGain) && limiterGain > 0.0 && limiterGain <= 1.0
+                 && std::isfinite (glide2) && std::isfinite (noiseFloorDb);
+    }
 
 private:
     static constexpr double dbToLog = 0.11512925464970228;          // ln(10) / 20

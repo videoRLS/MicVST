@@ -41,7 +41,7 @@ not be tested: [docs/TEST_RAPORU_1.2.1.md](docs/TEST_RAPORU_1.2.1.md) (Turkish).
   words and in silence the last gain is kept exactly and speaking again continues from it. Broken
   input (NaN, infinite, beyond +24 dBFS) is passed on but ignored by the analysis. A separate soft
   limiter with 3 ms look-ahead keeps every peak at or below -10 dBFS - also between the samples
-  (true peak, 4x oversampled detection), so the engine's resampler and the D/A converter do not
+  (true peak, 8x oversampled detection), so the engine's resampler and the D/A converter do not
   bring plosives over it (gentle from -12.3 dBFS, hold 20 ms, release 80 ms); typical speech and the shouting aim are below it, it acts on plosives,
   pops, clicks and the first moments of a syllable louder than -15 dBFS. Latency: the 3 ms
   look-ahead (reported, shown in the row; unchanged when switched off). Its position in the

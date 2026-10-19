@@ -17,6 +17,32 @@
 
 namespace speech
 {
+    // Random numbers that are the same on every platform (the standard distributions are not:
+    // MSVC and libstdc++ turn the same mt19937 sequence into different values).
+    struct Rng
+    {
+        explicit Rng (unsigned seed) : g (seed) {}
+        double uniform()   // [0, 1), 53 bits
+        {
+            const auto a = g() >> 5, b = g() >> 6;
+            return ((double) a * 67108864.0 + (double) b) / 9007199254740992.0;
+        }
+        double uniform (double lo, double hi) { return lo + (hi - lo) * uniform(); }
+        double normal()    // Box-Muller
+        {
+            if (haveSpare) { haveSpare = false; return spare; }
+            double u1 = uniform();
+            while (u1 <= 1.0e-300) u1 = uniform();
+            const double u2 = uniform(), r = std::sqrt (-2.0 * std::log (u1)), th = 6.283185307179586 * u2;
+            spare = r * std::sin (th); haveSpare = true;
+            return r * std::cos (th);
+        }
+        int integer (int lo, int hi) { return lo + (int) (uniform() * (double) (hi - lo + 1)); }   // [lo, hi]
+        std::mt19937 g;
+        double spare = 0.0;
+        bool haveSpare = false;
+    };
+
     struct Params
     {
         double fs = 48000.0;
@@ -113,10 +139,10 @@ namespace speech
         const double fs = p.fs;
         const auto total = (size_t) (seconds * fs);
         r.x.assign (total, 0.0f);
-        std::mt19937 rng (p.seed);
-        std::uniform_real_distribution<double> u (0.0, 1.0);
-        std::normal_distribution<double> g (0.0, 1.0);
-        auto uni = [&] (double a, double b) { return a + (b - a) * u (rng); };
+        Rng rng (p.seed);
+        auto u = [&rng] (Rng&) { return rng.uniform(); };
+        auto g = [&rng] (Rng&) { return rng.normal(); };
+        auto uni = [&] (double a, double b) { return rng.uniform (a, b); };
         const double twoPi = 6.283185307179586;
 
         // vowels: formant frequencies (Hz) - a, e, i, o, u, ə
