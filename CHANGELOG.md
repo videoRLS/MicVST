@@ -20,17 +20,18 @@ not be tested: [docs/TEST_RAPORU_1.2.1.md](docs/TEST_RAPORU_1.2.1.md) (Turkish).
   and its value is saved with the chain. The output meter's peak mark turns red at 0 dBFS (the
   level at which the cable's 24-bit format clips) instead of disappearing past the right edge.
 - Built-in "Otomatik Kazanç" (Auto Gain) element ("Dahili"): a real-time voice level rider. It
-  analyses the input continuously and aims normal speech peaks at about -15 dBFS and shouting at
-  about -12 dBFS (shouting = the voice rising 3..9 dB above the speaker's learned natural level;
+  analyses the input continuously and aims normal speech peaks at about -20 dBFS and shouting at
+  about -15 dBFS (shouting = the voice rising 3..9 dB above the speaker's learned natural level;
   the aim slides smoothly). The level is a "sustained peak" (per 10 ms, the highest level held for
   at least 1 ms in total), so clicks, lip smacks and bursts shorter than that do not move the gain.
   No fixed gain value: the gain is the aim minus the analysed phrase level (loudest peak, held 1 s,
   then following quieter speech at 2 dB/s, or 12 dB/s when the voice is clearly quieter, e.g.
-  after shouting), limited to -4 ... +8 dB - only as much as needed inside that range. It rises with a 0.35 s time constant (2..18 dB/s) and falls with 0.15 s, or 30 ms when
+  after shouting), limited to 0 ... +6 dB - it only raises the voice, as much as needed, never
+  lowers it. It rises with a 0.35 s time constant (2..18 dB/s) and falls with 0.15 s, or 30 ms when
   more than 3 dB too loud, through a click-free glide. No noise gate: nothing is ever muted or
   faded; the gain moves only on blocks with voice, so between words and in silence the last gain
   is kept exactly and speaking again continues from it. A separate soft limiter with 3 ms
-  look-ahead keeps every peak at or below -6 dBFS (gentle from -8.3 dBFS, hold 20 ms, release
+  look-ahead keeps every peak at or below -10 dBFS (gentle from -12.3 dBFS, hold 20 ms, release
   80 ms), so speech and shouting never reach it and sudden peaks are caught smoothly. Latency: the
   3 ms look-ahead (reported, shown in the row; unchanged when switched off). Its position in the
   chain is free (added at the end, moved like any element); only one can be added; the row has an

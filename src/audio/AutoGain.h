@@ -7,9 +7,9 @@
 // The DSP core of MicVST's built-in "Otomatik Kazanç" (Auto Gain): a real-time voice level rider.
 // It analyses the real input block by block and sets ONE gain for all channels.
 //
-//  * Levels (approximate aims, not fixed output levels): normal speech peaks about -15 dBFS,
-//    shouting peaks about -12 dBFS. "Shouting" is judged against the speaker's own natural level
-//    (learned from the voice): from 3 dB above it the aim slides smoothly towards -12 dBFS,
+//  * Levels (approximate aims, not fixed output levels): normal speech peaks about -20 dBFS,
+//    shouting peaks about -15 dBFS. "Shouting" is judged against the speaker's own natural level
+//    (learned from the voice): from 3 dB above it the aim slides smoothly towards -15 dBFS,
 //    reached 9 dB above it.
 //  * Level detection: a "sustained peak" - in every 10 ms window, the highest level that is reached
 //    or exceeded for at least 1 ms in total (histogram in 0.25 dB steps). A vowel's crests last far
@@ -20,8 +20,8 @@
 //    quieter speech at 2 dB/s down to the recent syllable peaks (never below them, so no ripple
 //    between syllables) - or at 12 dB/s when the voice is clearly (6 dB) quieter, e.g. after
 //    shouting. The gain follows phrases, not syllables, so the voice keeps its dynamics.
-//  * Gain: no fixed value - it is the aim minus the analysed level, limited to -4 ... +8 dB (only
-//    as much as needed inside that range).
+//  * Gain: no fixed value - it is the aim minus the analysed level, limited to 0 ... +6 dB: it
+//    only raises the voice (only as much as needed), never lowers it below its own level.
 //    Up: exponential approach (time constant 0.35 s, 2..18 dB/s of voiced time); down (back
 //    towards 0 dB): time constant 0.15 s, or 30 ms when the voice is more than 3 dB too loud.
 //    A two-stage glide (6 ms each) makes every change click-free.
@@ -32,10 +32,10 @@
 //    hangover), so the hold/decay times are real speaking time.
 //  * Output ceiling, separate from the gain control: a soft limiter with 3 ms look-ahead - the
 //    audio passes a 3 ms delay while the limiter sees it undelayed, so the reduction for a
-//    coming peak is already in place when the peak leaves the delay. Peaks above -8.3 dBFS are
-//    bent smoothly towards -6.3 dBFS (tanh curve), an instant guard makes sure no sample ever
-//    exceeds -6 dBFS; the reduction is held 20 ms and released in 80 ms. Normal speech
-//    (-15 dBFS) stays below its knee: not compressed.
+//    coming peak is already in place when the peak leaves the delay. Peaks above -12.3 dBFS are
+//    bent smoothly towards -10.3 dBFS (tanh curve), an instant guard makes sure no sample ever
+//    exceeds -10 dBFS; the reduction is held 20 ms and released in 80 ms. Normal speech
+//    (-20 dBFS) and shouting (-15 dBFS) stay below its knee: not compressed.
 //  * Latency: exactly the look-ahead (144 samples at 48 kHz), reported to the host; it stays the same
 //    when the stage is switched off, so on/off never shifts the audio.
 //  * Off: the gain returns to 0 dB at 12 dB/s; then the audio only passes the delay (bit-exact,
@@ -46,8 +46,8 @@ class AutoGainStage
 {
 public:
     // levels
-    static constexpr double normalPeakDb        = -15.0;
-    static constexpr double shoutPeakDb         = -12.0;
+    static constexpr double normalPeakDb        = -20.0;
+    static constexpr double shoutPeakDb         = -15.0;
     static constexpr double shoutStartDb        = 3.0;     // above the natural level: aim starts to slide ...
     static constexpr double shoutFullDb         = 9.0;     // ... and is fully the shouting aim here
     // speech detection (decides only whether the gain may move; the audio is never gated)
@@ -70,8 +70,8 @@ public:
     static constexpr double naturalUpTau        = 20.0;    // ... then follows a louder voice slowly
     static constexpr double naturalDownTau      = 6.0;     // ... and a quieter one a bit faster
     // gain range and movement
-    static constexpr double maxBoostDb          = 8.0;
-    static constexpr double maxCutDb            = -4.0;
+    static constexpr double maxBoostDb          = 6.0;
+    static constexpr double maxCutDb            = 0.0;     // never below the voice's own level
     static constexpr double riseTau             = 0.35;
     static constexpr double riseMinDbPerSec     = 2.0;
     static constexpr double riseMaxDbPerSec     = 18.0;
@@ -81,7 +81,7 @@ public:
     static constexpr double offReturnDbPerSec   = 12.0;
     static constexpr double smoothingSeconds    = 0.006;   // each of the two glide stages
     // output ceiling (soft limiter with look-ahead)
-    static constexpr double ceilingDb           = -6.0;
+    static constexpr double ceilingDb           = -10.0;
     static constexpr double limiterMarginDb     = 0.3;     // the curve aims this far under the ceiling ...
     static constexpr double limiterKneeDb       = 2.0;     // ... and starts this far under that
     static constexpr double lookAheadSeconds    = 0.003;
@@ -344,8 +344,8 @@ public:
 
 private:
     static constexpr double dbToLog = 0.11512925464970228;          // ln(10) / 20
-    static constexpr double ceilingLinear = 0.50118723362727224;    // -6 dBFS
-    static constexpr double kneeLinear    = 0.38459178204535355;    // -8.3 dBFS (ceiling - margin - knee)
+    static constexpr double ceilingLinear = 0.31622776601683794;    // -10 dBFS
+    static constexpr double kneeLinear    = 0.24266100950824160;    // -12.3 dBFS (ceiling - margin - knee)
 
     static double toDb (double linear) noexcept { return linear > 1.0e-6 ? 20.0 * std::log10 (linear) : -120.0; }
 
@@ -394,8 +394,8 @@ private:
         }
     }
 
-    // Normal speech -> -15 dBFS; the more the voice rises above its natural level, the closer to
-    // -12 dBFS (smooth, no steps).
+    // Normal speech -> -20 dBFS; the more the voice rises above its natural level, the closer to
+    // -15 dBFS (smooth, no steps).
     double currentAimDb() const noexcept
     {
         if (! naturalValid) return normalPeakDb;
