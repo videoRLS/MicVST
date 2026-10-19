@@ -46,13 +46,17 @@ private:
         void paintButton (juce::Graphics&, bool highlighted, bool down) override;
     };
 
-    // Eine Zeile: Handle + Name + Bypass + Trash. Das Handle-/Namensfeld behandelt
+    // Eine Zeile: Nummer (Verarbeitungsreihenfolge, 1 = erstes Glied im Signalweg) + Handle + Name +
+    // Bypass + Trash. Ohne Glieder gibt es keine Zeilen, also auch keine Nummernspalte. Das Handle-/Namensfeld behandelt
     // Drag (Umsortieren) und Doppelklick (Editor); Bypass/Trash sind Kind-Buttons.
     // Kazanç-Zeilen (eingebauter Gain) tragen zusätzlich einen Regler zwischen Name und Latenz;
     // die Otomatik-Kazanç-Zeile einen Ein/Aus-Schalter und eine Live-Anzeige (10 Hz).
     struct Row : juce::Component, private juce::Timer
     {
-        static constexpr int latencyW  = 72;   // Latenz-Spalte links vom Bypass
+        static constexpr int numberW   = 18;   // Nummernspalte ganz links (rechtsbündig, bis "99")
+        static constexpr int handleX   = numberW + 4;   // Drag-Handle (zwei Punktspalten)
+        static constexpr int nameX     = numberW + 22;  // Name beginnt hier
+        static constexpr int latencyW  = 60;   // Latenz-Spalte links vom Bypass ("106,7 ms" passt)
         static constexpr int gainNameW = 92;   // Platz für "Kazanç" vor dem Regler
         static constexpr int autoNameW = 128;  // Platz für "Otomatik Kazanç" vor dem Schalter
         static constexpr int autoToggleW = 64;

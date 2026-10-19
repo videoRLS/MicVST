@@ -127,7 +127,7 @@ PluginListView::Row::Row (PluginListView& ownerIn, int idx) : owner (ownerIn), i
 
 juce::Rectangle<int> PluginListView::Row::autoInfoArea() const
 {
-    const int x0 = 28 + autoNameW + autoToggleW + 6;
+    const int x0 = nameX + autoNameW + autoToggleW + 6;
     const int latLeft = bypassBtn.getX() - 8 - latencyW;
     return { x0, 0, juce::jmax (0, latLeft - 6 - x0), getHeight() };
 }
@@ -145,7 +145,7 @@ void PluginListView::Row::timerCallback()
     repaint (autoInfoArea());
 }
 
-bool PluginListView::Row::overHandle (juce::Point<int> p) const { return p.x < 24; }
+bool PluginListView::Row::overHandle (juce::Point<int> p) const { return p.x < nameX - 4; }   // Nummer + Punkte
 
 void PluginListView::Row::resized()
 {
@@ -158,12 +158,12 @@ void PluginListView::Row::resized()
     {
         // zwischen dem Namen und der Latenz-Spalte (gleiche Geometrie wie in paint)
         const int latLeft = bypassBtn.getX() - 8 - latencyW;
-        const int x0 = 28 + gainNameW;
+        const int x0 = nameX + gainNameW;
         gainSlider.setBounds (x0, 3, juce::jmax (40, latLeft - 8 - x0), getHeight() - 6);
     }
 
     if (isAutoGainRow)
-        autoToggle.setBounds (28 + autoNameW, 3, autoToggleW, getHeight() - 6);
+        autoToggle.setBounds (nameX + autoNameW, 3, autoToggleW, getHeight() - 6);
 }
 
 void PluginListView::Row::paint (juce::Graphics& g)
@@ -177,11 +177,20 @@ void PluginListView::Row::paint (juce::Graphics& g)
                           : (index % 2 ? juce::Colour (0xff2a2a2a) : juce::Colour (0xff242424)));
     g.fillRect (b);
 
+    // Nummer: Position im Signalweg (1 = verarbeitet zuerst); folgt jeder Umsortierung, weil die
+    // Zeilen danach neu aufgebaut werden.
+    {
+        const juce::Graphics::ScopedSaveState keepFont (g);   // der Name bleibt in der bisherigen Schrift
+        g.setColour (juce::Colours::grey);
+        g.setFont (juce::Font (juce::FontOptions (12.0f)));
+        g.drawText (juce::String (index + 1), 0, 0, numberW, b.getHeight(), juce::Justification::centredRight);
+    }
+
     // Drag-Handle: zwei Spalten à drei Punkte.
     g.setColour (juce::Colours::grey);
     for (int cxn = 0; cxn < 2; ++cxn)
         for (int cyn = 0; cyn < 3; ++cyn)
-            g.fillEllipse ((float) (8 + cxn * 6), (float) (b.getCentreY() - 6 + cyn * 6), 2.6f, 2.6f);
+            g.fillEllipse ((float) (handleX + 4 + cxn * 6), (float) (b.getCentreY() - 6 + cyn * 6), 2.6f, 2.6f);
 
     // Latenz-Spalte links vom Bypass: gemeldete Plugin-Latenz in ms (Lookahead etc.).
     constexpr int latW = latencyW;
@@ -200,8 +209,8 @@ void PluginListView::Row::paint (juce::Graphics& g)
     // Name (auf den Platz links der Latenz-Spalte begrenzt; in Kazanç-Zeilen vor dem Regler).
     const auto name = displayName (e);
     g.setColour (e.bypassed ? juce::Colours::grey : juce::Colours::white);
-    const int nameW = isGainRow ? gainNameW - 6 : isAutoGainRow ? autoNameW - 6 : latLeft - 6 - 28;
-    g.drawText (name, 28, 0, nameW, b.getHeight(), juce::Justification::centredLeft);
+    const int nameW = isGainRow ? gainNameW - 6 : isAutoGainRow ? autoNameW - 6 : latLeft - 6 - nameX;
+    g.drawText (name, nameX, 0, nameW, b.getHeight(), juce::Justification::centredLeft);
 
     g.setColour (juce::Colours::grey);
     g.setFont (juce::Font (juce::FontOptions (12.0f)));
