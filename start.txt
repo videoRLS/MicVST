@@ -1,0 +1,20 @@
+running after 20 s: yes
+total 24
+drwxr-xr-x   5 runner  staff   160 Oct 20 14:17 .
+drwx------@ 84 runner  staff  2688 Oct 20 14:17 ..
+-rw-r--r--   1 runner  staff   248 Oct 20 14:17 config.xml
+-rw-r--r--   1 runner  staff   859 Oct 20 14:17 log.txt
+-rw-r--r--   1 runner  staff   118 Oct 20 14:17 plugin_cache.xml
+
+**********************************************************
+MicVST günlüğü - başlangıç: 20.10.2026 14:17:03
+[14:17:03] MicVST 1.2.1 (JUCE v9.0.4, internet erişimi yok)
+[14:17:03] İşlem: öncelik yüksek BAŞARISIZ, güç kısıtlaması kapalı desteklenmiyor, zamanlayıcı kısıtlaması kapalı desteklenmiyor
+[14:17:04] Eklenti önbelleği yok ya da bozuk -> tam tarama
+[14:17:04] Sanal kablo bulunamadı -> çıkış 'yok'
+[14:17:04] Giriş (mikrofon) = Apple Virtual Sound Device
+[14:17:04] Kurulum: giriş 'Apple Virtual Sound Device' 48000 Hz, tampon 512 | çıkış (yok)
+[14:17:04] Giriş başladı: 'Apple Virtual Sound Device' 48000 Hz, tampon 512 | kanal 2 / [1, Input 2]
+[14:17:04] Tarama: 0 dosya taranacak
+[14:17:05] Ses: çalışıyor
+[14:17:05] Eklenti iş parçacığı: MMCSS kullanılamıyor - zaman-kritik öncelik

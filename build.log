@@ -1,0 +1,317 @@
+[  2%] Generating juce_binarydata_MicVSTData/JuceLibraryCode/BinaryData1.cpp, juce_binarydata_MicVSTData/JuceLibraryCode/BinaryData2.cpp, juce_binarydata_MicVSTData/JuceLibraryCode/BinaryData.h
+[  2%] Building CXX object CMakeFiles/MicVSTCore.dir/src/audio/AudioBridge.cpp.o
+[  5%] Building CXX object CMakeFiles/MicVSTCore.dir/src/audio/BuiltInAutoGain.cpp.o
+[  5%] Building CXX object CMakeFiles/MicVSTCore.dir/src/audio/BuiltInGain.cpp.o
+[  5%] Building CXX object CMakeFiles/MicVSTData.dir/juce_binarydata_MicVSTData/JuceLibraryCode/BinaryData1.cpp.o
+[  5%] Building CXX object CMakeFiles/MicVSTData.dir/juce_binarydata_MicVSTData/JuceLibraryCode/BinaryData2.cpp.o
+[  8%] Linking CXX static library libMicVSTData.a
+[  8%] Built target MicVSTData
+[  8%] Building CXX object CMakeFiles/MicVSTCore.dir/src/audio/RealtimeSupport.cpp.o
+[ 10%] Building CXX object CMakeFiles/MicVSTCore.dir/src/audio/Metering.cpp.o
+[ 10%] Building CXX object CMakeFiles/MicVSTCore.dir/src/audio/GraphConnections.cpp.o
+[ 10%] Building CXX object CMakeFiles/MicVSTCore.dir/src/audio/ScanCoordinator.cpp.o
+[ 13%] Building CXX object CMakeFiles/MicVSTCore.dir/src/state/Persistence.cpp.o
+[ 13%] Building CXX object CMakeFiles/MicVSTCore.dir/src/state/PluginScanCache.cpp.o
+[ 13%] Building CXX object CMakeFiles/MicVSTCore.dir/src/ui/PluginSearch.cpp.o
+[ 16%] Building CXX object CMakeFiles/MicVSTCore.dir/src/Text.cpp.o
+[ 16%] Building CXX object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_audio_basics/juce_audio_basics.mm.o
+[ 16%] Building CXX object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_core/juce_core_CompilationTime.cpp.o
+[ 18%] Building C object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_core/juce_core_zlib.c.o
+[ 18%] Building CXX object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_core/juce_core.mm.o
+[ 21%] Building CXX object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_audio_processors/juce_audio_processors.mm.o
+[ 21%] Building CXX object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_gui_extra/juce_gui_extra.mm.o
+[ 21%] Building CXX object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_gui_basics/juce_gui_basics_2.cpp.o
+[ 24%] Building CXX object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_gui_basics/juce_gui_basics_3.cpp.o
+[ 24%] Building CXX object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_gui_basics/juce_gui_basics_4.cpp.o
+[ 24%] Building CXX object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_gui_basics/juce_gui_basics_5.cpp.o
+[ 27%] Building CXX object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_gui_basics/juce_gui_basics.mm.o
+[ 27%] Building CXX object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o
+[ 27%] Building C object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_Sheenbidi.c.o
+[ 29%] Building C object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libjpg_1.c.o
+[ 29%] Building C object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libjpg_2.c.o
+[ 29%] Building C object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libjpg_3.c.o
+[ 32%] Building C object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libpng.c.o
+[ 32%] Building C object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libwebp_dec.c.o
+[ 35%] Building C object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libwebp_dsp_dec.c.o
+[ 35%] Building C object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libwebp_dsp_dec_avx2.c.o
+[ 35%] Building C object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libwebp_dsp_dec_sse41.c.o
+[ 37%] Building C object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libwebp_dsp_enc.c.o
+[ 37%] Building C object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libwebp_dsp_enc_avx2.c.o
+[ 37%] Building C object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libwebp_dsp_enc_sse41.c.o
+[ 40%] Building C object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libwebp_enc.c.o
+[ 40%] Building C object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libwebp_sharpyuv.c.o
+[ 40%] Building C object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libwebp_utils.c.o
+[ 43%] Building C object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_lunasvg.c.o
+[ 43%] Building CXX object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_graphics/juce_graphics.mm.o
+[ 43%] Building CXX object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_events/juce_events.mm.o
+[ 45%] Building CXX object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_data_structures/juce_data_structures.mm.o
+[ 45%] Building CXX object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_audio_processors_headless/juce_audio_processors_headless_ara.cpp.o
+[ 48%] Building CXX object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_audio_processors_headless/juce_audio_processors_headless_lv2_libs.cpp.o
+[ 48%] Building CXX object CMakeFiles/MicVSTCore.dir/_deps/juce-src/modules/juce_audio_processors_headless/juce_audio_processors_headless.mm.o
+[ 48%] Linking CXX static library libMicVSTCore.a
+[ 48%] Built target MicVSTCore
+[ 48%] Generating MicVST_artefacts/JuceLibraryCode/MicVST/PkgInfo
+[ 48%] Building CXX object CMakeFiles/MicVST.dir/src/Main.cpp.o
+[ 51%] Building CXX object CMakeFiles/MicVST.dir/src/audio/AudioEngine.cpp.o
+[ 51%] Building CXX object CMakeFiles/MicVST.dir/src/audio/PluginChain.cpp.o
+[ 51%] Building CXX object CMakeFiles/MicVST.dir/src/ui/MainComponent.cpp.o
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/PluginChain.cpp:1:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/PluginChain.h:3:
+/Users/runner/work/MicVST/MicVST/src/audio/AutoGain.h:351:42: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
+  351 |             if (! glideSettled || glide2 != target)
+      |                                   ~~~~~~ ^  ~~~~~~
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/PluginChain.cpp:3:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/BuiltInGain.h:3:
+/Users/runner/work/MicVST/MicVST/src/audio/GainStage.h:80:31: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
+   80 |         if (settled && wanted != settledDb)
+      |                        ~~~~~~ ^  ~~~~~~~~~
+/Users/runner/work/MicVST/MicVST/src/audio/PluginChain.cpp:124:60: warning: missing field 'pluginId' initializer [-Wmissing-field-initializers]
+  124 |     chain.push_back ({ node->nodeID, monoToStereoId, false });
+      |                                                            ^
+/Users/runner/work/MicVST/MicVST/src/audio/PluginChain.cpp:131:60: warning: missing field 'pluginId' initializer [-Wmissing-field-initializers]
+  131 |     chain.push_back ({ node->nodeID, stereoToMonoId, false });
+      |                                                            ^
+/Users/runner/work/MicVST/MicVST/src/audio/PluginChain.cpp:140:52: warning: missing field 'pluginId' initializer [-Wmissing-field-initializers]
+  140 |     chain.push_back ({ node->nodeID, gainId, false });
+      |                                                    ^
+/Users/runner/work/MicVST/MicVST/src/audio/PluginChain.cpp:172:56: warning: missing field 'pluginId' initializer [-Wmissing-field-initializers]
+  172 |     chain.push_back ({ node->nodeID, autoGainId, false });   // wie jedes Glied ans Ende; der Nutzer bestimmt die Position
+      |                                                        ^
+In file included from /Users/runner/work/MicVST/MicVST/src/Main.cpp:2:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/AudioEngine.h:7:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/PluginChain.h:3:
+/Users/runner/work/MicVST/MicVST/src/audio/AutoGain.h:351:42: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
+  351 |             if (! glideSettled || glide2 != target)
+      |                                   ~~~~~~ ^  ~~~~~~
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/AudioEngine.cpp:1:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/AudioEngine.h:7:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/PluginChain.h:3:
+/Users/runner/work/MicVST/MicVST/src/audio/AutoGain.h:351:42: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
+  351 |             if (! glideSettled || glide2 != target)
+      |                                   ~~~~~~ ^  ~~~~~~
+In file included from /Users/runner/work/MicVST/MicVST/src/ui/MainComponent.cpp:1:
+In file included from /Users/runner/work/MicVST/MicVST/src/ui/MainComponent.h:3:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/AudioEngine.h:7:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/PluginChain.h:3:
+/Users/runner/work/MicVST/MicVST/src/audio/AutoGain.h:351:42: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
+  351 |             if (! glideSettled || glide2 != target)
+      |                                   ~~~~~~ ^  ~~~~~~
+/Users/runner/work/MicVST/MicVST/src/Main.cpp:314:53: warning: constructor parameter 'engine' shadows the field 'engine' of 'MicVSTApplication' [-Wshadow-field-in-constructor]
+  314 |         MainWindow (juce::String name, AudioEngine& engine, const juce::String& windowState)
+      |                                                     ^
+/Users/runner/work/MicVST/MicVST/src/Main.cpp:341:34: note: previous declaration is here
+  341 |     std::unique_ptr<AudioEngine> engine;
+      |                                  ^
+6 warnings generated.
+1 warning generated.
+2 warnings generated.
+1 warning generated.
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/PluginChain.cpp:1:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/PluginChain.h:3:
+/Users/runner/work/MicVST/MicVST/src/audio/AutoGain.h:351:42: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
+  351 |             if (! glideSettled || glide2 != target)
+      |                                   ~~~~~~ ^  ~~~~~~
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/PluginChain.cpp:3:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/BuiltInGain.h:3:
+/Users/runner/work/MicVST/MicVST/src/audio/GainStage.h:80:31: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
+   80 |         if (settled && wanted != settledDb)
+      |                        ~~~~~~ ^  ~~~~~~~~~
+/Users/runner/work/MicVST/MicVST/src/audio/PluginChain.cpp:124:60: warning: missing field 'pluginId' initializer [-Wmissing-field-initializers]
+  124 |     chain.push_back ({ node->nodeID, monoToStereoId, false });
+      |                                                            ^
+/Users/runner/work/MicVST/MicVST/src/audio/PluginChain.cpp:131:60: warning: missing field 'pluginId' initializer [-Wmissing-field-initializers]
+  131 |     chain.push_back ({ node->nodeID, stereoToMonoId, false });
+      |                                                            ^
+/Users/runner/work/MicVST/MicVST/src/audio/PluginChain.cpp:140:52: warning: missing field 'pluginId' initializer [-Wmissing-field-initializers]
+  140 |     chain.push_back ({ node->nodeID, gainId, false });
+      |                                                    ^
+/Users/runner/work/MicVST/MicVST/src/audio/PluginChain.cpp:172:56: warning: missing field 'pluginId' initializer [-Wmissing-field-initializers]
+  172 |     chain.push_back ({ node->nodeID, autoGainId, false });   // wie jedes Glied ans Ende; der Nutzer bestimmt die Position
+      |                                                        ^
+In file included from /Users/runner/work/MicVST/MicVST/src/ui/MainComponent.cpp:1:
+In file included from /Users/runner/work/MicVST/MicVST/src/ui/MainComponent.h:3:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/AudioEngine.h:7:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/PluginChain.h:3:
+/Users/runner/work/MicVST/MicVST/src/audio/AutoGain.h:351:42: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
+  351 |             if (! glideSettled || glide2 != target)
+      |                                   ~~~~~~ ^  ~~~~~~
+In file included from /Users/runner/work/MicVST/MicVST/src/Main.cpp:2:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/AudioEngine.h:7:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/PluginChain.h:3:
+/Users/runner/work/MicVST/MicVST/src/audio/AutoGain.h:351:42: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
+  351 |             if (! glideSettled || glide2 != target)
+      |                                   ~~~~~~ ^  ~~~~~~
+/Users/runner/work/MicVST/MicVST/src/Main.cpp:314:53: warning: constructor parameter 'engine' shadows the field 'engine' of 'MicVSTApplication' [-Wshadow-field-in-constructor]
+  314 |         MainWindow (juce::String name, AudioEngine& engine, const juce::String& windowState)
+      |                                                     ^
+/Users/runner/work/MicVST/MicVST/src/Main.cpp:341:34: note: previous declaration is here
+  341 |     std::unique_ptr<AudioEngine> engine;
+      |                                  ^
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/AudioEngine.cpp:1:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/AudioEngine.h:7:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/PluginChain.h:3:
+/Users/runner/work/MicVST/MicVST/src/audio/AutoGain.h:351:42: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
+  351 |             if (! glideSettled || glide2 != target)
+      |                                   ~~~~~~ ^  ~~~~~~
+6 warnings generated.
+[ 54%] Building CXX object CMakeFiles/MicVST.dir/src/ui/DevicePanel.cpp.o
+1 warning generated.
+[ 54%] Building CXX object CMakeFiles/MicVST.dir/src/ui/PluginListView.cpp.o
+2 warnings generated.
+[ 54%] Building CXX object CMakeFiles/MicVST.dir/src/ui/PluginPicker.cpp.o
+1 warning generated.
+[ 56%] Building CXX object CMakeFiles/MicVST.dir/src/ui/LevelMeterComponent.cpp.o
+In file included from /Users/runner/work/MicVST/MicVST/src/ui/DevicePanel.cpp:1:
+In file included from /Users/runner/work/MicVST/MicVST/src/ui/DevicePanel.h:3:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/AudioEngine.h:7:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/PluginChain.h:3:
+/Users/runner/work/MicVST/MicVST/src/audio/AutoGain.h:351:42: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
+  351 |             if (! glideSettled || glide2 != target)
+      |                                   ~~~~~~ ^  ~~~~~~
+/Users/runner/work/MicVST/MicVST/src/ui/DevicePanel.cpp:282:57: warning: declaration shadows a local variable [-Wshadow-uncaptured-local]
+  282 |     auto labelWithInfo = [labelW] (juce::Rectangle<int> r, juce::Label& lbl, InfoIcon& info)
+      |                                                         ^
+/Users/runner/work/MicVST/MicVST/src/ui/DevicePanel.cpp:272:10: note: previous declaration is here
+  272 |     auto r = getLocalBounds();
+      |          ^
+/Users/runner/work/MicVST/MicVST/src/ui/DevicePanel.cpp:282:27: warning: lambda capture 'labelW' is not required to be captured for this use [-Wunused-lambda-capture]
+  282 |     auto labelWithInfo = [labelW] (juce::Rectangle<int> r, juce::Label& lbl, InfoIcon& info)
+      |                           ^~~~~~
+In file included from /Users/runner/work/MicVST/MicVST/src/ui/PluginListView.cpp:1:
+In file included from /Users/runner/work/MicVST/MicVST/src/ui/PluginListView.h:3:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/AudioEngine.h:7:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/PluginChain.h:3:
+/Users/runner/work/MicVST/MicVST/src/audio/AutoGain.h:351:42: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
+  351 |             if (! glideSettled || glide2 != target)
+      |                                   ~~~~~~ ^  ~~~~~~
+In file included from /Users/runner/work/MicVST/MicVST/src/ui/PluginListView.cpp:2:
+/Users/runner/work/MicVST/MicVST/src/audio/GainStage.h:80:31: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
+   80 |         if (settled && wanted != settledDb)
+      |                        ~~~~~~ ^  ~~~~~~~~~
+In file included from /Users/runner/work/MicVST/MicVST/src/ui/PluginListView.cpp:4:
+/Users/runner/work/MicVST/MicVST/src/ui/PluginPicker.h:35:10: warning: 'PluginPickerComponent::keyPressed' hides overloaded virtual function [-Woverloaded-virtual]
+   35 |     bool keyPressed (const juce::KeyPress&, juce::Component*) override;
+      |          ^
+/Users/runner/work/MicVST/MicVST/build/_deps/juce-src/modules/juce_gui_basics/components/juce_Component.h:1928:18: note: hidden overloaded virtual function 'juce::Component::keyPressed' declared here: different number of parameters (1 vs 2)
+ 1928 |     virtual bool keyPressed (const KeyPress& key);
+      |                  ^
+/Users/runner/work/MicVST/MicVST/src/ui/PluginListView.cpp:594:16: warning: lambda capture 'rescanItemId' is not required to be captured for this use [-Wunused-lambda-capture]
+  594 |         [this, rescanItemId, retryItemId, resetItemId] (int res)
+      |              ~~^~~~~~~~~~~~
+/Users/runner/work/MicVST/MicVST/src/ui/PluginListView.cpp:594:30: warning: lambda capture 'retryItemId' is not required to be captured for this use [-Wunused-lambda-capture]
+  594 |         [this, rescanItemId, retryItemId, resetItemId] (int res)
+      |                            ~~^~~~~~~~~~~
+/Users/runner/work/MicVST/MicVST/src/ui/PluginListView.cpp:594:43: warning: lambda capture 'resetItemId' is not required to be captured for this use [-Wunused-lambda-capture]
+  594 |         [this, rescanItemId, retryItemId, resetItemId] (int res)
+      |                                         ~~^~~~~~~~~~~
+In file included from /Users/runner/work/MicVST/MicVST/src/ui/PluginPicker.cpp:1:
+/Users/runner/work/MicVST/MicVST/src/ui/PluginPicker.h:35:10: warning: 'PluginPickerComponent::keyPressed' hides overloaded virtual function [-Woverloaded-virtual]
+   35 |     bool keyPressed (const juce::KeyPress&, juce::Component*) override;
+      |          ^
+/Users/runner/work/MicVST/MicVST/build/_deps/juce-src/modules/juce_gui_basics/components/juce_Component.h:1928:18: note: hidden overloaded virtual function 'juce::Component::keyPressed' declared here: different number of parameters (1 vs 2)
+ 1928 |     virtual bool keyPressed (const KeyPress& key);
+      |                  ^
+3 warnings generated.
+1 warning generated.
+6 warnings generated.
+In file included from /Users/runner/work/MicVST/MicVST/src/ui/DevicePanel.cpp:1:
+In file included from /Users/runner/work/MicVST/MicVST/src/ui/DevicePanel.h:3:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/AudioEngine.h:7:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/PluginChain.h:3:
+/Users/runner/work/MicVST/MicVST/src/audio/AutoGain.h:351:42: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
+  351 |             if (! glideSettled || glide2 != target)
+      |                                   ~~~~~~ ^  ~~~~~~
+/Users/runner/work/MicVST/MicVST/src/ui/DevicePanel.cpp:282:57: warning: declaration shadows a local variable [-Wshadow-uncaptured-local]
+  282 |     auto labelWithInfo = [labelW] (juce::Rectangle<int> r, juce::Label& lbl, InfoIcon& info)
+      |                                                         ^
+/Users/runner/work/MicVST/MicVST/src/ui/DevicePanel.cpp:272:10: note: previous declaration is here
+  272 |     auto r = getLocalBounds();
+      |          ^
+/Users/runner/work/MicVST/MicVST/src/ui/DevicePanel.cpp:282:27: warning: lambda capture 'labelW' is not required to be captured for this use [-Wunused-lambda-capture]
+  282 |     auto labelWithInfo = [labelW] (juce::Rectangle<int> r, juce::Label& lbl, InfoIcon& info)
+      |                           ^~~~~~
+In file included from /Users/runner/work/MicVST/MicVST/src/ui/PluginPicker.cpp:1:
+/Users/runner/work/MicVST/MicVST/src/ui/PluginPicker.h:35:10: warning: 'PluginPickerComponent::keyPressed' hides overloaded virtual function [-Woverloaded-virtual]
+   35 |     bool keyPressed (const juce::KeyPress&, juce::Component*) override;
+      |          ^
+/Users/runner/work/MicVST/MicVST/build/_deps/juce-src/modules/juce_gui_basics/components/juce_Component.h:1928:18: note: hidden overloaded virtual function 'juce::Component::keyPressed' declared here: different number of parameters (1 vs 2)
+ 1928 |     virtual bool keyPressed (const KeyPress& key);
+      |                  ^
+[ 56%] Building CXX object CMakeFiles/MicVST.dir/src/ui/TrayIcon.cpp.o
+3 warnings generated.
+[ 56%] Building CXX object CMakeFiles/MicVST.dir/src/state/AutostartRegistry.cpp.o
+1 warning generated.
+[ 59%] Building CXX object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_audio_basics/juce_audio_basics.mm.o
+In file included from /Users/runner/work/MicVST/MicVST/src/ui/PluginListView.cpp:1:
+In file included from /Users/runner/work/MicVST/MicVST/src/ui/PluginListView.h:3:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/AudioEngine.h:7:
+In file included from /Users/runner/work/MicVST/MicVST/src/audio/PluginChain.h:3:
+/Users/runner/work/MicVST/MicVST/src/audio/AutoGain.h:351:42: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
+  351 |             if (! glideSettled || glide2 != target)
+      |                                   ~~~~~~ ^  ~~~~~~
+In file included from /Users/runner/work/MicVST/MicVST/src/ui/PluginListView.cpp:2:
+/Users/runner/work/MicVST/MicVST/src/audio/GainStage.h:80:31: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
+   80 |         if (settled && wanted != settledDb)
+      |                        ~~~~~~ ^  ~~~~~~~~~
+In file included from /Users/runner/work/MicVST/MicVST/src/ui/PluginListView.cpp:4:
+/Users/runner/work/MicVST/MicVST/src/ui/PluginPicker.h:35:10: warning: 'PluginPickerComponent::keyPressed' hides overloaded virtual function [-Woverloaded-virtual]
+   35 |     bool keyPressed (const juce::KeyPress&, juce::Component*) override;
+      |          ^
+/Users/runner/work/MicVST/MicVST/build/_deps/juce-src/modules/juce_gui_basics/components/juce_Component.h:1928:18: note: hidden overloaded virtual function 'juce::Component::keyPressed' declared here: different number of parameters (1 vs 2)
+ 1928 |     virtual bool keyPressed (const KeyPress& key);
+      |                  ^
+/Users/runner/work/MicVST/MicVST/src/ui/PluginListView.cpp:594:16: warning: lambda capture 'rescanItemId' is not required to be captured for this use [-Wunused-lambda-capture]
+  594 |         [this, rescanItemId, retryItemId, resetItemId] (int res)
+      |              ~~^~~~~~~~~~~~
+/Users/runner/work/MicVST/MicVST/src/ui/PluginListView.cpp:594:30: warning: lambda capture 'retryItemId' is not required to be captured for this use [-Wunused-lambda-capture]
+  594 |         [this, rescanItemId, retryItemId, resetItemId] (int res)
+      |                            ~~^~~~~~~~~~~
+/Users/runner/work/MicVST/MicVST/src/ui/PluginListView.cpp:594:43: warning: lambda capture 'resetItemId' is not required to be captured for this use [-Wunused-lambda-capture]
+  594 |         [this, rescanItemId, retryItemId, resetItemId] (int res)
+      |                                         ~~^~~~~~~~~~~
+[ 59%] Building CXX object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_core/juce_core_CompilationTime.cpp.o
+[ 62%] Building C object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_core/juce_core_zlib.c.o
+6 warnings generated.
+[ 62%] Building CXX object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_core/juce_core.mm.o
+[ 62%] Building CXX object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_audio_processors/juce_audio_processors.mm.o
+[ 64%] Building CXX object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_gui_extra/juce_gui_extra.mm.o
+[ 64%] Building CXX object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_gui_basics/juce_gui_basics_2.cpp.o
+[ 64%] Building CXX object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_gui_basics/juce_gui_basics_3.cpp.o
+[ 67%] Building CXX object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_gui_basics/juce_gui_basics_4.cpp.o
+[ 67%] Building CXX object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_gui_basics/juce_gui_basics_5.cpp.o
+[ 67%] Building CXX object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_gui_basics/juce_gui_basics.mm.o
+[ 70%] Building CXX object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o
+[ 70%] Building C object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_Sheenbidi.c.o
+[ 70%] Building C object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libjpg_1.c.o
+[ 72%] Building C object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libjpg_2.c.o
+[ 72%] Building C object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libjpg_3.c.o
+[ 75%] Building C object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libpng.c.o
+[ 75%] Building C object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libwebp_dec.c.o
+[ 75%] Building C object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libwebp_dsp_dec.c.o
+[ 78%] Building C object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libwebp_dsp_dec_avx2.c.o
+[ 78%] Building C object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libwebp_dsp_dec_sse41.c.o
+[ 78%] Building C object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libwebp_dsp_enc.c.o
+[ 81%] Building C object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libwebp_dsp_enc_avx2.c.o
+[ 81%] Building C object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libwebp_dsp_enc_sse41.c.o
+[ 81%] Building C object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libwebp_enc.c.o
+[ 83%] Building C object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libwebp_sharpyuv.c.o
+[ 83%] Building C object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_libwebp_utils.c.o
+[ 83%] Building C object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_lunasvg.c.o
+[ 86%] Building CXX object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_graphics/juce_graphics.mm.o
+[ 86%] Building CXX object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_events/juce_events.mm.o
+[ 89%] Building CXX object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_data_structures/juce_data_structures.mm.o
+[ 89%] Building CXX object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_audio_processors_headless/juce_audio_processors_headless_ara.cpp.o
+[ 89%] Building CXX object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_audio_processors_headless/juce_audio_processors_headless_lv2_libs.cpp.o
+[ 91%] Building CXX object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_audio_processors_headless/juce_audio_processors_headless.mm.o
+[ 91%] Building CXX object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_audio_devices/juce_audio_devices.mm.o
+[ 91%] Building CXX object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_audio_utils/juce_audio_utils.mm.o
+[ 94%] Building C object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_audio_formats/juce_audio_formats_flac_1.c.o
+[ 94%] Building C object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_audio_formats/juce_audio_formats_flac_2.c.o
+[ 94%] Building C object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_audio_formats/juce_audio_formats_ogg.c.o
+[ 97%] Building C object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_audio_formats/juce_audio_formats_opus.c.o
+[ 97%] Building C object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_audio_formats/juce_audio_formats_opusfile.c.o
+[ 97%] Building CXX object CMakeFiles/MicVST.dir/_deps/juce-src/modules/juce_audio_formats/juce_audio_formats.mm.o
+Copying OS X content MicVST_artefacts/Release/MicVST.app/Contents/Resources/AppIcon.icns
+Copying OS X content MicVST_artefacts/Release/MicVST.app/Contents/Resources/RecentFilesMenuTemplate.nib
+[100%] Linking CXX executable MicVST_artefacts/Release/MicVST.app/Contents/MacOS/MicVST
+[100%] Built target MicVST
