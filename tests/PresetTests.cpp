@@ -64,8 +64,8 @@ struct PresetTest : juce::UnitTest
         {
             const auto& f = presets::factoryPresets();
             expectEquals ((int) f.size(), 5);
-            for (const char* n : { "Cinema Voice", "Crystal Clear", "Soft & Smooth", "Deep & Warm", "Balanced Pro" })
-                expect (presets::findFactory (n) != nullptr, n);
+            for (const char* n : { "Sinema Sesi", "Kristal Netlik", "Yumuşak ve Pürüzsüz", "Derin ve Sıcak", "Dengeli Profesyonel" })
+                expect (presets::findFactory (juce::String::fromUTF8 (n)) != nullptr, juce::String::fromUTF8 (n));
             for (auto& p : f)
             {
                 expect (p.factory);
@@ -174,11 +174,11 @@ struct PresetTest : juce::UnitTest
         {
             expect (presets::nameProblem ("   ").isNotEmpty());
             expect (presets::nameProblem (juce::String::repeatedString ("x", 61)).isNotEmpty());
-            expect (presets::nameProblem ("balanced pro").isNotEmpty());
+            expect (presets::nameProblem ("dengeli profesyonel").isNotEmpty());
             expect (presets::nameProblem ("Benim ayarım").isEmpty());
             TempFolder t;
             juce::String err;
-            expect (! presets::saveUserPreset ("Cinema Voice", sampleChain (1, 4), err, t.dir));
+            expect (! presets::saveUserPreset ("Sinema Sesi", sampleChain (1, 4), err, t.dir));
             expect (err.isNotEmpty());
         }
 

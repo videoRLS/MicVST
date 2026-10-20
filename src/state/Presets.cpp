@@ -44,20 +44,25 @@ namespace
         return e;
     }
 
-    // The five factory presets, made for the voice of the recording analysed for them (a male voice,
-    // fundamental 118-138 Hz, median 126 Hz): its 300-500 Hz region is ~9 dB above 1 kHz ("boxy"),
-    // narrow resonances at 630 Hz, 1.9 kHz and 3.7 kHz, a dip at 4-5 kHz, sibilants 5-10 kHz up to
-    // ~16 dB above the mids. Every preset has the same elements in the same order:
-    //   Low-Cut -> Yakınlık -> Çamur Temizleyici -> Parametrik EQ (the resonances) -> Gövde ->
-    //   Netlik -> Hava -> Otomatik Kazanç -> De-esser -> Sıcak Saturasyon -> Kazanç
+    // The five factory presets, for an average adult Turkish male voice (fundamental about
+    // 85-155 Hz, most around 110-130 Hz), not for one particular voice: every move is broad (low Q)
+    // and moderate, so it suits the great majority of men's voices and microphones (USB and
+    // condenser microphones at 5-20 cm). What they address is what men's voices commonly have:
+    // boom below 100 Hz and the close-microphone build-up around 150 Hz, "mud" around 300 Hz, a
+    // boxy 500 Hz, a nasal 1 kHz, a hard edge around 3 kHz, the sibilants of Turkish (s, ş, ç, z:
+    // 4-9 kHz). Every preset has the same elements in the same order:
+    //   Low-Cut -> Yakınlık -> Çamur Temizleyici -> Parametrik EQ (kutu 500 Hz, genizlik 1 kHz,
+    //   sertlik 3 kHz) -> Gövde -> Netlik -> Hava -> Otomatik Kazanç -> De-esser -> Sıcak
+    //   Saturasyon -> Kazanç
     // Otomatik Kazanç sits before the de-esser and the saturation: they then see the same level for
-    // every microphone and voice (peaks around -20 dBFS), so their thresholds and drive fit everyone.
-    // The last Kazanç matches the loudness of the five (switching does not jump in level).
+    // every microphone and voice (peaks around -20 dBFS); the de-esser detects relative to the voice
+    // itself. The last Kazanç matches the loudness of the five (measured on synthetic and real male
+    // speech), so switching does not jump in level.
     std::vector<Preset> build()
     {
         struct Def { const char* name; std::vector<Setting> chain; };
         auto chain = [] (float lowCutHz, float proxDb, float proxHz, float mudDb, float mudHz,
-                         float r1Db, float r2Db, float r3Db,
+                         float boxDb, float nasalDb, float hardDb,
                          float bodyDb, float bodyHz, float presDb, float presHz, float presQ,
                          float airDb, float airHz,
                          float deessHz, float deessThr, float deessRange,
@@ -66,11 +71,11 @@ namespace
             return std::vector<Setting> {
                 { "builtin:lowcut",    { { "freq", lowCutHz }, { "slope", 1.0f } } },
                 { "builtin:proximity", { { "gain", proxDb }, { "freq", proxHz } } },
-                { "builtin:mud",       { { "gain", mudDb }, { "freq", mudHz }, { "q", 1.2f } } },
-                { "builtin:parameq",   { { "b1type", 0.0f }, { "b1freq", 630.0f },  { "b1gain", r1Db }, { "b1q", 4.0f },
-                                         { "b2type", 0.0f }, { "b2freq", 1900.0f }, { "b2gain", r2Db }, { "b2q", 4.0f },
-                                         { "b3type", 0.0f }, { "b3freq", 3700.0f }, { "b3gain", r3Db }, { "b3q", 5.0f },
-                                         { "b4type", 0.0f }, { "b4freq", 8000.0f }, { "b4gain", 0.0f },  { "b4q", 1.0f } } },
+                { "builtin:mud",       { { "gain", mudDb }, { "freq", mudHz }, { "q", 1.0f } } },
+                { "builtin:parameq",   { { "b1type", 0.0f }, { "b1freq", 500.0f },  { "b1gain", boxDb },   { "b1q", 1.4f },
+                                         { "b2type", 0.0f }, { "b2freq", 1000.0f }, { "b2gain", nasalDb }, { "b2q", 1.8f },
+                                         { "b3type", 0.0f }, { "b3freq", 3000.0f }, { "b3gain", hardDb },  { "b3q", 1.8f },
+                                         { "b4type", 0.0f }, { "b4freq", 8000.0f }, { "b4gain", 0.0f },    { "b4q", 1.0f } } },
                 { "builtin:body",      { { "gain", bodyDb }, { "freq", bodyHz } } },
                 { "builtin:presence",  { { "gain", presDb }, { "freq", presHz }, { "q", presQ } } },
                 { "builtin:air",       { { "gain", airDb }, { "freq", airHz } } },
@@ -81,13 +86,13 @@ namespace
             };
         };
 
-        //                         LC    prox      mud         630  1.9k 3.7k  body        presence          air          de-esser (relative)  sat              trim
+        //                                 LC   prox       mud         500  1k   3k    body        presence          air          de-esser (relative)  sat              trim
         const std::vector<Def> defs {
-            { "Balanced Pro",  chain (80,  -2.0, 150, 4.0, 400, -3.0, -1.5, -2.0,  0.5, 140,  4.0, 4600, 1.4,  3.0, 10000,  5500, -14, 8.0,  0, 4.0,  60, 0.4f) },
-            { "Cinema Voice",  chain (70,   1.0, 120, 4.5, 380, -3.0, -1.5, -2.5,  2.5, 130,  3.0, 4500, 1.2,  4.0, 11000,  5500, -15, 9.0,  1, 7.0,  70, -0.3f) },
-            { "Crystal Clear", chain (85,  -4.0, 160, 5.0, 420, -3.5, -2.0, -1.5,  0.0, 150,  5.5, 4800, 1.2,  5.0,  9000,  5500, -14, 9.0,  0, 0.0,   0, 0.7f) },
-            { "Soft & Smooth", chain (75,  -1.0, 150, 3.0, 400, -2.5, -2.5, -4.5,  1.0, 140,  1.0, 4300, 1.2, -2.0, 11000,  5000, -16, 10.0, 0, 3.0,  50, 0.3f) },
-            { "Deep & Warm",   chain (70,   2.0, 130, 2.0, 400, -2.5, -1.5, -2.5,  3.0, 125,  1.5, 4400, 1.2, -0.5, 12000,  5500, -15, 8.0,  1, 8.0,  70, -0.3f) },
+            { "Dengeli Profesyonel",  chain (80, -1.5, 150, 3.0, 300, -1.5, -1.0, -1.5,  1.0, 130,  2.5, 4500, 1.0,  2.0, 11000,  5500, -14, 6.0,  0, 3.0,  50, 0.0f) },
+            { "Sinema Sesi",          chain (70,  1.0, 120, 3.5, 300, -2.0, -1.0, -2.0,  2.5, 120,  2.0, 4200, 1.0,  4.0, 12000,  5500, -15, 8.0,  1, 6.0,  70, 0.1f) },
+            { "Kristal Netlik",       chain (90, -3.0, 160, 4.0, 320, -2.0,  0.0, -1.0,  0.0, 130,  4.0, 4800, 1.0,  5.0,  9000,  5500, -14, 8.0,  0, 0.0,   0, 0.7f) },
+            { "Yumuşak ve Pürüzsüz",  chain (75, -1.0, 150, 2.5, 300, -1.0, -1.5, -3.0,  1.5, 130,  0.0, 4200, 1.0, -1.5, 11000,  5000, -16, 9.0,  0, 3.0,  50, -0.2f) },
+            { "Derin ve Sıcak",       chain (70,  2.0, 130, 2.0, 300, -1.5, -1.0, -2.0,  3.0, 120,  1.0, 4200, 1.0, -0.5, 12000,  5500, -15, 7.0,  1, 7.0,  70, -0.6f) },
         };
 
         std::vector<Preset> out;

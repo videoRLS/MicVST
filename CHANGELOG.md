@@ -19,8 +19,9 @@ project follows [Semantic Versioning](https://semver.org/).
   Çıkış Limiteri, Sessize Alma, Ses Gecikmesi, Kanal Araçları, LUFS Ölçer, Spektrum Analizörü.
   Settings windows (double-click), saved with the chain, every change glides (no clicks), latency
   reported. No noise gate, no compressor.
-- Hazır ayarlar next to "+ Eklenti": five factory presets of built-in effects only (Cinema Voice,
-  Crystal Clear, Soft & Smooth, Deep & Warm, Balanced Pro; same elements, so switching glides),
+- Hazır ayarlar next to "+ Eklenti": five factory presets of built-in effects only, for an average
+  adult Turkish male voice (Sinema Sesi, Kristal Netlik, Yumuşak ve Pürüzsüz, Derin ve Sıcak,
+  Dengeli Profesyonel; same elements, so switching glides),
   own presets of the whole chain with the VST3 states (save, overwrite, rename, delete), and
   "Önceki zincire dön".
 

@@ -6,7 +6,8 @@
 // Otomatik Kazanç, Mono/Stereo and VST3 plug-ins with their full state blob, exactly as config.xml
 // keeps them).
 //
-//  * Factory presets (Cinema Voice, Crystal Clear, Soft & Smooth, Deep & Warm, Balanced Pro) use
+//  * Factory presets (Sinema Sesi, Kristal Netlik, Yumuşak ve Pürüzsüz, Derin ve Sıcak, Dengeli
+//    Profesyonel; for an average adult Turkish male voice) use
 //    built-in effects only, so they work for everyone; they are built in code (factoryPresets()).
 //    All five have the same elements in the same order - switching between them only moves
 //    parameters (each glides in 50 ms), the chain is not rebuilt.

@@ -1183,7 +1183,7 @@ namespace suite
                                 "preset of the whole chain (" + juce::String (chain.size()) + " elements, " + juce::String (total) + " parameters) saved to a file and loaded into a new engine: "
                                 + juce::String (same) + "/" + juce::String (total) + " parameters identical" + (err.isNotEmpty() ? ", error: " + err : juce::String()));
 
-                const auto* factory = presets::findFactory ("Balanced Pro");
+                const auto* factory = presets::findFactory ("Dengeli Profesyonel");
                 const auto r2 = e->applyPreset (factory->name, factory->elements);
                 pump (1.5);
                 bool onlyBuiltIn = (int) e->getChain().entries().size() == factory->elements.size();
@@ -1192,7 +1192,7 @@ namespace suite
                 pump (1.5);
                 const int sameBack = countSame (want, snapshots (*e), total);
                 verdicts.check (! r2.morphed && onlyBuiltIn && sameBack == total && (int) e->getChain().entries().size() == chain.size(),
-                                "factory preset 'Balanced Pro' (built-in only), then 'Onceki zincire don': the real plug-ins come back with "
+                                "factory preset 'Dengeli Profesyonel' (built-in only), then 'Onceki zincire don': the real plug-ins come back with "
                                 + juce::String (sameBack) + "/" + juce::String (total) + " parameters identical");
                 const auto d = e->getDiagnostics();
                 verdicts.check (d.invalidBlocks == 0, "presets with real plug-ins: no invalid blocks (" + juce::String ((int) d.invalidBlocks) + ")");

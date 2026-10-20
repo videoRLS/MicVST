@@ -117,13 +117,14 @@ namespace fxtest
         }
         pr ("rows not judged because of device hiccups: " + juce::String (inconclusive));
 
-        if (only.isEmpty()) {
+        if (only.isEmpty() || only == "edits") {
         pr ("");
         pr ("## Chain edits with effects while audio plays (997 Hz -20 dBFS, one edit every 0.6 s, 60 edits)");
         {
             sineConfig (997.0, 0.1, cfg.micRate);
             std::mt19937 rng (5);
             int adds = 0, moves = 0, bypasses = 0, removes = 0;
+            juce::StringArray editLog;
             uint64_t invalid = 0;
             {
                 EngineRun run (480, 40.0);
@@ -135,23 +136,33 @@ namespace fxtest
                     auto& c = e.getChain();
                     const int n = (int) c.entries().size();
                     const int op = n < 3 ? 0 : (int) (rng() % 4);
+                    const double t = juce::Time::getMillisecondCounterHiRes() * 0.001 - vdev::recorder().outputStart.load();
+                    juce::String what;
                     {
                         const AudioEngine::ChainEdit ce (e);
-                        if (op == 0 || n == 0) { c.addBuiltInEffect (list[(size_t) (rng() % list.size())].id); ++adds; }
-                        else if (op == 1)      { c.movePlugin ((int) (rng() % (unsigned) n), (int) (rng() % (unsigned) n)); ++moves; }
-                        else if (op == 2)      { const int i = (int) (rng() % (unsigned) n); c.setBypass (i, ! c.entries()[(size_t) i].bypassed); ++bypasses; }
-                        else                   { c.removePlugin ((int) (rng() % (unsigned) n)); ++removes; }
+                        if (op == 0 || n == 0) { const auto* id = list[(size_t) (rng() % list.size())].id; c.addBuiltInEffect (id); ++adds; what = juce::String ("add ") + id; }
+                        else if (op == 1)      { c.movePlugin ((int) (rng() % (unsigned) n), (int) (rng() % (unsigned) n)); ++moves; what = "move"; }
+                        else if (op == 2)      { const int i = (int) (rng() % (unsigned) n); c.setBypass (i, ! c.entries()[(size_t) i].bypassed); ++bypasses; what = "bypass " + c.entries()[(size_t) i].fileOrId; }
+                        else                   { const int i = (int) (rng() % (unsigned) n); what = "remove " + c.entries()[(size_t) i].fileOrId; c.removePlugin (i); ++removes; }
                         e.rebuildGraph();
                     }
+                    editLog.add (juce::String (t, 3) + " s: " + what);
                     pump (0.6);
                 }
                 pr ("    " + diagLine (e));
                 invalid = invalidBlocks (e);
             }
             const int clk = clicksIn (0.1, 997.0);
+            const int h = hiccups();
             pr ("edits: " + juce::String (adds) + " added, " + juce::String (moves) + " moved, " + juce::String (bypasses) + " bypass switches, "
-                + juce::String (removes) + " removed; clicks " + juce::String (clk) + ", invalid blocks " + juce::String ((int) invalid));
-            check (clk == 0, "chain edits: clicks");
+                + juce::String (removes) + " removed; clicks " + juce::String (clk) + ", invalid blocks " + juce::String ((int) invalid)
+                + (h > 0 ? ", device hiccups " + juce::String (h) : juce::String()));
+            if (clk > 0)
+            {
+                pr ("    clicks at " + clickTimes (0.1, 997.0));
+                for (auto& m : editLog) pr ("    " + m);
+            }
+            check (clk == 0 || h > 0, "chain edits: clicks");
             check (invalid == 0, "chain edits: invalid blocks");
         }
 
@@ -343,6 +354,7 @@ namespace fxtest
                     BuiltInGainProcessor gp; gp.setGainDb (-3.0f); gp.getStateInformation (g.state); user.add (g);
                     PluginEntryState t; t.fileOrId = "TestGain"; double v = 0.8; t.state.append (&v, sizeof (v)); user.add (t);
                 }
+                e.getKnownPlugins().addType (testDesc ("TestGain", 0.8));
                 const auto r1 = e.applyPreset ("Kendi", user);
                 (r1.morphed ? morphs : rebuilds)++;
                 pump (1.5);
@@ -390,6 +402,7 @@ namespace fxtest
             if (list.size() == 1)
             {
                 EngineRun run (480, 2.0);
+                run.engine->getKnownPlugins().addType (testDesc ("TestGain", 0.37));   // installed (as after the plug-in scan)
                 const auto r = run.engine->applyPreset (list[0].name, list[0].elements);
                 missing = r.missing;
                 pump (0.5);
