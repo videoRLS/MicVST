@@ -4,6 +4,15 @@ All notable changes to MicVST are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project follows [Semantic Versioning](https://semver.org/).
 
+## [1.2.2] - Unreleased
+
+- İşlem önceliği (process priority) in the window: Normal (default), Normalin Üstünde, Yüksek.
+  Applied at once, read back from Windows, saved; the audio threads stay MMCSS in every case.
+- A mono part of the chain (mono microphone, a mono plug-in such as RNNoise) followed by a stereo
+  plug-in feeds both of its inputs (before: the right cable channel stayed silent).
+- The shown latency includes a plug-in's latency change while running (EQ to linear phase).
+- The exe's version information says Turkish (Türkiye).
+
 ## [1.2.1] - Unreleased
 
 Focus: sound quality under heavy background load (e.g. a GPU/AI video render), no clicks when
