@@ -1,7 +1,10 @@
 # MicVST – devam notu (yeni Claude oturumu için)
 
-Yeni oturumda ilk iş: bu dosyayı baştan sona oku, sonra "Bekleyen işler"den devam et.
-Kullanıcıyla **Türkçe**, kısa konuş. **Rapor/doküman yazma** (kullanıcı okumuyor); yalnızca testleri
+> **Yeni oturum için talimat: bu notu yalnızca OKU. Kendiliğinden hiçbir işe başlama.**
+> Kod değiştirme, commit/push yapma, CI tetikleme, test başlatma yok. Notu okuduktan sonra kullanıcıya
+> kısaca (Türkçe) ne anladığını söyle ve **kullanıcının talimatını bekle**. Kullanıcı ne derse onu yap.
+
+Kullanıcıyla **Türkçe**, kısa konuş. **Rapor/doküman yazma** (kullanıcı okumuyor); iş verildiğinde testleri
 sağlam yap, sonunda exe + SHA-256 + bir iki satır ver.
 
 ## Depo ve dallar
@@ -82,7 +85,8 @@ ayarları config.xml'de saklanan ayrı elemanlar. De-esser ve Çıkış Limiteri
 onayıyla serbest; **gürültü kapısı ve kompresör hâlâ yok**. Varsayılan olarak hiçbiri zincire kendiliğinden girmez.
 
 Ton ve EQ:
-1. Low-Cut (Alçak Kesici): 60-100 Hz altı (12/24 dB/oktav), uğultu, titreşim, "p" alt ucu.
+1. Low-Cut (Alçak Kesici): 60-100 Hz altı (12/24 dB/oktav), uğultu, titreşim, "p" alt ucu. Varsayılan 75 Hz,
+   24 dB/oktav (kullanıcının sesi: temel frekans 116-139 Hz, cümle sonlarında ~100 Hz; 100 Hz üstü önerilmez).
 2. High-Cut (Yüksek Kesici): 14-18 kHz üstü, cızırtı/tıslama.
 3. Gövde / Sıcaklık: 120-250 Hz yükseltme (tok ses).
 4. Çamur Temizleyici: 300-500 Hz kısma (boğukluk, "kutu sesi").
