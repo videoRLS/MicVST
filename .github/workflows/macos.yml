@@ -1,8 +1,8 @@
 name: macos
 
 # macOS build of MicVST for the kararlilik/macos branch: a universal (Apple Silicon + Intel)
-# MicVST.app, ad-hoc signed and zipped, plus a quick test run (unit tests and short engine-test
-# modes) on Apple Silicon. Results are pushed as one commit each to
+# MicVST.app, ad-hoc signed and zipped, plus the unit tests on Apple Silicon (the engine test's
+# virtual-device harness uses Linux/Windows timing APIs and is not built on macOS). Results are pushed as one commit each to
 # ci-sonuclari/kararlilik/macos-app and ci-sonuclari/kararlilik/macos-test (fetch with plain git).
 on:
   push:
@@ -79,13 +79,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Build the tests (Apple Silicon)
+      - name: Build the unit tests (Apple Silicon)
         id: build
         run: |
           set -o pipefail
           mkdir -p results
           cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 2>&1 | tee results/configure.log
-          cmake --build build --config Release --target MicVSTTests MicVSTEngineTest -j 4 2>&1 | tee results/build.log
+          cmake --build build --config Release --target MicVSTTests -j 4 2>&1 | tee results/build.log
 
       - name: Unit tests
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
@@ -93,19 +93,6 @@ jobs:
           set -o pipefail
           ./build/MicVSTTests_artefacts/Release/MicVSTTests 2>&1 | tee results/unit-tests.txt
           echo "exit code: ${PIPESTATUS[0]}" | tee -a results/unit-tests.txt
-
-      - name: Engine test, short modes (real engine, virtual devices)
-        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
-        continue-on-error: true
-        run: |
-          mkdir -p results/engine
-          for m in edits devices mono latency faults hotplug openfail; do
-            start=$(date +%s)
-            ./build/MicVSTEngineTest_artefacts/Release/MicVSTEngineTest $m > results/engine/$m.txt 2>&1
-            code=$?
-            echo "-- exit code $code, $(( $(date +%s) - start )) s" >> results/engine/$m.txt
-            echo "$m: exit $code"
-          done | tee results/engine/summary.txt
 
       - name: Publish
         if: ${{ !cancelled() }}
