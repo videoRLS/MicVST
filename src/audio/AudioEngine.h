@@ -279,6 +279,12 @@ private:
     std::atomic<uint64_t> threadWallTicks { 0 }, threadCpuTicks { 0 };
     std::atomic<double>   logPeakLoad { 0.0 }, logPeakBacklogMs { 0.0 };   // max since the last log line
     std::atomic<bool>     processingMmcss { false };
+   #if JUCE_MAC
+    // macOS / Apple Silicon: the microphone device's CoreAudio audio workgroup. The plug-in thread
+    // joins it, so the system schedules it with the device's deadline (performance cores).
+    juce::AudioWorkgroup  inputWorkgroup;                                     // set while the thread is stopped
+    std::atomic<bool>     processingInWorkgroup { false };
+   #endif
 
     // Chain edits (see ChainEdit)
     static constexpr double editFadeSeconds = 0.005;

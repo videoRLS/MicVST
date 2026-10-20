@@ -1,7 +1,6 @@
 name: macos
 
-# macOS build of MicVST for the kararlilik/macos branch: a universal (Apple Silicon + Intel)
-# MicVST.app, ad-hoc signed and zipped, plus the unit tests on Apple Silicon (the engine test's
+# macOS build of MicVST for the kararlilik/macos branch: an Apple Silicon (arm64) MicVST.app, ad-hoc signed and zipped, plus the unit tests on Apple Silicon (the engine test's
 # virtual-device harness uses Linux/Windows timing APIs and is not built on macOS). Results are pushed as one commit each to
 # ci-sonuclari/kararlilik/macos-app and ci-sonuclari/kararlilik/macos-test (fetch with plain git).
 on:
@@ -19,10 +18,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Configure (universal, macOS 11+)
+      - name: Configure (Apple Silicon arm64, macOS 11+)
         run: |
           mkdir -p results
-          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64" \
                 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 2>&1 | tee results/configure.log
 
       - name: Build MicVST.app
@@ -47,9 +46,9 @@ jobs:
           /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP/Contents/Info.plist" | sed 's/^/CFBundleIdentifier: /' | tee -a results/app-check.txt
           /usr/libexec/PlistBuddy -c "Print :NSMicrophoneUsageDescription" "$APP/Contents/Info.plist" | sed 's/^/NSMicrophoneUsageDescription: /' | tee -a results/app-check.txt
           otool -L "$APP/Contents/MacOS/MicVST" | tee results/linked-libraries.txt
-          ditto -c -k --sequesterRsrc --keepParent "$APP" results/MicVST-macOS.zip
-          ls -la results/MicVST-macOS.zip | tee -a results/app-check.txt
-          shasum -a 256 results/MicVST-macOS.zip | tee results/MicVST-macOS.zip.sha256.txt
+          ditto -c -k --sequesterRsrc --keepParent "$APP" results/MicVST-macOS-AppleSilicon.zip
+          ls -la results/MicVST-macOS-AppleSilicon.zip | tee -a results/app-check.txt
+          shasum -a 256 results/MicVST-macOS-AppleSilicon.zip | tee results/MicVST-macOS-AppleSilicon.zip.sha256.txt
           shasum -a 256 "$APP/Contents/MacOS/MicVST" | tee -a results/app-check.txt
 
       - name: Start check (the app opens and keeps running for 20 s)

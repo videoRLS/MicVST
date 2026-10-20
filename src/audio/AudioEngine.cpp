@@ -379,6 +379,9 @@ void AudioEngine::inputAboutToStart (juce::AudioIODevice* device)
     seenEditGeneration = chainEditGeneration.load();
     rebuildGraph();   // IO node channel count may have changed (mono <-> stereo microphone)
     inputRunningFlag.store (true);
+   #if JUCE_MAC
+    inputWorkgroup = device->getWorkgroup();   // the plug-in thread is stopped here; it joins at start
+   #endif
     startProcessing();
 
     juce::Logger::writeToLog (tr ("Giriş başladı: ") + describe (device) + tr (" | kanal ") + juce::String (ins)
@@ -469,6 +472,12 @@ void AudioEngine::processingLoop()
 {
     const rt::ProcessingThreadSetup setup;   // MMCSS "Pro Audio" + no power throttling, while it runs
     processingMmcss.store (setup.mmcssActive());
+   #if JUCE_MAC
+    juce::WorkgroupToken workgroupToken;     // leaves the workgroup when the thread ends
+    if (inputWorkgroup)
+        inputWorkgroup.join (workgroupToken);
+    processingInWorkgroup.store (static_cast<bool> (workgroupToken));
+   #endif
 
     while (! processingThread.threadShouldExit())
     {
@@ -878,7 +887,12 @@ void AudioEngine::timerCallback()
         processingThreadLogged = true;
         juce::Logger::writeToLog (tr ("Eklenti iş parçacığı: ")
                                   + (processingMmcss.load() ? tr ("MMCSS 'Pro Audio' (cihaz iş parçacıklarının bir altında)")
-                                                            : tr ("MMCSS kullanılamıyor - zaman-kritik öncelik")));
+                                                            : tr ("MMCSS kullanılamıyor - zaman-kritik öncelik"))
+                                 #if JUCE_MAC
+                                  + (processingInWorkgroup.load() ? tr (", mikrofonun ses iş grubunda (performans çekirdekleri)")
+                                                                  : tr (", ses iş grubu yok"))
+                                 #endif
+                                  );
     }
 
     lastLoggedOverloads = ov;
