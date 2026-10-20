@@ -1,6 +1,7 @@
 #pragma once
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "audio/AutoGain.h"
+#include "audio/BuiltInEffects.h"
 #include "audio/GraphConnections.h"
 #include <atomic>
 #include <vector>
@@ -56,6 +57,20 @@ public:
     bool isAutoGainEnabled (int index) const;
     // Pegel seit dem letzten Aufruf + aktuell angewendete Verstärkung; false = kein Auto-Gain-Glied.
     bool takeAutoGainMeters (int index, AutoGainStage::Meters& out);
+
+    // Built-in effects (BuiltInEffects.h: EQ, cleaning, colour, limiter, meters, ...): ids
+    // "builtin:lowcut" etc. addBuiltInEffect appends one (default settings); false = unknown id.
+    static bool isBuiltInEffectId (const juce::String& id) { return builtin::isEffectId (id); }
+    bool addBuiltInEffect (const juce::String& id);
+    BuiltInEffect* getBuiltInEffect (int index) const;   // nullptr = not a built-in effect
+
+    // Presets: elements are created at the end of the chain list, then taken out again (takeLast) -
+    // their nodes are in the graph but not wired, so they are silent and the running chain is not
+    // touched while plug-ins load. appendEntry puts such an element back into the list.
+    Entry takeLast();
+    void  appendEntry (const Entry& e) { chain.push_back (e); }
+    // Otomatik Kazanç for a preset being prepared while the running chain still has its own.
+    bool  addAutoGainForPreset (bool enabled);
 
     void removePlugin (int index);
     void movePlugin (int from, int to);

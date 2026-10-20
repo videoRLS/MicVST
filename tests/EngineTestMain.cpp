@@ -1835,6 +1835,7 @@ namespace
 
    #include "enginetest/Vst3Suite.inc"
    #include "enginetest/PriorityTest.inc"
+   #include "enginetest/EffectsTest.inc"
 }
 #endif
 
@@ -2107,6 +2108,7 @@ int main (int argc, char** argv)
    #if MICVST_NEW_ENGINE
     else if (mode == "gain") gainTest (argc > 2 ? std::atof (argv[2]) : 20.0);   // seconds per live-slider run
     else if (mode == "autogain") autoGainTest();
+    else if (mode == "effects") { if (argc > 2) fxtest::only = argv[2]; fxtest::run(); }   // built-in effects: alone, edits, all at once, live parameters, restore, mono
    #endif
     else if (mode == "long") longRun (argc > 2 ? std::atof (argv[2]) : 10.0, false);
     else if (mode == "chaos") longRun (argc > 2 ? std::atof (argv[2]) : 10.0, true);
@@ -2814,5 +2816,5 @@ int main (int argc, char** argv)
    #endif
 
     juce::Logger::setCurrentLogger (nullptr);
-    return 0;
+    return fxtest::failures > 0 ? 1 : 0;
 }

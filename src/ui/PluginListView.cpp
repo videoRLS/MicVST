@@ -3,6 +3,7 @@
 #include "audio/GainStage.h"
 #include "audio/PluginChain.h"
 #include "ui/PluginPicker.h"
+#include "state/Presets.h"
 #include "Text.h"
 
 using micvst::tr;
@@ -16,6 +17,7 @@ namespace
         if (e.fileOrId == PluginChain::stereoToMonoId) return "Stereo -> Mono";
         if (e.fileOrId == PluginChain::gainId)         return tr ("Kazanç");
         if (e.fileOrId == PluginChain::autoGainId)     return tr ("Otomatik Kazanç");
+        if (auto* fxInfo = builtin::find (e.fileOrId)) return juce::String::fromUTF8 (fxInfo->name);
         // Name des Plugins selbst (eine Datei kann viele enthalten), sonst der Dateiname
         return e.pluginName.isNotEmpty() ? e.pluginName : juce::File (e.fileOrId).getFileNameWithoutExtension();
     }
@@ -107,6 +109,24 @@ PluginListView::Row::Row (PluginListView& ownerIn, int idx) : owner (ownerIn), i
         addAndMakeVisible (gainSlider);
     }
 
+    if (auto* fxProc = owner.engine.getChain().getBuiltInEffect (index);
+        fxProc != nullptr && juce::String (fxProc->getInfo().id) == "builtin:mute")
+    {
+        isMuteRow = true;
+        muteToggle.setButtonText (tr ("Sessiz"));
+        muteToggle.setToggleState (fxProc->getParam ("muted") > 0.5f, juce::dontSendNotification);
+        muteToggle.setTooltip (tr ("Sesi tıksız susturur (15 ms yumuşak geçiş); tekrar tıklayınca ses geri gelir."));
+        muteToggle.onClick = [this]
+        {
+            if (auto* m = owner.engine.getChain().getBuiltInEffect (index))
+                m->setParam ("muted", muteToggle.getToggleState() ? 1.0f : 0.0f);
+            owner.engine.markPresetModified();
+            owner.updatePresetBox();
+            owner.engine.requestPersist();
+        };
+        addAndMakeVisible (muteToggle);
+    }
+
     isAutoGainRow = owner.engine.getChain().isAutoGain (index);
     if (isAutoGainRow)
     {
@@ -167,6 +187,9 @@ void PluginListView::Row::resized()
 
     if (isAutoGainRow)
         autoToggle.setBounds (nameX + autoNameW, 3, autoToggleW, getHeight() - 6);
+
+    if (isMuteRow)
+        muteToggle.setBounds (nameX + muteNameW, 3, autoToggleW + 8, getHeight() - 6);
 }
 
 void PluginListView::Row::paint (juce::Graphics& g)
@@ -211,7 +234,7 @@ void PluginListView::Row::paint (juce::Graphics& g)
     // Name (auf den Platz links der Latenz-Spalte begrenzt; in Kazanç-Zeilen vor dem Regler).
     const auto name = displayName (e);
     g.setColour (e.bypassed ? micvst::theme::textDim : micvst::theme::textBright);
-    const int nameW = isGainRow ? gainNameW - 6 : isAutoGainRow ? autoNameW - 6 : latLeft - 6 - nameX;
+    const int nameW = isGainRow ? gainNameW - 6 : isAutoGainRow ? autoNameW - 6 : isMuteRow ? muteNameW - 6 : latLeft - 6 - nameX;
     g.drawText (name, nameX, 0, nameW, b.getHeight(), juce::Justification::centredLeft);
 
     g.setColour (micvst::theme::textDim);
@@ -273,6 +296,19 @@ PluginListView::PluginListView (AudioEngine& e) : engine (e)
     addAndMakeVisible (manageFoldersBtn);
     manageFoldersBtn.onClick = [this] { showFolderMenu(); };
 
+    presetBox.setTextWhenNothingSelected (tr ("Hazır ayar seçin"));
+    presetBox.setTooltip (tr ("Hazır ayarlar: tüm zincir tek tıkla değişir. Dahili hazır ayarlar yalnızca dahili efektleri kullanır "
+                              "(herkeste çalışır); \"Kendi ayarlarım\" sizin kaydettiğiniz zincirlerdir (VST3 eklentileri ve "
+                              "ayarlarıyla birlikte). Aynı elemanlardan oluşan ayarlar arasında geçişte ayarlar yumuşakça kayar; "
+                              "farklı zincirde kısa bir geçiş (birkaç ms) olur. * : zincir yüklendikten sonra değiştirildi."));
+    presetBox.onChange = [this] { presetChosen(); };
+    addAndMakeVisible (presetBox);
+    presetMenuBtn.setButtonText (tr ("Kaydet"));
+    presetMenuBtn.setTooltip (tr ("Zinciri kendi ayarınız olarak kaydedin; yeniden adlandırın, silin ya da önceki zincire dönün"));
+    presetMenuBtn.onClick = [this] { showPresetMenu(); };
+    addAndMakeVisible (presetMenuBtn);
+    refreshPresetList();
+
     viewport.setViewedComponent (&rowsHolder, false);
     viewport.setScrollBarsShown (true, false);
     addAndMakeVisible (viewport);
@@ -320,7 +356,12 @@ PluginListView::~PluginListView()
 void PluginListView::timerCallback()
 {
     for (auto* r : rows)
+    {
         r->repaint();   // nur neu zeichnen; die Latenz wird in Row::paint frisch gelesen
+        if (r->isMuteRow)   // im Einstellungsfenster geändert?
+            if (auto* m = engine.getChain().getBuiltInEffect (r->index))
+                r->muteToggle.setToggleState (m->getParam ("muted") > 0.5f, juce::dontSendNotification);
+    }
 
     if (gainPersistPending && juce::Time::getMillisecondCounter() - lastGainChangeMs >= 400)
     {
@@ -333,6 +374,8 @@ void PluginListView::autoGainToggled (int index, bool on)
 {
     // Kein Graph-Umbau: nur der Schalter (atomar). Aus = der Auto-Anteil gleitet auf 0 dB zurück.
     engine.getChain().setAutoGainEnabled (index, on);
+    engine.markPresetModified();
+    updatePresetBox();
     engine.requestPersist();
 }
 
@@ -341,6 +384,7 @@ void PluginListView::gainChanged (int index, float gainDb)
     // Kein ChainEdit, kein Graph-Umbau: nur der Zielwert ändert sich (atomar); der Plugin-Thread
     // gleitet in ~40 ms dorthin (GainStage).
     engine.getChain().setGainDb (index, gainDb);
+    engine.markPresetModified();
     gainPersistPending = true;
     lastGainChangeMs = juce::Time::getMillisecondCounter();
 }
@@ -351,7 +395,13 @@ void PluginListView::resized()
     auto top = r.removeFromTop (30);
     constexpr int btnH = 26;   // einheitliche Button-Höhe (wie Row-/DevicePanel-Buttons)
     addBtn.setBounds (top.removeFromLeft (110).withSizeKeepingCentre (106, btnH));
-    manageFoldersBtn.setBounds (top.removeFromRight (200).withSizeKeepingCentre (196, btnH));   // rechtsbündig
+    manageFoldersBtn.setBounds (top.removeFromRight (150).withSizeKeepingCentre (146, btnH));   // rechtsbündig
+    // Hazır ayarlar between them: the list and its menu (save, rename, delete, back)
+    top.removeFromLeft (4);
+    top.removeFromRight (8);
+    presetMenuBtn.setBounds (top.removeFromRight (86).withSizeKeepingCentre (86, btnH));
+    top.removeFromRight (4);
+    presetBox.setBounds (top.withSizeKeepingCentre (top.getWidth(), btnH));
     r.removeFromTop (4);
 
     if (scanLabel.isVisible())
@@ -398,8 +448,10 @@ void PluginListView::commitChange()
 {
     // Läuft NACH dem ChainEdit-Block (Graph ist schon umgebaut): erst dann speichern - das
     // Serialisieren aller Plugin-Zustände soll die Stummschaltung nicht verlängern.
+    engine.markPresetModified();   // the chain differs from the preset loaded last
     engine.requestPersist();   // App persistiert den Gesamtzustand (nicht nur captureState)
     rebuildRows();
+    updatePresetBox();
 }
 
 void PluginListView::requestRemove (int index)
@@ -480,6 +532,14 @@ void PluginListView::showPluginPicker()
     autoGain.name = tr ("Otomatik Kazanç (Auto Gain)"); autoGain.manufacturerName = tr ("Dahili");
     autoGain.fileOrIdentifier = PluginChain::autoGainId;
     entries.add (autoGain);
+    for (auto& fxInfo : builtin::effects())   // Dahili efektler, gruplu ("Dahili - Ton ve EQ", ...)
+    {
+        juce::PluginDescription d;
+        d.name = juce::String::fromUTF8 (fxInfo.name);
+        d.manufacturerName = juce::String::fromUTF8 (fxInfo.group);
+        d.fileOrIdentifier = fxInfo.id;
+        entries.add (d);
+    }
     entries.addArray (engine.getKnownPlugins().getTypes());
 
     // SafePointer: die CallOutBox lebt auf dem Desktop und kann die View überleben.
@@ -501,6 +561,17 @@ void PluginListView::addFromPicker (const juce::PluginDescription& desc)
         {
             const AudioEngine::ChainEdit edit (engine);
             engine.getChain().addAutoGain();   // ans Ende, eingeschaltet
+            engine.rebuildGraph();
+        }
+        commitChange();
+        return;
+    }
+
+    if (PluginChain::isBuiltInEffectId (desc.fileOrIdentifier))
+    {
+        {
+            const AudioEngine::ChainEdit edit (engine);
+            engine.getChain().addBuiltInEffect (desc.fileOrIdentifier);   // ans Ende, Standardwerte
             engine.rebuildGraph();
         }
         commitChange();
@@ -646,9 +717,14 @@ void PluginListView::openEditor (int row)
     auto* proc = node->getProcessor();
     if (proc == nullptr || ! proc->hasEditor()) return;
 
+    juce::MemoryBlock stateAtOpen;
+    proc->getStateInformation (stateAtOpen);
     auto* w = new EditorWindow (proc->getName(),
-                                [this] (EditorWindow* self)
+                                [this, proc, stateAtOpen] (EditorWindow* self)
                                 {
+                                    juce::MemoryBlock now;
+                                    proc->getStateInformation (now);
+                                    if (now != stateAtOpen) { engine.markPresetModified(); updatePresetBox(); }
                                     editorWindows.removeObject (self);
                                     // Parameter-Änderungen im Editor sofort sichern (1.1.1: erst beim
                                     // Verstecken/Beenden -> nach Absturz/Stromausfall verloren).
@@ -681,4 +757,188 @@ void PluginListView::updateScanUi()
         skipLabel.setTooltip (tip.trimEnd());
     }
     resized();
+}
+
+// ============================ Hazır ayarlar ============================
+
+void PluginListView::refreshPresetList()
+{
+    presetBox.clear (juce::dontSendNotification);
+    userPresets = presets::loadUserPresets();
+    presetBox.addSectionHeading (tr ("Hazır ayarlar (dahili efektler)"));
+    int id = factoryIdBase;
+    for (auto& p : presets::factoryPresets())
+        presetBox.addItem (p.name, id++);
+    presetBox.addSectionHeading (tr ("Kendi ayarlarım"));
+    if (userPresets.empty())
+        presetBox.addItem (tr ("(henüz yok - \"Kaydet\" ile ekleyin)"), emptyUserId), presetBox.setItemEnabled (emptyUserId, false);
+    id = userIdBase;
+    for (auto& p : userPresets)
+        presetBox.addItem (p.name, id++);
+    shownPresetName.clear();
+    updatePresetBox();
+}
+
+void PluginListView::updatePresetBox()
+{
+    const auto name = engine.getPresetName();
+    const bool modified = engine.isPresetModified();
+    if (name == shownPresetName && modified == shownPresetModified && presetBox.getSelectedId() == 0)
+        return;
+    shownPresetName = name;
+    shownPresetModified = modified;
+    presetBox.setSelectedId (0, juce::dontSendNotification);   // no item ticked: the text shows the state
+    if (name.isEmpty()) presetBox.setText ({}, juce::dontSendNotification);
+    else                presetBox.setText (name + (modified ? " *" : ""), juce::dontSendNotification);
+}
+
+void PluginListView::presetChosen()
+{
+    const int id = presetBox.getSelectedId();
+    if (id == 0) return;
+    juce::String name;
+    juce::Array<PluginEntryState> elements;
+    const auto& factory = presets::factoryPresets();
+    if (id >= factoryIdBase && id < factoryIdBase + (int) factory.size())
+    {
+        name = factory[(size_t) (id - factoryIdBase)].name;
+        elements = factory[(size_t) (id - factoryIdBase)].elements;
+    }
+    else if (id >= userIdBase && id < userIdBase + (int) userPresets.size())
+    {
+        // read the file again: it is the truth (it may have been replaced meanwhile)
+        const auto& chosen = userPresets[(size_t) (id - userIdBase)];
+        presets::Preset fresh;
+        auto xml = juce::XmlDocument::parse (chosen.file);
+        if (xml == nullptr || ! presets::fromXml (*xml, fresh))
+        {
+            juce::NativeMessageBox::showAsync (juce::MessageBoxOptions::makeOptionsOk (juce::MessageBoxIconType::WarningIcon,
+                tr ("Ayar yüklenemedi"), tr ("Dosya okunamadı: ") + chosen.file.getFullPathName(), tr ("Tamam")), [] (int) {});
+            refreshPresetList();
+            return;
+        }
+        name = fresh.name;
+        elements = fresh.elements;
+    }
+    else return;
+
+    editorWindows.clear();   // the windows belong to the elements being replaced
+    const auto result = engine.applyPreset (name, elements);
+    juce::Logger::writeToLog (tr ("Hazır ayar yüklendi: ") + name + (result.morphed ? tr (" (ayarlar kaydırıldı)") : tr (" (zincir değişti)")));
+    engine.requestPersist();
+    rebuildRows();
+    shownPresetName.clear();
+    updatePresetBox();
+    if (! result.missing.isEmpty())
+        juce::NativeMessageBox::showAsync (juce::MessageBoxOptions::makeOptionsOk (juce::MessageBoxIconType::WarningIcon,
+            tr ("Bazı eklentiler bulunamadı"),
+            tr ("Bu ayardaki şu eklentiler bu bilgisayarda yok ya da yüklenemedi; onlar olmadan yüklendi:\n")
+                + result.missing.joinIntoString ("\n"), tr ("Tamam")), [] (int) {});
+}
+
+bool PluginListView::currentIsUserPreset() const
+{
+    for (auto& p : userPresets)
+        if (p.name == engine.getPresetName()) return true;
+    return false;
+}
+
+void PluginListView::showPresetMenu()
+{
+    const bool user = currentIsUserPreset();
+    const auto current = engine.getPresetName();
+    juce::PopupMenu m;
+    m.addItem (1, tr ("Yeni ayar olarak kaydet..."));
+    m.addItem (2, user ? tr ("\"") + current + tr ("\" üzerine kaydet") : tr ("Üzerine kaydet (kendi ayarınızı seçin)"), user);
+    m.addSeparator();
+    m.addItem (3, tr ("Yeniden adlandır..."), user);
+    m.addItem (4, tr ("Sil..."), user);
+    m.addSeparator();
+    m.addItem (5, tr ("Önceki zincire dön"), engine.canUndoPreset());
+    m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (&presetMenuBtn),
+        [this, current] (int res)
+        {
+            if (res == 1) askPresetName (tr ("Ayarı kaydet"), tr ("Bu zincir (tüm efektler ve eklentiler, ayarlarıyla) hangi adla kaydedilsin?"),
+                                         {}, [this] (const juce::String& n) { savePresetAs (n); });
+            if (res == 2) savePresetAs (current, true);
+            if (res == 3) askPresetName (tr ("Yeniden adlandır"), tr ("Yeni ad:"), current,
+                                         [this, current] (const juce::String& n)
+                                         {
+                                             juce::String err;
+                                             if (! presets::renameUserPreset (current, n, err)) { showPresetError (err); return; }
+                                             engine.setPresetName (n.trim(), engine.isPresetModified());
+                                             engine.requestPersist();
+                                             refreshPresetList();
+                                         });
+            if (res == 4)
+            {
+                const auto options = juce::MessageBoxOptions::makeOptionsOkCancel (juce::MessageBoxIconType::QuestionIcon,
+                    tr ("Ayarı sil"), "\"" + current + tr ("\" silinsin mi? (Şu anki zincir değişmez.)"), tr ("Sil"), tr ("İptal"));
+                juce::NativeMessageBox::showAsync (options, [this, current] (int r)
+                {
+                    if (r != 0) return;
+                    if (! presets::deleteUserPreset (current)) { showPresetError (tr ("Silinemedi.")); return; }
+                    engine.setPresetName ({}, false);
+                    engine.requestPersist();
+                    refreshPresetList();
+                });
+            }
+            if (res == 5)
+            {
+                editorWindows.clear();
+                engine.undoPreset();
+                engine.requestPersist();
+                rebuildRows();
+                shownPresetName.clear();
+                updatePresetBox();
+            }
+        });
+}
+
+void PluginListView::savePresetAs (const juce::String& name, bool overwrite)
+{
+    // a new name that is already a user preset: ask before replacing it
+    if (! overwrite)
+        for (auto& p : userPresets)
+            if (p.name == name.trim())
+            {
+                const auto options = juce::MessageBoxOptions::makeOptionsOkCancel (juce::MessageBoxIconType::QuestionIcon,
+                    tr ("Ayarı kaydet"), "\"" + p.name + tr ("\" zaten var. Üzerine kaydedilsin mi?"), tr ("Üzerine kaydet"), tr ("İptal"));
+                juce::NativeMessageBox::showAsync (options, [this, name] (int r) { if (r == 0) savePresetAs (name, true); });
+                return;
+            }
+    juce::String err;
+    if (! presets::saveUserPreset (name, engine.captureChain(), err)) { showPresetError (err); return; }
+    engine.setPresetName (name.trim(), false);
+    engine.requestPersist();
+    refreshPresetList();
+}
+
+void PluginListView::showPresetError (const juce::String& text)
+{
+    juce::NativeMessageBox::showAsync (juce::MessageBoxOptions::makeOptionsOk (juce::MessageBoxIconType::WarningIcon,
+        tr ("Hazır ayar"), text, tr ("Tamam")), [] (int) {});
+}
+
+void PluginListView::askPresetName (const juce::String& title, const juce::String& message, const juce::String& initial,
+                                    std::function<void (const juce::String&)> onOk)
+{
+    auto* w = new juce::AlertWindow (title, message, juce::MessageBoxIconType::NoIcon, this);
+    w->addTextEditor ("name", initial, tr ("Ad"));
+    w->addButton (tr ("Kaydet"), 1, juce::KeyPress (juce::KeyPress::returnKey));
+    w->addButton (tr ("İptal"), 0, juce::KeyPress (juce::KeyPress::escapeKey));
+    juce::Component::SafePointer<juce::AlertWindow> safe (w);
+    juce::Component::SafePointer<PluginListView> self (this);
+    w->enterModalState (true, juce::ModalCallbackFunction::create ([safe, self, onOk] (int result)
+    {
+        std::unique_ptr<juce::AlertWindow> owned (safe.getComponent());
+        if (result != 1 || owned == nullptr || self == nullptr) return;
+        const auto name = owned->getTextEditorContents ("name").trim();
+        if (const auto problem = presets::nameProblem (name); problem.isNotEmpty())
+        {
+            self->showPresetError (problem);
+            return;
+        }
+        onOk (name);
+    }), false);
 }

@@ -69,6 +69,27 @@ public:
     MicVSTState captureState();
     void        applyState (const MicVSTState&);
 
+    // --- Hazır ayarlar (presets, state/Presets.h) ---
+    // The chain as it is now (every element with its state) - what a user preset saves.
+    juce::Array<PluginEntryState> captureChain();
+    struct PresetResult
+    {
+        bool morphed = false;          // same elements: only the settings glided (no chain edit)
+        juce::StringArray missing;     // plug-ins of the preset that are not installed (skipped)
+    };
+    // Makes the chain the preset's. Same elements in the same order (e.g. between the factory
+    // presets): every setting glides to its new value, nothing is rebuilt. Otherwise the new
+    // elements are created and loaded first (unconnected, silent - the old chain keeps playing),
+    // then swapped in one chain edit (short fade). The chain before is kept for undoPreset().
+    // Message thread.
+    PresetResult applyPreset (const juce::String& name, const juce::Array<PluginEntryState>& elements);
+    bool canUndoPreset() const { return hasUndoChain; }
+    void undoPreset();
+    const juce::String& getPresetName() const { return presetName; }
+    bool isPresetModified() const { return presetModified; }
+    void setPresetName (const juce::String& name, bool modified) { presetName = name; presetModified = modified; }
+    void markPresetModified() { if (presetName.isNotEmpty()) presetModified = true; }
+
     bool isRunning() const;   // microphone running (and the output, if one is selected)
     std::function<void()> onStatusChanged;
     std::function<void()> onDeviceChanged;
@@ -333,6 +354,15 @@ private:
     juce::StringArray scanRoots() const;
     juce::StringArray listVst3Files() const;
     void restoreChain (const juce::Array<PluginEntryState>& plugins);
+    // Creates one element at the end of the chain list with its state and bypass; false = skipped
+    // (unknown, not installed or not loadable - logged; missing gets its name). forPreset: a second
+    // Otomatik Kazanç is allowed (the running chain may still have one).
+    bool addElement (const PluginEntryState&, bool forPreset, juce::StringArray* missing = nullptr);
+    juce::String presetName;
+    bool presetModified = false;
+    juce::Array<PluginEntryState> undoChain;
+    juce::String undoPresetName;
+    bool undoPresetModified = false, hasUndoChain = false;
     std::unique_ptr<juce::PluginDescription> findPluginType (const PluginEntryState&, bool warnIfAmbiguous) const;
     void handleScanFinished (const ScanOutcome&);
     void pruneOutsideFolders();

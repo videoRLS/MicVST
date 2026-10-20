@@ -23,12 +23,19 @@ struct MicVSTState
     juce::Array<PluginEntryState> plugins;
     juce::StringArray pluginFolders;   // zusätzliche VST3-Suchordner
     juce::String windowState;          // DocumentWindow::getWindowStateAsString() (Größe/Position)
+    juce::String presetName;           // the preset last loaded (Hazır ayar; empty = none)
+    bool presetModified = false;       // the chain was changed after loading it
     // (Kein Update-Check mehr: MicVST 1.2 hat keinerlei Netzwerkzugriff. Die alten Felder
     //  updateCheckEnabled/-Asked/lastNotifiedVersion in bestehenden config.xml werden ignoriert.)
 };
 
 juce::ValueTree  toValueTree (const MicVSTState&);
 MicVSTState    fromValueTree (const juce::ValueTree&);
+
+// The chain list alone (<plugins><plugin .../>...</plugins>) - config.xml and the preset files.
+// Entries without fileOrId are skipped on reading.
+juce::ValueTree               pluginsToValueTree (const juce::Array<PluginEntryState>&);
+juce::Array<PluginEntryState> pluginsFromValueTree (const juce::ValueTree&);
 
 // Datei unter %APPDATA%\MicVST\config.xml
 juce::File    configFile();

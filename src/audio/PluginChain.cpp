@@ -173,6 +173,24 @@ bool PluginChain::addAutoGain (bool enabled)
     return true;
 }
 
+bool PluginChain::addAutoGainForPreset (bool enabled)
+{
+    auto proc = std::make_unique<BuiltInAutoGainProcessor>();
+    proc->setAutoGainEnabled (enabled);
+    auto node = graph.addNode (std::move (proc));
+    if (node == nullptr) return false;
+    chain.push_back ({ node->nodeID, autoGainId, false });
+    return true;
+}
+
+PluginChain::Entry PluginChain::takeLast()
+{
+    jassert (! chain.empty());
+    auto e = chain.back();
+    chain.pop_back();
+    return e;
+}
+
 bool PluginChain::hasAutoGain() const
 {
     for (auto& e : chain)
@@ -219,6 +237,24 @@ bool PluginChain::takeAutoGainMeters (int index, AutoGainStage::Meters& out)
             return true;
         }
     return false;
+}
+
+bool PluginChain::addBuiltInEffect (const juce::String& id)
+{
+    auto proc = builtin::create (id);
+    if (proc == nullptr) return false;
+    auto node = graph.addNode (std::move (proc));
+    if (node == nullptr) return false;
+    chain.push_back ({ node->nodeID, id, false });
+    return true;
+}
+
+BuiltInEffect* PluginChain::getBuiltInEffect (int index) const
+{
+    if (juce::isPositiveAndBelow (index, (int) chain.size()) && isBuiltInEffectId (chain[(size_t) index].fileOrId))
+        if (auto* node = graph.getNodeForId (chain[(size_t) index].node))
+            return dynamic_cast<BuiltInEffect*> (node->getProcessor());
+    return nullptr;
 }
 
 void PluginChain::removePlugin (int index)
@@ -283,9 +319,19 @@ void PluginChain::rebuildConnections()
         if (! e.bypassed)   // gebypasste Glieder überspringen
         {
             seq.push_back (channelsOf (e.node));
-            seq.back().passThrough = (e.fileOrId == gainId || e.fileOrId == autoGainId);   // übernehmen die Breite davor
+            // übernehmen die Breite davor: Kazanç, Otomatik Kazanç und die kanalneutralen Dahili-Effekte
+            const auto* fxInfo = builtin::find (e.fileOrId);
+            seq.back().passThrough = (e.fileOrId == gainId || e.fileOrId == autoGainId)
+                                      || (fxInfo != nullptr && ! fxInfo->stereo);
         }
     seq.push_back (channelsOf (outputNode));
+
+    // Each built-in effect learns how many channels really reach it (1 or 2). A stereo effect behind
+    // a mono part gets the one channel on both inputs, so it works on two.
+    for (auto& nc : resolveChainWidths (seq))
+        if (auto* n = graph.getNodeForId (nc.id))
+            if (auto* fxProc = dynamic_cast<BuiltInEffect*> (n->getProcessor()))
+                fxProc->setActiveChannels (fxProc->getInfo().stereo ? 2 : nc.numIns);
 
     int channelsIntoOutput = 0;
     for (auto& cc : computeChainConnections (seq))

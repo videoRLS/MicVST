@@ -42,11 +42,18 @@ add_library(MicVSTCore STATIC
     src/audio/AudioBridge.cpp
     src/audio/BuiltInAutoGain.cpp
     src/audio/BuiltInGain.cpp
+    src/audio/BuiltInEffects.cpp
+    src/audio/fx/EqEffects.cpp
+    src/audio/fx/ColourEffects.cpp
+    src/audio/fx/LevelEffects.cpp
+    src/audio/fx/MeterEffects.cpp
+    src/ui/BuiltInEffectEditor.cpp
     src/audio/RealtimeSupport.cpp
     src/audio/Metering.cpp
     src/audio/GraphConnections.cpp
     src/audio/ScanCoordinator.cpp
     src/state/Persistence.cpp
+    src/state/Presets.cpp
     src/state/PluginScanCache.cpp
     src/ui/PluginSearch.cpp
     src/Text.cpp
@@ -56,6 +63,7 @@ target_include_directories(MicVSTCore PUBLIC src)
 target_link_libraries(MicVSTCore PUBLIC
     juce::juce_audio_basics
     juce::juce_audio_processors
+    juce::juce_dsp
     juce::juce_core
     juce::juce_data_structures
 )
@@ -119,6 +127,8 @@ target_sources(MicVSTTests PRIVATE
     tests/TextTests.cpp
     tests/GainTests.cpp
     tests/AutoGainTests.cpp
+    tests/EffectTests.cpp
+    src/audio/PluginChain.cpp
 )
 target_include_directories(MicVSTTests PRIVATE tests)
 target_compile_definitions(MicVSTTests PRIVATE
@@ -161,7 +171,7 @@ target_sources(MicVSTSnapshot PRIVATE
     src/ui/LevelMeterComponent.cpp
     src/state/AutostartRegistry.cpp
 )
-target_include_directories(MicVSTSnapshot BEFORE PRIVATE tests/snapshot)
+target_include_directories(MicVSTSnapshot BEFORE PRIVATE tests/snapshot tests)
 target_compile_definitions(MicVSTSnapshot PRIVATE
     MICVST_VERSION_STRING="${PROJECT_VERSION}"
     JUCE_MODAL_LOOPS_PERMITTED=1

@@ -7,7 +7,8 @@ namespace ids
         priority ("processPriority"),
         window ("windowState"),
         plugins ("plugins"), plugin ("plugin"), fileId ("fileOrId"), byp ("bypassed"), blob ("state"),
-        pluginId ("pluginId"), pluginName ("pluginName"), pluginUid ("pluginUid");
+        pluginId ("pluginId"), pluginName ("pluginName"), pluginUid ("pluginUid"),
+        preset ("presetName"), presetModified ("presetModified");
 }
 
 juce::ValueTree toValueTree (const MicVSTState& s)
@@ -22,8 +23,19 @@ juce::ValueTree toValueTree (const MicVSTState& s)
     t.setProperty (ids::folders, s.pluginFolders.joinIntoString ("\n"), nullptr);
     t.setProperty (ids::window, s.windowState, nullptr);
 
+    if (s.presetName.isNotEmpty())
+    {
+        t.setProperty (ids::preset, s.presetName, nullptr);
+        t.setProperty (ids::presetModified, s.presetModified, nullptr);
+    }
+    t.appendChild (pluginsToValueTree (s.plugins), nullptr);
+    return t;
+}
+
+juce::ValueTree pluginsToValueTree (const juce::Array<PluginEntryState>& plugins)
+{
     juce::ValueTree list (ids::plugins);
-    for (auto& p : s.plugins)
+    for (auto& p : plugins)
     {
         juce::ValueTree pt (ids::plugin);
         pt.setProperty (ids::fileId, p.fileOrId, nullptr);
@@ -37,8 +49,25 @@ juce::ValueTree toValueTree (const MicVSTState& s)
         }
         list.appendChild (pt, nullptr);
     }
-    t.appendChild (list, nullptr);
-    return t;
+    return list;
+}
+
+juce::Array<PluginEntryState> pluginsFromValueTree (const juce::ValueTree& list)
+{
+    juce::Array<PluginEntryState> out;
+    for (auto pt : list)
+    {
+        if (! pt.hasType (ids::plugin)) continue;
+        PluginEntryState p;
+        p.fileOrId = pt.getProperty (ids::fileId);
+        p.bypassed = pt.getProperty (ids::byp, false);
+        p.state.fromBase64Encoding (pt.getProperty (ids::blob).toString());
+        p.pluginId   = pt.getProperty (ids::pluginId).toString();
+        p.pluginName = pt.getProperty (ids::pluginName).toString();
+        p.pluginUid  = (int) pt.getProperty (ids::pluginUid, 0);
+        if (p.fileOrId.isNotEmpty()) out.add (p);
+    }
+    return out;
 }
 
 MicVSTState fromValueTree (const juce::ValueTree& t)
@@ -58,18 +87,9 @@ MicVSTState fromValueTree (const juce::ValueTree& t)
     }
     s.windowState = t.getProperty (ids::window).toString();
 
-    auto list = t.getChildWithName (ids::plugins);
-    for (auto pt : list)
-    {
-        PluginEntryState p;
-        p.fileOrId = pt.getProperty (ids::fileId);
-        p.bypassed = pt.getProperty (ids::byp, false);
-        p.state.fromBase64Encoding (pt.getProperty (ids::blob).toString());
-        p.pluginId   = pt.getProperty (ids::pluginId).toString();
-        p.pluginName = pt.getProperty (ids::pluginName).toString();
-        p.pluginUid  = (int) pt.getProperty (ids::pluginUid, 0);
-        s.plugins.add (p);
-    }
+    s.plugins = pluginsFromValueTree (t.getChildWithName (ids::plugins));
+    s.presetName = t.getProperty (ids::preset).toString();
+    s.presetModified = (bool) t.getProperty (ids::presetModified, false);
     return s;
 }
 

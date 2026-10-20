@@ -5,6 +5,8 @@
 // Usage: MicVSTSnapshot <output folder>
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "audio/AudioEngine.h"
+#include "audio/BuiltInEffects.h"
+#include "SpeechSynth.h"
 #include "ui/MainComponent.h"
 #include "ui/PluginPicker.h"
 #include "ui/Theme.h"
@@ -167,6 +169,62 @@ int main (int argc, char** argv)
         dir.getChildFile ("6_tooltips.txt").replaceWithText (all);
     }
 
+    // Built-in effects: a chain of them in the main window (incl. the mute row's switch) ...
+    {
+        MainComponent mc (engine);
+        auto& chain = engine.getChain();
+        while (! chain.entries().empty()) chain.removePlugin (0);
+        for (auto* id : { "builtin:lowcut", "builtin:mud", "builtin:presence", "builtin:deesser", "builtin:saturation",
+                          "builtin:limiter", "builtin:mute", "builtin:lufs", "builtin:syncdelay" })
+            chain.addBuiltInEffect (id);
+        chain.addAutoGain();
+        chain.movePlugin ((int) chain.entries().size() - 1, 3);
+        chain.getBuiltInEffect (9)->setParam ("delay", 120.0f);
+        chain.setBypass (5, true);
+        engine.rebuildGraph();
+        if (engine.onScanFinished) engine.onScanFinished();
+        pump (800);
+        snap (mc, 584, 640, dir.getChildFile ("2b_main_effects.png"));
+        juce::StringArray tips;
+        collectTooltips (mc, tips);
+        juce::String all;
+        for (auto& t : tips) all << "---\n" << t << "\n";
+        dir.getChildFile ("2b_tooltips.txt").replaceWithText (all);
+    }
+
+    // ... and every effect's settings window (the meters after 12 s of speech)
+    {
+        speech::Params sp;
+        sp.peakDb = -18.0;
+        sp.noiseDb = -65.0;
+        auto voice = speech::generate (12.0, sp).x;
+        float peak = 0.0f;
+        for (float v : voice) peak = std::max (peak, std::abs (v));
+        for (float& v : voice) v *= 0.7f / peak;   // the synthetic voice's plosives peak at -3 dBFS
+        int n = 0;
+        for (auto& info : builtin::effects())
+        {
+            auto fx = builtin::create (info.id);
+            fx->setPlayConfigDetails (2, 2, 48000.0, 480);
+            fx->prepareToPlay (48000.0, 480);
+            juce::AudioBuffer<float> b (2, 480);
+            juce::MidiBuffer midi;
+            for (size_t k = 0; k + 480 <= voice.size(); k += 480)
+            {
+                b.copyFrom (0, 0, voice.data() + k, 480);
+                b.copyFrom (1, 0, voice.data() + k, 480);
+                fx->processBlock (b, midi);
+            }
+            std::unique_ptr<juce::AudioProcessorEditor> ed (fx->createEditorAndMakeActive());
+            pump (400);   // meter windows: a few timer ticks
+            const auto name = juce::String (info.id).fromFirstOccurrenceOf (":", false, false);
+            snap (*ed, ed->getWidth(), ed->getHeight(), dir.getChildFile ("10_fx_" + juce::String (++n).paddedLeft ('0', 2) + "_" + name + ".png"));
+            juce::StringArray tips;
+            collectTooltips (*ed, tips);
+            ed.reset();
+        }
+    }
+
     dir.getChildFile ("5_howto_title.txt").replaceWithText (MainComponent::howToTitle());
     {
         auto howTo = MainComponent::createHowToContent();
@@ -184,6 +242,17 @@ int main (int argc, char** argv)
         add ("Plugin", {});
         PluginPickerComponent picker (entries, [] (const juce::PluginDescription&) {});
         snap (picker, 320, 420, dir.getChildFile ("7_picker.png"));
+
+        for (auto& info : builtin::effects())   // as PluginListView::showPluginPicker
+        {
+            juce::PluginDescription d;
+            d.name = juce::String::fromUTF8 (info.name);
+            d.manufacturerName = juce::String::fromUTF8 (info.group);
+            d.fileOrIdentifier = info.id;
+            entries.add (d);
+        }
+        PluginPickerComponent all (entries, [] (const juce::PluginDescription&) {});
+        snap (all, 320, 1040, dir.getChildFile ("7b_picker_effects.png"));
     }
 
     renderMenu ({ tr ("Klasör ekle..."), "-", tr ("(ek klasör yok)"), "-", tr ("Tüm eklentileri yeniden tara"),

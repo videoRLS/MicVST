@@ -129,6 +129,7 @@ Run-Test "gain"    @("gain", "60") 900   # built-in Kazanç: level, channels, sl
 Run-Test "autogain" @("autogain") 900    # built-in Otomatik Kazanç: speech levels, shouting, silence, clipping, position, on/off
 Run-Test "priority" @("priority") 1200   # Islem onceligi: each class applied/read back, audio under full CPU load, effect on other programs, switching
 Run-Test "monochain" @("monochain") 300  # mono microphone into stereo plug-ins: both cable channels
+Run-Test "effects" @("effects") 1200     # built-in effects: each alone, chain edits, all 24 at once, live parameters, save/restore, mono
 if ($vst3) { Run-Test "vst3" @("vst3") 900 }
 if ($env:MICVST_TEST_VST3_DIR) {
     # what every plug-in offers (buses, latency, parameters with their value texts)

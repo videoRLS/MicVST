@@ -35,3 +35,7 @@ struct NodeChannels
 // Vorgängers gesetzt. Ein Mono-Teil vor einem Stereo-Plugin speist beide Eingänge des
 // Plugins (nicht nur den linken); in den Output-Knoten geht ein Mono-Ende als ein Kanal.
 std::vector<ChannelConnection> computeChainConnections (const std::vector<NodeChannels>& seq);
+
+// The same chain with the passThrough elements set to the width they really get (computeChainConnections
+// uses it; PluginChain tells the built-in effects their width with it).
+std::vector<NodeChannels> resolveChainWidths (const std::vector<NodeChannels>& seq);

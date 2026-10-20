@@ -1,6 +1,7 @@
 #pragma once
 #include <juce_audio_utils/juce_audio_utils.h>
 #include "audio/AudioEngine.h"
+#include "state/Presets.h"
 
 // Plugin-Kette als Liste. Pro Zeile (von links nach rechts):
 //   - Drag-Handle (Punkte) zum Umsortieren per Drag&Drop,
@@ -78,6 +79,11 @@ private:
         juce::Slider gainSlider;   // nur in Kazanç-Zeilen sichtbar
 
         // Otomatik Kazanç: Schalter + Anzeige "Verstärkung (Eingang -> Ausgang, Spitze dBFS)"
+        // Sessize Alma (Dahili): Schalter "Sessiz" direkt in der Zeile
+        static constexpr int muteNameW = 160;
+        bool isMuteRow = false;
+        juce::ToggleButton muteToggle;
+
         bool isAutoGainRow = false;
         juce::ToggleButton autoToggle;
         float shownInDb = -120.0f, shownOutDb = -120.0f, shownGainDb = 0.0f;   // Anzeige-Werte (Spitzen fallen langsam)
@@ -104,6 +110,25 @@ private:
     juce::ProgressBar scanBar { scanProgress };
     juce::TextButton skipScanBtn;        // "Atla": überspringt das aktuell scannende Plugin
     juce::Label skipLabel;               // "N plugin(s) skipped - hover for details"
+
+    // Hazır ayarlar (next to "+ Eklenti"): the list (dahili + kendi ayarlarım) and its menu
+    void refreshPresetList();            // re-read the user presets, refill the list
+    void presetChosen();
+    void showPresetMenu();
+    void savePresetAs (const juce::String& name, bool overwrite = false);
+    void showPresetError (const juce::String&);
+    void askPresetName (const juce::String& title, const juce::String& message, const juce::String& initial,
+                        std::function<void (const juce::String&)> onOk);
+    bool currentIsUserPreset() const;
+public:
+    void updatePresetBox();              // the box shows the loaded preset ("*" = changed since)
+private:
+    static constexpr int factoryIdBase = 1, emptyUserId = 99, userIdBase = 100;
+    juce::ComboBox presetBox;
+    juce::TextButton presetMenuBtn;
+    std::vector<presets::Preset> userPresets;
+    juce::String shownPresetName;
+    bool shownPresetModified = false;
 
     AudioEngine& engine;
     juce::TextButton addBtn;             // "+ Eklenti"

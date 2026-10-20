@@ -8,6 +8,7 @@ namespace
 
 namespace AutostartRegistry
 {
+   #if JUCE_WINDOWS
     bool isEnabled()
     {
         return juce::WindowsRegistry::valueExists (keyPath);
@@ -26,4 +27,9 @@ namespace AutostartRegistry
             juce::WindowsRegistry::deleteValue (keyPath);
         }
     }
+   #else
+    // (only the Linux build of the tests and UI snapshots gets here: there is no autostart)
+    bool isEnabled() { return false; }
+    void setEnabled (bool) {}
+   #endif
 }

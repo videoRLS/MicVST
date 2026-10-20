@@ -1,4 +1,6 @@
 #include "audio/AudioEngine.h"
+#include "audio/BuiltInAutoGain.h"
+#include "audio/BuiltInGain.h"
 #include "audio/RealtimeSupport.h"
 #include "Text.h"
 
@@ -1079,8 +1081,17 @@ MicVSTState AudioEngine::captureState()
 
     // Ketten-Restore steht noch aus -> gemerkten Zustand verbatim zurückgeben,
     // sonst würde persistState() die gespeicherte Kette mit "leer" überschreiben.
-    if (! pendingPlugins.isEmpty()) { s.plugins = pendingPlugins; return s; }
-    if (pluginChain == nullptr) return s;
+    s.presetName = presetName;
+    s.presetModified = presetModified;
+    s.plugins = captureChain();
+    return s;
+}
+
+juce::Array<PluginEntryState> AudioEngine::captureChain()
+{
+    if (! pendingPlugins.isEmpty()) return pendingPlugins;
+    juce::Array<PluginEntryState> list;
+    if (pluginChain == nullptr) return list;
 
     for (auto& e : pluginChain->entries())
     {
@@ -1098,9 +1109,9 @@ MicVSTState AudioEngine::captureState()
         // erlaubt ist; JUCEs eigener AudioPluginHost speichert genauso.
         if (auto* node = graph.getNodeForId (e.node))
             node->getProcessor()->getStateInformation (p.state);
-        s.plugins.add (p);
+        list.add (p);
     }
-    return s;
+    return list;
 }
 
 void AudioEngine::applyState (const MicVSTState& s)
@@ -1109,6 +1120,8 @@ void AudioEngine::applyState (const MicVSTState& s)
     if (s.sampleRate > 0.0) preferredInputRate = s.sampleRate;
     setSafetyBufferMs (s.safetyBufferMs);
     setProcessPriority (s.processPriority);   // Normal unless the user chose otherwise
+    presetName = s.presetName;
+    presetModified = s.presetModified;
     initialise (s.inputDevice, s.outputDevice);
 
     // Kette nur wiederherstellen, wenn alle Nicht-Builtin-Plugins im Cache auflösbar sind.
@@ -1156,46 +1169,151 @@ std::unique_ptr<juce::PluginDescription> AudioEngine::findPluginType (const Plug
 
 void AudioEngine::restoreChain (const juce::Array<PluginEntryState>& plugins)
 {
+    const ChainEdit edit (*this);   // muted until the whole chain is in place
+    for (auto& p : plugins)
+        addElement (p, false);
+    rebuildGraph();
+}
+
+bool AudioEngine::addElement (const PluginEntryState& p, bool forPreset, juce::StringArray* missing)
+{
     const double sr = getProcessingSampleRate();
     const int    bs = getProcessingBlockSize();
-    const ChainEdit edit (*this);   // muted until the whole chain is in place
+    const auto before = pluginChain->entries().size();
 
-    for (auto& p : plugins)
+    auto applyStateAndBypass = [&]
     {
-        if (p.fileOrId == PluginChain::monoToStereoId || p.fileOrId == PluginChain::stereoToMonoId
-             || p.fileOrId == PluginChain::gainId || p.fileOrId == PluginChain::autoGainId)
-        {
-            const auto before = pluginChain->entries().size();
-            if (p.fileOrId == PluginChain::monoToStereoId)      pluginChain->addMonoToStereo();
-            else if (p.fileOrId == PluginChain::stereoToMonoId) pluginChain->addStereoToMono();
-            else if (p.fileOrId == PluginChain::gainId)         pluginChain->addGain();
-            else                                                pluginChain->addAutoGain();
-            if (pluginChain->entries().size() == before)
-                continue;   // nicht angelegt: nie den Zustand/Bypass des vorherigen Glieds ändern
-            const int idx = (int) before;   // gespeicherte Position (wird am Ende angehängt)
-            if (p.fileOrId == PluginChain::gainId || p.fileOrId == PluginChain::autoGainId)   // dB-Wert bzw. Ein/Aus
-                if (auto* node = graph.getNodeForId (pluginChain->entries()[(size_t) idx].node))
-                    node->getProcessor()->setStateInformation (p.state.getData(), (int) p.state.getSize());
-            pluginChain->setBypass (idx, p.bypassed);
-            continue;
-        }
+        const int idx = (int) pluginChain->entries().size() - 1;
+        if (auto* node = graph.getNodeForId (pluginChain->entries()[(size_t) idx].node))
+            node->getProcessor()->setStateInformation (p.state.getData(), (int) p.state.getSize());
+        pluginChain->setBypass (idx, p.bypassed);
+    };
 
-        auto type = findPluginType (p, true);
-        if (type == nullptr)
-        {
-            juce::Logger::writeToLog (tr ("Eklenti bulunamadı: ") + (p.pluginName.isNotEmpty() ? p.pluginName + " - " : juce::String())
-                                      + p.fileOrId);
-            continue;
-        }
-        juce::String err;
-        if (pluginChain->addPlugin (formatManager, *type, sr, bs, err))
-        {
-            const int idx = (int) pluginChain->entries().size() - 1;
-            if (auto* node = graph.getNodeForId (pluginChain->entries()[(size_t) idx].node))
-                node->getProcessor()->setStateInformation (p.state.getData(), (int) p.state.getSize());
-            pluginChain->setBypass (idx, p.bypassed);
-        }
-        else juce::Logger::writeToLog (tr ("Eklenti yüklenemedi: ") + p.fileOrId + " - " + err);
+    if (p.fileOrId == PluginChain::monoToStereoId || p.fileOrId == PluginChain::stereoToMonoId
+         || p.fileOrId == PluginChain::gainId || p.fileOrId == PluginChain::autoGainId)
+    {
+        if (p.fileOrId == PluginChain::monoToStereoId)      pluginChain->addMonoToStereo();
+        else if (p.fileOrId == PluginChain::stereoToMonoId) pluginChain->addStereoToMono();
+        else if (p.fileOrId == PluginChain::gainId)         pluginChain->addGain();
+        else if (forPreset)                                 pluginChain->addAutoGainForPreset (true);
+        else                                                pluginChain->addAutoGain();
+        if (pluginChain->entries().size() == before)
+            return false;   // nicht angelegt: nie den Zustand/Bypass des vorherigen Glieds ändern
+        if (p.fileOrId == PluginChain::gainId || p.fileOrId == PluginChain::autoGainId)   // dB-Wert bzw. Ein/Aus
+            applyStateAndBypass();
+        else
+            pluginChain->setBypass ((int) before, p.bypassed);
+        return true;
     }
-    rebuildGraph();
+
+    if (PluginChain::isBuiltInEffectId (p.fileOrId))
+    {
+        if (! pluginChain->addBuiltInEffect (p.fileOrId))
+            return false;
+        applyStateAndBypass();
+        return true;
+    }
+    if (p.fileOrId.startsWith ("builtin:"))   // a built-in element of a newer MicVST: skipped, the rest stays
+    {
+        juce::Logger::writeToLog (tr ("Bilinmeyen dahili eleman atlandı: ") + p.fileOrId);
+        if (missing != nullptr) missing->add (p.fileOrId);
+        return false;
+    }
+
+    auto type = findPluginType (p, true);
+    if (type == nullptr)
+    {
+        juce::Logger::writeToLog (tr ("Eklenti bulunamadı: ") + (p.pluginName.isNotEmpty() ? p.pluginName + " - " : juce::String())
+                                  + p.fileOrId);
+        if (missing != nullptr) missing->add (p.pluginName.isNotEmpty() ? p.pluginName : juce::File (p.fileOrId).getFileNameWithoutExtension());
+        return false;
+    }
+    juce::String err;
+    if (pluginChain->addPlugin (formatManager, *type, sr, bs, err))
+    {
+        applyStateAndBypass();
+        return true;
+    }
+    juce::Logger::writeToLog (tr ("Eklenti yüklenemedi: ") + p.fileOrId + " - " + err);
+    if (missing != nullptr) missing->add (type->name);
+    return false;
+}
+
+AudioEngine::PresetResult AudioEngine::applyPreset (const juce::String& name, const juce::Array<PluginEntryState>& elements)
+{
+    PresetResult result;
+    undoChain = captureChain();
+    undoPresetName = presetName;
+    undoPresetModified = presetModified;
+    hasUndoChain = true;
+    presetName = name;
+    presetModified = false;
+
+    // The chain is still waiting for the plug-in scan: the preset takes its place.
+    if (! pendingPlugins.isEmpty())
+    {
+        pendingPlugins = elements;
+        return result;
+    }
+
+    // Same elements, same order, same on/off, all built-in: the settings glide (no chain edit).
+    const auto& es = pluginChain->entries();
+    bool sameShape = (int) es.size() == elements.size();
+    for (int i = 0; sameShape && i < elements.size(); ++i)
+    {
+        const auto& p = elements.getReference (i);
+        sameShape = es[(size_t) i].fileOrId == p.fileOrId && es[(size_t) i].bypassed == p.bypassed
+                    && p.fileOrId.startsWith ("builtin:")
+                    && (PluginChain::isBuiltInEffectId (p.fileOrId) || p.fileOrId == PluginChain::gainId
+                        || p.fileOrId == PluginChain::autoGainId || p.fileOrId == PluginChain::monoToStereoId
+                        || p.fileOrId == PluginChain::stereoToMonoId);
+    }
+    if (sameShape)
+    {
+        for (int i = 0; i < elements.size(); ++i)
+        {
+            const auto& p = elements.getReference (i);
+            if (auto* fxProc = pluginChain->getBuiltInEffect (i))
+                fxProc->setStateInformation (p.state.getData(), (int) p.state.getSize());   // parameters: they glide
+            else if (p.fileOrId == PluginChain::gainId)
+            {
+                BuiltInGainProcessor parsed;   // read the value, then glide to it (setState would jump)
+                parsed.setStateInformation (p.state.getData(), (int) p.state.getSize());
+                pluginChain->setGainDb (i, parsed.getGainDb());
+            }
+            else if (p.fileOrId == PluginChain::autoGainId)
+            {
+                BuiltInAutoGainProcessor parsed;
+                parsed.setStateInformation (p.state.getData(), (int) p.state.getSize());
+                pluginChain->setAutoGainEnabled (i, parsed.isAutoGainEnabled());
+            }
+        }
+        result.morphed = true;
+        return result;
+    }
+
+    // Different elements: create and load them now (unconnected = silent), then swap in one edit.
+    std::vector<PluginChain::Entry> prepared;
+    for (auto& p : elements)
+        if (addElement (p, true, &result.missing))
+            prepared.push_back (pluginChain->takeLast());
+    {
+        const ChainEdit edit (*this);
+        while (! pluginChain->entries().empty())
+            pluginChain->removePlugin (0);
+        for (auto& e : prepared)
+            pluginChain->appendEntry (e);
+        rebuildGraph();
+    }
+    return result;
+}
+
+void AudioEngine::undoPreset()
+{
+    if (! hasUndoChain) return;
+    const auto chainBack = undoChain;
+    const auto nameBack = undoPresetName;
+    const bool modifiedBack = undoPresetModified;
+    applyPreset (nameBack, chainBack);   // (which keeps the preset's chain for another undo)
+    presetModified = modifiedBack;
 }
