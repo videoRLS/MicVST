@@ -1,6 +1,6 @@
 name: macos
 
-# macOS build of MicVST for the kararlilik/macos branch: an Apple Silicon (arm64) MicVST.app, ad-hoc signed and zipped, plus the unit tests on Apple Silicon (the engine test's
+# macOS build of MicVST for the kararlilik/macos branch: a universal MicVST.app and its Apple Silicon (arm64) slice, ad-hoc signed and zipped, plus the unit tests on Apple Silicon (the engine test's
 # virtual-device harness uses Linux/Windows timing APIs and is not built on macOS). Results are pushed as one commit each to
 # ci-sonuclari/kararlilik/macos-app and ci-sonuclari/kararlilik/macos-test (fetch with plain git).
 on:
@@ -13,15 +13,23 @@ permissions:
 
 jobs:
   app:
-    runs-on: macos-15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15          # Apple Silicon runner
+            tag: arm
+          - runner: macos-15-intel    # Intel runner (fallback when the arm64 runners are busy)
+            tag: intel
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
 
-      - name: Configure (Apple Silicon arm64, macOS 11+)
+      - name: Configure (universal arm64 + x86_64, macOS 11+)
         run: |
           mkdir -p results
-          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64" \
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
                 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 2>&1 | tee results/configure.log
 
       - name: Build MicVST.app
@@ -46,9 +54,17 @@ jobs:
           /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP/Contents/Info.plist" | sed 's/^/CFBundleIdentifier: /' | tee -a results/app-check.txt
           /usr/libexec/PlistBuddy -c "Print :NSMicrophoneUsageDescription" "$APP/Contents/Info.plist" | sed 's/^/NSMicrophoneUsageDescription: /' | tee -a results/app-check.txt
           otool -L "$APP/Contents/MacOS/MicVST" | tee results/linked-libraries.txt
-          ditto -c -k --sequesterRsrc --keepParent "$APP" results/MicVST-macOS-AppleSilicon.zip
-          ls -la results/MicVST-macOS-AppleSilicon.zip | tee -a results/app-check.txt
-          shasum -a 256 results/MicVST-macOS-AppleSilicon.zip | tee results/MicVST-macOS-AppleSilicon.zip.sha256.txt
+          ditto -c -k --sequesterRsrc --keepParent "$APP" results/MicVST-macOS-universal.zip
+          # Apple Silicon only (M1 ... M5): the arm64 slice of the same build, signed again
+          mkdir -p arm && cp -R "$APP" arm/
+          lipo "arm/MicVST.app/Contents/MacOS/MicVST" -thin arm64 -output arm/MicVST.thin
+          mv arm/MicVST.thin "arm/MicVST.app/Contents/MacOS/MicVST"
+          codesign --force --deep --sign - arm/MicVST.app
+          codesign --verify --deep --strict arm/MicVST.app && echo "arm64 app codesign verify: ok" | tee -a results/app-check.txt
+          lipo -info arm/MicVST.app/Contents/MacOS/MicVST | tee -a results/app-check.txt
+          ditto -c -k --sequesterRsrc --keepParent arm/MicVST.app results/MicVST-macOS-AppleSilicon.zip
+          ls -la results/*.zip | tee -a results/app-check.txt
+          shasum -a 256 results/*.zip | tee results/zips.sha256.txt
           shasum -a 256 "$APP/Contents/MacOS/MicVST" | tee -a results/app-check.txt
 
       - name: Start check (the app opens and keeps running for 20 s)
@@ -74,8 +90,8 @@ jobs:
           git config user.email "github-actions@users.noreply.github.com"
           git config http.postBuffer 524288000
           git add -A
-          git commit -q -m "MicVST macOS app ($GITHUB_SHA)"
-          git push -q --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/ci-sonuclari/kararlilik/macos-app"
+          git commit -q -m "MicVST macOS app, ${{ matrix.runner }} ($GITHUB_SHA)"
+          git push -q --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/ci-sonuclari/kararlilik/macos-app-${{ matrix.tag }}"
 
   test:
     runs-on: macos-15
