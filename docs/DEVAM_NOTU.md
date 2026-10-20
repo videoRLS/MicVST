@@ -66,11 +66,9 @@ Test altyapısı (yeni):
 1. **Tam test turu `7b12d32`** (20.10 ~21:37'de başladı) sonuçlarını incele: `vst3suite.txt` (FAIL satırları),
    `priority.txt`, `monochain.txt`, `vst3info.txt`, `integrity.txt`, `runtime/runtime-check.md`. Hataları düzelt.
    (Bir önceki tam turda motor testleri bir PowerShell değişken çakışması yüzünden erken durmuştu; düzeltildi.)
-2. **Sıra doğrulama dump'ı**: tüm suite zinciriyle (RNNoise, kompresörler...) kablo çıkışı çevrimdışı
-   referansla örnek düzeyinde örtüşmüyor (yerelde: seviye farkı medyan -3,3 dB, 13 "tık"). Durum tutan
-   eklentiler çevrimiçi/çevrimdışı ayrışıyor. `dump`'taki `suite` zincirini deterministik bir çifte
-   indir (ZL Equalizer 2 aktif + Fire aktif; sıra değişince sonuç değişir), `suite-wrongref` negatif
-   kontrolü kalsın. `ci-enginetest.ps1`'deki `s_suite_*` dump'ları buna göre.
+2. ~~Sıra doğrulama dump'ı~~ yapıldı (b54f39f): `suite` zinciri artık ZL Equalizer 2 -> Fire (deterministik).
+   Yerelde: doğru sıra kablo = çevrimdışı zincir (artık medyan -80 dB, seviye farkı 0,0000 dB, 0 bulgu);
+   ters sıra referansı (negatif kontrol) 510 bulgu. Windows sonucu `integrity.txt` içinde (`s_suite_*`).
 3. Linux'ta (`build/wt`) suite son koşusu 73/77 geçti; kalan 4 hata test toleransıydı (makine duraklaması,
    gecikme ölçüm yöntemi) ve düzeltildi, Windows sonucuyla doğrulanacak.
 4. **Son tur**: son commit'i `[uzun]` ile it (tam test + uzun koşular). Hepsi geçince exe'yi
