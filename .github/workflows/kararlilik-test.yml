@@ -126,4 +126,5 @@ jobs:
         shell: pwsh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./tools/ci-publish.ps1 -Dir results -Branch "ci-sonuclari/${{ github.ref_name }}" -Message "MicVST ${{ github.ref_name }}"
+        # quick builds publish next to the full results, never over them
+        run: ./tools/ci-publish.ps1 -Dir results -Branch "ci-sonuclari/${{ github.ref_name }}$(if ($env:QUICK -eq 'true') { '-hizli' })" -Message "MicVST ${{ github.ref_name }}"

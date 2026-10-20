@@ -31,13 +31,13 @@ $zipSources = @(
 )
 foreach ($src in $zipSources) {
     try {
-        $zip = Join-Path $env:RUNNER_TEMP ("suite-" + [IO.Path]::GetRandomFileName() + ".zip")
-        Get-Download $src[1] $zip
-        $dst = Join-Path $env:RUNNER_TEMP ("suite-x-" + [IO.Path]::GetRandomFileName())
-        Expand-Archive -Force $zip $dst
+        $suiteZip = Join-Path $env:RUNNER_TEMP ("suite-" + [IO.Path]::GetRandomFileName() + ".zip")
+        Get-Download $src[1] $suiteZip
+        $suiteDst = Join-Path $env:RUNNER_TEMP ("suite-x-" + [IO.Path]::GetRandomFileName())
+        Expand-Archive -Force $suiteZip $suiteDst
         # nested archives (some vendors zip the platform folders separately)
-        Get-ChildItem -Recurse -File $dst -Filter "*.zip" | Where-Object { $_.Name -match "(?i)win|x64|vst3" } | ForEach-Object { Expand-Archive -Force $_.FullName (Join-Path $dst $_.BaseName) }
-        Add-SuiteBundles $dst $src[0]
+        Get-ChildItem -Recurse -File $suiteDst -Filter "*.zip" | Where-Object { $_.Name -match "(?i)win|x64|vst3" } | ForEach-Object { Expand-Archive -Force $_.FullName (Join-Path $suiteDst $_.BaseName) }
+        Add-SuiteBundles $suiteDst $src[0]
     } catch { "$($src[0]): download/extract failed: $_" | Add-Content $suiteNote }
 }
 $msiSources = @(
@@ -46,33 +46,45 @@ $msiSources = @(
 )
 foreach ($src in $msiSources) {
     try {
-        $msi = Join-Path $env:RUNNER_TEMP ("suite-" + [IO.Path]::GetRandomFileName() + ".msi")
-        Get-Download $src[1] $msi
-        $dst = Join-Path $env:RUNNER_TEMP ("suite-m-" + [IO.Path]::GetRandomFileName())
+        $suiteMsi = Join-Path $env:RUNNER_TEMP ("suite-" + [IO.Path]::GetRandomFileName() + ".msi")
+        Get-Download $src[1] $suiteMsi
+        $suiteDst = Join-Path $env:RUNNER_TEMP ("suite-m-" + [IO.Path]::GetRandomFileName())
         # administrative install = unpack only, nothing is installed
-        $p = Start-Process msiexec.exe -ArgumentList @("/a", "`"$msi`"", "/qn", "TARGETDIR=`"$dst`"") -Wait -PassThru
-        if ($p.ExitCode -ne 0) { "$($src[0]): msiexec /a exit $($p.ExitCode)" | Add-Content $suiteNote }
-        Add-SuiteBundles $dst $src[0]
+        $msiProc = Start-Process msiexec.exe -ArgumentList @("/a", "`"$suiteMsi`"", "/qn", "TARGETDIR=`"$suiteDst`"") -Wait -PassThru
+        if ($msiProc.ExitCode -ne 0) { "$($src[0]): msiexec /a exit $($msiProc.ExitCode)" | Add-Content $suiteNote }
+        Add-SuiteBundles $suiteDst $src[0]
     } catch { "$($src[0]): download/unpack failed: $_" | Add-Content $suiteNote }
 }
-# Klanghelm DC1A3 (free; the user's own plug-in): installer only - silent install with a time limit
-try {
-    $exe = Join-Path $env:RUNNER_TEMP "dc1a3-setup.exe"
-    Get-Download "https://klanghelm.com/free/DC1A3dl.php?id=1" $exe
-    $head = [IO.File]::ReadAllBytes($exe)[0..1]
-    if ($head[0] -eq 0x50 -and $head[1] -eq 0x4B) {   # a zip after all
-        $dst = Join-Path $env:RUNNER_TEMP "dc1a3"; Expand-Archive -Force $exe $dst
-        Get-ChildItem -Recurse -File $dst -Include "*.exe","*.msi" | ForEach-Object { "DC1A3: archive contains $($_.Name)" | Add-Content $suiteNote }
-        Add-SuiteBundles $dst "Klanghelm DC1A3"
-    } elseif ($head[0] -eq 0x4D -and $head[1] -eq 0x5A) {   # an .exe installer
-        $before = @(Get-ChildItem -Directory (Join-Path $env:CommonProgramFiles "VST3") -ErrorAction SilentlyContinue | ForEach-Object Name)
-        foreach ($instArgs in @(@("/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-"), @("/S"))) {
-            $p = Start-Process -FilePath $exe -ArgumentList $instArgs -PassThru
-            if (-not $p.WaitForExit(180000)) { $p.Kill(); "DC1A3: installer $($instArgs -join ' ') timed out" | Add-Content $suiteNote; continue }
-            $new = @(Get-ChildItem -Directory (Join-Path $env:CommonProgramFiles "VST3") -ErrorAction SilentlyContinue | Where-Object { $_.Name -match "(?i)DC1A" })
-            if ($new.Count -gt 0) { foreach ($b in $new) { Copy-Item -Recurse -Force $b.FullName $suiteDir; "Klanghelm DC1A3: $($b.Name) (installer $($instArgs -join ' '))" | Add-Content $suiteNote }; break }
+# Klanghelm DC1A3 (free; the user's own plug-in): a zip with an installer (or the installer itself) -
+# silent install with a time limit. (Variable names here must not clash with the caller's: $Exe!)
+function Install-Silently([string] $installer) {
+    foreach ($instArgs in @(@("/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-"), @("/S"), @("/quiet"))) {
+        $proc = Start-Process -FilePath $installer -ArgumentList $instArgs -PassThru
+        if (-not $proc.WaitForExit(180000)) { $proc.Kill(); "DC1A3: installer $($instArgs -join ' ') timed out" | Add-Content $suiteNote; continue }
+        $found = @(Get-ChildItem -Directory (Join-Path $env:CommonProgramFiles "VST3") -ErrorAction SilentlyContinue | Where-Object { $_.Name -match "(?i)DC1A" })
+        $found += @(Get-ChildItem -File (Join-Path $env:CommonProgramFiles "VST3") -ErrorAction SilentlyContinue | Where-Object { $_.Name -match "(?i)DC1A.*\.vst3$" })
+        if ($found.Count -gt 0) {
+            foreach ($b in $found) { Copy-Item -Recurse -Force $b.FullName $suiteDir; "Klanghelm DC1A3: $($b.Name) (installer $($instArgs -join ' '), exit $($proc.ExitCode))" | Add-Content $suiteNote }
+            return $true
         }
-    } else { "DC1A3: the download is no installer ($((Get-Item $exe).Length) bytes)" | Add-Content $suiteNote }
+        "DC1A3: installer $($instArgs -join ' ') exit $($proc.ExitCode), no DC1A3 in the VST3 folder" | Add-Content $suiteNote
+    }
+    return $false
+}
+try {
+    $dcDownload = Join-Path $env:RUNNER_TEMP "dc1a3-download.bin"
+    Get-Download "https://klanghelm.com/free/DC1A3dl.php?id=1" $dcDownload
+    $dcHead = [IO.File]::ReadAllBytes($dcDownload)[0..1]
+    $dcInstallers = @()
+    if ($dcHead[0] -eq 0x50 -and $dcHead[1] -eq 0x4B) {   # zip
+        $dcDir = Join-Path $env:RUNNER_TEMP "dc1a3"
+        Copy-Item $dcDownload "$dcDownload.zip"; Expand-Archive -Force "$dcDownload.zip" $dcDir
+        Add-SuiteBundles $dcDir "Klanghelm DC1A3 (in the archive)"
+        $dcInstallers = @(Get-ChildItem -Recurse -File $dcDir -Include "*.exe" | Where-Object { $_.Name -notmatch "(?i)mac|uninst" } | ForEach-Object FullName)
+    } elseif ($dcHead[0] -eq 0x4D -and $dcHead[1] -eq 0x5A) {
+        $dcExe = Join-Path $env:RUNNER_TEMP "dc1a3-setup.exe"; Copy-Item $dcDownload $dcExe; $dcInstallers = @($dcExe)
+    } else { "DC1A3: the download is neither a zip nor an installer ($((Get-Item $dcDownload).Length) bytes)" | Add-Content $suiteNote }
+    foreach ($inst in $dcInstallers) { "DC1A3: installer $(Split-Path -Leaf $inst)" | Add-Content $suiteNote; if (Install-Silently $inst) { break } }
 } catch { "DC1A3: download/install failed: $_" | Add-Content $suiteNote }
 if ($vst3) { Copy-Item -Recurse -Force $vst3 $suiteDir; "Airwindows Consolidated: $(Split-Path -Leaf $vst3)" | Add-Content $suiteNote }
 $suiteBundles = @(Get-ChildItem $suiteDir -Filter "*.vst3" -ErrorAction SilentlyContinue)

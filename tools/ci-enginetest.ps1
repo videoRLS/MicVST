@@ -59,9 +59,9 @@ if (-not $vst3) {
         if (-not $vst3) {
             $exeAsset = $win | Where-Object { $_.name -match "\.exe$" -and $_.name -notmatch "(?i)windows7" } | Select-Object -First 1
             if ($exeAsset) {
-                $exe = Join-Path $env:RUNNER_TEMP $exeAsset.name
-                Invoke-WebRequest -Headers $headers -Uri $exeAsset.browser_download_url -OutFile $exe
-                Start-Process -FilePath $exe -ArgumentList @("/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-") -Wait
+                $airExe = Join-Path $env:RUNNER_TEMP $exeAsset.name   # not $exe: that is $Exe, the test program
+                Invoke-WebRequest -Headers $headers -Uri $exeAsset.browser_download_url -OutFile $airExe
+                Start-Process -FilePath $airExe -ArgumentList @("/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-") -Wait
                 $vst3 = Find-Vst3 (Join-Path $env:CommonProgramFiles "VST3")
                 if ($vst3) { "Airwindows Consolidated: $($exeAsset.name) (installer)" | Add-Content $sourceNote }
             }
