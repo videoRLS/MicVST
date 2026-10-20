@@ -61,12 +61,22 @@ target_link_libraries(MicVSTCore PUBLIC
 )
 
 # --- GUI application ---
+# macOS only: bundle id and the microphone permission text (without it macOS denies the microphone).
+# Empty on Windows, so the Windows build is unchanged.
+set(MICVST_APPLE_APP_OPTIONS)
+if(APPLE)
+    set(MICVST_APPLE_APP_OPTIONS
+        BUNDLE_ID "com.micvst.MicVST"
+        MICROPHONE_PERMISSION_ENABLED TRUE
+        MICROPHONE_PERMISSION_TEXT "MicVST mikrofon sesini eklentilerden geçirip seçtiğin çıkış cihazına gönderir.")
+endif()
 juce_add_gui_app(MicVST
     PRODUCT_NAME "MicVST"
     COMPANY_NAME "MicVST"
     VERSION      ${PROJECT_VERSION}
     ICON_BIG   "${CMAKE_CURRENT_SOURCE_DIR}/resources/iconDarkMode.png"
     ICON_SMALL "${CMAKE_CURRENT_SOURCE_DIR}/resources/iconDarkMode.png"
+    ${MICVST_APPLE_APP_OPTIONS}
 )
 
 # Beide Icon-Varianten als Binärdaten einbetten (für das theme-adaptive Tray-Icon).

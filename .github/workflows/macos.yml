@@ -1,0 +1,121 @@
+name: macos
+
+# macOS build of MicVST for the kararlilik/macos branch: a universal (Apple Silicon + Intel)
+# MicVST.app, ad-hoc signed and zipped, plus a quick test run (unit tests and short engine-test
+# modes) on Apple Silicon. Results are pushed as one commit each to
+# ci-sonuclari/kararlilik/macos-app and ci-sonuclari/kararlilik/macos-test (fetch with plain git).
+on:
+  push:
+    branches: [ 'kararlilik/macos' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  app:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Configure (universal, macOS 11+)
+        run: |
+          mkdir -p results
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+                -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 2>&1 | tee results/configure.log
+
+      - name: Build MicVST.app
+        id: build
+        run: |
+          set -o pipefail
+          cmake --build build --config Release --target MicVST -j 4 2>&1 | tee results/build.log
+          grep -E "warning:" results/build.log | grep -v "_deps/juce" > results/warnings-micvst.txt || true
+
+      - name: Sign (ad-hoc), check and zip
+        if: ${{ steps.build.outcome == 'success' }}
+        run: |
+          set -e
+          APP=build/MicVST_artefacts/Release/MicVST.app
+          codesign --force --deep --sign - "$APP"
+          codesign --verify --deep --strict "$APP" && echo "codesign verify: ok" | tee results/app-check.txt
+          lipo -info "$APP/Contents/MacOS/MicVST" | tee -a results/app-check.txt
+          otool -l "$APP/Contents/MacOS/MicVST" | grep -A4 -E "LC_BUILD_VERSION|LC_VERSION_MIN_MACOSX" | grep -E "minos|version|platform" | head -6 | tee -a results/app-check.txt
+          /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP/Contents/Info.plist" | sed 's/^/CFBundleIdentifier: /' | tee -a results/app-check.txt
+          /usr/libexec/PlistBuddy -c "Print :NSMicrophoneUsageDescription" "$APP/Contents/Info.plist" | sed 's/^/NSMicrophoneUsageDescription: /' | tee -a results/app-check.txt
+          otool -L "$APP/Contents/MacOS/MicVST" | tee results/linked-libraries.txt
+          ditto -c -k --sequesterRsrc --keepParent "$APP" results/MicVST-macOS.zip
+          shasum -a 256 results/MicVST-macOS.zip | tee results/MicVST-macOS.zip.sha256.txt
+          shasum -a 256 "$APP/Contents/MacOS/MicVST" | tee -a results/app-check.txt
+
+      - name: Start check (the app opens and keeps running for 20 s)
+        if: ${{ steps.build.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          APP=build/MicVST_artefacts/Release/MicVST.app
+          "$APP/Contents/MacOS/MicVST" > results/start.txt 2>&1 &
+          PID=$!
+          sleep 20
+          if kill -0 $PID 2>/dev/null; then echo "running after 20 s: yes" | tee -a results/start.txt; kill $PID; sleep 2; else wait $PID; echo "exited early, code $?" | tee -a results/start.txt; fi
+          ls -la ~/Library/Application\ Support/MicVST 2>/dev/null | tee -a results/start.txt || true
+          tail -20 ~/Library/Application\ Support/MicVST/log.txt 2>/dev/null | tee -a results/start.txt || true
+
+      - name: Publish
+        if: ${{ !cancelled() }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd results
+          git init -q
+          git config user.name  "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A
+          git commit -q -m "MicVST macOS app ($GITHUB_SHA)"
+          git push -q --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/ci-sonuclari/kararlilik/macos-app"
+
+  test:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build the tests (Apple Silicon)
+        id: build
+        run: |
+          set -o pipefail
+          mkdir -p results
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 2>&1 | tee results/configure.log
+          cmake --build build --config Release --target MicVSTTests MicVSTEngineTest -j 4 2>&1 | tee results/build.log
+
+      - name: Unit tests
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          set -o pipefail
+          ./build/MicVSTTests_artefacts/Release/MicVSTTests 2>&1 | tee results/unit-tests.txt
+          echo "exit code: ${PIPESTATUS[0]}" | tee -a results/unit-tests.txt
+
+      - name: Engine test, short modes (real engine, virtual devices)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          mkdir -p results/engine
+          for m in edits devices mono latency faults hotplug openfail; do
+            start=$(date +%s)
+            ./build/MicVSTEngineTest_artefacts/Release/MicVSTEngineTest $m > results/engine/$m.txt 2>&1
+            code=$?
+            echo "-- exit code $code, $(( $(date +%s) - start )) s" >> results/engine/$m.txt
+            echo "$m: exit $code"
+          done | tee results/engine/summary.txt
+
+      - name: Publish
+        if: ${{ !cancelled() }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd results
+          git init -q
+          git config user.name  "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A
+          git commit -q -m "MicVST macOS tests ($GITHUB_SHA)"
+          git push -q --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/ci-sonuclari/kararlilik/macos-test"

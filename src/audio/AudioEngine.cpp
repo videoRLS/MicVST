@@ -386,7 +386,21 @@ void AudioEngine::inputStopped()
 void AudioEngine::startProcessing()
 {
     if (! processingThread.isThreadRunning())
+    {
+       #if JUCE_MAC
+        // macOS: no MMCSS - a real-time (time-constraint) thread with the block period, like
+        // CoreAudio's own I/O threads, so a busy system (rendering) cannot starve the plug-ins.
+        const int    block = juce::jmax (32, getProcessingBlockSize());
+        const double rate  = juce::jmax (8000.0, getProcessingSampleRate());
+        if (! processingThread.startRealtimeThread (juce::Thread::RealtimeOptions{}
+                                                        .withPriority (10)
+                                                        .withPeriodMs (1000.0 * block / rate)
+                                                        .withApproximateAudioProcessingTime (block, rate)))
+            processingThread.startThread (juce::Thread::Priority::highest);
+       #else
         processingThread.startThread (juce::Thread::Priority::highest);   // MMCSS takes over inside
+       #endif
+    }
 }
 
 void AudioEngine::stopProcessing()
