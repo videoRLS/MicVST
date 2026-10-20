@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<MicVST inputDevice="Mikrofon (USB Audio Device)" outputDevice="CABLE Input (VB-Audio Virtual Cable)"
+        sampleRate="48000.0" userBufferSize="0" safetyBufferMs="0" pluginFolders=""
+        windowState="212 80 600 560">
+  <plugins>
+    <plugin fileOrId="builtin:autogain" bypassed="0" state="89.VMjLg.E....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOMk1XVMEUAUGcucTXo4FH1Ulbyk1at0iHwHBHk4VXhwVYj0iHwHxK9.."/>
+    <plugin fileOrId="builtin:gain" bypassed="0" state="86.VMjLgzD....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOMk1XVMEUGEVZtAhckI2bo8la8HRLh.xYgklaDIVOh.iKvHxK9.."/>
+  </plugins>
+</MicVST>
