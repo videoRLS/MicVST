@@ -2,6 +2,8 @@
 #include <juce_audio_utils/juce_audio_utils.h>
 #include "audio/AudioEngine.h"
 #include "state/Presets.h"
+#include "ui/DarkTitleBar.h"
+#include "ui/Theme.h"
 
 // Plugin-Kette als Liste. Pro Zeile (von links nach rechts):
 //   - Drag-Handle (Punkte) zum Umsortieren per Drag&Drop,
@@ -98,8 +100,13 @@ private:
     struct EditorWindow : juce::DocumentWindow
     {
         EditorWindow (const juce::String& name, std::function<void (EditorWindow*)> onCloseIn)
-            : juce::DocumentWindow (name, juce::Colours::black, juce::DocumentWindow::closeButton),
+            : juce::DocumentWindow (name, micvst::theme::background, juce::DocumentWindow::closeButton),
               onClose (std::move (onCloseIn)) {}
+        void visibilityChanged() override
+        {
+            juce::DocumentWindow::visibilityChanged();
+            if (isVisible()) micvst::useDarkTitleBar (*this, micvst::theme::dark);   // title bar like the theme
+        }
         void closeButtonPressed() override { if (onClose) onClose (this); }
         std::function<void (EditorWindow*)> onClose;
     };

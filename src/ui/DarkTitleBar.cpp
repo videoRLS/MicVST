@@ -12,7 +12,7 @@
 
 namespace micvst
 {
-    void useDarkTitleBar (juce::Component& window)
+    void useDarkTitleBar (juce::Component& window, bool dark)
     {
        #if JUCE_WINDOWS
         auto* peer = window.getPeer();
@@ -29,11 +29,11 @@ namespace micvst
         if (setAttribute == nullptr)
             return;
         const auto hwnd = static_cast<HWND> (peer->getNativeHandle());
-        const BOOL on = TRUE;
+        const BOOL on = dark ? TRUE : FALSE;
         if (FAILED (setAttribute (hwnd, 20, &on, sizeof (on))))
             setAttribute (hwnd, 19, &on, sizeof (on));
        #else
-        juce::ignoreUnused (window);
+        juce::ignoreUnused (window, dark);
        #endif
     }
 }

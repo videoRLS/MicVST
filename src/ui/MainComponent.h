@@ -32,6 +32,11 @@ private:
     juce::Label versionLabel;            // Versionsnummer (reiner Text, kein Link)
     juce::TextButton howToBtn;           // "Kullanım"
     std::unique_ptr<juce::DocumentWindow> howToWindow;
+    juce::Label themeLabel;              // "Tema"
+    juce::ComboBox themeBox;             // colour theme (ui/Theme.h); the app rebuilds the window
+public:
+    std::function<void (const juce::String& themeId)> onThemeChosen;   // set by the window
+private:
     juce::ToggleButton autostartToggle;  // "Açılışta başlat"
     juce::Label cableHint;               // VB-Cable-Hinweis (reiner Text, kein Link)
     juce::TooltipWindow tooltipWindow { nullptr, 100 };   // Hover-Tooltips, fast instant (100 ms)

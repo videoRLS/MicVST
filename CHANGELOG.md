@@ -24,6 +24,9 @@ project follows [Semantic Versioning](https://semver.org/).
   Dengeli Profesyonel; same elements, so switching glides),
   own presets of the whole chain with the VST3 states (save, overwrite, rename, delete), and
   "Önceki zincire dön".
+- Tema (bottom of the window): Gece (default, the colours so far), Gece Yarısı, Kül, Açık, Okyanus,
+  Ametist, Orman, Gün Batımı, Yüksek Kontrast; switched at once, saved in config.xml; the native
+  title bar follows (light for Açık).
 
 ## [1.2.1] - Unreleased
 

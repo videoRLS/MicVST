@@ -170,6 +170,7 @@ target_sources(MicVSTSnapshot PRIVATE
     src/ui/PluginListView.cpp
     src/ui/PluginPicker.cpp
     src/ui/LevelMeterComponent.cpp
+    src/ui/DarkTitleBar.cpp
     src/state/AutostartRegistry.cpp
 )
 target_include_directories(MicVSTSnapshot BEFORE PRIVATE tests/snapshot tests)

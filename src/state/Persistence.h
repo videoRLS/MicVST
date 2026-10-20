@@ -25,6 +25,7 @@ struct MicVSTState
     juce::String windowState;          // DocumentWindow::getWindowStateAsString() (Größe/Position)
     juce::String presetName;           // the preset last loaded (Hazır ayar; empty = none)
     bool presetModified = false;       // the chain was changed after loading it
+    juce::String theme;                // colour theme id (ui/Theme.h); empty = Gece (default)
     // (Kein Update-Check mehr: MicVST 1.2 hat keinerlei Netzwerkzugriff. Die alten Felder
     //  updateCheckEnabled/-Asked/lastNotifiedVersion in bestehenden config.xml werden ignoriert.)
 };

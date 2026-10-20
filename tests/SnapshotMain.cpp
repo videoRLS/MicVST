@@ -225,6 +225,25 @@ int main (int argc, char** argv)
         }
     }
 
+    // every colour theme: the main window with the effect chain above, and a settings window
+    for (auto& pal : micvst::theme::palettes())
+    {
+        micvst::theme::applyTheme (pal.id);
+        nightTheme.refresh();
+        {
+            MainComponent mc (engine);
+            pump (300);
+            snap (mc, 584, 640, dir.getChildFile (juce::String ("11_theme_") + pal.id + ".png"));
+        }
+        auto fx = builtin::create ("builtin:deesser");
+        fx->setPlayConfigDetails (2, 2, 48000.0, 480);
+        fx->prepareToPlay (48000.0, 480);
+        std::unique_ptr<juce::AudioProcessorEditor> ed (fx->createEditorAndMakeActive());
+        snap (*ed, ed->getWidth(), ed->getHeight(), dir.getChildFile (juce::String ("11_theme_") + pal.id + "_fx.png"));
+    }
+    micvst::theme::applyTheme ("gece");
+    nightTheme.refresh();
+
     dir.getChildFile ("5_howto_title.txt").replaceWithText (MainComponent::howToTitle());
     {
         auto howTo = MainComponent::createHowToContent();

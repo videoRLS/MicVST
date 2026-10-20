@@ -140,6 +140,31 @@ MainComponent::MainComponent (AudioEngine& e) : engine (e)
     versionLabel.setJustificationType (juce::Justification::centredLeft);
     addAndMakeVisible (versionLabel);
 
+    themeLabel.setText (tr ("Tema"), juce::dontSendNotification);
+    themeLabel.setColour (juce::Label::textColourId, micvst::theme::textDim);
+    themeLabel.setJustificationType (juce::Justification::centredRight);
+    addAndMakeVisible (themeLabel);
+    {
+        int id = 1;
+        for (auto& p : micvst::theme::palettes())
+            themeBox.addItem (juce::String::fromUTF8 (p.name), id++);
+        id = 1;
+        for (auto& p : micvst::theme::palettes())
+        {
+            if (micvst::theme::currentId == p.id) themeBox.setSelectedId (id, juce::dontSendNotification);
+            ++id;
+        }
+    }
+    themeBox.setTooltip (tr ("Pencerenin renk teması. Varsayılan: Gece."));
+    themeBox.onChange = [this]
+    {
+        const int idx = themeBox.getSelectedId() - 1;
+        const auto& list = micvst::theme::palettes();
+        if (juce::isPositiveAndBelow (idx, (int) list.size()) && onThemeChosen)
+            onThemeChosen (list[(size_t) idx].id);
+    };
+    addAndMakeVisible (themeBox);
+
     addAndMakeVisible (autostartToggle);
     autostartToggle.setButtonText (tr ("Açılışta başlat"));
     autostartToggle.setTooltip (tr ("Windows açılınca MicVST'yi pencere açmadan, simge olarak başlatır"));
@@ -207,6 +232,9 @@ void MainComponent::resized()
     autostartToggle.setBounds (bottomRow.removeFromRight (120));
     bottomRow.removeFromRight (6);
     howToBtn.setBounds (bottomRow.removeFromRight (80));
+    bottomRow.removeFromRight (6);
+    themeBox.setBounds (bottomRow.removeFromRight (170));
+    themeLabel.setBounds (bottomRow.removeFromRight (44));
     versionLabel.setBounds (bottomRow);
     r.removeFromBottom (4);
 

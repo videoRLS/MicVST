@@ -159,7 +159,9 @@ public:
         // Türkische Texte auch für JUCEs eigene Beschriftungen (Dialog-Buttons, Kontextmenü des
         // Suchfelds) - vor dem Aufbau jeder Oberfläche.
         micvst::installTurkishTranslations();
-        // Nacht-Thema (dunkel, blendfrei) für alle Fenster, Menüs, Tooltips und Dialoge.
+        // Farbthema (Standard: Gece - dunkel, blendfrei) für alle Fenster, Menüs, Tooltips und
+        // Dialoge; die Wahl steht in config.xml (gelesen, bevor irgendeine Oberfläche entsteht).
+        micvst::theme::applyTheme (loadState().theme);
         lookAndFeel = std::make_unique<micvst::theme::NightLookAndFeel>();
         juce::LookAndFeel::setDefaultLookAndFeel (lookAndFeel.get());
 
@@ -218,6 +220,11 @@ public:
         engine->applyState (state);
 
         mainWindow = std::make_unique<MainWindow> ("MicVST", *engine, state.windowState);
+        mainWindow->onThemeApplied = [this]
+        {
+            if (lookAndFeel != nullptr) lookAndFeel->refresh();
+            persistState();
+        };
         mainWindow->setVisible (! silent);   // Autostart (--tray): unsichtbar, nur Tray
 
         tray = std::make_unique<TrayIcon>();
@@ -276,6 +283,7 @@ private:
         if (suppressPersist || engine == nullptr) return;
         auto s = engine->captureState();
         if (mainWindow != nullptr) s.windowState = mainWindow->getWindowStateAsString();
+        s.theme = micvst::theme::currentId;
         saveState (s);
     }
 
@@ -319,14 +327,13 @@ private:
     {
     public:
         MainWindow (juce::String name, AudioEngine& engine, const juce::String& windowState)
-            : DocumentWindow (name, micvst::theme::background, DocumentWindow::allButtons)
+            : DocumentWindow (name, micvst::theme::background, DocumentWindow::allButtons), engineRef (engine)
         {
             setUsingNativeTitleBar (true);
             // resize-to-fit AUS: die Fenstergröße diktiert centreWithSize unten, nicht die
             // Content-Größe. Sonst zieht der MainComponent (setSize im Ctor) die Startgröße
             // über das Minimum hinaus.
-            content = new MainComponent (engine);
-            setContentOwned (content, false);
+            createContent();
             setResizable (true, false);
             // Mindestgröße = Startgröße (600x560); zusätzliche Höhe verlängert die Plugin-Liste.
             setResizeLimits (600, 560, 1600, 1400);
@@ -338,14 +345,43 @@ private:
                 centreWithSize (600, 560);
         }
         std::function<void()> onHide;
+        std::function<void()> onThemeApplied;   // the app: LookAndFeel refresh + save
         void closeButtonPressed() override { setVisible (false); if (onHide) onHide(); }
         void visibilityChanged() override
         {
             DocumentWindow::visibilityChanged();
-            if (isVisible()) micvst::useDarkTitleBar (*this);   // native title bar dark, like the theme
+            if (isVisible()) micvst::useDarkTitleBar (*this, micvst::theme::dark);   // native title bar like the theme
         }
         MainComponent* getContent() const { return content; }
     private:
+        void createContent()
+        {
+            content = new MainComponent (engineRef);
+            content->onThemeChosen = [this] (const juce::String& id)
+            {
+                // later, outside the list's own callback: the content (with that list) is rebuilt
+                juce::Component::SafePointer<MainWindow> safe (this);
+                juce::MessageManager::callAsync ([safe, id]
+                {
+                    if (safe != nullptr) safe->applyTheme (id);
+                });
+            };
+            setContentOwned (content, false);
+        }
+        void applyTheme (const juce::String& id)
+        {
+            if (id == micvst::theme::currentId) return;
+            micvst::theme::applyTheme (id);
+            if (onThemeApplied) onThemeApplied();   // LookAndFeel takes the new colours
+            setBackgroundColour (micvst::theme::background);
+            clearContentComponent();                // the old content (and its engine callbacks) first ...
+            content = nullptr;
+            createContent();                        // ... then the new one, built with the new colours
+            micvst::useDarkTitleBar (*this, micvst::theme::dark);
+            juce::Logger::writeToLog (juce::String::fromUTF8 ("Tema: ") + juce::String::fromUTF8 (micvst::theme::paletteFor (id).name));
+            repaint();
+        }
+        AudioEngine& engineRef;
         MainComponent* content = nullptr;   // gehört dem Fenster (setContentOwned), nur Zugriffszeiger
     };
 
