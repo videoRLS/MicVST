@@ -929,12 +929,20 @@ namespace
     // machine), a MicVST event (underrun, trim, skip, ...), a planned change (chaos mode).
     // chaos: every 20 s one change while audio plays (bypass, add/move/remove a plug-in, safety
     // buffer fixed 40 ms <-> Auto), every 5 min a device buffer change (both devices reopen).
+    namespace suite { juce::String buildLongChain (AudioEngine&); }   // Vst3Suite.inc
+
     void longRun (double minutes, bool chaos)
     {
         auto& cfg = vdev::config();
         sineConfig (997.0, 0.5, 48000);
         const double fs = cfg.cableRate, seconds = minutes * 60.0;
-        const double limit = 3.0 * 0.25 * std::pow (twoPi * 997.0 / fs, 2.0) + 2.0e-4;
+        // ETEST_LONG_VST3: a chain of real plug-ins (vst3suite's, active settings) instead of the
+        // test elements - its output level is only known after the first minute: the click limit
+        // follows the measured amplitude then
+        const bool withVst3 = envSet ("ETEST_LONG_VST3") && envSet ("MICVST_TEST_VST3_DIR");
+        double limit = withVst3 ? 1.0e9 : 3.0 * 0.25 * std::pow (twoPi * 997.0 / fs, 2.0) + 2.0e-4;
+        bool limitSet = ! withVst3;
+        double levelMin = 1.0e9, levelMax = -1.0e9, thdMin = 1.0e9, thdMax = -1.0e9;
         auto& rec = vdev::recorder();
         std::mutex lock;
         std::vector<float> pending, work;
@@ -1085,18 +1093,37 @@ namespace
         const bool withAutoGain = envSet ("ETEST_LONG_AUTOGAIN");
         // ETEST_LONG_DELAY: another delay (samples, reported as latency) instead of 240
         const int delaySamples = juce::jlimit (1, 8000, juce::SystemStats::getEnvironmentVariable ("ETEST_LONG_DELAY", "240").getIntValue());
+        const int priority = juce::SystemStats::getEnvironmentVariable ("ETEST_LONG_PRIORITY", "-1").getIntValue();   // MicVST's priority option
+        const int burnThreads = juce::SystemStats::getEnvironmentVariable ("ETEST_LONG_BURN", "0").getIntValue();      // another program loading the CPUs
         pr ("## Long run" + juce::String (chaos ? " with changes during playback" : "") + ": " + juce::String (minutes, 0)
-            + " min real time, chain gain 0.5 + delay " + juce::String (delaySamples) + " smp + load 30 %" + (withAutoGain ? juce::String (" + Otomatik Kazanç") : juce::String())
-            + ", 997 Hz -6 dBFS, buffer 480, streamed analysis");
+            + " min real time, chain " + (withVst3 ? juce::String ("Otomatik Kazanc + real VST3 effects (see below)")
+                                                   : "gain 0.5 + delay " + juce::String (delaySamples) + " smp + load 30 %" + (withAutoGain ? juce::String (" + Otomatik Kazanc") : juce::String()))
+            + ", 997 Hz -6 dBFS, buffer 480, streamed analysis"
+            + (priority >= 0 ? ", process priority " + AudioEngine::priorityName (priority) : juce::String())
+            + (burnThreads > 0 ? ", another program keeps " + juce::String (burnThreads) + " CPU threads busy" : juce::String()));
         pr ("| t (min) | RSS (MB) | process CPU (%) | clicks (unexplained) | gaps (unexplained) | THD+N in 43 ms windows, median / worst (event-free 2 s slices) | speed p-p within a slice (ppm) | level (dBFS) | MicVST |");
         pr ("|---:|---:|---:|---:|---:|---:|---:|---:|---|");
         {
             EngineRun run (480, seconds);
             auto& e = *run.engine;
+            if (priority >= 0) e.setProcessPriority (priority);
+            std::unique_ptr<juce::ChildProcess> burner;
+            if (burnThreads > 0)
+            {
+                juce::StringArray a; a.add (juce::File::getSpecialLocation (juce::File::currentExecutableFile).getFullPathName());
+                a.add ("burn"); a.add (juce::String (burnThreads)); a.add (juce::String (seconds + 30.0, 0));
+                burner = std::make_unique<juce::ChildProcess>();
+                if (! burner->start (a)) pr ("  could not start the load program");
+            }
+            if (withVst3)
+                pr ("chain: " + suite::buildLongChain (e));
+            else
+            {
             run.add (testDesc ("TestGain", 0.5));
             run.add (testDesc ("TestDelay", delaySamples));
             run.add (testDesc ("TestLoad", 0.3));
-            if (withAutoGain)   // ETEST_LONG_AUTOGAIN: the built-in Otomatik Kazanç at the end of the chain
+            }
+            if (withAutoGain && ! withVst3)   // ETEST_LONG_AUTOGAIN: the built-in Otomatik Kazanç at the end of the chain
             {
                 e.getChain().addAutoGain (true);
                 const AudioEngine::ChainEdit edit (e);
@@ -1202,6 +1229,16 @@ namespace
                             thd = th[th.size() / 2]; thdWorst = th.back(); level = lv[lv.size() / 2];
                             speedPp = *std::max_element (sp.begin(), sp.end());
                             if (audioStarted) worstThd = std::max (worstThd, thdWorst);
+                            if (! limitSet && level > -120.0)   // VST3 chain: click limit from the measured amplitude
+                            {
+                                limit = 3.0 * juce::Decibels::decibelsToGain (level) * std::pow (twoPi * 997.0 / fs, 2.0) + 2.0e-4;
+                                limitSet = true;
+                            }
+                            if (analysed > (int64_t) (90 * fs))   // after the first minute: the sound must not drift
+                            {
+                                levelMin = std::min (levelMin, level); levelMax = std::max (levelMax, level);
+                                thdMin = std::min (thdMin, thd); thdMax = std::max (thdMax, thd);
+                            }
                         }
                     }
                     minuteClicks = minuteClicksU = minuteGaps = minuteGapsU = 0;
@@ -1236,6 +1273,9 @@ namespace
             + ", RSS " + (rssSeries.empty() ? juce::String ("?") : juce::String (rssSeries.front().second, 1) + " -> " + juce::String (rssSeries.back().second, 1)) + " MB (slope over the second half "
             + juce::String (slope, 2) + " MB/h)");
         for (auto& [k, v] : causes) pr ("  " + k + ": " + juce::String (v));
+        if (levelMax > levelMin - 1.0e8)
+            pr ("sound over the run (after the first minute, event-free slices): level " + juce::String (levelMin, 3) + " ... " + juce::String (levelMax, 3)
+                + " dBFS (spread " + juce::String (levelMax - levelMin, 3) + " dB), THD+N median per minute " + juce::String (thdMin, 1) + " ... " + juce::String (thdMax, 1) + " dB");
     }
 }
 

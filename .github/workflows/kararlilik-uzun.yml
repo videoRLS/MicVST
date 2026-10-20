@@ -12,6 +12,9 @@ name: kararlilik-uzun
 #   simweek  - a simulated week of the audio bridge (MicVSTStress --day 168) and 24 h of audio
 #              through the Otomatik Kazanç soak (MicVSTTests AutoGain, MICVST_SOAK_HOURS=24)
 #   win11arm - Windows 11 (ARM64 runner): unit tests and the main engine-test modes, built for ARM64
+#   vst3long - three machines, one per process priority (Normal / Normalin Ustunde / Yuksek): the long
+#              run through Otomatik Kazanc + real VST3 effects (EQ, de-esser, compressor, saturation,
+#              limiter) while another program keeps every CPU busy
 # Each job pushes its results to ci-sonuclari/<branch>-uzun-<job>.
 on:
   push:
@@ -143,7 +146,7 @@ jobs:
         shell: pwsh
         run: |
           $e = "build/MicVSTEngineTest_artefacts/Release/MicVSTEngineTest.exe"
-          foreach ($m in @("quality", "latency", "devices", "hotplug", "openfail", "faults", "edits", "gain", "autogain")) {
+          foreach ($m in @("quality", "latency", "devices", "hotplug", "openfail", "faults", "edits", "gain", "autogain", "priority", "monochain")) {
             ./tools/ci-run-timed.ps1 -Exe $e -OutFile "results/engine/$m.txt" -TimeoutSeconds 1800 -Arguments @($m)
           }
           $env:ETEST_LONG_AUTOGAIN = "1"
@@ -154,3 +157,32 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./tools/ci-publish.ps1 -Dir results -Branch "ci-sonuclari/${{ github.ref_name }}-uzun-win11arm" -Message "MicVST ${{ github.ref_name }} win11arm"
+
+  vst3long:
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[uzun]') }}
+    runs-on: windows-latest
+    timeout-minutes: 358
+    strategy:
+      fail-fast: false
+      matrix:
+        priority: [ 0, 1, 2 ]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build
+        shell: pwsh
+        run: ./tools/ci-build.ps1 -Source . -Build build -Targets "MicVSTEngineTest" -Out results
+      - name: Long run through real VST3 effects under full CPU load
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          . ./tools/ci-suite-plugins.ps1 -NoteFile results/vst3-suite-source.txt
+          $env:ETEST_LONG_VST3 = "1"
+          $env:ETEST_LONG_PRIORITY = "${{ matrix.priority }}"
+          $env:ETEST_LONG_BURN = "$([Environment]::ProcessorCount)"
+          ./tools/ci-run-timed.ps1 -Exe build/MicVSTEngineTest_artefacts/Release/MicVSTEngineTest.exe -OutFile results/vst3long.txt -TimeoutSeconds ([int] $env:MINUTES * 60 + 900) -Arguments @("long", $env:MINUTES)
+      - name: Publish
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./tools/ci-publish.ps1 -Dir results -Branch "ci-sonuclari/${{ github.ref_name }}-uzun-vst3long-p${{ matrix.priority }}" -Message "MicVST ${{ github.ref_name }} vst3long priority ${{ matrix.priority }}"
