@@ -42,6 +42,25 @@ DevicePanel::DevicePanel (AudioEngine& e) : engine (e)
         safetyBox.addItem (juce::String (AudioEngine::safetyChoicesMs[i]) + " ms", i + 2);
     safetyBox.onChange = [this] { applySafety(); };
 
+    // Prozess-Priorität (nur Windows). Ändern wirkt sofort, ohne Geräte-Neustart; die Combo zeigt
+    // immer die Klasse, die Windows für MicVST gerade wirklich meldet.
+    priorityLabel.setText (tr ("İşlem önceliği"), juce::dontSendNotification);
+    priorityLabel.setJustificationType (juce::Justification::centredLeft);
+    priorityInfo.setTooltip (tr ("MicVST'nin Windows işlem önceliği. Ses iş parçacıkları (mikrofon, eklenti zinciri, "
+                                 "kablo) her seçenekte Windows'un gerçek zamanlı ses önceliğinde (MMCSS) çalışır. Bu ayar "
+                                 "MicVST'nin diğer iş parçacıklarını (pencere, ölçerler, cihaz değişimleri, eklenti "
+                                 "pencereleri, bazı eklentilerin arka plan işleri) diğer programlara göre öne alır. "
+                                 "Normal önerilir; ağır bir oyun veya video işleme sırasında MicVST'nin penceresi ya da "
+                                 "bir eklenti penceresi takılıyorsa Normalin Üstünde'yi deneyin."));
+    priorityBox.addItem (tr ("Normal"), 1);
+    priorityBox.addItem (tr ("Normalin Üstünde"), 2);
+    priorityBox.addItem (tr ("Yüksek"), 3);
+    priorityBox.onChange = [this] { applyPriority(); };
+    if (rt::processPrioritySupported())
+    {
+        addAndMakeVisible (priorityLabel); addAndMakeVisible (priorityBox); addAndMakeVisible (priorityInfo);
+    }
+
     // Zwei Info-Zeilen: Geräte/Latenz und CPU-Last/Aussetzer.
     for (auto* l : { &statusLabel, &statsLabel })
     {
@@ -76,6 +95,7 @@ void DevicePanel::changeListenerCallback (juce::ChangeBroadcaster*)
 void DevicePanel::timerCallback()
 {
     updateStatus();   // nur die Info-Zeilen; Combos nicht anfassen (User könnte gerade wählen)
+    syncPriority();   // außer der Prioritäts-Combo, wenn sie zu ist (z. B. im Task-Manager geändert)
 }
 
 void DevicePanel::refresh()
@@ -164,6 +184,44 @@ void DevicePanel::refresh()
     updateStatus();
 
     updating = false;
+    syncPriority();
+}
+
+void DevicePanel::syncPriority()
+{
+    if (! priorityBox.isVisible() || priorityBox.isPopupActive())
+        return;
+
+    // Shows what Windows reports right now - after MicVST applied the saved choice at start, and
+    // also when the class was changed from outside (Task Manager): then possibly "another level".
+    const int actual = rt::currentProcessPriority();
+    const int id = juce::isPositiveAndBelow (actual, rt::numProcessPriorities) ? actual + 1 : 4;
+    if (id == 4 && priorityBox.indexOfItemId (4) < 0)
+        priorityBox.addItem (tr ("Başka bir seviye (dışarıdan değiştirildi)"), 4);
+    if (priorityBox.getSelectedId() != id)
+    {
+        const juce::ScopedValueSetter<bool> guard (updating, true);
+        priorityBox.setSelectedId (id, juce::dontSendNotification);
+    }
+
+    // A refused change (also the one at program start) is told once, when the window is visible.
+    if (engine.getPriorityProblemCount() != shownPriorityProblems && isShowing())
+    {
+        shownPriorityProblems = engine.getPriorityProblemCount();
+        juce::AlertWindow::showMessageBoxAsync (juce::MessageBoxIconType::WarningIcon, tr ("İşlem önceliği"),
+                                                engine.getPriorityProblem(), {}, this);
+    }
+}
+
+void DevicePanel::applyPriority()
+{
+    if (updating) return;
+    const int choice = priorityBox.getSelectedId() - 1;
+    if (! juce::isPositiveAndBelow (choice, rt::numProcessPriorities))
+        return;   // "another level" is only shown, never chosen
+    engine.setProcessPriority (choice);   // applies it, reads it back; a refusal is logged and kept
+    engine.requestPersist();
+    syncPriority();                       // shows the class the process really has (+ the message)
 }
 
 void DevicePanel::updateStatus()
@@ -301,13 +359,19 @@ void DevicePanel::resized()
     auto safetyRow = row (rowH);
     safetyBox.setBounds (labelWithInfo (safetyRow, safetyLabel, safetyInfo));
 
+    if (priorityBox.isVisible())
+    {
+        auto priorityRow = row (rowH);
+        priorityBox.setBounds (labelWithInfo (priorityRow, priorityLabel, priorityInfo));
+    }
+
     statusLabel.setBounds (row (statusH));   // dauerhafte Info-Zeilen unter den Geräten
     statsLabel.setBounds (row (statusH));
 }
 
 int DevicePanel::preferredHeight() const
 {
-    // Input, Output, Safety (+ Buffer) à 26, zwei Info-Zeilen à 20, Lücken à 4 dazwischen:
-    // 3 Zeilen -> 3*26 + 2*20 + 4*4 = 134; Buffer-Zeile sichtbar -> 4*26 + 2*20 + 5*4 = 164.
-    return bufBox.isVisible() ? 164 : 134;
+    // Input, Output, Safety (+ Buffer, + Priorität unter Windows) à 26, zwei Info-Zeilen à 20,
+    // Lücken à 4 dazwischen: 3 Zeilen -> 3*26 + 2*20 + 4*4 = 134; jede weitere Zeile +30.
+    return 134 + (bufBox.isVisible() ? 30 : 0) + (priorityBox.isVisible() ? 30 : 0);
 }

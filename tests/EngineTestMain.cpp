@@ -64,9 +64,23 @@ namespace
 
     //==============================================================================
     // Test "plug-ins"
+    // Level taps (TestTap, param = tap number): what one point of the chain carries - the peak and
+    // the energy of channel 0 (and the peak of channel 1) while armed. Written on the plug-in thread.
+    struct TapReadings
+    {
+        static constexpr int maxTaps = 16;
+        std::array<std::atomic<float>, maxTaps> peak {}, peakR {};
+        std::array<std::atomic<double>, maxTaps> sum {};
+        std::array<std::atomic<int64_t>, maxTaps> count {}, overFullScale {};
+        std::atomic<bool> armed { false };
+        void reset() { for (int i = 0; i < maxTaps; ++i) { peak[(size_t) i] = 0.0f; peakR[(size_t) i] = 0.0f; sum[(size_t) i] = 0.0; count[(size_t) i] = 0; overFullScale[(size_t) i] = 0; } }
+        static void storeMax (std::atomic<float>& a, float v) { float o = a.load(); while (v > o && ! a.compare_exchange_weak (o, v)) {} }
+    };
+    TapReadings& taps() { static TapReadings t; return t; }
+
     struct TestProcessor : juce::AudioPluginInstance
     {
-        enum class Kind { gain, invert, delay, load, nan, huge, hang, thrower, slowPrepare, stall, stepGain };
+        enum class Kind { gain, invert, delay, load, nan, huge, hang, thrower, slowPrepare, stall, stepGain, tap };
         TestProcessor (Kind k, double p)
             : AudioPluginInstance (BusesProperties().withInput ("In", juce::AudioChannelSet::stereo())
                                                     .withOutput ("Out", juce::AudioChannelSet::stereo())),
@@ -82,6 +96,7 @@ namespace
                 case Kind::load: return "TestLoad"; case Kind::nan: return "TestNaN"; case Kind::huge: return "TestHuge";
                 case Kind::hang: return "TestHang"; case Kind::thrower: return "TestThrow"; case Kind::slowPrepare: return "TestSlowPrepare";
                 case Kind::stall: return "TestStall"; case Kind::stepGain: return "TestStepGain";
+                case Kind::tap: return "TestTap";
             }
             return "Test";
         }
@@ -142,6 +157,25 @@ namespace
                 case Kind::stepGain:   // control for the Kazanç test: abrupt -30 dB <-> +12 dB every param blocks
                     b.applyGain ((blocks / juce::jmax (1, (int) param)) % 2 == 0 ? 0.0316228f : 3.9810717f);
                     break;
+                case Kind::tap:        // passes the audio unchanged, measures it (TapReadings)
+                {
+                    auto& t = taps();
+                    const int k = juce::jlimit (0, TapReadings::maxTaps - 1, (int) param);
+                    if (t.armed.load (std::memory_order_relaxed) && b.getNumChannels() > 0)
+                    {
+                        const float* x = b.getReadPointer (0);
+                        float pk = 0.0f; double s2 = 0.0; int64_t over = 0;
+                        for (int i = 0; i < n; ++i) { const float a = std::abs (x[i]); pk = std::max (pk, a); s2 += (double) x[i] * x[i]; over += a >= 1.0f ? 1 : 0; }
+                        float pkR = 0.0f;
+                        if (b.getNumChannels() > 1) { const float* r = b.getReadPointer (1); for (int i = 0; i < n; ++i) pkR = std::max (pkR, std::abs (r[i])); }
+                        TapReadings::storeMax (t.peak[(size_t) k], pk);
+                        TapReadings::storeMax (t.peakR[(size_t) k], pkR);
+                        { auto& a = t.sum[(size_t) k]; double o = a.load(); while (! a.compare_exchange_weak (o, o + s2)) {} }
+                        t.count[(size_t) k].fetch_add (n);
+                        t.overFullScale[(size_t) k].fetch_add (over);
+                    }
+                    break;
+                }
             }
             ++blocks;
         }
@@ -192,6 +226,7 @@ namespace
             if (id == "TestSlowPrepare") { cb (std::make_unique<TestProcessor> (K::slowPrepare, p), {}); return; }
             if (id == "TestStall")  { cb (std::make_unique<TestProcessor> (K::stall, p), {}); return; }
             if (id == "TestStepGain") { cb (std::make_unique<TestProcessor> (K::stepGain, p > 0 ? p : 5), {}); return; }
+            if (id == "TestTap")    { cb (std::make_unique<TestProcessor> (K::tap, p), {}); return; }
             cb (nullptr, "unknown test plug-in");
         }
     };
@@ -1756,6 +1791,8 @@ namespace
             + db (C, 1) + "FS; the bridge's resampler after the chain may add a little) -> "
             + (loudest <= C + 0.1 ? "OK (at most 0.1 dB over)" : "OVER by more than 0.1 dB"));
     }
+
+   #include "enginetest/Vst3Suite.inc"
 }
 #endif
 
@@ -1946,9 +1983,83 @@ int main (int argc, char** argv)
             std::printf ("  block at %zu: peak %.4f first %.4f\n", b, mx, L[b]);
         }
     }
+    else if (mode == "vst3info")   // vst3info <bundle>: what the plug-ins in a bundle offer (buses, latency, parameters, state)
+    {
+        const juce::String bundle = argc > 2 ? juce::String (argv[2]) : vst3Bundle();
+        juce::VST3PluginFormat fmt;
+        juce::OwnedArray<juce::PluginDescription> types;
+        fmt.findAllTypesForFile (types, bundle);
+        pr ("bundle " + bundle + ": " + juce::String (types.size()) + " type(s)");
+        for (auto* t : types)
+        {
+            pr ("### " + t->name + " | " + t->manufacturerName + " " + t->version + " | " + t->category + (t->isInstrument ? " | instrument" : "")
+                + " | uid " + juce::String::toHexString (t->uniqueId) + " | id " + t->createIdentifierString());
+            juce::String err;
+            auto p = fmt.createInstanceFromDescription (*t, 48000.0, 480, err);
+            if (p == nullptr) { pr ("  create failed: " + err); continue; }
+            for (bool in : { true, false })
+                for (int b = 0; b < p->getBusCount (in); ++b)
+                    if (auto* bus = p->getBus (in, b))
+                        pr (juce::String ("  ") + (in ? "in" : "out") + " bus " + juce::String (b) + " '" + bus->getName() + "': "
+                            + bus->getCurrentLayout().getDescription() + (bus->isEnabled() ? "" : " (disabled)"));
+            auto layoutOk = [&p] (const juce::AudioChannelSet& i, const juce::AudioChannelSet& o)
+            {
+                auto l = p->getBusesLayout();
+                if (l.inputBuses.isEmpty() || l.outputBuses.isEmpty()) return false;
+                l.inputBuses.getReference (0) = i; l.outputBuses.getReference (0) = o;
+                return p->checkBusesLayoutSupported (l);
+            };
+            pr ("  layouts: mono/mono " + juce::String (layoutOk (juce::AudioChannelSet::mono(), juce::AudioChannelSet::mono()) ? "yes" : "no")
+                + ", stereo/stereo " + juce::String (layoutOk (juce::AudioChannelSet::stereo(), juce::AudioChannelSet::stereo()) ? "yes" : "no")
+                + ", mono/stereo " + juce::String (layoutOk (juce::AudioChannelSet::mono(), juce::AudioChannelSet::stereo()) ? "yes" : "no"));
+            p->prepareToPlay (48000.0, 480);
+            juce::MemoryBlock st; p->getStateInformation (st);
+            pr ("  channels in/out " + juce::String (p->getTotalNumInputChannels()) + "/" + juce::String (p->getTotalNumOutputChannels())
+                + ", latency " + juce::String (p->getLatencySamples()) + " samples, tail " + juce::String (p->getTailLengthSeconds(), 2)
+                + " s, editor " + juce::String (p->hasEditor() ? "yes" : "no") + ", programs " + juce::String (p->getNumPrograms())
+                + ", state " + juce::String ((int) st.getSize()) + " bytes, parameters " + juce::String (p->getParameters().size()));
+            int shown = 0;
+            for (auto* prm : p->getParameters())
+            {
+                if (++shown > 200) { pr ("  ..."); break; }
+                juce::String range;
+                if (prm->isDiscrete() && prm->getNumSteps() <= 16)
+                {
+                    juce::StringArray texts;
+                    for (int k = 0; k < prm->getNumSteps(); ++k) texts.add (prm->getText ((float) k / (float) juce::jmax (1, prm->getNumSteps() - 1), 40));
+                    range = " {" + texts.joinIntoString (" | ") + "}";
+                }
+                else if (! prm->isDiscrete())
+                    range = " [0: '" + prm->getText (0.0f, 40) + "', 0.25: '" + prm->getText (0.25f, 40) + "', 0.5: '" + prm->getText (0.5f, 40)
+                          + "', 0.75: '" + prm->getText (0.75f, 40) + "', 1: '" + prm->getText (1.0f, 40) + "']";
+                pr ("  [" + juce::String (prm->getParameterIndex()) + "] " + prm->getName (60) + " = " + juce::String (prm->getValue(), 4)
+                    + " ('" + prm->getCurrentValueAsText() + "' " + prm->getLabel() + ")" + (prm->isDiscrete() ? " discrete " + juce::String (prm->getNumSteps()) : juce::String())
+                    + (prm->isAutomatable() ? "" : " not-automatable") + range);
+            }
+            p->releaseResources();
+        }
+    }
+    else if (mode == "monochain")   // mono microphone into a stereo-only plug-in: are both cable channels fed?
+    {
+        vdev::config().micChannels = 1;
+        for (const char* what : { "empty", "TestGain 1.0 (stereo in/out)", "Mono -> Stereo, TestGain", "TestGain, Stereo -> Mono" })
+        {
+            const juce::String w (what);
+            const auto r = measureSine (997.0, 0.5, 8.0, 480, 4.0, [w] (EngineRun& run)
+            {
+                if (w.startsWith ("Mono"))  run.engine->getChain().addMonoToStereo();
+                if (w.contains ("TestGain")) run.add (testDesc ("TestGain", 1.0));
+                if (w.endsWith ("Mono"))    run.engine->getChain().addStereoToMono();
+                const AudioEngine::ChainEdit e (*run.engine);
+                run.engine->rebuildGraph();
+            });
+            pr (w + ": gain L " + db (r.gainDbL, 3) + ", R " + db (r.gainDbR, 3));
+        }
+    }
     else if (mode == "buffers") buffers();
     else if (mode == "edits") edits();
     else if (mode == "vst3") vst3();
+    else if (mode == "vst3suite") suite::run();   // real plug-ins from $MICVST_TEST_VST3_DIR: one by one and together
    #if MICVST_NEW_ENGINE
     else if (mode == "gain") gainTest (argc > 2 ? std::atof (argv[2]) : 20.0);   // seconds per live-slider run
     else if (mode == "autogain") autoGainTest();

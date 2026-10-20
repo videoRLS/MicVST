@@ -90,6 +90,36 @@ struct GraphConnectionsTest : juce::UnitTest
             expect (c[3] == ChannelConnection { p2, 1, out, 1 });
         }
 
+        beginTest ("mono microphone into a stereo plugin: the one channel feeds both plugin inputs");
+        {
+            // input(1) -> p1 stereo(2/2) -> output(2): before, p1's right input got silence
+            auto c = computeChainConnections ({ { in, 0, 1 }, { p1, 2, 2 }, { out, 2, 0 } });
+            expectEquals ((int) c.size(), 4);
+            expect (c[0] == ChannelConnection { in, 0, p1, 0 });
+            expect (c[1] == ChannelConnection { in, 0, p1, 1 });
+            expect (c[2] == ChannelConnection { p1, 0, out, 0 });
+            expect (c[3] == ChannelConnection { p1, 1, out, 1 });
+        }
+
+        beginTest ("mono plugin inside a stereo chain, then a stereo plugin (with an aux input bus): both inputs fed");
+        {
+            // input(2) -> p1 mono(1/1, e.g. RNNoise) -> p2 stereo + sidechain (4 ins / 2 outs) -> output(2)
+            auto c = computeChainConnections ({ { in, 0, 2 }, { p1, 1, 1 }, { p2, 4, 2 }, { out, 2, 0 } });
+            expectEquals ((int) c.size(), 1 + 2 + 2);
+            expect (c[0] == ChannelConnection { in, 0, p1, 0 });
+            expect (c[1] == ChannelConnection { p1, 0, p2, 0 });
+            expect (c[2] == ChannelConnection { p1, 0, p2, 1 });   // main bus right, never the aux bus
+            expect (c[3] == ChannelConnection { p2, 0, out, 0 });
+            expect (c[4] == ChannelConnection { p2, 1, out, 1 });
+        }
+
+        beginTest ("chain ending mono: still exactly one channel into the output (the engine copies it)");
+        {
+            auto c = computeChainConnections ({ { in, 0, 2 }, { p1, 1, 1 }, { out, 2, 0 } });
+            expectEquals ((int) c.size(), 2);
+            expect (c[1] == ChannelConnection { p1, 0, out, 0 });
+        }
+
         beginTest ("two stereo plugins: in(2)->p1(2/2)->p2(2/2)->out(2)");
         {
             auto c = computeChainConnections ({ { in, 0, 2 }, { p1, 2, 2 },

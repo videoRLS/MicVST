@@ -166,10 +166,10 @@ public:
                                   + tr (", internet erişimi yok)"));
 
         // Echtzeit-Prozess: Windows darf den (oft nur im Tray laufenden) Audio-Prozess nicht als
-        // Hintergrundarbeit drosseln (EcoQoS / Timer-Drosselung), Prioritätsklasse "hoch" (HIGH).
+        // Hintergrundarbeit drosseln (EcoQoS / Timer-Drosselung). Die Prioritätsklasse wählt der
+        // Nutzer (Normal / Normalin Üstünde / Yüksek, Standard Normal); applyState() setzt sie unten.
         const auto rtSetup = rt::configureRealtimeProcess();
-        juce::Logger::writeToLog (tr ("İşlem: öncelik yüksek ") + (rtSetup.priorityRaised ? tr ("tamam") : tr ("BAŞARISIZ"))
-                                  + tr (", güç kısıtlaması kapalı ") + (rtSetup.executionThrottlingOff ? tr ("tamam") : tr ("desteklenmiyor"))
+        juce::Logger::writeToLog (tr ("İşlem: güç kısıtlaması kapalı ") + (rtSetup.executionThrottlingOff ? tr ("tamam") : tr ("desteklenmiyor"))
                                   + tr (", zamanlayıcı kısıtlaması kapalı ") + (rtSetup.timerThrottlingOff ? tr ("tamam") : tr ("desteklenmiyor")));
 
         const bool silent = commandLine.contains ("--tray");

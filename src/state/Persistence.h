@@ -19,6 +19,7 @@ struct MicVSTState
     double sampleRate = 48000.0;
     int    bufferSize = 0;   // Buffer-Wunsch in Samples; 0 = Auto (Geräte-Default)
     int    safetyBufferMs = 0;   // Sicherheitspuffer Mikro -> Kabel in ms; 0 = Auto (adaptiv)
+    int    processPriority = 0;  // Prozess-Priorität: 0 Normal (Standard), 1 Normalin Üstünde, 2 Yüksek (rt::ProcessPriority)
     juce::Array<PluginEntryState> plugins;
     juce::StringArray pluginFolders;   // zusätzliche VST3-Suchordner
     juce::String windowState;          // DocumentWindow::getWindowStateAsString() (Größe/Position)

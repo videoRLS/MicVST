@@ -51,6 +51,18 @@ public:
     int  getSafetyBufferMs() const { return safetyBufferMs; }
     static constexpr int safetyChoicesMs[] = { 5, 10, 20, 40, 80 };
 
+    // Process priority class chosen by the user (0 Normal = default, 1 above normal, 2 high;
+    // rt::ProcessPriority). Applied at once and read back from Windows; the setting keeps the
+    // class the process really has afterwards (a refused change keeps the previous one). The
+    // audio threads are MMCSS in every case. Message thread. Logged; a refusal is also kept in
+    // getPriorityProblem() for the window to show.
+    rt::PriorityResult setProcessPriority (int choice);
+    int  getProcessPriority() const { return processPriority; }
+    // Text of the last refused change (empty = none) and a counter that changes with every refusal.
+    const juce::String& getPriorityProblem() const { return priorityProblem; }
+    int  getPriorityProblemCount() const { return priorityProblemCount; }
+    static juce::String priorityName (int choice);
+
     // Finds an installed virtual audio cable as output (VB-Cable, VoiceMeeter, VAC).
     juce::String detectCableOutput();
 
@@ -111,6 +123,12 @@ public:
     LevelReading outputLevel() const { return outputMeter.read(); }
 
     void rebuildGraph();
+
+    // The chain's delay in samples: the sum of the latencies the active (not bypassed) elements
+    // report right now. Message thread. (The graph's own figure is only updated when it is rebuilt:
+    // a plug-in that changes its latency while running - an EQ switched to linear phase in its
+    // window - was missing from the shown latency until the next chain edit.)
+    int chainLatencySamples() const;
 
     // Every change of the plug-in chain while audio runs (add, remove, move, bypass, restore)
     // happens inside one of these: the processed audio fades out (5 ms), the graph is switched
@@ -257,6 +275,9 @@ private:
     struct ReopenBackoff { juce::uint32 nextMs = 0; int failures = 0; };
     ReopenBackoff inputReopen, outputReopen;
     int safetyBufferMs = 0;                // 0 = Auto
+    int processPriority = 0;               // 0 Normal (default), 1 above normal, 2 high
+    juce::String priorityProblem;
+    int priorityProblemCount = 0;
     double preferredInputRate = 48000.0;
     LevelMeter inputMeter, outputMeter;
 

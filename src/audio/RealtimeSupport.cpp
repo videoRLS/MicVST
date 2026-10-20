@@ -111,19 +111,43 @@ namespace rt
     ProcessSetup configureRealtimeProcess() noexcept
     {
         ProcessSetup r;
-        // HIGH (not REALTIME), as the user wants it (1.2.0 and earlier 1.2.1 builds: "above normal"). The
-        // audio threads run in the MMCSS realtime band anyway (MMCSS does not depend on the process
-        // class); HIGH lifts MicVST's other threads (UI/meters, device changes, saving the state,
-        // plug-in windows) above normal applications. REALTIME is deliberately not used: it would
-        // put those threads above Windows' own input and audio handling.
-        // No privilege needed (only REALTIME requires SeIncreaseBasePriorityPrivilege); not
-        // inherited by the scan child processes (Windows passes only IDLE/BELOW_NORMAL on), which
-        // set their own below-normal class anyway (configureBackgroundProcess).
-        r.priorityRaised = SetPriorityClass (GetCurrentProcess(), HIGH_PRIORITY_CLASS) != FALSE;
         // "HighQoS": ControlMask selects the mechanism, StateMask = 0 turns it off. Two separate
         // calls, so an older Windows that does not know the timer flag still applies the first.
         r.executionThrottlingOff = setProcessThrottling (executionSpeed, 0);
         r.timerThrottlingOff     = setProcessThrottling (ignoreTimerResolution, 0);
+        return r;
+    }
+
+    bool processPrioritySupported() noexcept { return true; }
+
+    int currentProcessPriority() noexcept
+    {
+        switch (GetPriorityClass (GetCurrentProcess()))
+        {
+            case NORMAL_PRIORITY_CLASS:       return (int) ProcessPriority::normal;
+            case ABOVE_NORMAL_PRIORITY_CLASS: return (int) ProcessPriority::aboveNormal;
+            case HIGH_PRIORITY_CLASS:         return (int) ProcessPriority::high;
+            default:                          return -1;
+        }
+    }
+
+    PriorityResult setProcessPriority (ProcessPriority p) noexcept
+    {
+        // Normal, above normal or high - never REALTIME: that would put MicVST's window and
+        // device threads above Windows' own input and audio handling. None of the three needs a
+        // privilege (only REALTIME requires SeIncreaseBasePriorityPrivilege), but a job object
+        // or a policy can still refuse or override it, so the class is read back. Not inherited
+        // by the scan child processes (Windows passes only IDLE/BELOW_NORMAL on), which set
+        // their own below-normal class anyway (configureBackgroundProcess).
+        const DWORD wanted = p == ProcessPriority::high        ? HIGH_PRIORITY_CLASS
+                           : p == ProcessPriority::aboveNormal ? ABOVE_NORMAL_PRIORITY_CLASS
+                                                               : NORMAL_PRIORITY_CLASS;
+        PriorityResult r;
+        SetLastError (0);
+        const bool called = SetPriorityClass (GetCurrentProcess(), wanted) != FALSE;
+        r.error  = called ? 0 : GetLastError();
+        r.actual = currentProcessPriority();
+        r.ok     = called && r.actual == (int) p;
         return r;
     }
 
@@ -224,6 +248,9 @@ namespace rt
 namespace rt
 {
     ProcessSetup configureRealtimeProcess() noexcept { return {}; }
+    bool processPrioritySupported() noexcept { return false; }
+    int currentProcessPriority() noexcept { return -1; }
+    PriorityResult setProcessPriority (ProcessPriority) noexcept { return {}; }
     void configureBackgroundProcess() noexcept {}
     void configureAudioThread() noexcept {}
 

@@ -4,6 +4,7 @@ namespace ids
 {
     const juce::Identifier root ("MicVST"), inDev ("inputDevice"), outDev ("outputDevice"),
         sr ("sampleRate"), userBuf ("userBufferSize"), safety ("safetyBufferMs"), folders ("pluginFolders"),
+        priority ("processPriority"),
         window ("windowState"),
         plugins ("plugins"), plugin ("plugin"), fileId ("fileOrId"), byp ("bypassed"), blob ("state"),
         pluginId ("pluginId"), pluginName ("pluginName"), pluginUid ("pluginUid");
@@ -17,6 +18,7 @@ juce::ValueTree toValueTree (const MicVSTState& s)
     t.setProperty (ids::sr, s.sampleRate, nullptr);
     t.setProperty (ids::userBuf, s.bufferSize, nullptr);
     t.setProperty (ids::safety, s.safetyBufferMs, nullptr);
+    t.setProperty (ids::priority, s.processPriority, nullptr);
     t.setProperty (ids::folders, s.pluginFolders.joinIntoString ("\n"), nullptr);
     t.setProperty (ids::window, s.windowState, nullptr);
 
@@ -49,6 +51,7 @@ MicVSTState fromValueTree (const juce::ValueTree& t)
     // im Shared-Modus war er nie wirksam. Bestandsnutzer starten mit Auto.
     s.bufferSize   = t.getProperty (ids::userBuf, 0);
     s.safetyBufferMs = juce::jlimit (0, 200, (int) t.getProperty (ids::safety, 0));   // fehlt bei <= 1.1.1 -> Auto
+    s.processPriority = juce::jlimit (0, 2, (int) t.getProperty (ids::priority, 0));   // fehlt in älteren config.xml -> Normal
     {
         const auto f = t.getProperty (ids::folders).toString();
         if (f.isNotEmpty()) { s.pluginFolders.addLines (f); s.pluginFolders.removeEmptyStrings(); }

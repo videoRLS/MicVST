@@ -21,7 +21,8 @@ struct InfoIcon : juce::Component, juce::SettableTooltipClient
 // Kompakte Geräteauswahl: Input zuerst, dann Output (Output kennt "(none)").
 // Darunter optional eine Buffer-Zeile: nur sichtbar, wenn das Mikrofon im
 // Low-Latency-Modus mehr als eine Buffer-Größe meldet ("Auto" = Geräte-Default).
-// Dann die Safety-Zeile (Sicherheitspuffer Mikrofon -> Kabel, "Auto" = adaptiv).
+// Dann die Safety-Zeile (Sicherheitspuffer Mikrofon -> Kabel, "Auto" = adaptiv) und (nur Windows)
+// die Zeile für die Prozess-Priorität (Normal / Normalin Üstünde / Yüksek).
 // Zuunterst zwei dauerhaft sichtbare Info-Zeilen (Active / Geräte / Latenz und
 // CPU-Last / Safety / Drift / Aussetzer).
 // Bewusst KEIN Input-Pegelmeter (oben gibt es den großen) und keine Kanal-Listen
@@ -35,7 +36,7 @@ public:
     ~DevicePanel() override;
     void resized() override;
 
-    int preferredHeight() const;   // 3 Zeilen + 2 Info-Zeilen, +1 wenn die Buffer-Zeile sichtbar ist
+    int preferredHeight() const;   // Geräte-/Einstellungszeilen + 2 Info-Zeilen
 
 private:
     void changeListenerCallback (juce::ChangeBroadcaster*) override;
@@ -44,6 +45,8 @@ private:
     void updateStatus();   // nur die Info-Zeilen (Geräte / Latenz, CPU-Last / Aussetzer)
     void apply();          // aktuelle Auswahl -> AudioEngine
     void applySafety();    // Safety-Combo -> AudioEngine (ohne Geräte-Neustart)
+    void applyPriority();  // Prioritäts-Combo -> AudioEngine (sofort, aus Windows zurückgelesen)
+    void syncPriority();   // Combo = die Klasse, die der Prozess gerade wirklich hat (auch nach Task-Manager)
 
     AudioEngine& engine;
     juce::Label    inLabel, outLabel;     // Texte im Konstruktor (UTF-8, siehe Text.h)
@@ -55,6 +58,10 @@ private:
     juce::Label    safetyLabel;
     InfoIcon       safetyInfo;
     juce::ComboBox safetyBox;
+    juce::Label    priorityLabel;   // İşlem önceliği (Windows): Normal / Normalin Üstünde / Yüksek
+    InfoIcon       priorityInfo;
+    juce::ComboBox priorityBox;
+    int            shownPriorityProblems = 0;
     juce::Label    statusLabel;   // Active / Geräte / Latenz (immer sichtbar)
     juce::Label    statsLabel;    // CPU-Last / Safety / Drift / Aussetzer (immer sichtbar)
 

@@ -32,5 +32,6 @@ struct NodeChannels
 // i in [0, min(quelle.numOuts, ziel.numIns)). Dadurch ergibt sich automatisch das
 // richtige Verhalten bei wechselnder Kanalbreite (z. B. ein Mono->Stereo-Glied:
 // davor 1 Kanal, danach 2). passThrough-Glieder werden vorher auf die Breite ihres
-// Vorgängers gesetzt.
+// Vorgängers gesetzt. Ein Mono-Teil vor einem Stereo-Plugin speist beide Eingänge des
+// Plugins (nicht nur den linken); in den Output-Knoten geht ein Mono-Ende als ein Kanal.
 std::vector<ChannelConnection> computeChainConnections (const std::vector<NodeChannels>& seq);

@@ -333,6 +333,59 @@ void AudioEngine::setSafetyBufferMs (int ms)
     else                     bridge.setSafety ((double) safetyBufferMs, false);
 }
 
+juce::String AudioEngine::priorityName (int choice)
+{
+    switch (choice)
+    {
+        case (int) rt::ProcessPriority::normal:      return tr ("Normal");
+        case (int) rt::ProcessPriority::aboveNormal: return tr ("Normalin Üstünde");
+        case (int) rt::ProcessPriority::high:        return tr ("Yüksek");
+        default:                                     return tr ("başka bir seviye");
+    }
+}
+
+rt::PriorityResult AudioEngine::setProcessPriority (int choice)
+{
+    choice = juce::jlimit (0, rt::numProcessPriorities - 1, choice);
+    if (! rt::processPrioritySupported())
+    {
+        processPriority = choice;   // kept in config.xml; nothing to apply on this system
+        return {};
+    }
+
+    const auto r = rt::setProcessPriority ((rt::ProcessPriority) choice);
+    if (r.ok)
+    {
+        processPriority = choice;
+        juce::Logger::writeToLog (tr ("İşlem önceliği: ") + priorityName (choice) + tr (" (uygulandı, Windows'tan okundu)"));
+    }
+    else
+    {
+        // Keep what the process really has (if it is one of the three), so the window, the
+        // saved setting and Windows agree.
+        if (juce::isPositiveAndBelow (r.actual, rt::numProcessPriorities))
+            processPriority = r.actual;
+        priorityProblem = tr ("İşlem önceliği \"") + priorityName (choice) + tr ("\" yapılamadı: Windows bu değişikliğe izin vermedi")
+                        + (r.error != 0 ? tr (" (hata kodu ") + juce::String ((juce::int64) r.error) + ")" : juce::String())
+                        + tr (". Şu anki öncelik: ") + priorityName (r.actual) + ".";
+        ++priorityProblemCount;
+        juce::Logger::writeToLog (priorityProblem);
+    }
+    return r;
+}
+
+int AudioEngine::chainLatencySamples() const
+{
+    if (pluginChain == nullptr)
+        return graph.getLatencySamples();
+    int sum = 0;   // serial chain: the delays add up
+    for (auto& e : pluginChain->entries())
+        if (! e.bypassed)
+            if (auto* n = graph.getNodeForId (e.node))
+                sum += juce::jmax (0, n->getProcessor()->getLatencySamples());
+    return sum;
+}
+
 void AudioEngine::rebuildGraph()
 {
     if (pluginChain != nullptr)
@@ -669,7 +722,7 @@ void AudioEngine::beginChainEdit()
     if (chainEditDepth.fetch_add (1, std::memory_order_acq_rel) > 0)
         return;   // nested: already muted
 
-    editLatencyBefore = graph.getLatencySamples();   // the chain's delay before the edit (endChainEdit)
+    editLatencyBefore = chainLatencySamples();   // the chain's delay before the edit (endChainEdit)
 
     // Wait (briefly) until the plug-in thread has faded the output out - only if it runs and
     // gets audio; otherwise nothing is audible anyway.
@@ -688,7 +741,7 @@ void AudioEngine::endChainEdit()
     // larger delay of the old and the new chain), published before the generation that the
     // plug-in thread waits for.
     if (chainEditDepth.load (std::memory_order_relaxed) == 1)
-        editDrainSamples.store (juce::jmax (editLatencyBefore, graph.getLatencySamples()), std::memory_order_relaxed);
+        editDrainSamples.store (juce::jmax (editLatencyBefore, chainLatencySamples()), std::memory_order_relaxed);
     if (chainEditDepth.fetch_sub (1, std::memory_order_acq_rel) == 1)
         chainEditGeneration.fetch_add (1, std::memory_order_acq_rel);
 }
@@ -732,7 +785,7 @@ AudioEngine::Diagnostics AudioEngine::getDiagnostics()
 
     if (in != nullptr && d.inputRate > 0.0)
     {
-        double ms = 1000.0 * (in->getInputLatencyInSamples() + graph.getLatencySamples()
+        double ms = 1000.0 * (in->getInputLatencyInSamples() + chainLatencySamples()
                               + bridge.getResamplerDelayFrames()) / d.inputRate;
         ms += d.backlogMs;   // audio still waiting for the plug-ins (0 while the chain keeps up)
         ms += d.bridge.inputDelayMs;   // plug-in thread: wake-up + processing of a block
@@ -1021,6 +1074,7 @@ MicVSTState AudioEngine::captureState()
     s.sampleRate    = preferredInputRate;
     s.bufferSize    = preferredBufferSize;
     s.safetyBufferMs = safetyBufferMs;
+    s.processPriority = processPriority;
     s.pluginFolders = pluginFolders;
 
     // Ketten-Restore steht noch aus -> gemerkten Zustand verbatim zurückgeben,
@@ -1054,6 +1108,7 @@ void AudioEngine::applyState (const MicVSTState& s)
     setPreferredBufferSize (s.bufferSize);
     if (s.sampleRate > 0.0) preferredInputRate = s.sampleRate;
     setSafetyBufferMs (s.safetyBufferMs);
+    setProcessPriority (s.processPriority);   // Normal unless the user chose otherwise
     initialise (s.inputDevice, s.outputDevice);
 
     // Kette nur wiederherstellen, wenn alle Nicht-Builtin-Plugins im Cache auflösbar sind.
