@@ -1,4 +1,5 @@
 #include "ui/LevelMeterComponent.h"
+#include "ui/Theme.h"
 
 namespace
 {
@@ -9,13 +10,13 @@ namespace
 void LevelMeterComponent::paint (juce::Graphics& g)
 {
     auto b = getLocalBounds().toFloat();
-    g.setColour (juce::Colours::black);
+    g.setColour (micvst::theme::meterBack);
     g.fillRect (b);
 
     auto dbX = [&] (float db) { return b.getX() + meterScale::dbToNorm (db) * b.getWidth(); };
 
     // Dezente vertikale Gitterlinien an den Skalenmarken.
-    g.setColour (juce::Colours::white.withAlpha (0.12f));
+    g.setColour (micvst::theme::text.withAlpha (0.10f));
     for (int db : kTicks)
         g.drawVerticalLine ((int) dbX ((float) db), b.getY(), b.getBottom());
 
@@ -24,7 +25,7 @@ void LevelMeterComponent::paint (juce::Graphics& g)
     const float rmsX  = dbX (rmsDb);
     if (rmsX > b.getX())
     {
-        g.setColour (juce::Colours::limegreen);
+        g.setColour (micvst::theme::meterLevel);
         g.fillRect (juce::Rectangle<float> (b.getX(), b.getY(), rmsX - b.getX(), b.getHeight()));
     }
 
@@ -35,19 +36,19 @@ void LevelMeterComponent::paint (juce::Graphics& g)
     if (peakDb > meterScale::minDb)
     {
         const bool over = level.peak >= 1.0f;
-        g.setColour (over ? juce::Colours::red : juce::Colours::yellow);
+        g.setColour (over ? micvst::theme::meterOver : micvst::theme::meterPeak);
         const float px = juce::jmin (dbX (peakDb), b.getRight() - 1.5f);
         g.drawLine (px, b.getY(), px, b.getBottom(), over ? 3.0f : 2.0f);
     }
 
-    g.setColour (juce::Colours::white.withAlpha (0.25f));
+    g.setColour (micvst::theme::outline);
     g.drawRect (b, 1.0f);
 }
 
 void DbScaleComponent::paint (juce::Graphics& g)
 {
     auto b = getLocalBounds().toFloat();
-    g.setColour (juce::Colours::lightgrey);
+    g.setColour (micvst::theme::textDim);
     g.setFont (11.0f);
 
     for (int db : kTicks)

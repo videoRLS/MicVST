@@ -1,4 +1,5 @@
 #include "ui/MainComponent.h"
+#include "ui/Theme.h"
 #include "audio/PluginChain.h"
 #include "Text.h"
 
@@ -72,9 +73,9 @@ namespace
             body.setCaretVisible (false);
             body.setScrollbarsShown (true);
             body.setPopupMenuEnabled (false);
-            body.setColour (juce::TextEditor::backgroundColourId, juce::Colour (0xff1e1e1e));
+            body.setColour (juce::TextEditor::backgroundColourId, micvst::theme::surface);
             body.setColour (juce::TextEditor::outlineColourId, juce::Colours::transparentBlack);
-            body.setColour (juce::TextEditor::textColourId, juce::Colours::white);
+            body.setColour (juce::TextEditor::textColourId, micvst::theme::text);
             body.setFont (juce::Font (juce::FontOptions (15.0f)));
             body.setText (howToText(), false);
             addAndMakeVisible (body);
@@ -91,7 +92,7 @@ namespace
     {
     public:
         HowToWindow()
-            : juce::DocumentWindow (MainComponent::howToTitle(), juce::Colours::darkgrey,
+            : juce::DocumentWindow (MainComponent::howToTitle(), micvst::theme::background,
                                     juce::DocumentWindow::closeButton)
         {
             setUsingNativeTitleBar (true);
@@ -129,7 +130,7 @@ MainComponent::MainComponent (AudioEngine& e) : engine (e)
     howToBtn.onClick = [this] { showHowTo(); };
 
     versionLabel.setText ("v" + juce::JUCEApplication::getInstance()->getApplicationVersion(), juce::dontSendNotification);
-    versionLabel.setColour (juce::Label::textColourId, juce::Colours::grey);
+    versionLabel.setColour (juce::Label::textColourId, micvst::theme::textDim);
     versionLabel.setTooltip (tr ("MicVST tamamen çevrimdışı çalışır (internete bağlanmaz)"));
     versionLabel.setJustificationType (juce::Justification::centredLeft);
     addAndMakeVisible (versionLabel);
@@ -142,7 +143,7 @@ MainComponent::MainComponent (AudioEngine& e) : engine (e)
 
     cableHint.setText (tr ("Sanal ses kablosu bulunamadı - VB-Cable kurun (vb-audio.com/Cable) ve MicVST'yi yeniden başlatın"),
                        juce::dontSendNotification);
-    cableHint.setColour (juce::Label::textColourId, juce::Colours::orange);
+    cableHint.setColour (juce::Label::textColourId, micvst::theme::warning);
     cableHint.setJustificationType (juce::Justification::centredLeft);
     addChildComponent (cableHint);   // Sichtbarkeit steuert updateCableHint()
 

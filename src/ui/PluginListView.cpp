@@ -1,4 +1,5 @@
 #include "ui/PluginListView.h"
+#include "ui/Theme.h"
 #include "audio/GainStage.h"
 #include "audio/PluginChain.h"
 #include "ui/PluginPicker.h"
@@ -45,7 +46,7 @@ PluginListView::TrashButton::TrashButton() : juce::Button (tr ("Kaldır"))
 void PluginListView::TrashButton::paintButton (juce::Graphics& g, bool highlighted, bool /*down*/)
 {
     auto b = getLocalBounds().toFloat();
-    const auto col = highlighted ? juce::Colours::orangered : juce::Colours::lightgrey;
+    const auto col = highlighted ? micvst::theme::error : micvst::theme::textDim;
     g.setColour (col);
 
     const float cx = b.getCentreX();
@@ -82,7 +83,7 @@ PluginListView::Row::Row (PluginListView& ownerIn, int idx) : owner (ownerIn), i
     bypassBtn.setTooltip (tr ("Eklentiyi geçici olarak devre dışı bırak (ses onu atlar)"));
     bypassBtn.setClickingTogglesState (true);
     bypassBtn.setToggleState (bypassed, juce::dontSendNotification);
-    bypassBtn.setColour (juce::TextButton::buttonOnColourId, juce::Colours::darkorange);
+    bypassBtn.setColour (juce::TextButton::buttonOnColourId, micvst::theme::warning);
     bypassBtn.onClick = [this] { owner.toggleBypass (index); };
     addAndMakeVisible (bypassBtn);
 
@@ -175,21 +176,20 @@ void PluginListView::Row::paint (juce::Graphics& g)
     if (! juce::isPositiveAndBelow (index, (int) es.size())) return;
     const auto& e = es[(size_t) index];
 
-    g.setColour (dragging ? juce::Colours::darkblue
-                          : (index % 2 ? juce::Colour (0xff2a2a2a) : juce::Colour (0xff242424)));
+    g.setColour (dragging ? micvst::theme::accentDim : (index % 2 ? micvst::theme::rowB : micvst::theme::rowA));
     g.fillRect (b);
 
     // Nummer: Position im Signalweg (1 = verarbeitet zuerst); folgt jeder Umsortierung, weil die
     // Zeilen danach neu aufgebaut werden.
     {
         const juce::Graphics::ScopedSaveState keepFont (g);   // der Name bleibt in der bisherigen Schrift
-        g.setColour (juce::Colours::grey);
+        g.setColour (micvst::theme::textDim);
         g.setFont (juce::Font (juce::FontOptions (12.0f)));
         g.drawText (juce::String (index + 1), 0, 0, numberW, b.getHeight(), juce::Justification::centredRight);
     }
 
     // Drag-Handle: zwei Spalten à drei Punkte.
-    g.setColour (juce::Colours::grey);
+    g.setColour (micvst::theme::textDim);
     for (int cxn = 0; cxn < 2; ++cxn)
         for (int cyn = 0; cyn < 3; ++cyn)
             g.fillEllipse ((float) (handleX + 4 + cxn * 6), (float) (b.getCentreY() - 6 + cyn * 6), 2.6f, 2.6f);
@@ -210,11 +210,11 @@ void PluginListView::Row::paint (juce::Graphics& g)
 
     // Name (auf den Platz links der Latenz-Spalte begrenzt; in Kazanç-Zeilen vor dem Regler).
     const auto name = displayName (e);
-    g.setColour (e.bypassed ? juce::Colours::grey : juce::Colours::white);
+    g.setColour (e.bypassed ? micvst::theme::textDim : micvst::theme::textBright);
     const int nameW = isGainRow ? gainNameW - 6 : isAutoGainRow ? autoNameW - 6 : latLeft - 6 - nameX;
     g.drawText (name, nameX, 0, nameW, b.getHeight(), juce::Justification::centredLeft);
 
-    g.setColour (juce::Colours::grey);
+    g.setColour (micvst::theme::textDim);
     g.setFont (juce::Font (juce::FontOptions (12.0f)));
     g.drawText (latText, latLeft, 0, latW, b.getHeight(), juce::Justification::centredRight);
 
@@ -224,7 +224,7 @@ void PluginListView::Row::paint (juce::Graphics& g)
         auto peak = [] (float db) { return juce::String (juce::roundToInt (juce::jmax (-90.0f, db))); };
         const auto info = gainText (shownGainDb) + "  (" + peak (shownInDb) + tr (" → ") + peak (shownOutDb) + " dBFS)";
         const bool adapting = autoToggle.getToggleState() && shownSpeech && ! e.bypassed;
-        g.setColour (adapting ? juce::Colours::white : juce::Colours::grey);
+        g.setColour (adapting ? micvst::theme::textBright : micvst::theme::textDim);
         g.drawText (info, autoInfoArea(), juce::Justification::centredLeft);
     }
 }
@@ -278,7 +278,7 @@ PluginListView::PluginListView (AudioEngine& e) : engine (e)
     addAndMakeVisible (viewport);
 
     scanLabel.setFont (juce::Font (juce::FontOptions (13.0f)));
-    scanLabel.setColour (juce::Label::textColourId, juce::Colours::lightgrey);
+    scanLabel.setColour (juce::Label::textColourId, micvst::theme::text);
     addChildComponent (scanLabel);       // nur sichtbar während des Scans
     addChildComponent (scanBar);
     addChildComponent (skipScanBtn);
@@ -288,7 +288,7 @@ PluginListView::PluginListView (AudioEngine& e) : engine (e)
     skipScanBtn.setTooltip (tr ("Şu an taranan eklentiyi atla"));
     skipScanBtn.onClick = [this] { engine.skipCurrentScanFile(); };
     skipLabel.setFont (juce::Font (juce::FontOptions (12.0f)));
-    skipLabel.setColour (juce::Label::textColourId, juce::Colours::orange);
+    skipLabel.setColour (juce::Label::textColourId, micvst::theme::warning);
     addChildComponent (skipLabel);
 
     engine.onScanProgress = [this] (int cur, int total, juce::String name)

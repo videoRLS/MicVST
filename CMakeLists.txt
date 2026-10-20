@@ -85,6 +85,7 @@ target_sources(MicVST PRIVATE
     src/ui/PluginPicker.cpp
     src/ui/LevelMeterComponent.cpp
     src/ui/TrayIcon.cpp
+    src/ui/DarkTitleBar.cpp
     src/state/AutostartRegistry.cpp
 )
 target_compile_definitions(MicVST PRIVATE

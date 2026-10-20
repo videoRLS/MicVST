@@ -5,6 +5,8 @@
 #include "state/AutostartRegistry.h"
 #include "ui/MainComponent.h"
 #include "ui/TrayIcon.h"
+#include "ui/Theme.h"
+#include "ui/DarkTitleBar.h"
 #include "Text.h"
 
 using micvst::tr;
@@ -157,6 +159,9 @@ public:
         // Türkische Texte auch für JUCEs eigene Beschriftungen (Dialog-Buttons, Kontextmenü des
         // Suchfelds) - vor dem Aufbau jeder Oberfläche.
         micvst::installTurkishTranslations();
+        // Nacht-Thema (dunkel, blendfrei) für alle Fenster, Menüs, Tooltips und Dialoge.
+        lookAndFeel = std::make_unique<micvst::theme::NightLookAndFeel>();
+        juce::LookAndFeel::setDefaultLookAndFeel (lookAndFeel.get());
 
         auto logFile = juce::File::getSpecialLocation (juce::File::userApplicationDataDirectory)
                           .getChildFile ("MicVST").getChildFile ("log.txt");
@@ -258,6 +263,8 @@ public:
         tray = nullptr;
         mainWindow = nullptr;
         engine = nullptr;
+        juce::LookAndFeel::setDefaultLookAndFeel (nullptr);
+        lookAndFeel = nullptr;
         juce::Logger::setCurrentLogger (nullptr);
         logger = nullptr;
     }
@@ -312,7 +319,7 @@ private:
     {
     public:
         MainWindow (juce::String name, AudioEngine& engine, const juce::String& windowState)
-            : DocumentWindow (name, juce::Colours::darkgrey, DocumentWindow::allButtons)
+            : DocumentWindow (name, micvst::theme::background, DocumentWindow::allButtons)
         {
             setUsingNativeTitleBar (true);
             // resize-to-fit AUS: die Fenstergröße diktiert centreWithSize unten, nicht die
@@ -332,12 +339,18 @@ private:
         }
         std::function<void()> onHide;
         void closeButtonPressed() override { setVisible (false); if (onHide) onHide(); }
+        void visibilityChanged() override
+        {
+            DocumentWindow::visibilityChanged();
+            if (isVisible()) micvst::useDarkTitleBar (*this);   // native title bar dark, like the theme
+        }
         MainComponent* getContent() const { return content; }
     private:
         MainComponent* content = nullptr;   // gehört dem Fenster (setContentOwned), nur Zugriffszeiger
     };
 
     std::unique_ptr<MicVSTLogger> logger;
+    std::unique_ptr<micvst::theme::NightLookAndFeel> lookAndFeel;   // default for every window (shutdown resets it)
     std::unique_ptr<AudioEngine> engine;
     std::unique_ptr<MainWindow> mainWindow;
     std::unique_ptr<TrayIcon> tray;

@@ -65,7 +65,7 @@ DevicePanel::DevicePanel (AudioEngine& e) : engine (e)
     for (auto* l : { &statusLabel, &statsLabel })
     {
         l->setJustificationType (juce::Justification::centredLeft);
-        l->setColour (juce::Label::textColourId, juce::Colours::grey);
+        l->setColour (juce::Label::textColourId, micvst::theme::textDim);
         l->setFont (juce::Font (juce::FontOptions (13.0f)));
         addAndMakeVisible (*l);
     }
@@ -257,8 +257,8 @@ void DevicePanel::updateStatus()
            << (engine.getSafetyBufferMs() == 0 ? tr (" (otomatik)") : juce::String());
     s2 << "  |  " << tr ("kesinti ") << juce::String ((juce::int64) dropouts);
     statsLabel.setText (s2, juce::dontSendNotification);
-    statsLabel.setColour (juce::Label::textColourId, tooHeavy ? juce::Colours::orangered
-                                                   : dropouts > 0 ? juce::Colours::orange : juce::Colours::grey);
+    statsLabel.setColour (juce::Label::textColourId, tooHeavy ? micvst::theme::error
+                                                   : dropouts > 0 ? micvst::theme::warning : micvst::theme::textDim);
 
     juce::String tip;
     tip << tr ("Çıkışta ses kesildi: ") << (juce::int64) d.bridge.underruns << "\n"

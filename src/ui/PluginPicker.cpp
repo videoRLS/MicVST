@@ -1,4 +1,5 @@
 #include "ui/PluginPicker.h"
+#include "ui/Theme.h"
 #include "Text.h"
 
 using micvst::tr;
@@ -7,14 +8,14 @@ PluginPickerComponent::PluginPickerComponent (juce::Array<juce::PluginDescriptio
                                               std::function<void (const juce::PluginDescription&)> onChosenIn)
     : all (std::move (plugins)), onChosen (std::move (onChosenIn))
 {
-    searchBox.setTextToShowWhenEmpty (tr ("Eklenti ara..."), juce::Colours::grey);
+    searchBox.setTextToShowWhenEmpty (tr ("Eklenti ara..."), micvst::theme::textDim);
     searchBox.setFont (juce::Font (juce::FontOptions (14.0f)));
     searchBox.onTextChange = [this] { rebuildItems(); };
     searchBox.addKeyListener (this);
     addAndMakeVisible (searchBox);
 
     list.setRowHeight (22);
-    list.setColour (juce::ListBox::backgroundColourId, juce::Colour (0xff1e1e1e));
+    list.setColour (juce::ListBox::backgroundColourId, micvst::theme::surface);
     addAndMakeVisible (list);
 
     rebuildItems();
@@ -73,17 +74,17 @@ void PluginPickerComponent::paintListBoxItem (int row, juce::Graphics& g, int w,
 
     if (it.isHeader)
     {
-        g.setColour (juce::Colours::grey);
+        g.setColour (micvst::theme::textDim);
         g.setFont (juce::Font (juce::FontOptions (12.0f, juce::Font::bold)));
         g.drawText (it.text, 6, 0, w - 12, h, juce::Justification::centredLeft);
         return;
     }
     if (selected)
     {
-        g.setColour (juce::Colour (0xff2a4a7a));
+        g.setColour (micvst::theme::accentDim);
         g.fillRect (0, 0, w, h);
     }
-    g.setColour (juce::Colours::white);
+    g.setColour (selected ? micvst::theme::textBright : micvst::theme::text);
     g.setFont (juce::Font (juce::FontOptions (14.0f)));
     g.drawText (it.text, 18, 0, w - 24, h, juce::Justification::centredLeft);
 }

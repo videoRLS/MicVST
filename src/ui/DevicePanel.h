@@ -1,6 +1,7 @@
 #pragma once
 #include <juce_audio_utils/juce_audio_utils.h>
 #include "audio/AudioEngine.h"
+#include "ui/Theme.h"
 
 // Kleines "?"-Icon, das bei Hover einen Hilfetext zeigt (via TooltipWindow im MainComponent).
 struct InfoIcon : juce::Component, juce::SettableTooltipClient
@@ -10,9 +11,9 @@ struct InfoIcon : juce::Component, juce::SettableTooltipClient
         auto b = getLocalBounds().toFloat();
         const float d = juce::jmin (b.getWidth(), b.getHeight()) - 1.5f;   // Durchmesser = kleinere Seite
         auto circle = juce::Rectangle<float> (d, d).withCentre (b.getCentre());
-        g.setColour (juce::Colours::grey);
+        g.setColour (micvst::theme::textDim);
         g.drawEllipse (circle, 1.2f);
-        g.setColour (juce::Colours::lightgrey);
+        g.setColour (micvst::theme::text);
         g.setFont (d * 0.66f);
         g.drawText ("?", getLocalBounds(), juce::Justification::centred);
     }

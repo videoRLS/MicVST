@@ -7,6 +7,7 @@
 #include "audio/AudioEngine.h"
 #include "ui/MainComponent.h"
 #include "ui/PluginPicker.h"
+#include "ui/Theme.h"
 #include "Text.h"
 
 using micvst::tr;
@@ -20,7 +21,7 @@ namespace
         juce::PNGImageFormat().writeImageToStream (img, os);
     }
 
-    void snap (juce::Component& c, int w, int h, const juce::File& out, juce::Colour bg = juce::Colours::darkgrey)
+    void snap (juce::Component& c, int w, int h, const juce::File& out, juce::Colour bg = micvst::theme::background)   // the window colour
     {
         c.setSize (w, h);
         juce::Image img (juce::Image::ARGB, w, h, true);
@@ -108,6 +109,8 @@ int main (int argc, char** argv)
     juce::ScopedJuceInitialiser_GUI gui;
     SnapApp app;
     micvst::installTurkishTranslations();
+    micvst::theme::NightLookAndFeel nightTheme;   // as MicVST.exe (Main.cpp)
+    juce::LookAndFeel::setDefaultLookAndFeel (&nightTheme);
 
     auto pump = [] (int ms) { juce::MessageManager::getInstance()->runDispatchLoopUntil (ms); };
 
@@ -167,7 +170,7 @@ int main (int argc, char** argv)
     dir.getChildFile ("5_howto_title.txt").replaceWithText (MainComponent::howToTitle());
     {
         auto howTo = MainComponent::createHowToContent();
-        snap (*howTo, 556, 600, dir.getChildFile ("5_howto.png"), juce::Colour (0xff1e1e1e));
+        snap (*howTo, 556, 600, dir.getChildFile ("5_howto.png"), micvst::theme::surface);
     }
 
     {
@@ -201,5 +204,6 @@ int main (int argc, char** argv)
         pump (700);
         snap (mc, 584, 521, dir.getChildFile ("1b_main_device_missing.png"));
     }
+    juce::LookAndFeel::setDefaultLookAndFeel (nullptr);
     return 0;
 }
