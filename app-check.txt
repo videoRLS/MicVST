@@ -1,0 +1,13 @@
+binary before strip: 28752888 bytes
+binary after strip: 24207016 bytes
+codesign verify: ok
+Architectures in the fat file: build/MicVST_artefacts/Release/MicVST.app/Contents/MacOS/MicVST are: x86_64 arm64 
+ platform 1
+    minos 11.0
+CFBundleIdentifier: com.micvst.MicVST
+NSMicrophoneUsageDescription: MicVST mikrofon sesini eklentilerden geçirip seçtiğin çıkış cihazına gönderir.
+arm64 app codesign verify: ok
+Non-fat file: arm/MicVST.app/Contents/MacOS/MicVST is architecture: arm64
+-rw-r--r--  1 runner  staff   4865276 Oct 20 15:12 results/MicVST-macOS-AppleSilicon.zip
+-rw-r--r--  1 runner  staff  10322473 Oct 20 15:12 results/MicVST-macOS-universal.zip
+4ae4530ada60c3020423a406cb325be40f1162b6974bb60d54433989fc0b5fe8  build/MicVST_artefacts/Release/MicVST.app/Contents/MacOS/MicVST

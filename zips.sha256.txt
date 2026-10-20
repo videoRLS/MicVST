@@ -1,0 +1,2 @@
+2665803cee7ad99cb432753f0c060a4ba91a4204e2e42deb54bb231f843431b6  results/MicVST-macOS-AppleSilicon.zip
+bc8d244d78089ff27a3e46597ea9f2d20d6b8dc2523da143b1fcbfde150b7187  results/MicVST-macOS-universal.zip

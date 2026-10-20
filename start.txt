@@ -1,0 +1,20 @@
+running after 20 s: yes
+total 24
+drwxr-xr-x   5 runner  staff   160 Oct 20 15:12 .
+drwxr-xr-x@ 66 runner  staff  2112 Oct 20 15:12 ..
+-rw-r--r--   1 runner  staff   240 Oct 20 15:12 config.xml
+-rw-r--r--   1 runner  staff   889 Oct 20 15:12 log.txt
+-rw-r--r--   1 runner  staff   118 Oct 20 15:12 plugin_cache.xml
+
+**********************************************************
+MicVST günlüğü - başlangıç: 20.10.2026 15:12:07
+[15:12:07] MicVST 1.2.1 (JUCE v9.0.4, internet erişimi yok)
+[15:12:08] İşlem: öncelik yüksek BAŞARISIZ, güç kısıtlaması kapalı desteklenmiyor, zamanlayıcı kısıtlaması kapalı desteklenmiyor
+[15:12:11] Eklenti önbelleği yok ya da bozuk -> tam tarama
+[15:12:11] Sanal kablo bulunamadı -> çıkış 'yok'
+[15:12:11] Giriş (mikrofon) = Null Audio Device
+[15:12:13] Kurulum: giriş 'Null Audio Device' 48000 Hz, tampon 512 | çıkış (yok)
+[15:12:13] Giriş başladı: 'Null Audio Device' 48000 Hz, tampon 512 | kanal 2 / [Left, Right]
+[15:12:14] Tarama: 0 dosya taranacak
+[15:12:15] Eklenti iş parçacığı: MMCSS kullanılamıyor - zaman-kritik öncelik, mikrofonun ses iş grubunda (performans çekirdekleri)
+[15:12:15] Ses: çalışıyor
