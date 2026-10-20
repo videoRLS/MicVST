@@ -11,6 +11,8 @@
 #include <juce_audio_formats/juce_audio_formats.h>
 #include "audio/AudioEngine.h"
 #include "audio/GainStage.h"
+#include "audio/BuiltInGain.h"
+#include "state/Presets.h"
 #include "SpeechSynth.h"
 #include <array>
 #include <cstdio>

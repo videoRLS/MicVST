@@ -1112,6 +1112,93 @@ namespace suite
                     + " | " + juce::String (band (100, 300), 1) + " | " + juce::String (band (1000, 3000), 1) + " | " + juce::String (band (5000, 10000), 1) + " |");
             }
         }
+
+        // ---- 5. Hazır ayarlar with real plug-ins: a user preset of the whole chain (VST3 states and
+        //      built-in effects) saved to a file and loaded into a new engine; a factory preset, then back ----
+        pr ("");
+        pr ("## Hazir ayar (preset) with real plug-ins: save -> preset file -> load into a new engine; factory preset and back");
+        {
+            std::vector<int> ord { -1 };
+            for (int i : { iDen, iDe, iEq, iComp, iSat, iLim }) if (i >= 0) ord.push_back (i);
+            for (int g : generics) ord.push_back (g);
+            setSignal (sine997, -16.0);
+            auto makeEngine = [&]
+            {
+                vdev::recorder().reset ((size_t) (12.0 * fs));
+                vdev::stats().reset();
+                auto e = std::make_unique<AudioEngine>();
+                e->getFormatManager().addFormat (std::make_unique<juce::VST3PluginFormat>());
+                for (auto& c : cs) e->getKnownPlugins().addType (c.desc);
+                MicVSTState st;
+                st.inputDevice = "VMic"; st.outputDevice = "VCable"; st.bufferSize = 480;
+                e->applyState (st);
+                pump (0.05);
+                raiseEngineThreads();
+                return e;
+            };
+            auto snapshots = [&] (AudioEngine& e)
+            {
+                std::vector<std::vector<float>> v;
+                for (int i = 0; i < (int) e.getChain().entries().size(); ++i)
+                    v.push_back (procAt (e, i) != nullptr ? paramSnapshot (*procAt (e, i)) : std::vector<float>());
+                return v;
+            };
+            auto countSame = [] (const std::vector<std::vector<float>>& a, const std::vector<std::vector<float>>& b, int& total)
+            {
+                int same = 0; total = 0;
+                for (size_t i = 0; i < std::min (a.size(), b.size()); ++i)
+                    for (size_t k = 0; k < std::min (a[i].size(), b[i].size()); ++k) { ++total; same += std::abs (a[i][k] - b[i][k]) < 1.0e-5f ? 1 : 0; }
+                return same;
+            };
+            const auto folder = juce::File::getSpecialLocation (juce::File::tempDirectory).getNonexistentChildFile ("micvst_presets", "");
+            std::vector<std::vector<float>> want;
+            juce::Array<PluginEntryState> chain;
+            {
+                auto e = makeEngine();
+                buildChain (*e, cs, ord);
+                for (auto* id : { "builtin:lowcut", "builtin:deesser", "builtin:limiter" })
+                {
+                    e->getChain().addBuiltInEffect (id);
+                    if (auto* fx = e->getChain().getBuiltInEffect ((int) e->getChain().entries().size() - 1))
+                        for (auto* q : fx->getEffectParameters()) q->setValueNotifyingHost (juce::Random::getSystemRandom().nextFloat());
+                }
+                { const AudioEngine::ChainEdit ce (*e); e->rebuildGraph(); }
+                pump (1.0);
+                want = snapshots (*e);
+                chain = e->captureChain();
+            }
+            juce::String err;
+            const auto name = juce::String::fromUTF8 ("Gerçek eklentiler testi");
+            const bool saved = presets::saveUserPreset (name, chain, err, folder);
+            const auto list = presets::loadUserPresets (folder);
+            const bool loaded = list.size() == 1 && list[0].name == name;
+            {
+                auto e = makeEngine();
+                pump (0.5);
+                const auto r = e->applyPreset (name, loaded ? list[0].elements : juce::Array<PluginEntryState>());
+                pump (1.5);
+                int total = 0;
+                const int same = countSame (want, snapshots (*e), total);
+                verdicts.check (saved && loaded && r.missing.isEmpty() && (int) e->getChain().entries().size() == chain.size() && same == total && total > 0,
+                                "preset of the whole chain (" + juce::String (chain.size()) + " elements, " + juce::String (total) + " parameters) saved to a file and loaded into a new engine: "
+                                + juce::String (same) + "/" + juce::String (total) + " parameters identical" + (err.isNotEmpty() ? ", error: " + err : juce::String()));
+
+                const auto* factory = presets::findFactory ("Balanced Pro");
+                const auto r2 = e->applyPreset (factory->name, factory->elements);
+                pump (1.5);
+                bool onlyBuiltIn = (int) e->getChain().entries().size() == factory->elements.size();
+                for (auto& en : e->getChain().entries()) onlyBuiltIn = onlyBuiltIn && en.isBuiltIn();
+                e->undoPreset();
+                pump (1.5);
+                const int sameBack = countSame (want, snapshots (*e), total);
+                verdicts.check (! r2.morphed && onlyBuiltIn && sameBack == total && (int) e->getChain().entries().size() == chain.size(),
+                                "factory preset 'Balanced Pro' (built-in only), then 'Onceki zincire don': the real plug-ins come back with "
+                                + juce::String (sameBack) + "/" + juce::String (total) + " parameters identical");
+                const auto d = e->getDiagnostics();
+                verdicts.check (d.invalidBlocks == 0, "presets with real plug-ins: no invalid blocks (" + juce::String ((int) d.invalidBlocks) + ")");
+            }
+            folder.deleteRecursively();
+        }
     }
 
     // The long run's chain of real plug-ins (ETEST_LONG_VST3): Otomatik Kazanc, EQ, de-esser,

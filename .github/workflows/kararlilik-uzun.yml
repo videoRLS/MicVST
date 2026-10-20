@@ -146,7 +146,7 @@ jobs:
         shell: pwsh
         run: |
           $e = "build/MicVSTEngineTest_artefacts/Release/MicVSTEngineTest.exe"
-          foreach ($m in @("quality", "latency", "devices", "hotplug", "openfail", "faults", "edits", "gain", "autogain", "priority", "monochain")) {
+          foreach ($m in @("quality", "latency", "devices", "hotplug", "openfail", "faults", "edits", "gain", "autogain", "priority", "monochain", "effects")) {
             ./tools/ci-run-timed.ps1 -Exe $e -OutFile "results/engine/$m.txt" -TimeoutSeconds 1800 -Arguments @($m)
           }
           $env:ETEST_LONG_AUTOGAIN = "1"

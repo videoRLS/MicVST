@@ -128,6 +128,7 @@ target_sources(MicVSTTests PRIVATE
     tests/GainTests.cpp
     tests/AutoGainTests.cpp
     tests/EffectTests.cpp
+    tests/PresetTests.cpp
     src/audio/PluginChain.cpp
 )
 target_include_directories(MicVSTTests PRIVATE tests)

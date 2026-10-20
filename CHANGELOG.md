@@ -12,6 +12,17 @@ project follows [Semantic Versioning](https://semver.org/).
   plug-in feeds both of its inputs (before: the right cable channel stayed silent).
 - The shown latency includes a plug-in's latency change while running (EQ to linear phase).
 - The exe's version information says Turkish (Türkiye).
+- 24 built-in effects (picker groups "Dahili - Ton ve EQ / Temizlik / Renk ve ortam / Seviye ve
+  koruma / Zaman ve kanal / Ölçüm"): Low-Cut, High-Cut, Gövde, Çamur Temizleyici, Genizlik Azaltıcı,
+  Netlik, Hava, Yakınlık, Tilt EQ, Parametrik EQ, Uğultu Giderici, DC Kayması Giderici, De-esser,
+  Sıcak Saturasyon, Telefon/Radyo/Megafon, Oda Yankısı, Gecikme/Eko, Chorus/Stereo Genişletici,
+  Çıkış Limiteri, Sessize Alma, Ses Gecikmesi, Kanal Araçları, LUFS Ölçer, Spektrum Analizörü.
+  Settings windows (double-click), saved with the chain, every change glides (no clicks), latency
+  reported. No noise gate, no compressor.
+- Hazır ayarlar next to "+ Eklenti": five factory presets of built-in effects only (Cinema Voice,
+  Crystal Clear, Soft & Smooth, Deep & Warm, Balanced Pro; same elements, so switching glides),
+  own presets of the whole chain with the VST3 states (save, overwrite, rename, delete), and
+  "Önceki zincire dön".
 
 ## [1.2.1] - Unreleased
 
