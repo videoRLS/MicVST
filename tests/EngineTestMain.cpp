@@ -26,6 +26,7 @@
   #define NOMINMAX
  #endif
  #include <windows.h>
+ #include <mmsystem.h>
  #include <psapi.h>
  #pragma comment (lib, "psapi.lib")
 #else
@@ -1793,6 +1794,7 @@ namespace
     }
 
    #include "enginetest/Vst3Suite.inc"
+   #include "enginetest/PriorityTest.inc"
 }
 #endif
 
@@ -2060,6 +2062,8 @@ int main (int argc, char** argv)
     else if (mode == "edits") edits();
     else if (mode == "vst3") vst3();
     else if (mode == "vst3suite") suite::run();   // real plug-ins from $MICVST_TEST_VST3_DIR: one by one and together
+    else if (mode == "priority") prio::run();      // the process priority option (Windows)
+    else if (mode == "burn") prio::burn (argc > 2 ? std::atoi (argv[2]) : 4, argc > 3 ? std::atof (argv[3]) : 20.0);   // load program for "priority"
    #if MICVST_NEW_ENGINE
     else if (mode == "gain") gainTest (argc > 2 ? std::atof (argv[2]) : 20.0);   // seconds per live-slider run
     else if (mode == "autogain") autoGainTest();
@@ -2530,6 +2534,28 @@ int main (int argc, char** argv)
             if (chain == "testgain") run.add (testDesc ("TestGain", 1.0));
             if (chain == "pluginstall") run.add (testDesc ("TestStall", 200.0));   // 200 ms every 3 s -> underrun + input skip
             if (chain == "testdelay240") run.add (testDesc ("TestDelay", 240.0));   // reports 240 samples latency
+            if (chain.startsWith ("suite"))   // the vst3suite plug-ins with their active settings, in the recommended order
+            {
+                e.getFormatManager().addFormat (std::make_unique<juce::VST3PluginFormat>());
+                const auto cs = suite::buildConfigs (suite::findPlugins());
+                std::vector<int> order;
+                for (auto k : { suite::Kind::denoise, suite::Kind::eq, suite::Kind::deess, suite::Kind::comp, suite::Kind::sat })
+                    if (const int i = suite::indexOf (cs, k); i >= 0) order.push_back (i);
+                for (size_t i = 0; i < cs.size(); ++i) if (cs[i].kind == suite::Kind::generic) order.push_back ((int) i);
+                if (const int i = suite::indexOf (cs, suite::Kind::limiter); i >= 0) order.push_back (i);
+                for (int i : order)
+                {
+                    juce::String err;
+                    if (! e.getChain().addPlugin (e.getFormatManager(), cs[(size_t) i].desc, e.getProcessingSampleRate(), e.getProcessingBlockSize(), err)) continue;
+                    refDescs.add (cs[(size_t) i].desc);
+                    if (cs[(size_t) i].kind != suite::Kind::generic)
+                        if (auto* p = suite::procAt (e, (int) e.getChain().entries().size() - 1)) suite::applySettings (*p, cs[(size_t) i].active);
+                }
+                pr ("  suite chain: " + suite::orderText (cs, order));
+                const AudioEngine::ChainEdit ce (e);
+                e.rebuildGraph();
+                chainEditAt = juce::Time::getMillisecondCounterHiRes() * 0.001;
+            }
             if (chain.startsWith ("lsp") || chain.startsWith ("vst3"))   // real VST3 plug-ins ("...-bypassed": all bypassed)
             {
                 e.getFormatManager().addFormat (std::make_unique<juce::VST3PluginFormat>());
@@ -2603,6 +2629,15 @@ int main (int argc, char** argv)
         bool haveRef = false;
         if (! refDescs.isEmpty() && ! chain.endsWith ("-bypassed"))
         {
+            // negative control ("...-wrongref"): the reference in the reverse order - the analysis
+            // must then find the cable far from it (shows that it would see a wrong order)
+            if (chain.endsWith ("-wrongref"))
+            {
+                std::reverse (refDescs.begin(), refDescs.end());
+                juce::Array<PluginEntryState> rev;
+                for (int i = refState.plugins.size(); --i >= 0;) rev.add (refState.plugins[i]);
+                refState.plugins = rev;
+            }
             juce::AudioPluginFormatManager fm;
             fm.addFormat (std::make_unique<juce::VST3PluginFormat>());
             std::vector<std::unique_ptr<juce::AudioPluginInstance>> procs;

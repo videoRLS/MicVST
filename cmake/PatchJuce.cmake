@@ -78,6 +78,24 @@ else()
     message(STATUS "PatchJuce: device-manager fix already applied")
 endif()
 
+# --- 6. Version resource of the exe: language Turkish (Türkiye) instead of English (US) ----------
+# Windows shows it under Properties > Details > Language. juceaide writes the .rc from this code.
+set(rcFile "extras/Build/juce_build_tools/utils/juce_ResourceRc.cpp")
+if(NOT EXISTS "${rcFile}")
+    message(FATAL_ERROR "PatchJuce: ${rcFile} not found (working directory must be the JUCE root)")
+endif()
+file(READ "${rcFile}" content)
+string(REPLACE "\r\n" "\n" content "${content}")
+string(FIND "${content}" "041F04B0" rcPatched)
+if(rcPatched EQUAL -1)
+    replace_once([=[BLOCK \"040904E4\"]=] [=[BLOCK \"041F04B0\"]=])
+    replace_once([=[VALUE \"Translation\", 0x409, 1252]=] [=[VALUE \"Translation\", 0x41F, 1200]=])
+    file(WRITE "${rcFile}" "${content}")
+    message(STATUS "PatchJuce: version resource language set to Turkish (0x041F) in ${rcFile}")
+else()
+    message(STATUS "PatchJuce: version resource language already Turkish")
+endif()
+
 set(file "modules/juce_audio_devices/native/juce_WASAPI_windows.cpp")
 
 if(NOT EXISTS "${file}")

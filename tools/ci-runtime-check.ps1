@@ -201,6 +201,37 @@ Run-Scenario "Settings pointing to missing devices, plug-ins and folders" {
 "@ | Set-Content -Encoding utf8 (Join-Path $appData "config.xml")
 } @()
 
+# --- Islem onceligi (process priority) of the real MicVST.exe: older config.xml without the setting ->
+# Normal; each saved choice applied at start; the choice survives the restart (config.xml) ---
+$priorityFails = 0
+$cfgPath = Join-Path $appData "config.xml"
+W "## Process priority of the running MicVST.exe"
+foreach ($case in @(@("(no setting: older config.xml)", $null, "Normal"), @("0 Normal", "0", "Normal"), @("1 Normalin Ustunde", "1", "AboveNormal"), @("2 Yuksek", "2", "High"), @("2 again (restart)", "keep", "High"))) {
+    try {
+        if (Test-Path $cfgPath) {
+            [xml] $x = Get-Content -Raw -Encoding utf8 $cfgPath
+            if ($null -eq $case[1]) { $x.MicVST.RemoveAttribute("processPriority") }
+            elseif ($case[1] -ne "keep") { $x.MicVST.SetAttribute("processPriority", $case[1]) }
+            $x.Save($cfgPath)
+        }
+        $p = Start-Process -FilePath $Exe -PassThru
+        Start-Sleep -Seconds 10
+        $p.Refresh()
+        $cls = if ($p.HasExited) { "exited" } else { [string] $p.PriorityClass }
+        $n = [Win]::AskToQuit([uint32] $p.Id)
+        if (-not $p.WaitForExit(15000)) { Stop-Process -Id $p.Id -Force }
+        Get-Process -Name "MicVST" -ErrorAction SilentlyContinue | Stop-Process -Force
+        Start-Sleep -Seconds 1
+        $saved = if (Test-Path $cfgPath) { ([xml] (Get-Content -Raw -Encoding utf8 $cfgPath)).MicVST.GetAttribute("processPriority") } else { "?" }
+        $ok = $cls -eq $case[2]
+        if (-not $ok) { $priorityFails++ }
+        W "- $($case[0]): Windows reports **$cls** (expected $($case[2])) - $(if ($ok) { 'OK' } else { 'WRONG' }); config.xml after exit: processPriority=`"$saved`""
+    } catch { $priorityFails++; W "- $($case[0]): failed: $_" }
+}
+$logNow = Join-Path $appData "log.txt"
+if (Test-Path $logNow) { Get-Content -Encoding utf8 $logNow | Select-String -Pattern "nceli" | Select-Object -Last 8 | ForEach-Object { W "  log: $($_.Line)" } }
+W "- process priority checks failed: $priorityFails"
+
 $log = Join-Path $appData "log.txt"
 if (Test-Path $log) { Copy-Item $log (Join-Path $Out "micvst-log.txt") }
 
