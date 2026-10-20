@@ -37,14 +37,18 @@ jobs:
         run: |
           set -e
           APP=build/MicVST_artefacts/Release/MicVST.app
+          echo "binary before strip: $(stat -f %z "$APP/Contents/MacOS/MicVST") bytes" | tee results/app-check.txt
+          strip -x "$APP/Contents/MacOS/MicVST"
+          echo "binary after strip: $(stat -f %z "$APP/Contents/MacOS/MicVST") bytes" | tee -a results/app-check.txt
           codesign --force --deep --sign - "$APP"
-          codesign --verify --deep --strict "$APP" && echo "codesign verify: ok" | tee results/app-check.txt
+          codesign --verify --deep --strict "$APP" && echo "codesign verify: ok" | tee -a results/app-check.txt
           lipo -info "$APP/Contents/MacOS/MicVST" | tee -a results/app-check.txt
           otool -l "$APP/Contents/MacOS/MicVST" | grep -A4 -E "LC_BUILD_VERSION|LC_VERSION_MIN_MACOSX" | grep -E "minos|version|platform" | head -6 | tee -a results/app-check.txt
           /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP/Contents/Info.plist" | sed 's/^/CFBundleIdentifier: /' | tee -a results/app-check.txt
           /usr/libexec/PlistBuddy -c "Print :NSMicrophoneUsageDescription" "$APP/Contents/Info.plist" | sed 's/^/NSMicrophoneUsageDescription: /' | tee -a results/app-check.txt
           otool -L "$APP/Contents/MacOS/MicVST" | tee results/linked-libraries.txt
           ditto -c -k --sequesterRsrc --keepParent "$APP" results/MicVST-macOS.zip
+          ls -la results/MicVST-macOS.zip | tee -a results/app-check.txt
           shasum -a 256 results/MicVST-macOS.zip | tee results/MicVST-macOS.zip.sha256.txt
           shasum -a 256 "$APP/Contents/MacOS/MicVST" | tee -a results/app-check.txt
 
@@ -57,8 +61,8 @@ jobs:
           PID=$!
           sleep 20
           if kill -0 $PID 2>/dev/null; then echo "running after 20 s: yes" | tee -a results/start.txt; kill $PID; sleep 2; else wait $PID; echo "exited early, code $?" | tee -a results/start.txt; fi
-          ls -la ~/Library/Application\ Support/MicVST 2>/dev/null | tee -a results/start.txt || true
-          tail -20 ~/Library/Application\ Support/MicVST/log.txt 2>/dev/null | tee -a results/start.txt || true
+          ls -la ~/Library/MicVST 2>/dev/null | tee -a results/start.txt || true
+          tail -20 ~/Library/MicVST/log.txt 2>/dev/null | tee -a results/start.txt || true
 
       - name: Publish
         if: ${{ !cancelled() }}
@@ -69,6 +73,7 @@ jobs:
           git init -q
           git config user.name  "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
+          git config http.postBuffer 524288000
           git add -A
           git commit -q -m "MicVST macOS app ($GITHUB_SHA)"
           git push -q --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/ci-sonuclari/kararlilik/macos-app"
@@ -103,6 +108,7 @@ jobs:
           git init -q
           git config user.name  "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
+          git config http.postBuffer 524288000
           git add -A
           git commit -q -m "MicVST macOS tests ($GITHUB_SHA)"
           git push -q --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/ci-sonuclari/kararlilik/macos-test"
