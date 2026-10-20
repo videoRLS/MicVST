@@ -1,0 +1,1 @@
+quick build: MicVST.exe only, no tests
