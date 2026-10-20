@@ -263,7 +263,8 @@ namespace builtin
               "Sinyaldeki sabit kaymayı (DC) 5 Hz'in altında giderir. Ayarı yoktur; duyulur bir şey değiştirmez.", false, &fx::createDcBlock },
             { "builtin:deesser", "De-esser", clean,
               "Sert \"s\", \"ş\" ve \"ç\" seslerini yalnızca oldukları anda, seçilen frekansın üstünde kısar. "
-              "Eşik, kısmanın başladığı seviyedir; en fazla \"Azaltma\" kadar kısar.", false, &fx::createDeEsser },
+              "Göreli algılamada eşik, tiz bölgenin sesin geneline göre seviyesidir (-15 dB: tizler sesin geneline 15 dB "
+              "yaklaşınca kısar; mikrofon seviyesinden bağımsız). En fazla \"Azaltma\" kadar kısar.", false, &fx::createDeEsser },
 
             { "builtin:saturation", "Sıcak Saturasyon (Tüp / Bant)", colour,
               "Hafif harmonik ekler (4x aşırı örnekleme ile, kenar yumuşatmalı). Seviye otomatik dengelenir.", false, &fx::createSaturation },

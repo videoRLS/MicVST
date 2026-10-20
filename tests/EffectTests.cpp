@@ -703,12 +703,6 @@ struct EffectDynamicsTest : juce::UnitTest
                 const size_t ph = k % 28800;
                 if (ph < 5760) { voice[k] += hiss[k]; inBurst[k] = ph > 960 && ph < 4800; }
             }
-            auto e = make ("builtin:deesser");
-            e->setParam ("threshold", -35.0f);
-            e->setParam ("range", 8.0f);
-            e->prepareToPlay (fs, 480);
-            Buf x { voice, voice };
-            run (*e, x);
             // energy above 5 kHz inside the bursts, energy below 3 kHz outside them
             auto band = [&] (const std::vector<float>& s, bool high, bool bursts)
             {
@@ -722,12 +716,41 @@ struct EffectDynamicsTest : juce::UnitTest
                 for (size_t k = 0; k < f.size(); ++k) if (inBurst[k] == bursts) { sum += (double) f[k] * f[k]; ++n; }
                 return 10.0 * std::log10 (sum / std::max<size_t> (1, n));
             };
-            const double hiDrop = band (voice, true, true) - band (x[0], true, true);
-            const double loChange = std::abs (band (voice, false, false) - band (x[0], false, false));
-            logMessage ("sibilance reduced by " + juce::String (hiDrop, 2) + " dB; voice below 3 kHz changed by " + juce::String (loChange, 3) + " dB");
+            auto deess = [&] (int detect, float thr, float levelDb, double& hiDrop, double& loChange)
+            {
+                const float g = (float) std::pow (10.0, levelDb / 20.0);
+                std::vector<float> in (voice);
+                for (auto& v : in) v *= g;
+                auto e = make ("builtin:deesser");
+                e->setParam ("detect", (float) detect);
+                e->setParam ("threshold", thr);
+                e->setParam ("range", 8.0f);
+                e->prepareToPlay (fs, 480);
+                Buf x { in, in };
+                run (*e, x);
+                hiDrop = band (in, true, true) - band (x[0], true, true);
+                loChange = std::abs (band (in, false, false) - band (x[0], false, false));
+            };
+            double hiDrop = 0.0, loChange = 0.0;
+            deess (1, -35.0f, 0.0f, hiDrop, loChange);   // absolute threshold
+            logMessage ("absolute: sibilance reduced by " + juce::String (hiDrop, 2) + " dB; voice below 3 kHz changed by " + juce::String (loChange, 3) + " dB");
             expectGreaterThan (hiDrop, 3.0);
-            expectLessThan (hiDrop, 8.5);   // never more than the range (+ detector overshoot)
+            expectLessThan (hiDrop, 8.5);
             expectLessThan (loChange, 0.1);
+            // relative detection: the same reduction for a quiet and a loud microphone (-12 / 0 / +8 dB)
+            double drops[3];
+            int k = 0;
+            for (float lv : { -12.0f, 0.0f, 8.0f })
+            {
+                deess (0, -15.0f, lv, hiDrop, loChange);
+                logMessage ("relative, input " + juce::String (lv, 0) + " dB: sibilance reduced by " + juce::String (hiDrop, 2)
+                            + " dB; voice below 3 kHz changed by " + juce::String (loChange, 3) + " dB");
+                expectGreaterThan (hiDrop, 3.0);
+                expectLessThan (hiDrop, 8.5);
+                expectLessThan (loChange, 0.1);
+                drops[k++] = hiDrop;
+            }
+            expectLessThan (std::abs (drops[0] - drops[2]), 1.0);
         }
 
         beginTest ("saturation: level kept, harmonics present but mild at 6 dB, aliasing low at 4x");
@@ -793,11 +816,14 @@ struct EffectDynamicsTest : juce::UnitTest
             for (size_t k = 0; k < v.size(); ++k) worst = std::max (worst, std::abs ((double) x[0][k] - v[k]));
             expectLessThan (worst, 1.0e-6);
             auto r = make ("builtin:reverb");
+            // (after a reset the reverb's input fades in over 10 ms from the first sound: a quiet lead-in
+            // first, then the impulse at 100 ms)
             Buf imp = makeBuf (2, 96000);
-            imp[0][100] = imp[1][100] = 0.5f;
+            for (int k = 0; k < 960; ++k) imp[0][(size_t) k] = imp[1][(size_t) k] = 1.0e-4f;
+            imp[0][4800] = imp[1][4800] = 0.5f;
             run (*r, imp);
-            expectGreaterThan (rms (imp[0], 9600, 19200), 1.0e-5);   // 200-400 ms: room still sounding
-            expectLessThan (rms (imp[0], 86400, 96000), rms (imp[0], 9600, 19200) * 0.1);   // and decaying
+            expectGreaterThan (rms (imp[0], 14400, 24000), 1.0e-5);   // 200-400 ms after it: room still sounding
+            expectLessThan (rms (imp[0], 86400, 96000), rms (imp[0], 14400, 24000) * 0.1);   // and decaying
         }
 
         beginTest ("echo: repeats at the set time, decaying by the feedback");
@@ -809,6 +835,7 @@ struct EffectDynamicsTest : juce::UnitTest
             e->setParam ("tone", 20000.0f);
             e->prepareToPlay (fs, 480);
             Buf x = makeBuf (2, 60000);
+            for (int k = 0; k < 960; ++k) x[0][(size_t) k] = x[1][(size_t) k] = 1.0e-5f;   // lead-in (input fade after a reset)
             for (int k = 0; k < 48; ++k) x[0][(size_t) (1000 + k)] = x[1][(size_t) (1000 + k)] = 0.5f * (float) std::sin (3.14159 * k / 48.0);
             run (*e, x);
             auto peakNear = [&] (size_t at) { float m = 0; for (size_t k = at - 200; k < at + 300; ++k) m = std::max (m, std::abs (x[0][k])); return m; };

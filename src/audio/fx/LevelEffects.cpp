@@ -186,9 +186,10 @@ namespace
     // De-esser: the part above the chosen frequency (Butterworth high-pass, 12 dB/oct) is the
     // detector; its envelope (attack 0.5 ms, release 60 ms) above the threshold is reduced 4:1
     // with a 6 dB soft knee, at most by "Azaltma".
-    //  Split mode ("Yalnız tizler"): a dynamic high shelf (state-variable filter, half its reduction
-    //  at the chosen frequency, the full reduction about half an octave above) whose gain follows the
-    //  reduction every sample - only the hiss is turned down; at 0 dB of reduction the shelf is flat.
+    //  Split mode ("Yalnız tizler"): a dynamic high shelf (state-variable filter, Q 0.8, centred a
+    //  little below the chosen frequency: about two thirds of the reduction at it, the full reduction
+    //  half an octave above) whose gain follows the reduction every sample - only the hiss is turned
+    //  down; at 0 dB of reduction the shelf is flat.
     //  Wideband mode: the whole signal follows the reduction.
     class DeEsser final : public BuiltInEffect
     {
@@ -196,9 +197,10 @@ namespace
         explicit DeEsser (const Info& i) : BuiltInEffect (i)
         {
             freq  = addFloat ("freq", "Frekans", 3000.0f, 10000.0f, 6000.0f, U::hertz, 5500.0f, 10.0f);
-            thr   = addFloat ("threshold", "Eşik", -60.0f, 0.0f, -30.0f, U::decibel, 0.0f, 0.1f);
+            thr   = addFloat ("threshold", "Eşik", -60.0f, 0.0f, -15.0f, U::decibel, 0.0f, 0.1f);
             range = addFloat ("range", "En fazla azaltma", 0.0f, 12.0f, 6.0f, U::dbAmount, 0.0f, 0.1f);
             mode  = addChoice ("mode", "Mod", { u8 ("Yalnız tizler (bölünmüş)"), u8 ("Tüm ses (geniş bant)") }, 0);
+            detect = addChoice ("detect", "Algılama", { u8 ("Göreli (sesin kendisine göre)"), u8 ("Mutlak (dBFS)") }, 0);
         }
 
         std::unique_ptr<juce::Component> createDisplay() override
@@ -210,7 +212,7 @@ namespace
             });
         }
 
-        static constexpr double ratio = 4.0, softKneeDb = 6.0, shelfQ = 0.6;
+        static constexpr double ratio = 4.0, softKneeDb = 6.0, shelfQ = 0.8, shelfAt = 0.85;
 
         // Static gain reduction (dB, >= 0) for a detector level (tests).
         static double reductionDb (double levelDb, double thresholdDb, double rangeDb) noexcept
@@ -244,14 +246,14 @@ namespace
         void designShelf (double gainDb) noexcept
         {
             shelfDb = gainDb;
-            const auto k = SvfCoeffs::make (SvfType::highShelf, getRate(), gf.value(), shelfQ, gainDb);
+            const auto k = SvfCoeffs::make (SvfType::highShelf, getRate(), shelfAt * gf.value(), shelfQ, gainDb);
             for (auto& sh : shelf) sh.k = k;
         }
         void resetEffect() override
         {
             for (auto& h : hp) h.reset();
             for (auto& sh : shelf) sh.reset();
-            env = grNow = 0.0;
+            env = envFull = grNow = 0.0;
             designShelf (0.0);
         }
         void processEffect (float* const* ch, int numCh, int n) noexcept override
@@ -259,17 +261,27 @@ namespace
             gf.setTarget (valueOf (freq));
             split.setTarget (mode->getIndex() == 0 ? 1.0 : 0.0);
             const double t = valueOf (thr), r = valueOf (range);
+            const bool relative = detect->getIndex() == 0;
             double maxGr = 0.0;
             for (int i = 0; i < n; ++i)
             {
                 if (gf.advance()) designDetector();
-                double a = 0.0;
+                double a = 0.0, full = 0.0;
                 for (int c = 0; c < numCh; ++c)
+                {
                     a = std::max (a, std::abs (hp[(size_t) c].process (ch[c][i])));
+                    full = std::max (full, std::abs ((double) ch[c][i]));
+                }
                 env += (a - env) * (a > env ? atk : rel);
+                envFull += (full - envFull) * (full > envFull ? atk : rel);
+                // Göreli: the hiss band's level against the whole voice's (a sibilant is mostly hiss,
+                // a vowel 20-35 dB less) - the same for a quiet and a loud microphone; nothing below
+                // -60 dBFS (pauses, room noise). Mutlak: the hiss band's level in dBFS.
+                const double level = relative ? (envFull > gateLin ? gainToDb (env) - gainToDb (envFull) : -200.0)
+                                              : gainToDb (env);
                 // the reduction itself moves smoothly (1 ms down, 60 ms back up): also a sudden
                 // threshold change glides
-                const double gr = reductionDb (gainToDb (env), t, r);
+                const double gr = reductionDb (level, t, r);
                 grNow += (gr - grNow) * (gr > grNow ? grAtk : rel);
                 maxGr = std::max (maxGr, grNow);
                 if (std::abs (-grNow - shelfDb) > 0.01) designShelf (-grNow);
@@ -284,14 +296,17 @@ namespace
             for (auto& h : hp) h.flush();
             for (auto& sh : shelf) sh.flush();
             if (env < 1.0e-20) env = 0.0;
+            if (envFull < 1.0e-20) envFull = 0.0;
             if (grNow < 1.0e-9) grNow = 0.0;
             storeMax (grHold, (float) maxGr);
         }
 
         juce::AudioParameterFloat *freq, *thr, *range;
-        juce::AudioParameterChoice* mode;
+        juce::AudioParameterChoice *mode, *detect;
         Glide gf;
         Ramp split;
+        static constexpr double gateLin = 0.001;   // -60 dBFS
+        double envFull = 0.0;
         std::array<Biquad, 2> hp;
         std::array<Svf, 2> shelf;
         double env = 0.0, atk = 0.1, rel = 0.001, grAtk = 0.02, grNow = 0.0, shelfDb = 0.0;

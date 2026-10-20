@@ -75,19 +75,19 @@ namespace
                 { "builtin:presence",  { { "gain", presDb }, { "freq", presHz }, { "q", presQ } } },
                 { "builtin:air",       { { "gain", airDb }, { "freq", airHz } } },
                 { "builtin:autogain",  {} },
-                { "builtin:deesser",   { { "freq", deessHz }, { "threshold", deessThr }, { "range", deessRange }, { "mode", 0.0f } } },
+                { "builtin:deesser",   { { "freq", deessHz }, { "threshold", deessThr }, { "range", deessRange }, { "mode", 0.0f }, { "detect", 0.0f } } },
                 { "builtin:saturation",{ { "type", (float) satType }, { "drive", satDrive }, { "mix", satMix } } },
                 { "builtin:gain",      { { "gain", trimDb } } },
             };
         };
 
-        //                         LC    prox      mud         630  1.9k 3.7k  body        presence          air          de-esser            sat              trim
+        //                         LC    prox      mud         630  1.9k 3.7k  body        presence          air          de-esser (relative)  sat              trim
         const std::vector<Def> defs {
-            { "Balanced Pro",  chain (80,  -1.5, 150, 3.0, 400, -3.0, -1.5, -3.0,  1.0, 150,  2.5, 4600, 1.2,  2.0, 11000,  6000, -40, 6.0,  0, 4.0,  60, 0.0f) },
-            { "Cinema Voice",  chain (70,   1.0, 120, 3.5, 380, -3.0, -1.5, -3.5,  3.0, 135,  2.0, 4400, 1.0,  3.0, 12000,  6200, -40, 7.0,  1, 7.0,  70, 0.0f) },
-            { "Crystal Clear", chain (90,  -3.0, 160, 4.5, 420, -3.5, -2.0, -2.5,  0.0, 150,  4.0, 4800, 1.0,  4.5, 10000,  6000, -42, 8.0,  0, 0.0,   0, 0.0f) },
-            { "Soft & Smooth", chain (75,  -1.0, 150, 2.5, 400, -2.5, -2.5, -4.5,  1.5, 140,  0.5, 4200, 1.0, -1.0, 12000,  5800, -44, 9.0,  0, 3.0,  50, 0.0f) },
-            { "Deep & Warm",   chain (65,   2.5, 130, 2.0, 400, -2.5, -1.5, -3.0,  4.0, 130,  1.0, 4200, 1.0, -0.5, 12000,  6000, -42, 6.0,  1, 8.0,  70, 0.0f) },
+            { "Balanced Pro",  chain (80,  -2.0, 150, 4.0, 400, -3.0, -1.5, -2.0,  0.5, 140,  4.0, 4600, 1.4,  3.0, 10000,  5500, -14, 8.0,  0, 4.0,  60, 0.4f) },
+            { "Cinema Voice",  chain (70,   1.0, 120, 4.5, 380, -3.0, -1.5, -2.5,  2.5, 130,  3.0, 4500, 1.2,  4.0, 11000,  5500, -15, 9.0,  1, 7.0,  70, -0.3f) },
+            { "Crystal Clear", chain (85,  -4.0, 160, 5.0, 420, -3.5, -2.0, -1.5,  0.0, 150,  5.5, 4800, 1.2,  5.0,  9000,  5500, -14, 9.0,  0, 0.0,   0, 0.7f) },
+            { "Soft & Smooth", chain (75,  -1.0, 150, 3.0, 400, -2.5, -2.5, -4.5,  1.0, 140,  1.0, 4300, 1.2, -2.0, 11000,  5000, -16, 10.0, 0, 3.0,  50, 0.3f) },
+            { "Deep & Warm",   chain (70,   2.0, 130, 2.0, 400, -2.5, -1.5, -2.5,  3.0, 125,  1.5, 4400, 1.2, -0.5, 12000,  5500, -15, 8.0,  1, 8.0,  70, -0.3f) },
         };
 
         std::vector<Preset> out;
