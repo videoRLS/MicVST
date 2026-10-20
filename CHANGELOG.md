@@ -19,9 +19,10 @@ project follows [Semantic Versioning](https://semver.org/).
   Çıkış Limiteri, Sessize Alma, Ses Gecikmesi, Kanal Araçları, LUFS Ölçer, Spektrum Analizörü.
   Settings windows (double-click), saved with the chain, every change glides (no clicks), latency
   reported. No noise gate, no compressor.
-- Hazır ayarlar next to "+ Eklenti": five factory presets of built-in effects only, for an average
-  adult Turkish male voice (Sinema Sesi, Kristal Netlik, Yumuşak ve Pürüzsüz, Derin ve Sıcak,
-  Dengeli Profesyonel; same elements, so switching glides),
+- Hazır ayarlar next to "+ Eklenti": folders "Erkek Sesi Ayarları" and "Kadın Sesi Ayarları" with
+  ten factory presets each (everyday, podcast, radio, narration, cinema, clarity, soft, warm,
+  singing with a room, streaming), built-in effects only, for average adult Turkish voices; all
+  twenty have the same elements, so switching glides, and the same loudness (within 0.15 LU);
   own presets of the whole chain with the VST3 states (save, overwrite, rename, delete), and
   "Önceki zincire dön".
 - Tema (bottom of the window): Gece (default, the colours so far), Gece Yarısı, Kül, Açık, Okyanus,

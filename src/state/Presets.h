@@ -6,11 +6,11 @@
 // Otomatik Kazanç, Mono/Stereo and VST3 plug-ins with their full state blob, exactly as config.xml
 // keeps them).
 //
-//  * Factory presets (Sinema Sesi, Kristal Netlik, Yumuşak ve Pürüzsüz, Derin ve Sıcak, Dengeli
-//    Profesyonel; for an average adult Turkish male voice) use
-//    built-in effects only, so they work for everyone; they are built in code (factoryPresets()).
-//    All five have the same elements in the same order - switching between them only moves
-//    parameters (each glides in 50 ms), the chain is not rebuilt.
+//  * Factory presets: two folders, "Erkek Sesi Ayarları" and "Kadın Sesi Ayarları", ten each
+//    (everyday, podcast, radio, narration, singing, streaming ...), for average adult Turkish men's
+//    and women's voices. Built-in effects only, so they work for everyone; built in code
+//    (factoryPresets()). All twenty have the same elements in the same order - switching between
+//    them only moves parameters (each glides in 50 ms), the chain is not rebuilt.
 //  * User presets: one file per preset in %APPDATA%\MicVST\presets (*.micvstpreset, XML), written
 //    through a temporary file (a crash never leaves half a preset). Names may contain any letters
 //    (Turkish too); the file name is derived from the name, the name itself is kept inside the file.
@@ -19,7 +19,8 @@ namespace presets
 {
     struct Preset
     {
-        juce::String name;
+        juce::String name;            // unique: factory presets "Erkek Sesi - Radyo Spikeri"
+        juce::String group, shortName;   // factory presets: folder ("Erkek Sesi Ayarları") and name in it
         bool factory = false;
         juce::Array<PluginEntryState> elements;
         juce::File file;   // user presets only

@@ -44,68 +44,94 @@ namespace
         return e;
     }
 
-    // The five factory presets, for an average adult Turkish male voice (fundamental about
-    // 85-155 Hz, most around 110-130 Hz), not for one particular voice: every move is broad (low Q)
-    // and moderate, so it suits the great majority of men's voices and microphones (USB and
-    // condenser microphones at 5-20 cm). What they address is what men's voices commonly have:
-    // boom below 100 Hz and the close-microphone build-up around 150 Hz, "mud" around 300 Hz, a
-    // boxy 500 Hz, a nasal 1 kHz, a hard edge around 3 kHz, the sibilants of Turkish (s, ş, ç, z:
-    // 4-9 kHz). Every preset has the same elements in the same order:
-    //   Low-Cut -> Yakınlık -> Çamur Temizleyici -> Parametrik EQ (kutu 500 Hz, genizlik 1 kHz,
-    //   sertlik 3 kHz) -> Gövde -> Netlik -> Hava -> Otomatik Kazanç -> De-esser -> Sıcak
-    //   Saturasyon -> Kazanç
-    // Otomatik Kazanç sits before the de-esser and the saturation: they then see the same level for
-    // every microphone and voice (peaks around -20 dBFS); the de-esser detects relative to the voice
-    // itself. The last Kazanç matches the loudness of the five (measured on synthetic and real male
-    // speech), so switching does not jump in level.
+    // The factory presets, for average adult Turkish voices, not for one particular voice: every
+    // move is broad (low Q) and moderate, so it suits the great majority of voices and microphones
+    // (USB and condenser microphones at 5-20 cm).
+    //  Men (fundamental about 85-155 Hz): boom below 100 Hz, close-microphone build-up around 150 Hz,
+    //  mud around 300 Hz, a boxy 500 Hz, a nasal 1 kHz, a hard edge around 3 kHz.
+    //  Women (fundamental about 165-255 Hz): everything about a third to a half octave higher - low
+    //  cut 90-115 Hz, body around 200-230 Hz, mud 350 Hz, box 600 Hz, nasal 1.2 kHz, edge 3.5 kHz,
+    //  presence 5 kHz, sibilants higher (de-esser 6.5-7 kHz).
+    //  Turkish sibilants (s, ş, ç, z) are frequent: every preset de-esses relative to the voice.
+    // Every preset has the same elements in the same order:
+    //   Low-Cut -> Yakınlık -> Çamur Temizleyici -> Parametrik EQ (kutu, genizlik, sertlik) -> Gövde ->
+    //   Netlik -> Hava -> Otomatik Kazanç -> De-esser -> Sıcak Saturasyon -> Oda Yankısı -> Kazanç
+    // (the room is open only in the singing presets). Otomatik Kazanç sits before the de-esser and the
+    // saturation: they then see the same level for every microphone and voice. The last Kazanç
+    // matches the loudness of all twenty (measured on synthetic men's and women's speech), so
+    // switching does not jump in level.
+    struct V
+    {
+        float lowCut, proxDb, proxHz, mudDb, mudHz, boxHz, boxDb, nasalHz, nasalDb, hardHz, hardDb,
+              bodyDb, bodyHz, presDb, presHz, airDb, airHz, deessHz, deessThr, deessRange;
+        int satType; float satDrive, satMix, roomSize, roomMix, trimDb;
+    };
+
+    std::vector<Setting> chainFor (const V& v)
+    {
+        return {
+            { "builtin:lowcut",    { { "freq", v.lowCut }, { "slope", 1.0f } } },
+            { "builtin:proximity", { { "gain", v.proxDb }, { "freq", v.proxHz } } },
+            { "builtin:mud",       { { "gain", v.mudDb }, { "freq", v.mudHz }, { "q", 1.0f } } },
+            { "builtin:parameq",   { { "b1type", 0.0f }, { "b1freq", v.boxHz },   { "b1gain", v.boxDb },   { "b1q", 1.4f },
+                                     { "b2type", 0.0f }, { "b2freq", v.nasalHz }, { "b2gain", v.nasalDb }, { "b2q", 1.8f },
+                                     { "b3type", 0.0f }, { "b3freq", v.hardHz },  { "b3gain", v.hardDb },  { "b3q", 1.8f },
+                                     { "b4type", 0.0f }, { "b4freq", 8000.0f },   { "b4gain", 0.0f },      { "b4q", 1.0f } } },
+            { "builtin:body",      { { "gain", v.bodyDb }, { "freq", v.bodyHz } } },
+            { "builtin:presence",  { { "gain", v.presDb }, { "freq", v.presHz }, { "q", 1.0f } } },
+            { "builtin:air",       { { "gain", v.airDb }, { "freq", v.airHz } } },
+            { "builtin:autogain",  {} },
+            { "builtin:deesser",   { { "freq", v.deessHz }, { "threshold", v.deessThr }, { "range", v.deessRange }, { "mode", 0.0f }, { "detect", 0.0f } } },
+            { "builtin:saturation",{ { "type", (float) v.satType }, { "drive", v.satDrive }, { "mix", v.satMix } } },
+            { "builtin:reverb",    { { "size", v.roomSize }, { "damping", 45.0f }, { "width", 100.0f }, { "mix", v.roomMix } } },
+            { "builtin:gain",      { { "gain", v.trimDb } } },
+        };
+    }
+
     std::vector<Preset> build()
     {
-        struct Def { const char* name; std::vector<Setting> chain; };
-        auto chain = [] (float lowCutHz, float proxDb, float proxHz, float mudDb, float mudHz,
-                         float boxDb, float nasalDb, float hardDb,
-                         float bodyDb, float bodyHz, float presDb, float presHz, float presQ,
-                         float airDb, float airHz,
-                         float deessHz, float deessThr, float deessRange,
-                         int satType, float satDrive, float satMix, float trimDb)
-        {
-            return std::vector<Setting> {
-                { "builtin:lowcut",    { { "freq", lowCutHz }, { "slope", 1.0f } } },
-                { "builtin:proximity", { { "gain", proxDb }, { "freq", proxHz } } },
-                { "builtin:mud",       { { "gain", mudDb }, { "freq", mudHz }, { "q", 1.0f } } },
-                { "builtin:parameq",   { { "b1type", 0.0f }, { "b1freq", 500.0f },  { "b1gain", boxDb },   { "b1q", 1.4f },
-                                         { "b2type", 0.0f }, { "b2freq", 1000.0f }, { "b2gain", nasalDb }, { "b2q", 1.8f },
-                                         { "b3type", 0.0f }, { "b3freq", 3000.0f }, { "b3gain", hardDb },  { "b3q", 1.8f },
-                                         { "b4type", 0.0f }, { "b4freq", 8000.0f }, { "b4gain", 0.0f },    { "b4q", 1.0f } } },
-                { "builtin:body",      { { "gain", bodyDb }, { "freq", bodyHz } } },
-                { "builtin:presence",  { { "gain", presDb }, { "freq", presHz }, { "q", presQ } } },
-                { "builtin:air",       { { "gain", airDb }, { "freq", airHz } } },
-                { "builtin:autogain",  {} },
-                { "builtin:deesser",   { { "freq", deessHz }, { "threshold", deessThr }, { "range", deessRange }, { "mode", 0.0f }, { "detect", 0.0f } } },
-                { "builtin:saturation",{ { "type", (float) satType }, { "drive", satDrive }, { "mix", satMix } } },
-                { "builtin:gain",      { { "gain", trimDb } } },
-            };
-        };
-
-        //                                 LC   prox       mud         500  1k   3k    body        presence          air          de-esser (relative)  sat              trim
+        struct Def { const char* group; const char* name; V v; };
+        static const char* const men = "Erkek Sesi Ayarları";
+        static const char* const women = "Kadın Sesi Ayarları";
+        //                                                  LC   prox       mud        kutu      genizlik   sertlik     gövde      netlik     hava        de-esser          sat           oda     trim
         const std::vector<Def> defs {
-            { "Dengeli Profesyonel",  chain (80, -1.5, 150, 3.0, 300, -1.5, -1.0, -1.5,  1.0, 130,  2.5, 4500, 1.0,  2.0, 11000,  5500, -14, 6.0,  0, 3.0,  50, 0.0f) },
-            { "Sinema Sesi",          chain (70,  1.0, 120, 3.5, 300, -2.0, -1.0, -2.0,  2.5, 120,  2.0, 4200, 1.0,  4.0, 12000,  5500, -15, 8.0,  1, 6.0,  70, 0.1f) },
-            { "Kristal Netlik",       chain (90, -3.0, 160, 4.0, 320, -2.0,  0.0, -1.0,  0.0, 130,  4.0, 4800, 1.0,  5.0,  9000,  5500, -14, 8.0,  0, 0.0,   0, 0.7f) },
-            { "Yumuşak ve Pürüzsüz",  chain (75, -1.0, 150, 2.5, 300, -1.0, -1.5, -3.0,  1.5, 130,  0.0, 4200, 1.0, -1.5, 11000,  5000, -16, 9.0,  0, 3.0,  50, -0.2f) },
-            { "Derin ve Sıcak",       chain (70,  2.0, 130, 2.0, 300, -1.5, -1.0, -2.0,  3.0, 120,  1.0, 4200, 1.0, -0.5, 12000,  5500, -15, 7.0,  1, 7.0,  70, -0.6f) },
+            { men,   "Dengeli Profesyonel",   { 80, -1.5, 150, 3.0, 300,  500, -1.5, 1000, -1.0, 3000, -1.5,  1.0, 130,  2.5, 4500,  2.0, 11000,  5500, -14, 6,  0, 3, 50,  30,  0, 0.6f } },
+            { men,   "Podcast / Sohbet",      { 80,  1.0, 130, 2.5, 300,  500, -1.5, 1000, -1.0, 3000, -2.0,  2.0, 125,  1.5, 4000,  0.5, 12000,  5500, -14, 7,  1, 3, 40,  30,  0, 0.2f } },
+            { men,   "Radyo Spikeri",         { 75,  1.5, 120, 3.0, 300,  500, -2.0, 1000, -1.5, 3000, -1.0,  3.0, 115,  3.0, 4000,  2.5, 11000,  5500, -15, 8,  1, 8, 80,  30,  0, 0.7f } },
+            { men,   "Seslendirme / Belgesel",{ 70,  0.5, 130, 3.0, 300,  500, -2.0, 1000, -1.0, 3000, -3.0,  2.0, 120,  1.0, 4200,  1.5, 12000,  5500, -16, 9,  1, 5, 60,  30,  0, 0.7f } },
+            { men,   "Sinema Sesi",           { 70,  1.0, 120, 3.5, 300,  500, -2.0, 1000, -1.0, 3000, -2.0,  2.5, 120,  2.0, 4200,  4.0, 12000,  5500, -15, 8,  1, 6, 70,  30,  0, 0.9f } },
+            { men,   "Kristal Netlik",        { 90, -3.0, 160, 4.0, 320,  500, -2.0, 1000,  0.0, 3000, -1.0,  0.0, 130,  4.0, 4800,  5.0,  9000,  5500, -14, 8,  0, 0,  0,  30,  0, 1.2f } },
+            { men,   "Yumuşak ve Pürüzsüz",   { 75, -1.0, 150, 2.5, 300,  500, -1.0, 1000, -1.5, 3000, -3.0,  1.5, 130,  0.0, 4200, -1.5, 11000,  5000, -16, 9,  0, 3, 50,  30,  0, 0.3f } },
+            { men,   "Derin ve Sıcak",        { 70,  2.0, 130, 2.0, 300,  500, -1.5, 1000, -1.0, 3000, -2.0,  3.0, 120,  1.0, 4200, -0.5, 12000,  5500, -15, 7,  1, 7, 70,  30,  0, -0.1f } },
+            { men,   "Şarkı / Vokal",         { 90, -1.5, 150, 3.0, 300,  500, -1.5, 1000, -1.0, 3000, -2.0,  1.0, 140,  2.5, 4500,  4.0, 12000,  5500, -15, 8,  0, 5, 60,  45, 18, 0.7f } },
+            { men,   "Oyun / Canlı Yayın",    { 95, -2.5, 160, 4.0, 320,  500, -2.0, 1000, -1.5, 3000, -1.0,  0.5, 140,  4.0, 4600,  3.0, 10000,  5500, -14, 8,  0, 4, 50,  30,  0, 1.2f } },
+
+            { women, "Dengeli Profesyonel",   { 100, -1.0, 200, 2.5, 350, 600, -1.5, 1200, -1.0, 3500, -1.5,  1.0, 220,  2.0, 5000,  2.5, 12000,  6500, -14, 7,  0, 2, 40,  30,  0, -0.3f } },
+            { women, "Podcast / Sohbet",      { 100,  0.5, 190, 2.0, 350, 600, -1.0, 1200, -1.0, 3500, -2.0,  2.0, 210,  1.0, 4800,  1.0, 12000,  6500, -14, 8,  1, 2, 40,  30,  0, -1.3f } },
+            { women, "Radyo Spikeri",         { 95,   1.0, 180, 2.5, 350, 600, -2.0, 1200, -1.5, 3500, -1.5,  3.0, 195,  3.0, 4600,  2.5, 12000,  6500, -15, 9,  1, 6, 70,  30,  0, -1.3f } },
+            { women, "Seslendirme / Anlatıcı",{ 90,   0.0, 190, 2.5, 350, 600, -1.5, 1200, -1.5, 3500, -3.0,  2.5, 210,  0.5, 4500,  1.5, 12500,  6500, -16, 9,  1, 4, 50,  30,  0, -1.1f } },
+            { women, "Sinema Sesi",           { 90,   0.0, 180, 3.0, 350, 600, -2.0, 1200, -1.0, 3500, -2.0,  2.0, 205,  1.0, 5000,  4.0, 13000,  6500, -15, 8,  1, 5, 60,  30,  0, -0.4f } },
+            { women, "Kristal Netlik",        { 110, -2.5, 220, 3.5, 380, 600, -2.0, 1200,  0.0, 3500, -1.0,  0.0, 220,  3.0, 5400,  5.0, 11000,  6500, -14, 9,  0, 0,  0,  30,  0, 0.6f } },
+            { women, "Yumuşak ve Pürüzsüz",   { 100, -0.5, 200, 2.0, 350, 600, -1.0, 1200, -1.5, 3500, -3.0,  1.5, 220,  0.0, 4800, -1.0, 12000,  6000, -16, 10, 0, 2, 40,  30,  0, -0.9f } },
+            { women, "Sıcak ve Dolgun",       { 90,   1.5, 180, 1.5, 350, 600, -1.5, 1200, -1.0, 3500, -2.0,  3.0, 200,  0.5, 4800,  0.0, 12000,  6500, -15, 8,  1, 6, 60,  30,  0, -2.0f } },
+            { women, "Şarkı / Vokal",         { 110, -1.5, 200, 2.5, 350, 600, -1.5, 1200, -1.0, 3500, -2.0,  0.5, 230,  2.0, 5200,  4.5, 12500,  7000, -15, 9,  0, 4, 50,  45, 20, 0.0f } },
+            { women, "Oyun / Canlı Yayın",    { 120, -3.0, 230, 3.0, 380, 600, -2.0, 1200, -1.5, 3500, -1.0, -0.5, 230,  4.5, 4600,  2.5, 10000,  6500, -14, 9,  0, 3, 40,  30,  0, 0.4f } },
         };
 
         std::vector<Preset> out;
         for (auto& d : defs)
         {
             Preset p;
-            p.name = u8 (d.name);
+            p.group = u8 (d.group);
+            p.shortName = u8 (d.name);
+            p.name = u8 (d.group == men ? "Erkek Sesi - " : "Kadın Sesi - ") + p.shortName;
             p.factory = true;
-            for (auto& s : d.chain) p.elements.add (effectEntry (s));
+            for (auto& s : chainFor (d.v)) p.elements.add (effectEntry (s));
             out.push_back (std::move (p));
         }
         return out;
     }
+
 
     juce::String sanitize (const juce::String& name)
     {

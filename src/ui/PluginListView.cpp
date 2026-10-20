@@ -297,8 +297,8 @@ PluginListView::PluginListView (AudioEngine& e) : engine (e)
     manageFoldersBtn.onClick = [this] { showFolderMenu(); };
 
     presetBox.setTextWhenNothingSelected (tr ("Hazır ayar seçin"));
-    presetBox.setTooltip (tr ("Hazır ayarlar: tüm zincir tek tıkla değişir. Dahili hazır ayarlar yalnızca dahili efektleri kullanır "
-                              "(herkeste çalışır); \"Kendi ayarlarım\" sizin kaydettiğiniz zincirlerdir (VST3 eklentileri ve "
+    presetBox.setTooltip (tr ("Hazır ayarlar: tüm zincir tek tıkla değişir. \"Erkek Sesi Ayarları\" ve \"Kadın Sesi Ayarları\" "
+                              "yalnızca dahili efektleri kullanır (herkeste çalışır); \"Kendi Ayarlarım\" sizin kaydettiğiniz zincirlerdir (VST3 eklentileri ve "
                               "ayarlarıyla birlikte). Aynı elemanlardan oluşan ayarlar arasında geçişte ayarlar yumuşakça kayar; "
                               "farklı zincirde kısa bir geçiş (birkaç ms) olur. * : zincir yüklendikten sonra değiştirildi."));
     presetBox.onChange = [this] { presetChosen(); };
@@ -763,18 +763,27 @@ void PluginListView::updateScanUi()
 
 void PluginListView::refreshPresetList()
 {
+    // Three folders: the factory presets for men's and women's voices, and the user's own.
     presetBox.clear (juce::dontSendNotification);
     userPresets = presets::loadUserPresets();
-    presetBox.addSectionHeading (tr ("Hazır ayarlar (dahili efektler)"));
+    juce::PopupMenu men, women, mine;
     int id = factoryIdBase;
+    juce::String menGroup, womenGroup;
     for (auto& p : presets::factoryPresets())
-        presetBox.addItem (p.name, id++);
-    presetBox.addSectionHeading (tr ("Kendi ayarlarım"));
+    {
+        if (menGroup.isEmpty()) menGroup = p.group;
+        if (p.group == menGroup) men.addItem (id++, p.shortName);
+        else { womenGroup = p.group; women.addItem (id++, p.shortName); }
+    }
     if (userPresets.empty())
-        presetBox.addItem (tr ("(henüz yok - \"Kaydet\" ile ekleyin)"), emptyUserId), presetBox.setItemEnabled (emptyUserId, false);
+        mine.addItem (emptyUserId, tr ("(henüz yok - \"Kaydet\" ile ekleyin)"), false);
     id = userIdBase;
     for (auto& p : userPresets)
-        presetBox.addItem (p.name, id++);
+        mine.addItem (id++, p.name);
+    auto* root = presetBox.getRootMenu();
+    root->addSubMenu (menGroup, men);
+    root->addSubMenu (womenGroup, women);
+    root->addSubMenu (tr ("Kendi Ayarlarım"), mine);
     shownPresetName.clear();
     updatePresetBox();
 }

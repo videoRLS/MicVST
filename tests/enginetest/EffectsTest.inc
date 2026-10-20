@@ -328,7 +328,7 @@ namespace fxtest
         }
 
         pr ("");
-        pr ("## Hazir ayarlar: switching while audio plays (997 Hz -20 dBFS; every 1.5 s, all five twice, then a user preset and back)");
+        pr ("## Hazir ayarlar: switching while audio plays (997 Hz -20 dBFS; all twenty, one per second, then a user preset and back)");
         {
             sineConfig (997.0, 0.1, cfg.micRate);
             const auto& f = presets::factoryPresets();
@@ -337,16 +337,15 @@ namespace fxtest
             juce::String steps;
             std::vector<double> levels;   // output level 1.2 s after each switch (1 s window)
             {
-                EngineRun run (480, 26.0);
+                EngineRun run (480, 28.0);
                 auto& e = *run.engine;
                 pump (1.0);
-                for (int round = 0; round < 2; ++round)
-                    for (auto& p : f)
-                    {
-                        const auto r = e.applyPreset (p.name, p.elements);
-                        (r.morphed ? morphs : rebuilds)++;
-                        pump (1.5);
-                    }
+                for (auto& p : f)
+                {
+                    const auto r = e.applyPreset (p.name, p.elements);
+                    (r.morphed ? morphs : rebuilds)++;
+                    pump (1.0);
+                }
                 // a user preset (other elements: Kazanc, a test plug-in with its state) and back
                 juce::Array<PluginEntryState> user;
                 {
@@ -368,7 +367,7 @@ namespace fxtest
             pr ("switches: " + juce::String (morphs) + " settings glides (same elements), " + juce::String (rebuilds)
                 + " chain swaps; clicks " + juce::String (clk) + ", invalid blocks " + juce::String ((int) invalid)
                 + (h > 0 ? ", device hiccups " + juce::String (h) : juce::String()));
-            check (morphs >= 9, "factory presets switch by gliding the settings");
+            check (morphs >= (int) f.size() - 1, "factory presets switch by gliding the settings");
             check (invalid == 0, "preset switching: invalid blocks");
             check (clk == 0 || h > 0, "preset switching: clicks");
         }

@@ -1183,7 +1183,7 @@ namespace suite
                                 "preset of the whole chain (" + juce::String (chain.size()) + " elements, " + juce::String (total) + " parameters) saved to a file and loaded into a new engine: "
                                 + juce::String (same) + "/" + juce::String (total) + " parameters identical" + (err.isNotEmpty() ? ", error: " + err : juce::String()));
 
-                const auto* factory = presets::findFactory ("Dengeli Profesyonel");
+                const auto* factory = presets::findFactory ("Erkek Sesi - Dengeli Profesyonel");
                 const auto r2 = e->applyPreset (factory->name, factory->elements);
                 pump (1.5);
                 bool onlyBuiltIn = (int) e->getChain().entries().size() == factory->elements.size();

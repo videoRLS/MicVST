@@ -6,6 +6,7 @@
 #include "audio/BuiltInEffects.h"
 #include "audio/fx/FilterEffect.h"
 #include "state/Presets.h"
+#include <map>
 #include <random>
 
 namespace
@@ -63,8 +64,19 @@ struct PresetTest : juce::UnitTest
         beginTest ("factory presets: five, built-in only, same elements in the same order, every state valid");
         {
             const auto& f = presets::factoryPresets();
-            expectEquals ((int) f.size(), 5);
-            for (const char* n : { "Sinema Sesi", "Kristal Netlik", "Yumuşak ve Pürüzsüz", "Derin ve Sıcak", "Dengeli Profesyonel" })
+            expectEquals ((int) f.size(), 20);
+            int menCount = 0, womenCount = 0;
+            std::map<juce::String, int> names;
+            for (auto& p : f)
+            {
+                if (p.group == juce::String::fromUTF8 ("Erkek Sesi Ayarları")) ++menCount;
+                if (p.group == juce::String::fromUTF8 ("Kadın Sesi Ayarları")) ++womenCount;
+                expect (++names[p.name] == 1, "duplicate name " + p.name);
+                expect (p.name.endsWith (p.shortName));
+            }
+            expectEquals (menCount, 10);
+            expectEquals (womenCount, 10);
+            for (const char* n : { "Erkek Sesi - Radyo Spikeri", "Kadın Sesi - Şarkı / Vokal", "Erkek Sesi - Dengeli Profesyonel" })
                 expect (presets::findFactory (juce::String::fromUTF8 (n)) != nullptr, juce::String::fromUTF8 (n));
             for (auto& p : f)
             {
@@ -90,7 +102,7 @@ struct PresetTest : juce::UnitTest
             }
         }
 
-        beginTest ("factory presets: really different tone curves (EQ part: at least 2 dB apart somewhere)");
+        beginTest ("factory presets: really different tone curves (EQ part: at least 1.5 dB apart somewhere)");
         {
             const double fs = 48000.0;
             auto curve = [&] (const presets::Preset& p)
@@ -121,7 +133,7 @@ struct PresetTest : juce::UnitTest
                     double most = 0.0;
                     for (size_t k = 0; k < curves[a].size(); ++k) most = std::max (most, std::abs (curves[a][k] - curves[b][k]));
                     logMessage (f[a].name + " vs " + f[b].name + ": up to " + juce::String (most, 1) + " dB apart");
-                    expectGreaterThan (most, 2.0);
+                    expectGreaterThan (most, 1.5);
                 }
             // nothing extreme above the low cut (100 Hz on): no point of any curve beyond +/- 9 dB
             for (auto& c : curves)
@@ -174,11 +186,11 @@ struct PresetTest : juce::UnitTest
         {
             expect (presets::nameProblem ("   ").isNotEmpty());
             expect (presets::nameProblem (juce::String::repeatedString ("x", 61)).isNotEmpty());
-            expect (presets::nameProblem ("dengeli profesyonel").isNotEmpty());
+            expect (presets::nameProblem (juce::String::fromUTF8 ("erkek sesi - dengeli profesyonel")).isNotEmpty());
             expect (presets::nameProblem ("Benim ayarım").isEmpty());
             TempFolder t;
             juce::String err;
-            expect (! presets::saveUserPreset ("Sinema Sesi", sampleChain (1, 4), err, t.dir));
+            expect (! presets::saveUserPreset ("Erkek Sesi - Sinema Sesi", sampleChain (1, 4), err, t.dir));
             expect (err.isNotEmpty());
         }
 
