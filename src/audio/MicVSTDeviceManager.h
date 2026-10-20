@@ -13,19 +13,30 @@ struct MicVSTDeviceManager : juce::AudioDeviceManager
 
     void createAudioDeviceTypes (juce::OwnedArray<juce::AudioIODeviceType>& types) override
     {
+       #if JUCE_MAC
+        if (auto* coreAudio = juce::AudioIODeviceType::createAudioIODeviceType_CoreAudio())
+            types.add (coreAudio);
+       #else
         if (auto* ll = juce::AudioIODeviceType::createAudioIODeviceType_WASAPI (
                            juce::WASAPIDeviceMode::sharedLowLatency))
             types.add (ll);
         if (auto* shared = juce::AudioIODeviceType::createAudioIODeviceType_WASAPI (
                                juce::WASAPIDeviceMode::shared))
             types.add (shared);
+       #endif
     }
 
     juce::String preferredTypeName()
     {
+       #if JUCE_MAC
+        if (auto* t = getAvailableDeviceTypes().getFirst())
+            return t->getTypeName();   // "CoreAudio"
+        return "CoreAudio";
+       #else
         for (auto* t : getAvailableDeviceTypes())
             if (t->getTypeName() == lowLatencyTypeName)
                 return lowLatencyTypeName;
         return sharedTypeName;
+       #endif
     }
 };

@@ -190,12 +190,21 @@ void AudioEngine::reconnectIfNeeded()
 juce::String AudioEngine::detectCableOutput()
 {
     // Render-Endpunkte bekannter virtueller Kabel, nach Priorität (VB-Cable zuerst).
+   #if JUCE_MAC
+    static const char* const cablePatterns[] = {
+        "BlackHole",            // BlackHole (free, the usual virtual cable on macOS)
+        "VB-Cable",             // VB-Audio Virtual Cable for Mac
+        "CABLE",
+        "Loopback"              // Rogue Amoeba Loopback
+    };
+   #else
     static const char* const cablePatterns[] = {
         "CABLE Input",          // VB-Audio Virtual Cable (empfohlen)
         "VB-Audio",             // weitere VB-Audio-Kabel (Hi-Fi Cable etc.)
         "VoiceMeeter Input",    // VoiceMeeter VAIO/Aux
         "Virtual Audio Cable"   // VAC ("Line 1 (Virtual Audio Cable)")
     };
+   #endif
 
     // Nur aufzählen, den Gerätetyp NICHT umschalten: das würde das offene Kabel-Gerät neu öffnen
     // (und einen Shared-Fallback, siehe openDevices, wieder rückgängig machen). Die Namen sind in
