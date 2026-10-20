@@ -61,19 +61,72 @@ Test altyapısı (yeni):
   long, chaos, ...), `engine/integrity.txt` (dump analizleri), `runtime/runtime-check.md`, `unit-tests.txt`,
   `metrics.json` (exe SHA), `ui/*.png` (arayüz görüntüleri).
 
-## Bekleyen işler (sırayla)
+## Durum: testler durduruldu (kullanıcı kararı, 20.10 22:30)
 
-1. **Tam test turu `7b12d32`** (20.10 ~21:37'de başladı) sonuçlarını incele: `vst3suite.txt` (FAIL satırları),
-   `priority.txt`, `monochain.txt`, `vst3info.txt`, `integrity.txt`, `runtime/runtime-check.md`. Hataları düzelt.
-   (Bir önceki tam turda motor testleri bir PowerShell değişken çakışması yüzünden erken durmuştu; düzeltildi.)
-2. ~~Sıra doğrulama dump'ı~~ yapıldı (b54f39f): `suite` zinciri artık ZL Equalizer 2 -> Fire (deterministik).
-   Yerelde: doğru sıra kablo = çevrimdışı zincir (artık medyan -80 dB, seviye farkı 0,0000 dB, 0 bulgu);
-   ters sıra referansı (negatif kontrol) 510 bulgu. Windows sonucu `integrity.txt` içinde (`s_suite_*`).
-3. Linux'ta (`build/wt`) suite son koşusu 73/77 geçti; kalan 4 hata test toleransıydı (makine duraklaması,
-   gecikme ölçüm yöntemi) ve düzeltildi, Windows sonucuyla doğrulanacak.
-4. **Son tur**: son commit'i `[uzun]` ile it (tam test + uzun koşular). Hepsi geçince exe'yi
-   `ci-sonuclari/kararlilik/oncelik`'ten al (`MicVST.exe`, `metrics.json` SHA), kullanıcıya gönder.
-   Sorun çıkarsa: tekrar üret -> kök neden -> en küçük güvenli düzeltme -> aynı testler + gerileme.
+Kullanıcı, yarım kalan test işlerini durdurdu (çalışan CI turları iptal edildi). Bundan sonraki iş: bu dalın
+şimdiki hâlinin (öncelik seçeneği, mono düzeltmesi, canlı gecikme, Türkçe sürüm bilgisi, gece teması,
+sıra doğrulaması) **üstüne dahili efektleri eklemek**. Tam testler (normal commit + `[uzun]`) efektler
+bittikten sonra hep birlikte koşulacak; teslim ondan sonra (exe + SHA-256, rapor yok).
+
+Durdurulmadan önce bilinenler:
+- Gerçek MicVST.exe ile öncelik kontrolü geçti (5e455f9): Normal / AboveNormal / High doğru, yeniden açılışta korunuyor.
+- Sıra doğrulaması (yerel, b54f39f): ZL Equalizer 2 -> Fire zincirinde kablo = çevrimdışı zincir (artık medyan
+  -80 dB, 0 bulgu); ters sıra negatif kontrolü 510 bulgu.
+- Linux'ta vst3suite 73/77 geçti; kalan 4 hata test toleransıydı, düzeltildi, Windows'ta henüz koşmadı.
+- `7b12d32` tam turu iptal edildi (sonucu yok). Windows'ta `vst3suite` / `priority` / `monochain` henüz hiç tam koşmadı.
+
+## Sıradaki iş: dahili efektler (kullanıcı listeyi onayladı)
+
+Hepsi eklenti listesinde **Dahili** başlığı altında, zincire eklenip taşınabilen, devre dışı bırakılabilen,
+ayarları config.xml'de saklanan ayrı elemanlar. De-esser ve Çıkış Limiteri gibi dinamik işlemciler kullanıcı
+onayıyla serbest; **gürültü kapısı ve kompresör hâlâ yok**. Varsayılan olarak hiçbiri zincire kendiliğinden girmez.
+
+Ton ve EQ:
+1. Low-Cut (Alçak Kesici): 60-100 Hz altı (12/24 dB/oktav), uğultu, titreşim, "p" alt ucu.
+2. High-Cut (Yüksek Kesici): 14-18 kHz üstü, cızırtı/tıslama.
+3. Gövde / Sıcaklık: 120-250 Hz yükseltme (tok ses).
+4. Çamur Temizleyici: 300-500 Hz kısma (boğukluk, "kutu sesi").
+5. Genizlik Azaltıcı: 0,8-1,3 kHz kısma (genizden gelen sert orta bölge).
+6. Netlik (Presence): 3-5 kHz yükseltme (anlaşılırlık).
+7. Hava (Air): 10-12 kHz üstü yükseltme (parlaklık).
+8. Yakınlık (Proximity): yakın mikrofon tokluğu ekle / fazlasını azalt.
+9. Tilt EQ (Ton Dengesi): tek kaydırıcı, sıcak <-> parlak.
+10. Parametrik EQ: birkaç bant (frekans, kazanç, Q).
+Temizlik:
+11. Uğultu Giderici (50 Hz): 50/100/150/200... Hz dar çentikler (60 Hz seçeneği).
+12. DC Kayması Giderici.
+Renk ve ortam:
+13. Sıcak Saturasyon (Tüp / Bant): hafif harmonik, aşırı örneklemeli.
+14. Telefon / Radyo / Megafon filtresi.
+15. Oda Yankısı (basit; juce::dsp::Reverb).
+16. Gecikme / Eko.
+17. Chorus / Stereo Genişletici.
+Seviye ve koruma:
+18. Çıkış Limiteri (true peak; Otomatik Kazanç'taki test edilmiş limiter kodu, ileri bakışlı, tavan ayarlı).
+19. Sessize Alma (Mute): tıksız susturma.
+20. Otomatik Kazanç (var), 21. Kazanç (var).
+Zaman ve kanal:
+22. Ses Gecikmesi (senkron): ms cinsinden gecikme, görüntüyle hizalama.
+23. Yardımcılar: faz çevirme, sol/sağ kanal seçimi, sağ-sol denge.
+24. Mono -> Stereo / Stereo -> Mono (var).
+Ölçüm:
+25. LUFS ölçer (ITU-R BS.1770, gerçek tepe).
+26. Spektrum Analizörü.
+(Ayrıca listede istenirse: De-esser - kullanıcı onayladı ama "kolay/emin" listesinde değil, orta zorluk.)
+
+Önerilen uygulama yolu:
+- `src/audio/BuiltInEffects.{h,cpp}`: her efekt bir `juce::AudioProcessor`, parametreleri
+  `AudioParameterFloat/Choice/Bool` (kimlikler sabit, Türkçe adlar `tr()` ile), durum = parametrelerin XML'i.
+  Kimlikler `builtin:lowcut`, `builtin:highcut`, `builtin:body`, ... (`PluginChain` ve `AudioEngine::restoreChain`
+  bir fabrika üzerinden kurar; eski config.xml'ler etkilenmez).
+- DSP: `juce_dsp` (IIR filtreler, Oversampling, Reverb, Chorus, DelayLine); parametre değişimleri yumuşatılarak
+  (katsayılar küçük bloklarda güncellenir) - tık yok. Gecikme ekleyenler (limiter ileri bakışı, senkron gecikmesi)
+  `setLatencySamples` ile bildirir (MicVST gösterilen gecikmeye ve düzenleme sessizliğine katar).
+- Arayüz: çift tıkla açılan basit ayar penceresi (`juce::GenericAudioProcessorEditor` gece temasıyla), satırda ad +
+  gecikme + devre dışı; ölçerler (LUFS, spektrum) kendi küçük pencerelerinde.
+- Testler: her efekt için birim testi (frekans cevabı/kazanç hedefleri, THD, gecikme, mono/stereo, durum gidiş-dönüş,
+  NaN/aşırı giriş, parametre değişiminde tık yok), motor testinde çalışırken ekle/taşı/kaldır, arayüz görüntüleri;
+  sonra tam tur + `[uzun]`.
 
 ## Kullanıcının kuralları / tercihleri
 
