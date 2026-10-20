@@ -2574,15 +2574,18 @@ int main (int argc, char** argv)
             if (chain == "testgain") run.add (testDesc ("TestGain", 1.0));
             if (chain == "pluginstall") run.add (testDesc ("TestStall", 200.0));   // 200 ms every 3 s -> underrun + input skip
             if (chain == "testdelay240") run.add (testDesc ("TestDelay", 240.0));   // reports 240 samples latency
-            if (chain.startsWith ("suite"))   // the vst3suite plug-ins with their active settings, in the recommended order
+            if (chain.startsWith ("suite"))   // order check: EQ (+6 dB bell at 1 kHz) -> saturation (drive 60), real plug-ins
             {
+                // Two deterministic, stateless-enough effects whose order changes the sound (boosting
+                // before a saturator distorts more than after it): the cable must equal them run
+                // offline in the order MicVST shows, sample by sample. Plug-ins with envelopes or
+                // learned state (compressors, RNNoise) would drift apart from an offline copy for
+                // reasons that have nothing to do with the order.
                 e.getFormatManager().addFormat (std::make_unique<juce::VST3PluginFormat>());
                 const auto cs = suite::buildConfigs (suite::findPlugins());
                 std::vector<int> order;
-                for (auto k : { suite::Kind::denoise, suite::Kind::eq, suite::Kind::deess, suite::Kind::comp, suite::Kind::sat })
+                for (auto k : { suite::Kind::eq, suite::Kind::sat })
                     if (const int i = suite::indexOf (cs, k); i >= 0) order.push_back (i);
-                for (size_t i = 0; i < cs.size(); ++i) if (cs[i].kind == suite::Kind::generic) order.push_back ((int) i);
-                if (const int i = suite::indexOf (cs, suite::Kind::limiter); i >= 0) order.push_back (i);
                 for (int i : order)
                 {
                     juce::String err;
