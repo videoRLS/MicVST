@@ -1,0 +1,47 @@
+name: birim
+
+# "[birim]" in the commit message: a quick Windows round - build, unit tests (with the recorder's
+# RF64 test and its files kept), the recordings opened by other programs. Results:
+# ci-sonuclari/<branch>-birim (the full round of kararlilik-test is not started by such a commit).
+on:
+  push:
+    branches: [ 'kararlilik/**' ]
+
+permissions:
+  contents: write
+
+jobs:
+  unit:
+    if: ${{ contains(github.event.head_commit.message, '[birim]') }}
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build
+        id: build
+        shell: pwsh
+        run: ./tools/ci-build.ps1 -Source . -Build build -Targets "MicVST MicVSTTests" -Out results
+      - name: Unit tests
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        continue-on-error: true
+        shell: pwsh
+        env:
+          MICVST_TEST_RF64: "1"
+          MICVST_RECORDER_KEEP: ${{ github.workspace }}/results/recordings
+        run: |
+          ./build/MicVSTTests_artefacts/Release/MicVSTTests.exe 2>&1 | Tee-Object -FilePath results/unit-tests.txt
+          "exit code: $LASTEXITCODE" | Add-Content results/unit-tests.txt
+          Select-String -Path results/unit-tests.txt -Pattern '!!!|FAILED' | ForEach-Object { $_.Line } | Set-Content results/unit-failures.txt
+      - name: Recordings opened by other programs
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        continue-on-error: true
+        shell: pwsh
+        run: ./tools/ci-recordings.ps1 -Dir results/recordings -Out results/recordings-check.md
+      - name: Publish
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          Remove-Item -Recurse -Force results/recordings -ErrorAction SilentlyContinue
+          ./tools/ci-publish.ps1 -Dir results -Branch "ci-sonuclari/${{ github.ref_name }}-birim" -Message "MicVST ${{ github.ref_name }} unit tests"
