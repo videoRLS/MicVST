@@ -277,7 +277,7 @@ int main (int argc, char** argv)
             pump (200);
             // a change in a section never throws the view to another section: relayout (window
             // resized, a row appearing) and rebuild (theme / language) keep the section in view
-            for (int sec = 0; sec < 5; ++sec)
+            for (int sec = 0; sec < 6; ++sec)
             {
                 settings.setViewState ({ sec, 0 });
                 const auto before = settings.getViewState();
@@ -293,8 +293,22 @@ int main (int argc, char** argv)
             }
             settings.setViewState ({ 0, 0 });
             snap (settings, 640, 600, dir.getChildFile ("12_lang_" + id + "_settings.png"));
-            settings.setSize (640, 1100);
-            snap (settings, 640, 1100, dir.getChildFile ("12_lang_" + id + "_settings_all.png"));
+            settings.setSize (640, 1500);
+            snap (settings, 640, 1500, dir.getChildFile ("12_lang_" + id + "_settings_all.png"));
+        }
+        {
+            // Kayıt: WAV (default), FLAC (its compression row) and MP3 (the longest quality names)
+            const auto keepRec = engine.getRecordSettings();
+            for (auto cfg : { "wav:24|48000|2", "flac:24:5|44100|1", "mp3:v0|48000|2" })
+            {
+                engine.setRecordSettings (RecordSettings::decode (cfg, {}));
+                RecordingPanel panel (engine);
+                const int w = 424;
+                panel.setSize (w, 10);
+                const int h = panel.preferredHeight (w);
+                snap (panel, w, h, dir.getChildFile ("12_lang_" + id + "_recording_" + juce::String (cfg).upToFirstOccurrenceOf (":", false, false) + ".png"));
+            }
+            engine.setRecordSettings (keepRec);
         }
         {
             GlobalHotkeys keys;

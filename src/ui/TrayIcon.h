@@ -21,6 +21,8 @@ public:
     // Sustur and the presets right from the tray (the window may be hidden)
     std::function<bool()>         isMuted;
     std::function<void()>         toggleMute;
+    std::function<bool()>         isRecording;      // Kayıt
+    std::function<void()>         toggleRecording;
     std::function<void (juce::PopupMenu&, int idOffset)> addPresetMenus;
     std::function<void (int id)>  loadPreset;
 

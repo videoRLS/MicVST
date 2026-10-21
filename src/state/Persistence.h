@@ -31,6 +31,9 @@ struct MicVSTState
     float monitorVolumeDb = 0.0f;      // (monitoring itself always starts off: no feedback through speakers)
     // shortcut keys (ui/GlobalHotkeys.h) as "enabled:keyCode:modifiers"; empty = the default
     juce::String hotkeyMute, hotkeyCompare;
+    // Kayıt (audio/Recorder.h): format text ("wav:24|48000|2"; empty = the default, WAV 24 bit
+    // 48 kHz stereo) and the folder (empty = Documents\MicVST Kayıtları)
+    juce::String recordFormat, recordFolder;
     // (Kein Update-Check mehr: MicVST 1.2 hat keinerlei Netzwerkzugriff. Die alten Felder
     //  updateCheckEnabled/-Asked/lastNotifiedVersion in bestehenden config.xml werden ignoriert.)
 };

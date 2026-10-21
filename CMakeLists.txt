@@ -37,6 +37,23 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(JUCE)
 
+# --- LAME 4.0, the MP3 encoder of the recorder (third_party/lame-4.0, LGPL; see MICVST.md there) ---
+file(GLOB MICVST_LAME_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/lame-4.0/libmp3lame/*.c)
+add_library(MicVSTLame STATIC ${MICVST_LAME_SOURCES})
+target_include_directories(MicVSTLame
+    PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/third_party/lame-4.0/include
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/third_party/lame-4.0
+            ${CMAKE_CURRENT_SOURCE_DIR}/third_party/lame-4.0/libmp3lame)
+target_compile_definitions(MicVSTLame PRIVATE HAVE_CONFIG_H _CRT_SECURE_NO_WARNINGS)
+if (MSVC)
+    target_compile_options(MicVSTLame PRIVATE /W0)
+else()
+    target_compile_options(MicVSTLame PRIVATE -w)
+    if (NOT WIN32)
+        target_link_libraries(MicVSTLame PRIVATE m)
+    endif()
+endif()
+
 # --- Shared logic library (engine, state, audio helpers) ---
 add_library(MicVSTCore STATIC
     src/audio/AudioBridge.cpp
@@ -51,6 +68,7 @@ add_library(MicVSTCore STATIC
     src/ui/BuiltInEffectEditor.cpp
     src/audio/RealtimeSupport.cpp
     src/audio/DeviceFormat.cpp
+    src/audio/Recorder.cpp
     src/audio/Metering.cpp
     src/audio/GraphConnections.cpp
     src/audio/ScanCoordinator.cpp
@@ -64,7 +82,9 @@ add_library(MicVSTCore STATIC
 target_compile_features(MicVSTCore PUBLIC cxx_std_17)
 target_include_directories(MicVSTCore PUBLIC src)
 target_link_libraries(MicVSTCore PUBLIC
+    MicVSTLame
     juce::juce_audio_basics
+    juce::juce_audio_formats
     juce::juce_audio_processors
     juce::juce_dsp
     juce::juce_core
@@ -101,6 +121,7 @@ target_sources(MicVST PRIVATE
     src/ui/GlobalHotkeys.cpp
     src/ui/HotkeyDialog.cpp
     src/ui/SettingsComponent.cpp
+    src/ui/RecordingPanel.cpp
     src/state/AutostartRegistry.cpp
 )
 target_compile_definitions(MicVST PRIVATE
@@ -138,11 +159,13 @@ target_sources(MicVSTTests PRIVATE
     tests/PresetTests.cpp
     tests/HotkeyTests.cpp
     tests/DeviceFormatTests.cpp
+    tests/RecorderTests.cpp
     src/audio/PluginChain.cpp
     src/ui/GlobalHotkeys.cpp
 )
 target_include_directories(MicVSTTests PRIVATE tests)
 target_compile_definitions(MicVSTTests PRIVATE
+    JUCE_USE_MP3AUDIOFORMAT=1
     JUCE_PLUGINHOST_VST3=1
     JUCE_USE_CURL=0
 )
@@ -186,6 +209,7 @@ target_sources(MicVSTSnapshot PRIVATE
     src/ui/GlobalHotkeys.cpp
     src/ui/HotkeyDialog.cpp
     src/ui/SettingsComponent.cpp
+    src/ui/RecordingPanel.cpp
     src/state/AutostartRegistry.cpp
 )
 target_include_directories(MicVSTSnapshot BEFORE PRIVATE tests/snapshot tests)

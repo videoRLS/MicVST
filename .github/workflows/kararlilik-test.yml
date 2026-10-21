@@ -80,11 +80,20 @@ jobs:
       - name: Unit tests
         if: ${{ !cancelled() && steps.build.outcome == 'success' && env.QUICK != 'true' }}
         shell: pwsh
+        env:
+          MICVST_TEST_RF64: "1"                         # the recorder past 4 GB (RF64)
+          MICVST_RECORDER_KEEP: ${{ github.workspace }}/results/recordings
         run: |
           ./build/MicVSTTests_artefacts/Release/MicVSTTests.exe 2>&1 | Tee-Object -FilePath results/unit-tests.txt
           $code = $LASTEXITCODE
           "exit code: $code" | Add-Content results/unit-tests.txt
           if ($code -ne 0) { exit $code }
+
+      - name: Recordings opened by other programs (ffprobe / ffmpeg, Windows Media Foundation)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && env.QUICK != 'true' && hashFiles('tools/ci-recordings.ps1') != '' }}
+        continue-on-error: true
+        shell: pwsh
+        run: ./tools/ci-recordings.ps1 -Dir results/recordings -Out results/recordings-check.md
 
       - name: Closed box - no networking library in the exe
         if: ${{ !cancelled() && steps.build.outcome == 'success' && env.QUICK != 'true' }}

@@ -21,7 +21,8 @@ private:
 };
 
 // The main window (MicVST 1.3 layout): what is used every day is in front - the levels with a big
-// mute button, microphone and cable, presets and the chain, A/B, monitoring and the test recording.
+// mute button, microphone and cable, presets and the chain, A/B, monitoring, the test recording
+// and Kayıt (recording to a file).
 // Everything set once (buffer, safety margin, priority, headphones, shortcut keys, language, theme,
 // VST3 folders) is in the settings window (SettingsComponent), opened with "Ayarlar".
 // MicVST has no network code at all - no update check, no clickable web links.
@@ -42,6 +43,7 @@ public:
     void setHotkeys (GlobalHotkeys* keys);
     PluginListView& getPluginList() { return *pluginList; }
     std::function<void()> onShowSettings;   // set by the window
+    void toggleRecording();                 // Kayıt button (also the tray menu)
 
 private:
     void timerCallback() override;
@@ -56,7 +58,9 @@ private:
     MuteButton muteBtn;
     std::unique_ptr<DevicePanel> devicePanel;
     std::unique_ptr<PluginListView> pluginList;
-    juce::TextButton compareBtn, monitorBtn, testBtn, helpBtn, settingsBtn;
+    juce::TextButton compareBtn, monitorBtn, testBtn, recordBtn, helpBtn, settingsBtn;
+    void showRecordingResult (const Recorder::Result&, const juce::String& why);
+    std::unique_ptr<juce::BubbleMessageComponent> recordBubble;
     std::unique_ptr<juce::DocumentWindow> howToWindow;
     GlobalHotkeys* hotkeys = nullptr;
     juce::Label cableHint;               // VB-Cable-Hinweis (reiner Text, kein Link)

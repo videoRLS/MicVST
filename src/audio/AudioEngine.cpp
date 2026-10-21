@@ -83,6 +83,7 @@ AudioEngine::~AudioEngine()
     inputDevices.closeAudioDevice();
     outputDevices.closeAudioDevice();
     stopProcessing();
+    if (recorder.isRecording()) logRecordingResult (recorder.stop());   // the file is finished and checked
     monitor.close();
     graph.releaseResources();
 }
@@ -648,6 +649,7 @@ void AudioEngine::processQueuedInput() noexcept
         const float* chans[] = { block.getReadPointer (0), block.getReadPointer (1) };
         const double pushTime = nowSeconds();
         bridge.push (chans, 2, bs, captureTime, pushTime);
+        recorder.push (chans, 2, bs, sr);   // Kayıt: a copy into its FIFO, nothing else (audio/Recorder.h)
 
         // test recording / playback and the headphones
         const int mode = testMode.load (std::memory_order_acquire);
@@ -906,6 +908,15 @@ void AudioEngine::timerCallback()
 {
     chainLatencyNow.store (chainLatencySamples());
     testTick();
+
+    // --- Kayıt: a write error, a full disk or a new rate ends the recording (file kept, checked) --
+    if (recorder.hasFailed())
+    {
+        const auto why = recorder.getFailure();
+        const auto r = recorder.stop();
+        logRecordingResult (r);
+        if (onRecordingStopped) onRecordingStopped (r, why);
+    }
 
     // --- a chosen device that is listed but could not be opened: retry when its pause is over ----
     if ((inputReopen.failures > 0 || outputReopen.failures > 0) && ! reconnecting)
@@ -1187,6 +1198,8 @@ MicVSTState AudioEngine::captureState()
     s.pluginFolders = pluginFolders;
     s.monitorDevice = monitor.getDeviceName();
     s.monitorVolumeDb = monitor.getVolumeDb();
+    s.recordFormat = recordSettings.encode();
+    s.recordFolder = recordSettings.folder == juce::File() ? juce::String() : recordSettings.folder.getFullPathName();
 
     // Ketten-Restore steht noch aus -> gemerkten Zustand verbatim zurückgeben,
     // sonst würde persistState() die gespeicherte Kette mit "leer" überschreiben.
@@ -1231,6 +1244,7 @@ void AudioEngine::applyState (const MicVSTState& s)
     setProcessPriority (s.processPriority);   // Normal unless the user chose otherwise
     monitor.setDeviceName (s.monitorDevice);
     monitor.setVolumeDb (s.monitorVolumeDb);
+    recordSettings = RecordSettings::decode (s.recordFormat, s.recordFolder);
     presetName = s.presetName;
     presetModified = s.presetModified;
     initialise (s.inputDevice, s.outputDevice);
@@ -1440,6 +1454,39 @@ void AudioEngine::setRawCompare (bool on)
 {
     if (rawCompare.exchange (on) == on) return;
     juce::Logger::writeToLog (on ? tr ("Ham ses: açık (zincir atlanıyor)") : tr ("Ham ses: kapalı (işlenmiş ses)"));
+}
+
+juce::String AudioEngine::startRecording()
+{
+    const double rate = getProcessingSampleRate();
+    const auto err = isRunning() ? recorder.start (recordSettings, rate, 2)
+                                 : tr ("Ses çalışmıyor: önce mikrofon ve kablo açık olmalı");
+    if (err.isEmpty())
+    {
+        auto used = recordSettings;
+        used.sampleRate = recordSettings.effectiveRate (rate);
+        juce::Logger::writeToLog (tr ("Kayıt başladı: ") + recorder.getFile().getFullPathName() + " (" + used.describe()
+                                  + tr (", işlem hızı ") + juce::String ((int) std::lround (rate)) + " Hz)");
+    }
+    else
+        juce::Logger::writeToLog (tr ("Kayıt başlatılamadı: ") + err);
+    return err;
+}
+
+Recorder::Result AudioEngine::stopRecording()
+{
+    const auto r = recorder.stop();
+    logRecordingResult (r);
+    return r;
+}
+
+void AudioEngine::logRecordingResult (const Recorder::Result& r)
+{
+    if (r.file == juce::File()) return;
+    juce::Logger::writeToLog (tr ("Kayıt bitti: ") + r.file.getFullPathName() + ", " + juce::String (r.seconds, 1) + " s, "
+                              + (r.verified ? tr ("dosya doğrulandı") : tr ("dosya DOĞRULANAMADI"))
+                              + (r.droppedFrames > 0 ? tr (", kayıp örnek: ") + juce::String (r.droppedFrames) : juce::String())
+                              + (r.problem.isNotEmpty() ? " - " + r.problem : juce::String()));
 }
 
 void AudioEngine::setMonitorDevice (const juce::String& name)

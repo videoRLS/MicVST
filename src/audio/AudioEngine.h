@@ -7,6 +7,7 @@
 #include "audio/PluginChain.h"
 #include "audio/MicVSTDeviceManager.h"
 #include "audio/MonitorOutput.h"
+#include "audio/Recorder.h"
 #include "audio/RealtimeSupport.h"
 #include "audio/ScanCoordinator.h"
 #include "Text.h"
@@ -120,6 +121,18 @@ public:
     TestState getTestState() const { return testState; }
     double getTestProgress() const;       // 0..1 of the recording / playback
     void testTick();                      // the window's timer (30 Hz) and the engine's (1 Hz): next step when due
+
+    // Kayıt: records what the cable gets into a file (audio/Recorder.h). The settings are saved
+    // with the rest (config.xml). startRecording: "" = recording, otherwise why not.
+    void setRecordSettings (const RecordSettings& s) { recordSettings = s; }
+    const RecordSettings& getRecordSettings() const { return recordSettings; }
+    juce::String startRecording();
+    Recorder::Result stopRecording();
+    bool isRecording() const { return recorder.isRecording(); }
+    double getRecordingSeconds() const { return recorder.getSeconds(); }
+    juce::File getRecordingFile() const { return recorder.getFile(); }
+    // the engine stopped a recording by itself (write error, disk full, rate change, quitting)
+    std::function<void (const Recorder::Result&, const juce::String& why)> onRecordingStopped;
 
     bool isRunning() const;   // microphone running (and the output, if one is selected)
     std::function<void()> onStatusChanged;
@@ -301,6 +314,9 @@ private:
 
     MicVSTDeviceManager inputDevices, outputDevices;
     MonitorOutput monitor;
+    Recorder recorder;
+    RecordSettings recordSettings;
+    void logRecordingResult (const Recorder::Result&);
     bool monitorEnabled = false;   // message thread
     void updateMonitorDevice();    // opens / closes the monitor device as needed (message thread)
 

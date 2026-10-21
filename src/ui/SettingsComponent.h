@@ -4,9 +4,10 @@
 #include "ui/DevicePanel.h"
 #include "ui/GlobalHotkeys.h"
 #include "ui/HotkeyDialog.h"
+#include "ui/RecordingPanel.h"
 
 // "Ayarlar": everything that is set once and then left alone, out of the main window - sound
-// (buffer, safety margin, process priority, headphones), shortcut keys, language, theme and
+// (buffer, safety margin, process priority, headphones), recording (format, quality, folder), shortcut keys, language, theme and
 // start with Windows, the VST3 folders and the about line. A list of
 // sections on the left scrolls the page to that section.
 class SettingsComponent final : public juce::Component, private juce::Timer
@@ -49,6 +50,7 @@ private:
     Page page;
     juce::OwnedArray<juce::Label> headings;
     DevicePanel soundPanel;
+    RecordingPanel recordingPanel;
     std::unique_ptr<HotkeyDialog> hotkeys;
     juce::Label noHotkeys;
     juce::Label languageLabel, themeLabel;

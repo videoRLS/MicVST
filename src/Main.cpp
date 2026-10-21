@@ -253,6 +253,17 @@ public:
         tray->setAutostart   = [] (bool on) { AutostartRegistry::setEnabled (on); };
         tray->isMuted        = [this] { return engine != nullptr && engine->isMuted(); };
         tray->toggleMute     = [this] { if (engine != nullptr) engine->setMuted (! engine->isMuted()); };
+        tray->isRecording    = [this] { return engine != nullptr && engine->isRecording(); };
+        tray->toggleRecording = [this]
+        {
+            if (auto* c = mainWindow != nullptr ? mainWindow->getContent() : nullptr)
+            {
+                const bool was = engine->isRecording();
+                c->toggleRecording();
+                if (was && ! mainWindow->isVisible())   // the window's own note is not seen: the tray's
+                    tray->showInfoBubble (tr ("Kayıt"), tr ("Kayıt bitti ve kaydedildi."));
+            }
+        };
         tray->addPresetMenus = [this] (juce::PopupMenu& m, int offset)
         {
             if (auto* c = mainWindow != nullptr ? mainWindow->getContent() : nullptr)

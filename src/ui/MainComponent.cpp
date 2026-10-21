@@ -279,8 +279,11 @@ MainComponent::MainComponent (AudioEngine& e) : engine (e)
     addAndMakeVisible (*pluginList);
 
     // --- bottom bar: Ham ses, Kendini dinle, Deneme kaydı ... ? Ayarlar ---
-    for (auto* b : { &compareBtn, &monitorBtn, &testBtn, &helpBtn, &settingsBtn })
+    for (auto* b : { &compareBtn, &monitorBtn, &testBtn, &recordBtn, &helpBtn, &settingsBtn })
         addAndMakeVisible (b);
+    recordBtn.setColour (juce::TextButton::buttonOnColourId, micvst::theme::error.withAlpha (0.55f));
+    recordBtn.onClick = [this] { toggleRecording(); };
+    engine.onRecordingStopped = [this] (const Recorder::Result& r, const juce::String& why) { showRecordingResult (r, why); updateActionButtons(); };
     compareBtn.setButtonText (tr ("Ham ses"));
     compareBtn.setTooltip (tr ("Önce / sonra: kabloya bir anlığına zincirsiz, ham mikrofon sesi gider (aynı gecikmeyle). "
                                "Tekrar tıklayınca işlenmiş sese döner."));
@@ -335,6 +338,44 @@ MainComponent::~MainComponent()
 {
     stopTimer();
     engine.onStatusChanged = nullptr;
+    engine.onRecordingStopped = nullptr;
+}
+
+void MainComponent::toggleRecording()
+{
+    if (engine.isRecording())
+        showRecordingResult (engine.stopRecording(), {});
+    else if (const auto err = engine.startRecording(); err.isNotEmpty())
+        juce::NativeMessageBox::showAsync (juce::MessageBoxOptions::makeOptionsOk (juce::MessageBoxIconType::WarningIcon,
+            tr ("Kayıt"), err, tr ("Tamam")), [] (int) {});
+    updateActionButtons();
+}
+
+void MainComponent::showRecordingResult (const Recorder::Result& r, const juce::String& why)
+{
+    if (r.file == juce::File()) return;
+    const bool problem = why.isNotEmpty() || r.problem.isNotEmpty() || ! r.verified || r.droppedFrames > 0;
+    if (problem)
+    {
+        juce::String text;
+        if (why.isNotEmpty()) text << why << "\n\n";
+        else if (r.problem.isNotEmpty()) text << r.problem << "\n\n";
+        text << tr ("Dosya: ") << r.file.getFullPathName() << "\n" << tr ("Süre: ") << juce::String (r.seconds, 1) << " s";
+        if (r.droppedFrames > 0) text << "\n" << tr ("Kayıp örnek: ") << juce::String (r.droppedFrames);
+        text << "\n" << (r.verified ? tr ("Dosya doğrulandı: kaydedilen kısım eksiksiz.") : tr ("Dosya doğrulanamadı."));
+        juce::NativeMessageBox::showAsync (juce::MessageBoxOptions::makeOptionsOk (juce::MessageBoxIconType::WarningIcon,
+            tr ("Kayıt"), text, tr ("Tamam")), [] (int) {});
+        return;
+    }
+    // fine: a short note at the button (no dialog to click away)
+    recordBubble = std::make_unique<juce::BubbleMessageComponent> (300);
+    addChildComponent (*recordBubble);
+    juce::AttributedString a;
+    a.append (tr ("Kaydedildi: ") + r.file.getFileName() + " (" + juce::String (r.seconds, 1) + " s)",
+              juce::Font (juce::FontOptions (14.0f)), micvst::theme::text);
+    recordBubble->setColour (juce::BubbleComponent::backgroundColourId, micvst::theme::surface);
+    recordBubble->setColour (juce::BubbleComponent::outlineColourId, micvst::theme::outline);
+    recordBubble->showAt (&recordBtn, a, 4000, true, false);
 }
 
 void MainComponent::timerCallback()
@@ -387,6 +428,28 @@ void MainComponent::updateActionButtons()
     }
     if (testBtn.getButtonText() != t) testBtn.setButtonText (t);
     testBtn.setToggleState (engine.getTestState() != AudioEngine::TestState::idle, juce::dontSendNotification);
+
+    // Kayıt: a dot while idle, a square and the running time while recording
+    juce::String rt;
+    if (engine.isRecording())
+    {
+        const int s = (int) engine.getRecordingSeconds();
+        rt = juce::String (juce::CharPointer_UTF8 ("\xe2\x96\xa0 "))
+             + (s >= 3600 ? juce::String (s / 3600) + ":" + juce::String ((s / 60) % 60).paddedLeft ('0', 2)
+                          : juce::String (s / 60).paddedLeft ('0', 2))
+             + ":" + juce::String (s % 60).paddedLeft ('0', 2);
+    }
+    else
+        rt = juce::String (juce::CharPointer_UTF8 ("\xe2\x97\x8f ")) + tr ("Kayıt");
+    if (recordBtn.getButtonText() != rt) recordBtn.setButtonText (rt);
+    recordBtn.setToggleState (engine.isRecording(), juce::dontSendNotification);
+    const auto& rs = engine.getRecordSettings();
+    auto used = rs;
+    used.sampleRate = rs.effectiveRate (engine.getProcessingSampleRate());
+    const auto tip = (engine.isRecording() ? tr ("Kaydediliyor: ") + engine.getRecordingFile().getFullPathName() + "\n" + tr ("Tıklayınca durur ve dosya kapatılır.")
+                                           : tr ("Kabloya giden sesi (karşı tarafın duyduğunu) dosyaya kaydeder. Tıklayınca başlar, tekrar tıklayınca durur."))
+                     + "\n" + used.describe() + "\n" + rs.folderOrDefault().getFullPathName();
+    if (recordBtn.getTooltip() != tip) recordBtn.setTooltip (tip);
 }
 
 void MainComponent::showHowTo()
@@ -432,11 +495,13 @@ void MainComponent::resized()
         bar.removeFromRight (12);
         const int testW = juce::jmax (textW (testBtn), juce::roundToInt (juce::GlyphArrangement::getStringWidth (juce::Font (juce::FontOptions (15.0f)),
                                                                           tr ("Kaydediliyor... ") + "10")) + 26);
-        int widths[] = { textW (compareBtn), textW (monitorBtn), testW };
-        const int total = widths[0] + widths[1] + widths[2] + 12;
+        const int recW = juce::jmax (textW (recordBtn), juce::roundToInt (juce::GlyphArrangement::getStringWidth (juce::Font (juce::FontOptions (15.0f)),
+                                                                            juce::String (juce::CharPointer_UTF8 ("\xe2\x96\xa0 ")) + "0:00:00")) + 26);
+        int widths[] = { textW (compareBtn), textW (monitorBtn), testW, recW };
+        const int total = widths[0] + widths[1] + widths[2] + widths[3] + 18;
         const double scale = total > bar.getWidth() ? (double) bar.getWidth() / total : 1.0;
-        juce::TextButton* btns[] = { &compareBtn, &monitorBtn, &testBtn };
-        for (int i = 0; i < 3; ++i)
+        juce::TextButton* btns[] = { &compareBtn, &monitorBtn, &testBtn, &recordBtn };
+        for (int i = 0; i < 4; ++i)
         {
             btns[i]->setBounds (bar.removeFromLeft ((int) (widths[i] * scale)));
             bar.removeFromLeft (6);
