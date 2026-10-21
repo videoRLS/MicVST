@@ -6,6 +6,8 @@ follows on the next lines, up to the next "@@" line (the last line break before 
 the text). No escaping: quotes, backslashes and leading/trailing spaces are taken as written.
 
   python3 tools/i18n_src.py <lang> [<lang> ...]   (no argument: every .txt in i18n/src)
+  python3 tools/i18n_src.py renumber <old keys.json>   after "i18n.py extract" changed the key list:
+                                                     every .txt gets the new numbers (texts kept)
 """
 import json, os, re, sys
 
@@ -45,7 +47,26 @@ def build (lang):
     json.dump (t, open (os.path.join (ROOT, 'i18n', lang + '.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     print (lang, len (t), 'of', len (keys))
 
+def renumber (old_keys_path):
+    old = json.load (open (old_keys_path, encoding='utf-8'))
+    new = json.load (open (os.path.join (ROOT, 'i18n', 'keys.json'), encoding='utf-8'))
+    index = {k: i for i, k in enumerate (new)}
+    folder = os.path.join (ROOT, 'i18n', 'src')
+    for f in sorted (os.listdir (folder)):
+        if not f.endswith ('.txt'): continue
+        src = parse (os.path.join (folder, f))
+        out = {}
+        for n, text in src.items():
+            if n < len (old) and old[n] in index:
+                out[index[old[n]]] = text
+        with open (os.path.join (folder, f), 'w', encoding='utf-8') as w:
+            for n in sorted (out):
+                w.write ('@@%d\n%s\n' % (n, out[n]))
+        print (f, len (src), '->', len (out))
+
 if __name__ == '__main__':
+    if len (sys.argv) > 2 and sys.argv[1] == 'renumber':
+        renumber (sys.argv[2]); sys.exit (0)
     langs = sys.argv[1:] or sorted (f[:-4] for f in os.listdir (os.path.join (ROOT, 'i18n', 'src')) if f.endswith ('.txt'))
     for l in langs:
         build (l)

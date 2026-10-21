@@ -328,7 +328,7 @@ namespace fxtest
         }
 
         pr ("");
-        pr ("## Hazir ayarlar: switching while audio plays (997 Hz -20 dBFS; all twenty, one per second, then a user preset and back)");
+        pr ("## Hazir ayarlar: switching while audio plays (997 Hz -20 dBFS; all thirty, one per second, then a user preset and back)");
         {
             sineConfig (997.0, 0.1, cfg.micRate);
             const auto& f = presets::factoryPresets();
@@ -417,6 +417,75 @@ namespace fxtest
         }
 
         pr ("");
+        pr ("## Sustur, Ham ses (A/B), Deneme kaydi while audio plays (997 Hz -20 dBFS; chain: Kazanc -6 dB, Ses Gecikmesi 50 ms)");
+        {
+            sineConfig (997.0, 0.1, cfg.micRate);
+            std::vector<int64_t> marks;   // cable timeline at each step
+            auto mark = [&] { marks.push_back (vdev::recorder().available.load()); };
+            bool recorded = false, played = false, idleAgain = false, liveDuringTest = true;
+            uint64_t invalid = 0;
+            {
+                EngineRun run (480, 26.0);
+                auto& e = *run.engine;
+                e.getChain().addGain (-6.0f);
+                e.getChain().addBuiltInEffect ("builtin:syncdelay");
+                if (auto* d = e.getChain().getBuiltInEffect ((int) e.getChain().entries().size() - 1)) d->setParam ("delay", 50.0f);
+                { const AudioEngine::ChainEdit ce (e); e.rebuildGraph(); }
+                e.setMonitorDevice ("(no such device)");   // the playback state machine without a headphone device
+                pump (1.5); mark();                        // 0: processed
+                e.setMuted (true);    pump (1.0); mark();  // 1: muted
+                e.setMuted (false);   pump (1.0); mark();  // 2: processed again
+                e.setRawCompare (true);  pump (1.0); mark();   // 3: raw
+                e.setRawCompare (false); pump (1.0); mark();   // 4: processed
+                e.setMuted (true); e.setMuted (false);          // instantly back: a dip, never a click
+                pump (0.5); mark();                             // 5
+                check (e.startTestRecording().isEmpty(), "test recording starts");
+                for (int k = 0; k < 120 && e.getTestState() == AudioEngine::TestState::recording; ++k) pump (0.1);
+                recorded = e.getTestState() == AudioEngine::TestState::playing;
+                mark();                                         // 6: recording done (10 s of live audio on the cable)
+                for (int k = 0; k < 130 && e.getTestState() == AudioEngine::TestState::playing; ++k) { pump (0.1); e.testTick(); }
+                played = true;
+                idleAgain = e.getTestState() == AudioEngine::TestState::idle;
+                pump (0.5); mark();                             // 7
+                invalid = invalidBlocks (e);
+                pr ("    " + diagLine (e));
+            }
+            const auto& L = vdev::recorder().left;
+            const double fsC = vdev::config().cableRate;
+            auto rmsDb = [&] (int64_t a, int64_t b)
+            {
+                const int64_t m = (int64_t) (0.3 * fsC);   // away from the switching moments (latency, fades)
+                a += m; b -= (int64_t) (0.05 * fsC);
+                double s2 = 0.0; int64_t n = 0;
+                for (int64_t i = a; i < b && i < (int64_t) L.size(); ++i) { s2 += (double) L[(size_t) i] * L[(size_t) i]; ++n; }
+                return n > 0 ? 10.0 * std::log10 (std::max (1.0e-20, s2 / (double) n)) : -999.0;
+            };
+            const double sineRms = 20.0 * std::log10 (0.1 / std::sqrt (2.0));
+            const double processed = rmsDb (marks[0] - (int64_t) (1.0 * fsC), marks[0]);
+            const double mutedDb = rmsDb (marks[0], marks[1]);
+            const double back = rmsDb (marks[1], marks[2]);
+            const double raw = rmsDb (marks[2], marks[3]);
+            const double proc2 = rmsDb (marks[3], marks[4]);
+            const double during = rmsDb (marks[5], marks[6]);
+            liveDuringTest = std::abs (during - processed) < 0.5;
+            const int clk = clicksIn (0.1, 997.0);
+            const int h = hiccups();
+            pr ("level re the input: processed " + db (processed - sineRms, 2) + ", muted " + db (mutedDb - sineRms, 1) + ", unmuted "
+                + db (back - sineRms, 2) + ", Ham ses " + db (raw - sineRms, 2) + ", processed again " + db (proc2 - sineRms, 2)
+                + ", during the test recording " + db (during - sineRms, 2));
+            pr ("test recording: recorded " + juce::String (recorded ? "yes" : "NO") + ", played and finished " + juce::String (played && idleAgain ? "yes" : "NO")
+                + "; clicks " + juce::String (clk) + ", invalid blocks " + juce::String ((int) invalid) + (h > 0 ? ", device hiccups " + juce::String (h) : juce::String()));
+            check (std::abs (processed - sineRms + 6.0) < 0.3, "processed level (-6 dB)");
+            check (mutedDb < sineRms - 90.0, "muted: silence");
+            check (std::abs (back - processed) < 0.2 && std::abs (proc2 - processed) < 0.2, "level after unmute / after Ham ses");
+            check (std::abs (raw - sineRms) < 0.3, "Ham ses: the microphone without the chain");
+            check (recorded && idleAgain, "test recording: record -> play -> done");
+            check (liveDuringTest, "the cable stays live during the test recording");
+            check (invalid == 0, "mute / A-B: invalid blocks");
+            check (clk == 0 || h > 0, "mute / A-B / test: clicks");
+        }
+
+        pr ("");
         pr ("## Mono microphone with effects: both cable channels carry the voice");
         {
             cfg.micChannels = 1;
@@ -427,12 +496,21 @@ namespace fxtest
                                            { "builtin:lowcut", "builtin:reverb", "builtin:limiter" } },
                                     Case { "Kanal Araclari (stereo), Parametrik EQ", { "builtin:channel", "builtin:parameq" } } })
             {
-                const auto r = measureSine (997.0, 0.1, 7.0, 480, 4.0, [&] (EngineRun& run)
+                auto once = [&]
                 {
-                    for (auto* id : cs.ids) run.engine->getChain().addBuiltInEffect (id);
-                    const AudioEngine::ChainEdit ce (*run.engine);
-                    run.engine->rebuildGraph();
-                });
+                    return measureSine (997.0, 0.1, 7.0, 480, 4.0, [&] (EngineRun& run)
+                    {
+                        for (auto* id : cs.ids) run.engine->getChain().addBuiltInEffect (id);
+                        const AudioEngine::ChainEdit ce (*run.engine);
+                        run.engine->rebuildGraph();
+                    });
+                };
+                auto r = once();
+                for (int attempt = 0; attempt < 2 && hiccups() > 0; ++attempt)   // the test machine stalled: again
+                {
+                    pr ("    (device hiccups " + juce::String (hiccups()) + ": run repeated)");
+                    r = once();
+                }
                 pr (juce::String (cs.what) + ": gain L " + db (r.gainDbL, 2) + ", R " + db (r.gainDbR, 2) + ", clicks " + juce::String (r.clk.events));
                 check (r.gainDbL > -6.0 && r.gainDbR > -6.0, juce::String (cs.what) + ": a cable channel without the voice");
                 check (r.clk.events == 0, juce::String (cs.what) + ": clicks");

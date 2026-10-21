@@ -88,6 +88,7 @@ juce_add_binary_data(MicVSTData SOURCES
 target_sources(MicVST PRIVATE
     src/Main.cpp
     src/audio/AudioEngine.cpp
+    src/audio/MonitorOutput.cpp
     src/audio/PluginChain.cpp
     src/ui/MainComponent.cpp
     src/ui/DevicePanel.cpp
@@ -96,6 +97,8 @@ target_sources(MicVST PRIVATE
     src/ui/LevelMeterComponent.cpp
     src/ui/TrayIcon.cpp
     src/ui/DarkTitleBar.cpp
+    src/ui/GlobalHotkeys.cpp
+    src/ui/HotkeyDialog.cpp
     src/state/AutostartRegistry.cpp
 )
 target_compile_definitions(MicVST PRIVATE
@@ -166,6 +169,7 @@ juce_add_console_app(MicVSTSnapshot PRODUCT_NAME "MicVSTSnapshot")
 target_sources(MicVSTSnapshot PRIVATE
     tests/SnapshotMain.cpp
     src/audio/AudioEngine.cpp
+    src/audio/MonitorOutput.cpp
     src/audio/PluginChain.cpp
     src/ui/MainComponent.cpp
     src/ui/DevicePanel.cpp
@@ -173,6 +177,8 @@ target_sources(MicVSTSnapshot PRIVATE
     src/ui/PluginPicker.cpp
     src/ui/LevelMeterComponent.cpp
     src/ui/DarkTitleBar.cpp
+    src/ui/GlobalHotkeys.cpp
+    src/ui/HotkeyDialog.cpp
     src/state/AutostartRegistry.cpp
 )
 target_include_directories(MicVSTSnapshot BEFORE PRIVATE tests/snapshot tests)
@@ -201,6 +207,7 @@ juce_add_console_app(MicVSTEngineTest PRODUCT_NAME "MicVSTEngineTest")
 target_sources(MicVSTEngineTest PRIVATE
     tests/EngineTestMain.cpp
     src/audio/AudioEngine.cpp
+    src/audio/MonitorOutput.cpp
     src/audio/PluginChain.cpp
 )
 target_include_directories(MicVSTEngineTest BEFORE PRIVATE tests/enginetest tests)

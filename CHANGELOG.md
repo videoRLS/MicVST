@@ -33,6 +33,22 @@ project follows [Semantic Versioning](https://semver.org/).
   names, the how-to window and the log; numbers with the language's decimal mark. Translations in
   i18n/src/<language>.txt (tools/i18n_src.py, tools/i18n.py check / generate); a unit test checks
   that every language has every text. Label columns grow with longer texts.
+- Kompresör and Gürültü Kapısı (noise gate) as built-in effects (picker group "Dahili - Dinamik"):
+  compressor with threshold, ratio, attack, release, soft knee, make-up and mix (parallel); gate with
+  3 ms look-ahead (no cut word starts), hysteresis, hold, range and a detector high-pass. Every
+  change glides; tested like the other effects (static curves, levels, no clicks on any jump).
+- Factory presets: 15 for men's and 15 for women's voices (new: Haber Sunucusu, Sesli Kitap, Film
+  Diyaloğu, Toplantı / Ders, ASMR / Fısıltı); all thirty with a gentle gate, a moderate compressor
+  and an output limiter (-1 dBTP) after Otomatik Kazanç, same elements (switching glides), same
+  loudness (within 0.1 LU on synthetic voices).
+- Sustur (mute, 15 ms fade) and Ham ses (A/B: the microphone without the chain, delayed by the
+  chain's latency, 30 ms equal-power crossfade) in a new row under the devices; system-wide
+  shortcut keys (Sustur F9 by default, Ham ses F10 off), changeable and switchable off in
+  "Kısayollar"; the tray menu has Sustur and every preset.
+- Kendini dinle: the processed voice on a headphone output (new "Kulaklık" row: device and level;
+  WASAPI shared, own thread and bridge, opened only while needed; monitoring always starts off).
+  Deneme kaydı: 10 s of what the cable gets, played back on the headphones at once.
+- Presets can be exported to a .micvstpreset file and imported (menu "Kaydet").
 - The how-to window wraps its paragraphs and list items to the window width (hanging indent),
   right to left for Arabic. Its footer: version and "Relios tarafından geliştirilmiştir."
 

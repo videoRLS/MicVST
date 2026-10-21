@@ -803,7 +803,33 @@ void PluginListView::updatePresetBox()
 
 void PluginListView::presetChosen()
 {
-    const int id = presetBox.getSelectedId();
+    loadPresetById (presetBox.getSelectedId());
+}
+
+void PluginListView::addPresetMenus (juce::PopupMenu& root, int idOffset)
+{
+    userPresets = presets::loadUserPresets();
+    juce::PopupMenu men, women, mine;
+    const auto current = engine.getPresetName();
+    int id = factoryIdBase;
+    juce::String menGroup;
+    for (auto& p : presets::factoryPresets())
+    {
+        if (menGroup.isEmpty()) menGroup = p.group;
+        (p.group == menGroup ? men : women).addItem (idOffset + id++, tr (p.shortName), true, p.name == current);
+    }
+    if (userPresets.empty())
+        mine.addItem (idOffset + emptyUserId, tr ("(henüz yok - \"Kaydet\" ile ekleyin)"), false);
+    id = userIdBase;
+    for (auto& p : userPresets)
+        mine.addItem (idOffset + id++, p.name, true, p.name == current);
+    root.addSubMenu (tr (juce::String::fromUTF8 (TRK ("Erkek Sesi Ayarları"))), men);
+    root.addSubMenu (tr (juce::String::fromUTF8 (TRK ("Kadın Sesi Ayarları"))), women);
+    root.addSubMenu (tr ("Kendi Ayarlarım"), mine);
+}
+
+void PluginListView::loadPresetById (int id)
+{
     if (id == 0) return;
     juce::String name;
     juce::Array<PluginEntryState> elements;
@@ -864,6 +890,9 @@ void PluginListView::showPresetMenu()
     m.addItem (4, tr ("Sil..."), user);
     m.addSeparator();
     m.addItem (5, tr ("Önceki zincire dön"), engine.canUndoPreset());
+    m.addSeparator();
+    m.addItem (6, tr ("Dosyaya aktar (paylaşmak için)..."));
+    m.addItem (7, tr ("Dosyadan içe aktar..."));
     m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (&presetMenuBtn),
         [this, current] (int res)
         {
@@ -892,6 +921,8 @@ void PluginListView::showPresetMenu()
                     refreshPresetList();
                 });
             }
+            if (res == 6) exportPreset();
+            if (res == 7) importPreset();
             if (res == 5)
             {
                 editorWindows.clear();
@@ -950,4 +981,48 @@ void PluginListView::askPresetName (const juce::String& title, const juce::Strin
         }
         onOk (name);
     }), false);
+}
+
+void PluginListView::exportPreset()
+{
+    auto name = engine.getPresetName().isNotEmpty() ? presets::displayName (engine.getPresetName()) : tr ("Benim ayarım");
+    const auto start = juce::File::getSpecialLocation (juce::File::userDocumentsDirectory)
+                          .getChildFile (presets::fileNameFor (name));
+    fileChooser = std::make_unique<juce::FileChooser> (tr ("Hazır ayarı dosyaya aktar"), start, "*.micvstpreset");
+    juce::Component::SafePointer<PluginListView> self (this);
+    fileChooser->launchAsync (juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles
+                                  | juce::FileBrowserComponent::warnAboutOverwriting,
+        [self, name] (const juce::FileChooser& fc)
+        {
+            if (self == nullptr) return;
+            auto file = fc.getResult();
+            if (file == juce::File()) return;
+            if (! file.hasFileExtension ("micvstpreset")) file = file.withFileExtension ("micvstpreset");
+            juce::String err;
+            if (! presets::exportPreset (name, self->engine.captureChain(), file, err))
+                self->showPresetError (err);
+            else
+                juce::Logger::writeToLog (tr ("Hazır ayar dosyaya aktarıldı: ") + file.getFullPathName());
+        });
+}
+
+void PluginListView::importPreset()
+{
+    fileChooser = std::make_unique<juce::FileChooser> (tr ("Hazır ayar dosyası seçin"),
+                                                       juce::File::getSpecialLocation (juce::File::userDocumentsDirectory),
+                                                       "*.micvstpreset");
+    juce::Component::SafePointer<PluginListView> self (this);
+    fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+        [self] (const juce::FileChooser& fc)
+        {
+            if (self == nullptr) return;
+            const auto file = fc.getResult();
+            if (file == juce::File()) return;
+            juce::String err, name;
+            if (! presets::importPreset (file, name, err)) { self->showPresetError (err); return; }
+            juce::Logger::writeToLog (tr ("Hazır ayar içe aktarıldı: ") + name + " (" + file.getFullPathName() + ")");
+            self->refreshPresetList();
+            for (size_t i = 0; i < self->userPresets.size(); ++i)
+                if (self->userPresets[i].name == name) { self->loadPresetById (userIdBase + (int) i); break; }
+        });
 }

@@ -8,6 +8,7 @@
 #include "audio/BuiltInEffects.h"
 #include "SpeechSynth.h"
 #include "ui/MainComponent.h"
+#include "ui/HotkeyDialog.h"
 #include "ui/PluginPicker.h"
 #include "ui/Theme.h"
 #include "Text.h"
@@ -127,7 +128,7 @@ int main (int argc, char** argv)
     {
         MainComponent mc (engine);
         pump (700);
-        snap (mc, 584, 521, dir.getChildFile ("1_main_empty.png"));
+        snap (mc, 584, 621, dir.getChildFile ("1_main_empty.png"));
 
         engine.getChain().addMonoToStereo();
         engine.getChain().addStereoToMono();
@@ -138,7 +139,7 @@ int main (int argc, char** argv)
         engine.rebuildGraph();
         if (engine.onScanFinished) engine.onScanFinished();   // list view rebuilds its rows
         pump (800);
-        snap (mc, 584, 521, dir.getChildFile ("2_main_chain.png"));
+        snap (mc, 584, 621, dir.getChildFile ("2_main_chain.png"));
         snap (mc, 760, 640, dir.getChildFile ("3_main_large.png"));
 
         if (engine.onScanProgress) engine.onScanProgress (12, 34, "FabFilter Pro-Q 4");
@@ -159,7 +160,7 @@ int main (int argc, char** argv)
             c->resized();
         }
         pump (300);
-        snap (mc, 584, 521, dir.getChildFile ("4_main_scanning.png"));
+        snap (mc, 584, 621, dir.getChildFile ("4_main_scanning.png"));
 
         juce::StringArray tips;
         collectTooltips (mc, tips);
@@ -184,7 +185,7 @@ int main (int argc, char** argv)
         engine.rebuildGraph();
         if (engine.onScanFinished) engine.onScanFinished();
         pump (800);
-        snap (mc, 584, 640, dir.getChildFile ("2b_main_effects.png"));
+        snap (mc, 584, 740, dir.getChildFile ("2b_main_effects.png"));
         juce::StringArray tips;
         collectTooltips (mc, tips);
         juce::String all;
@@ -233,7 +234,7 @@ int main (int argc, char** argv)
         {
             MainComponent mc (engine);
             pump (300);
-            snap (mc, 584, 640, dir.getChildFile (juce::String ("11_theme_") + pal.id + ".png"));
+            snap (mc, 584, 740, dir.getChildFile (juce::String ("11_theme_") + pal.id + ".png"));
         }
         auto fx = builtin::create ("builtin:deesser");
         fx->setPlayConfigDetails (2, 2, 48000.0, 480);
@@ -253,7 +254,7 @@ int main (int argc, char** argv)
         {
             MainComponent mc (engine);
             pump (300);
-            snap (mc, 584, 640, dir.getChildFile ("12_lang_" + id + ".png"));
+            snap (mc, 584, 740, dir.getChildFile ("12_lang_" + id + ".png"));
         }
         {
             auto howTo = MainComponent::createHowToContent();
@@ -264,8 +265,16 @@ int main (int argc, char** argv)
         fx->prepareToPlay (48000.0, 480);
         std::unique_ptr<juce::AudioProcessorEditor> ed (fx->createEditorAndMakeActive());
         snap (*ed, ed->getWidth(), ed->getHeight(), dir.getChildFile ("12_lang_" + id + "_fx.png"));
+        {
+            GlobalHotkeys keys;
+            keys.set (GlobalHotkeys::mute, GlobalHotkeys::defaultFor (GlobalHotkeys::mute));
+            keys.set (GlobalHotkeys::rawCompare, GlobalHotkeys::defaultFor (GlobalHotkeys::rawCompare));
+            HotkeyDialog dlg (keys, [&] (GlobalHotkeys::Action a, const GlobalHotkeys::Binding& b) { keys.set (a, b); return true; });
+            snap (dlg, dlg.getWidth(), dlg.getHeight(), dir.getChildFile ("12_lang_" + id + "_hotkeys.png"));
+        }
         renderMenu ({ tr ("Yeni ayar olarak kaydet..."), tr ("Üzerine kaydet (kendi ayarınızı seçin)"), tr ("Yeniden adlandır..."),
-                      tr ("Sil..."), "-", tr ("Önceki zincire dön"), "-",
+                      tr ("Sil..."), "-", tr ("Önceki zincire dön"), "-", tr ("Dosyaya aktar (paylaşmak için)..."),
+                      tr ("Dosyadan içe aktar..."), "-",
                       tr (juce::String::fromUTF8 (TRK ("Erkek Sesi Ayarları"))), tr (juce::String::fromUTF8 (TRK ("Kadın Sesi Ayarları"))),
                       tr ("Kendi Ayarlarım") },
                     dir.getChildFile ("12_lang_" + id + "_menu.png"));
@@ -318,7 +327,7 @@ int main (int argc, char** argv)
         pump (1500);
         MainComponent mc (engine);
         pump (700);
-        snap (mc, 584, 521, dir.getChildFile ("1b_main_device_missing.png"));
+        snap (mc, 584, 621, dir.getChildFile ("1b_main_device_missing.png"));
     }
     juce::LookAndFeel::setDefaultLookAndFeel (nullptr);
     return 0;

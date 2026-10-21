@@ -127,8 +127,15 @@ private:
     void askPresetName (const juce::String& title, const juce::String& message, const juce::String& initial,
                         std::function<void (const juce::String&)> onOk);
     bool currentIsUserPreset() const;
+    void exportPreset();                 // the chain as a .micvstpreset file (to give to someone)
+    void importPreset();                 // a .micvstpreset file -> own presets, loaded at once
+    std::unique_ptr<juce::FileChooser> fileChooser;
 public:
     void updatePresetBox();              // the box shows the loaded preset ("*" = changed since)
+    // The three preset folders as sub-menus (ids offset + 1 ...; the loaded preset ticked) and
+    // loading by such an id - for the list here and the tray icon's menu.
+    void addPresetMenus (juce::PopupMenu& root, int idOffset);
+    void loadPresetById (int id);
 private:
     static constexpr int factoryIdBase = 1, emptyUserId = 99, userIdBase = 100;
     juce::ComboBox presetBox;

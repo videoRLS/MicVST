@@ -46,6 +46,15 @@ namespace presets
                            const juce::File& folder = userFolder());
 
     // File format (also for tests): <MicVSTPreset version="1" name="..."><plugins>...</plugins></MicVSTPreset>
+    // Sharing: a chain as a .micvstpreset file anywhere (the same format as the own presets), and
+    // such a file added to the own presets - under its name, or "name (2)" if that is taken or is a
+    // factory preset's name. importPreset gives the name it got.
+    juce::String fileNameFor (const juce::String& name);   // "Benim sesim.micvstpreset"
+    bool exportPreset (const juce::String& name, const juce::Array<PluginEntryState>& elements,
+                       const juce::File& file, juce::String& error);
+    bool importPreset (const juce::File& file, juce::String& nameOut, juce::String& error,
+                       const juce::File& folder = userFolder());
+
     std::unique_ptr<juce::XmlElement> toXml (const juce::String& name, const juce::Array<PluginEntryState>& elements);
     bool fromXml (const juce::XmlElement&, Preset& out);
 }

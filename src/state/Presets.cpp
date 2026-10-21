@@ -310,4 +310,48 @@ bool renameUserPreset (const juce::String& from, const juce::String& to, juce::S
     error = micvst::tr ("Ayar bulunamadı.");
     return false;
 }
+juce::String fileNameFor (const juce::String& name)
+{
+    return sanitize (name) + extension;
+}
+
+bool exportPreset (const juce::String& name, const juce::Array<PluginEntryState>& elements, const juce::File& file,
+                   juce::String& error)
+{
+    auto xml = toXml (name.trim().isEmpty() ? juce::String ("MicVST") : name.trim().substring (0, maxNameLength), elements);
+    if (! xml->writeTo (file)) { error = micvst::tr ("Dosya yazılamadı: ") + file.getFullPathName(); return false; }
+    Preset check;
+    auto back = juce::XmlDocument::parse (file);
+    if (back == nullptr || ! fromXml (*back, check) || check.elements.size() != elements.size())
+    {
+        error = micvst::tr ("Kaydedilen dosya doğrulanamadı: ") + file.getFullPathName();
+        return false;
+    }
+    return true;
+}
+
+bool importPreset (const juce::File& file, juce::String& nameOut, juce::String& error, const juce::File& folder)
+{
+    Preset p;
+    auto xml = juce::XmlDocument::parse (file);
+    if (xml == nullptr || ! fromXml (*xml, p))
+    {
+        error = micvst::tr ("Bu dosya bir MicVST hazır ayarı değil: ") + file.getFullPathName();
+        return false;
+    }
+    const auto existing = loadUserPresets (folder);
+    auto taken = [&] (const juce::String& n)
+    {
+        if (nameProblem (n).isNotEmpty()) return true;
+        for (auto& e : existing) if (e.name.equalsIgnoreCase (n)) return true;
+        return false;
+    };
+    const auto base = p.name.trim().substring (0, maxNameLength - 6);
+    juce::String name = p.name.trim().substring (0, maxNameLength);
+    for (int k = 2; taken (name) && k < 1000; ++k)
+        name = base + " (" + juce::String (k) + ")";
+    if (! saveUserPreset (name, p.elements, error, folder)) return false;
+    nameOut = name;
+    return true;
+}
 }

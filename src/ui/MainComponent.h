@@ -5,6 +5,7 @@
 #include "ui/PluginListView.h"
 #include "ui/DevicePanel.h"
 #include "state/AutostartRegistry.h"
+#include "ui/GlobalHotkeys.h"
 
 // MicVST 1.2: keinerlei Netzwerkcode - kein Update-Check, keine klickbaren Web-Links
 // (URLs nur noch als reiner Text).
@@ -18,6 +19,10 @@ public:
     // Inhalt + Titel des Anleitungsfensters (auch für die Oberflächen-Schnappschüsse der Tests).
     static juce::String howToTitle();
     static std::unique_ptr<juce::Component> createHowToContent();
+
+    // The app's shortcut keys (they outlive this window content); changes are saved by the app.
+    void setHotkeys (GlobalHotkeys* keys, std::function<bool (GlobalHotkeys::Action, const GlobalHotkeys::Binding&)> setter);
+    PluginListView& getPluginList() { return *pluginList; }
 
 private:
     void timerCallback() override;
@@ -39,6 +44,13 @@ public:
     std::function<void (const juce::String& languageId)> onLanguageChosen;
 private:
     juce::ToggleButton autostartToggle;  // "Açılışta başlat"
+
+    // Action row under the devices: Sustur, Ham ses (A/B), Kendini dinle, Deneme kaydı, Kısayollar
+    juce::TextButton muteBtn, compareBtn, monitorBtn, testBtn, hotkeysBtn;
+    void updateActionButtons();
+    void showHotkeys();
+    GlobalHotkeys* hotkeys = nullptr;
+    std::function<bool (GlobalHotkeys::Action, const GlobalHotkeys::Binding&)> setHotkey;
     juce::Label cableHint;               // VB-Cable-Hinweis (reiner Text, kein Link)
     juce::TooltipWindow tooltipWindow { nullptr, 100 };   // Hover-Tooltips, fast instant (100 ms)
     int timerTicks = 0;                  // Registry-Abgleich nur jede Sekunde

@@ -5,6 +5,7 @@
 #include "state/AutostartRegistry.h"
 #include "ui/MainComponent.h"
 #include "ui/TrayIcon.h"
+#include "ui/GlobalHotkeys.h"
 #include "ui/Theme.h"
 #include "ui/DarkTitleBar.h"
 #include "Text.h"
@@ -219,7 +220,24 @@ public:
         }
         engine->applyState (state);
 
-        mainWindow = std::make_unique<MainWindow> ("MicVST", *engine, state.windowState);
+        // Shortcut keys (system-wide): from config.xml, otherwise the defaults (Sustur = F9)
+        hotkeys = std::make_unique<GlobalHotkeys>();
+        hotkeys->set (GlobalHotkeys::mute, decodeHotkey (state.hotkeyMute, GlobalHotkeys::mute));
+        hotkeys->set (GlobalHotkeys::rawCompare, decodeHotkey (state.hotkeyCompare, GlobalHotkeys::rawCompare));
+        hotkeys->onPressed = [this] (GlobalHotkeys::Action a)
+        {
+            if (engine == nullptr) return;
+            if (a == GlobalHotkeys::mute) engine->setMuted (! engine->isMuted());
+            else                          engine->setRawCompare (! engine->isRawCompare());
+        };
+
+        mainWindow = std::make_unique<MainWindow> ("MicVST", *engine, state.windowState, hotkeys.get(),
+            [this] (GlobalHotkeys::Action a, const GlobalHotkeys::Binding& b)
+            {
+                const bool ok = hotkeys->set (a, b);
+                persistState();
+                return ok;
+            });
         mainWindow->onThemeApplied = [this]
         {
             if (lookAndFeel != nullptr) lookAndFeel->refresh();
@@ -232,6 +250,18 @@ public:
         tray->onQuit         = [this] { systemRequestedQuit(); };
         tray->isAutostartOn  = [] { return AutostartRegistry::isEnabled(); };
         tray->setAutostart   = [] (bool on) { AutostartRegistry::setEnabled (on); };
+        tray->isMuted        = [this] { return engine != nullptr && engine->isMuted(); };
+        tray->toggleMute     = [this] { if (engine != nullptr) engine->setMuted (! engine->isMuted()); };
+        tray->addPresetMenus = [this] (juce::PopupMenu& m, int offset)
+        {
+            if (auto* c = mainWindow != nullptr ? mainWindow->getContent() : nullptr)
+                c->getPluginList().addPresetMenus (m, offset);
+        };
+        tray->loadPreset     = [this] (int id)
+        {
+            if (auto* c = mainWindow != nullptr ? mainWindow->getContent() : nullptr)
+                c->getPluginList().loadPresetById (id);
+        };
 
         // Beim Verstecken: einmaligen Tray-Hinweis zeigen und die aktuelle Fenstergröße sichern
         // (X beendet nicht, daher hier persistieren, damit eine geänderte Größe nicht verloren geht).
@@ -269,6 +299,7 @@ public:
     {
         tray = nullptr;
         mainWindow = nullptr;
+        hotkeys = nullptr;
         engine = nullptr;
         juce::LookAndFeel::setDefaultLookAndFeel (nullptr);
         lookAndFeel = nullptr;
@@ -285,7 +316,27 @@ private:
         if (mainWindow != nullptr) s.windowState = mainWindow->getWindowStateAsString();
         s.theme = micvst::theme::currentId;
         s.language = micvst::currentLanguage();
+        if (hotkeys != nullptr)
+        {
+            s.hotkeyMute = encodeHotkey (hotkeys->get (GlobalHotkeys::mute));
+            s.hotkeyCompare = encodeHotkey (hotkeys->get (GlobalHotkeys::rawCompare));
+        }
         saveState (s);
+    }
+
+    static juce::String encodeHotkey (const GlobalHotkeys::Binding& b)
+    {
+        return juce::String (b.enabled ? 1 : 0) + ":" + juce::String (b.keyCode) + ":" + juce::String (b.modifiers);
+    }
+    static GlobalHotkeys::Binding decodeHotkey (const juce::String& text, GlobalHotkeys::Action a)
+    {
+        const auto parts = juce::StringArray::fromTokens (text, ":", "");
+        if (parts.size() != 3) return GlobalHotkeys::defaultFor (a);
+        GlobalHotkeys::Binding b;
+        b.enabled = parts[0].getIntValue() != 0;
+        b.keyCode = parts[1].getIntValue();
+        b.modifiers = parts[2].getIntValue();
+        return b;
     }
 
     // "Reset app (clear all data)": Einstellungen + Plugin-Cache + Tray-Hinweis-Marker
@@ -327,8 +378,11 @@ private:
     class MainWindow : public juce::DocumentWindow
     {
     public:
-        MainWindow (juce::String name, AudioEngine& engine, const juce::String& windowState)
-            : DocumentWindow (name, micvst::theme::background, DocumentWindow::allButtons), engineRef (engine)
+        using HotkeySetter = std::function<bool (GlobalHotkeys::Action, const GlobalHotkeys::Binding&)>;
+        MainWindow (juce::String name, AudioEngine& engine, const juce::String& windowState,
+                    GlobalHotkeys* keys, HotkeySetter setter)
+            : DocumentWindow (name, micvst::theme::background, DocumentWindow::allButtons), engineRef (engine),
+              hotkeys (keys), setHotkey (std::move (setter))
         {
             setUsingNativeTitleBar (true);
             // resize-to-fit AUS: die Fenstergröße diktiert centreWithSize unten, nicht die
@@ -336,14 +390,14 @@ private:
             // über das Minimum hinaus.
             createContent();
             setResizable (true, false);
-            // Mindestgröße = Startgröße (600x560); zusätzliche Höhe verlängert die Plugin-Liste.
-            setResizeLimits (600, 560, 1600, 1400);
+            // Mindestgröße = Startgröße (600x660); zusätzliche Höhe verlängert die Plugin-Liste.
+            setResizeLimits (600, 660, 1600, 1400);
             // Letzte Größe/Position wiederherstellen (innerhalb der Resize-Limits), sonst zentriert
             // auf Startgröße. restoreWindowStateFromString respektiert die gesetzten Limits.
             if (windowState.isNotEmpty())
                 restoreWindowStateFromString (windowState);
             else
-                centreWithSize (600, 560);
+                centreWithSize (600, 660);
         }
         std::function<void()> onHide;
         std::function<void()> onThemeApplied;   // the app: LookAndFeel refresh + save
@@ -375,6 +429,7 @@ private:
                     if (safe != nullptr) safe->applyLanguage (id);
                 });
             };
+            content->setHotkeys (hotkeys, setHotkey);
             setContentOwned (content, false);
         }
         void applyLanguage (const juce::String& id)
@@ -403,6 +458,8 @@ private:
             repaint();
         }
         AudioEngine& engineRef;
+        GlobalHotkeys* hotkeys = nullptr;
+        HotkeySetter setHotkey;
         MainComponent* content = nullptr;   // gehört dem Fenster (setContentOwned), nur Zugriffszeiger
     };
 
@@ -411,6 +468,7 @@ private:
     std::unique_ptr<AudioEngine> engine;
     std::unique_ptr<MainWindow> mainWindow;
     std::unique_ptr<TrayIcon> tray;
+    std::unique_ptr<GlobalHotkeys> hotkeys;   // reset in shutdown() after the window that points to it
     bool suppressPersist = false;   // Factory-Reset: nichts darf die gelöschte Config neu anlegen
 };
 

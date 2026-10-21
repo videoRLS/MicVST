@@ -6,6 +6,7 @@
 #include "audio/Metering.h"
 #include "audio/PluginChain.h"
 #include "audio/MicVSTDeviceManager.h"
+#include "audio/MonitorOutput.h"
 #include "audio/RealtimeSupport.h"
 #include "audio/ScanCoordinator.h"
 #include "Text.h"
@@ -89,6 +90,36 @@ public:
     bool isPresetModified() const { return presetModified; }
     void setPresetName (const juce::String& name, bool modified) { presetName = name; presetModified = modified; }
     void markPresetModified() { if (presetName.isNotEmpty()) presetModified = true; }
+
+    // --- Sustur, Önce/Sonra, Kendini dinle, Deneme kaydı (message thread) ---
+    // Mute: what goes to the cable (and the headphones) fades to silence in 15 ms; the meter of the
+    // microphone keeps showing the voice. Not saved: MicVST always starts unmuted.
+    void setMuted (bool m);
+    bool isMuted() const { return muted.load(); }
+    // "Ham ses" (A/B): the cable gets the microphone without the chain - delayed by the chain's own
+    // latency, cross-faded in 30 ms, so switching back and forth compares the same moment.
+    void setRawCompare (bool on);
+    bool isRawCompare() const { return rawCompare.load(); }
+
+    // Kendini dinle: the processed audio on a second output (headphones), see MonitorOutput.h.
+    void setMonitorDevice (const juce::String& name);   // "" = Windows' default output
+    const juce::String& getMonitorDevice() const { return monitor.getDeviceName(); }
+    juce::String setMonitorEnabled (bool on);          // error text ("" = fine)
+    bool isMonitorEnabled() const { return monitorEnabled; }
+    void setMonitorVolumeDb (float db) { monitor.setVolumeDb (db); }
+    float getMonitorVolumeDb() const { return monitor.getVolumeDb(); }
+    juce::StringArray getMonitorDeviceNames() { return monitor.getDeviceNames(); }
+
+    // Deneme kaydı: records 10 s of what the cable gets, then plays it back on the headphones
+    // (the monitor device, opened for the playback if monitoring is off). The cable keeps getting
+    // the live voice all the time.
+    static constexpr double testSeconds = 10.0;
+    enum class TestState { idle, recording, playing };
+    juce::String startTestRecording();   // error text ("" = fine)
+    void stopTest();                      // ends recording (and plays what there is) or playback
+    TestState getTestState() const { return testState; }
+    double getTestProgress() const;       // 0..1 of the recording / playback
+    void testTick();                      // the window's timer (30 Hz) and the engine's (1 Hz): next step when due
 
     bool isRunning() const;   // microphone running (and the output, if one is selected)
     std::function<void()> onStatusChanged;
@@ -269,6 +300,30 @@ private:
     static double nowSeconds() noexcept;
 
     MicVSTDeviceManager inputDevices, outputDevices;
+    MonitorOutput monitor;
+    bool monitorEnabled = false;   // message thread
+    void updateMonitorDevice();    // opens / closes the monitor device as needed (message thread)
+
+    // mute / A-B (message thread writes, plug-in thread reads)
+    std::atomic<bool> muted { false }, rawCompare { false };
+    std::atomic<int>  chainLatencyNow { 0 };       // samples, updated by the timer
+    std::atomic<int>  inputChannelsNow { 2 };
+    double muteGain = 1.0, compareMix = 0.0;       // plug-in thread
+    juce::AudioBuffer<float> rawBlock;             // the microphone before the chain (plug-in thread)
+    static constexpr int rawDelaySize = 1 << 17;   // frames (2.7 s at 48 kHz; longer chain delays are clamped)
+    juce::AudioBuffer<float> rawDelay;             // ring of raw input, sized in inputAboutToStart
+    int rawDelayPos = 0;                           // plug-in thread
+    void applyMuteAndCompare (juce::AudioBuffer<float>& block, double sampleRate) noexcept;   // plug-in thread
+
+    // test recording (state: message thread; positions: plug-in thread / atomics)
+    TestState testState = TestState::idle;
+    juce::AudioBuffer<float> testBuffer;           // allocated by startTestRecording (message thread)
+    std::atomic<int> testMode { 0 };               // 0 idle, 1 recording, 2 playing (plug-in thread follows)
+    std::atomic<int> testFrames { 0 };             // recorded frames
+    std::atomic<int> testPos { 0 };                // playback position
+    int testTotalFrames = 0;
+    juce::uint32 playbackEndMs = 0;
+
     InputSide  inputSide  { *this };
     OutputSide outputSide { *this };
     AudioBridge bridge;

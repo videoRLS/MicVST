@@ -63,6 +63,11 @@ private:
     InfoIcon       priorityInfo;
     juce::ComboBox priorityBox;
     int            shownPriorityProblems = 0;
+    juce::Label    monitorLabel;  // Kulaklık: output for "Kendini dinle" and the test recording + volume
+    InfoIcon       monitorInfo;
+    juce::ComboBox monitorBox;
+    juce::Slider   monitorVol;
+    juce::StringArray monitorNames;
     juce::Label    statusLabel;   // Active / Geräte / Latenz (immer sichtbar)
     juce::Label    statsLabel;    // CPU-Last / Safety / Drift / Aussetzer (immer sichtbar)
 

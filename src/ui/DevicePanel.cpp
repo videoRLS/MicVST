@@ -61,6 +61,30 @@ DevicePanel::DevicePanel (AudioEngine& e) : engine (e)
         addAndMakeVisible (priorityLabel); addAndMakeVisible (priorityBox); addAndMakeVisible (priorityInfo);
     }
 
+    // Kulaklık: where "Kendini dinle" and the test recording play (headphones), and how loud.
+    monitorLabel.setText (tr ("Kulaklık"), juce::dontSendNotification);
+    monitorLabel.setJustificationType (juce::Justification::centredLeft);
+    monitorInfo.setTooltip (tr ("\"Kendini dinle\" ve \"Deneme kaydı\" sesi buradan çalar (kulaklık önerilir). "
+                                "Cihaz yalnızca bunlar açıkken kullanılır; diğer programlar onu kullanmaya devam eder. "
+                                "Sağdaki kaydırıcı dinleme sesinin seviyesidir (kabloyu etkilemez)."));
+    monitorBox.onChange = [this]
+    {
+        if (updating) return;
+        const int id = monitorBox.getSelectedId();
+        engine.setMonitorDevice (id >= 2 ? monitorNames[id - 2] : juce::String());
+        engine.requestPersist();
+    };
+    monitorVol.setSliderStyle (juce::Slider::LinearHorizontal);
+    monitorVol.setTextBoxStyle (juce::Slider::NoTextBox, true, 0, 0);
+    monitorVol.setRange (MonitorOutput::minVolumeDb, MonitorOutput::maxVolumeDb, 0.5);
+    monitorVol.setDoubleClickReturnValue (true, 0.0);
+    monitorVol.setValue (engine.getMonitorVolumeDb(), juce::dontSendNotification);
+    monitorVol.textFromValueFunction = [] (double v) { return micvst::trNumber (v, 1) + " dB"; };
+    monitorVol.setPopupDisplayEnabled (true, true, nullptr);
+    monitorVol.onValueChange = [this] { engine.setMonitorVolumeDb ((float) monitorVol.getValue()); };
+    monitorVol.onDragEnd = [this] { engine.requestPersist(); };
+    addAndMakeVisible (monitorLabel); addAndMakeVisible (monitorInfo); addAndMakeVisible (monitorBox); addAndMakeVisible (monitorVol);
+
     // Zwei Info-Zeilen: Geräte/Latenz und CPU-Last/Aussetzer.
     for (auto* l : { &statusLabel, &statsLabel })
     {
@@ -104,6 +128,18 @@ void DevicePanel::refresh()
 
     inBox.clear (juce::dontSendNotification);
     outBox.clear (juce::dontSendNotification);
+
+    monitorBox.clear (juce::dontSendNotification);
+    monitorNames = engine.getMonitorDeviceNames();
+    monitorBox.addItem (tr ("Windows varsayılanı"), 1);
+    for (int i = 0; i < monitorNames.size(); ++i) monitorBox.addItem (monitorNames[i], i + 2);
+    {
+        const auto& chosen = engine.getMonitorDevice();
+        const int mi = monitorNames.indexOf (chosen);
+        if (chosen.isEmpty()) monitorBox.setSelectedId (1, juce::dontSendNotification);
+        else if (mi >= 0)     monitorBox.setSelectedId (mi + 2, juce::dontSendNotification);
+        else                  monitorBox.setText (chosen + tr (" (bağlı değil)"), juce::dontSendNotification);
+    }
 
     auto& inDm  = engine.getInputDeviceManager();
     auto& outDm = engine.getOutputDeviceManager();
@@ -329,7 +365,7 @@ void DevicePanel::resized()
     // anderen Sprachen so breit wie das längste Label (höchstens 190), damit nichts gekürzt wird.
     constexpr int rowH = 26, statusH = 20, gap = 4;
     int labelW = 118;
-    for (auto* l : { &inLabel, &outLabel, &bufLabel, &safetyLabel, &priorityLabel })
+    for (auto* l : { &inLabel, &outLabel, &bufLabel, &safetyLabel, &priorityLabel, &monitorLabel })
         if (l->isVisible())
             labelW = juce::jmax (labelW, juce::roundToInt (juce::GlyphArrangement::getStringWidth (l->getFont(), l->getText()) + 0.5f) + 18 + 8);
     labelW = juce::jmin (labelW, 190);
@@ -365,6 +401,11 @@ void DevicePanel::resized()
     auto safetyRow = row (rowH);
     safetyBox.setBounds (labelWithInfo (safetyRow, safetyLabel, safetyInfo));
 
+    auto monitorRow = labelWithInfo (row (rowH), monitorLabel, monitorInfo);
+    monitorVol.setBounds (monitorRow.removeFromRight (110));
+    monitorRow.removeFromRight (6);
+    monitorBox.setBounds (monitorRow);
+
     if (priorityBox.isVisible())
     {
         auto priorityRow = row (rowH);
@@ -377,7 +418,7 @@ void DevicePanel::resized()
 
 int DevicePanel::preferredHeight() const
 {
-    // Input, Output, Safety (+ Buffer, + Priorität unter Windows) à 26, zwei Info-Zeilen à 20,
-    // Lücken à 4 dazwischen: 3 Zeilen -> 3*26 + 2*20 + 4*4 = 134; jede weitere Zeile +30.
-    return 134 + (bufBox.isVisible() ? 30 : 0) + (priorityBox.isVisible() ? 30 : 0);
+    // Input, Output, Safety, Kulaklık (+ Buffer, + Priorität unter Windows) à 26, zwei Info-Zeilen
+    // à 20, Lücken à 4 dazwischen: 4 Zeilen -> 4*26 + 2*20 + 5*4 = 164; jede weitere Zeile +30.
+    return 164 + (bufBox.isVisible() ? 30 : 0) + (priorityBox.isVisible() ? 30 : 0);
 }

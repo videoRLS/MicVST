@@ -82,6 +82,7 @@ AudioEngine::~AudioEngine()
     inputDevices.closeAudioDevice();
     outputDevices.closeAudioDevice();
     stopProcessing();
+    monitor.close();
     graph.releaseResources();
 }
 
@@ -412,6 +413,21 @@ void AudioEngine::inputAboutToStart (juce::AudioIODevice* device)
     graph.setPlayConfigDetails (ins, 2, sr, bs);
     graph.prepareToPlay (sr, bs);
     workBuffer.setSize (2, bs, false, true, false);
+    rawBlock.setSize (2, bs, false, true, false);
+    if (rawDelay.getNumSamples() != rawDelaySize)
+        rawDelay.setSize (2, rawDelaySize);
+    rawDelay.clear();
+    rawDelayPos = 0;
+    inputChannelsNow.store (ins);
+    monitor.setInputRate (sr);
+    // the test recording's buffer (10 s at this rate) - allocated here, never while recording
+    testMode.store (0);
+    testBuffer.setSize (2, (int) std::ceil (testSeconds * sr), false, true, false);
+    if (testState != TestState::idle)
+    {
+        testState = TestState::idle;
+        updateMonitorDevice();
+    }
     midiBuffer.ensureSize (2048);
     playHead.sampleRate.store (sr);
     bridge.setInputRate (sr);
@@ -560,6 +576,9 @@ void AudioEngine::processQueuedInput() noexcept
             return z;
         };
         const int inputZeros = zerosIn();
+        // the microphone as it came in, for "Ham ses" (A/B); a mono microphone on both channels
+        rawBlock.copyFrom (0, 0, block, 0, 0, bs);
+        rawBlock.copyFrom (1, 0, block, inputChannelsNow.load (std::memory_order_relaxed) > 1 ? 1 : 0, 0, bs);
         {
             // Never block: if the message thread holds the graph lock right now (rare:
             // suspend/prepare), output one silent block instead of waiting.
@@ -611,10 +630,43 @@ void AudioEngine::processQueuedInput() noexcept
             bridge.markDiscontinuity();   // the input queue lost audio here (plug-in thread stuck > 1 s)
 
         applyEditFade (block, sr);
+        applyMuteAndCompare (block, sr);
         outputMeter.process (block);
 
         const float* chans[] = { block.getReadPointer (0), block.getReadPointer (1) };
-        bridge.push (chans, 2, bs, captureTime, nowSeconds());
+        const double pushTime = nowSeconds();
+        bridge.push (chans, 2, bs, captureTime, pushTime);
+
+        // test recording / playback and the headphones
+        const int mode = testMode.load (std::memory_order_acquire);
+        if (mode == 1)
+        {
+            const int at = testFrames.load (std::memory_order_relaxed);
+            const int n = juce::jmin (bs, testBuffer.getNumSamples() - at);
+            if (n > 0)
+            {
+                testBuffer.copyFrom (0, at, block, 0, 0, n);
+                testBuffer.copyFrom (1, at, block, 1, 0, n);
+                testFrames.store (at + n, std::memory_order_release);
+            }
+        }
+        if (mode == 2)
+        {
+            // the recording instead of the live voice (the headphones only; the cable stays live)
+            const int at = testPos.load (std::memory_order_relaxed), total = testFrames.load (std::memory_order_relaxed);
+            const int n = juce::jlimit (0, bs, total - at);
+            for (int c = 0; c < 2; ++c)
+            {
+                float* d = rawBlock.getWritePointer (c);   // free again here: reused as the playback block
+                if (n > 0) juce::FloatVectorOperations::copy (d, testBuffer.getReadPointer (c, at), n);
+                if (n < bs) juce::FloatVectorOperations::clear (d + n, bs - n);
+            }
+            testPos.store (at + n, std::memory_order_release);
+            const float* rec[] = { rawBlock.getReadPointer (0), rawBlock.getReadPointer (1) };
+            monitor.push (rec, bs, captureTime, pushTime);
+        }
+        else
+            monitor.push (chans, bs, captureTime, pushTime);
 
         // --- statistics: load = processing time / real time of the block ---------------------
         const double used = juce::Time::highResolutionTicksToSeconds (juce::Time::getHighResolutionTicks() - startTicks);
@@ -660,6 +712,46 @@ bool AudioEngine::isValidAudio (const juce::AudioBuffer<float>& block) noexcept
                 return false;
     }
     return true;
+}
+
+void AudioEngine::applyMuteAndCompare (juce::AudioBuffer<float>& block, double sr) noexcept
+{
+    const int bs = block.getNumSamples();
+    // keep the raw ring fed all the time: "Ham ses" then has the right moment at once
+    const int L = juce::jlimit (0, rawDelaySize - bs - 1, chainLatencyNow.load (std::memory_order_relaxed));
+    float* const d0 = rawDelay.getWritePointer (0);
+    float* const d1 = rawDelay.getWritePointer (1);
+    float* const r0 = rawBlock.getWritePointer (0);
+    float* const r1 = rawBlock.getWritePointer (1);
+    for (int i = 0; i < bs; ++i)
+    {
+        const int w = (rawDelayPos + i) & (rawDelaySize - 1);
+        d0[w] = r0[i];
+        d1[w] = r1[i];
+        const int rd = (w - L) & (rawDelaySize - 1);
+        r0[i] = d0[rd];   // rawBlock now holds the delayed raw audio
+        r1[i] = d1[rd];
+    }
+    rawDelayPos = (rawDelayPos + bs) & (rawDelaySize - 1);
+
+    const bool wantRaw = rawCompare.load (std::memory_order_relaxed), wantMute = muted.load (std::memory_order_relaxed);
+    const double cmpStep = 1.0 / juce::jmax (1.0, 0.030 * sr), muteStep = 1.0 / juce::jmax (1.0, 0.015 * sr);
+    if (! wantRaw && compareMix <= 0.0 && ! wantMute && muteGain >= 1.0)
+        return;   // the usual case: nothing to do
+
+    float* const o0 = block.getWritePointer (0);
+    float* const o1 = block.getWritePointer (1);
+    const double pi = juce::MathConstants<double>::pi;
+    for (int i = 0; i < bs; ++i)
+    {
+        compareMix = wantRaw ? juce::jmin (1.0, compareMix + cmpStep) : juce::jmax (0.0, compareMix - cmpStep);
+        muteGain = wantMute ? juce::jmax (0.0, muteGain - muteStep) : juce::jmin (1.0, muteGain + muteStep);
+        const double x = 0.5 - 0.5 * std::cos (pi * compareMix);   // raised cosine
+        const double g = 0.5 - 0.5 * std::cos (pi * muteGain);
+        const double a = std::sqrt (1.0 - x), b = std::sqrt (x);   // equal power (raw and processed differ)
+        o0[i] = (float) ((a * o0[i] + b * r0[i]) * g);
+        o1[i] = (float) ((a * o1[i] + b * r1[i]) * g);
+    }
 }
 
 void AudioEngine::applyEditFade (juce::AudioBuffer<float>& block, double sr) noexcept
@@ -800,6 +892,9 @@ AudioEngine::Diagnostics AudioEngine::getDiagnostics()
 
 void AudioEngine::timerCallback()
 {
+    chainLatencyNow.store (chainLatencySamples());
+    testTick();
+
     // --- a chosen device that is listed but could not be opened: retry when its pause is over ----
     if ((inputReopen.failures > 0 || outputReopen.failures > 0) && ! reconnecting)
         reconnectIfNeeded();
@@ -1078,6 +1173,8 @@ MicVSTState AudioEngine::captureState()
     s.safetyBufferMs = safetyBufferMs;
     s.processPriority = processPriority;
     s.pluginFolders = pluginFolders;
+    s.monitorDevice = monitor.getDeviceName();
+    s.monitorVolumeDb = monitor.getVolumeDb();
 
     // Ketten-Restore steht noch aus -> gemerkten Zustand verbatim zurückgeben,
     // sonst würde persistState() die gespeicherte Kette mit "leer" überschreiben.
@@ -1120,6 +1217,8 @@ void AudioEngine::applyState (const MicVSTState& s)
     if (s.sampleRate > 0.0) preferredInputRate = s.sampleRate;
     setSafetyBufferMs (s.safetyBufferMs);
     setProcessPriority (s.processPriority);   // Normal unless the user chose otherwise
+    monitor.setDeviceName (s.monitorDevice);
+    monitor.setVolumeDb (s.monitorVolumeDb);
     presetName = s.presetName;
     presetModified = s.presetModified;
     initialise (s.inputDevice, s.outputDevice);
@@ -1316,4 +1415,115 @@ void AudioEngine::undoPreset()
     const bool modifiedBack = undoPresetModified;
     applyPreset (nameBack, chainBack);   // (which keeps the preset's chain for another undo)
     presetModified = modifiedBack;
+}
+
+//==============================================================================
+void AudioEngine::setMuted (bool m)
+{
+    if (muted.exchange (m) == m) return;
+    juce::Logger::writeToLog (m ? tr ("Ses kapatıldı (sustur)") : tr ("Ses açıldı"));
+}
+
+void AudioEngine::setRawCompare (bool on)
+{
+    if (rawCompare.exchange (on) == on) return;
+}
+
+void AudioEngine::setMonitorDevice (const juce::String& name)
+{
+    monitor.setDeviceName (name);
+}
+
+juce::String AudioEngine::setMonitorEnabled (bool on)
+{
+    monitorEnabled = on;
+    updateMonitorDevice();
+    if (on && ! monitor.isOpen())
+    {
+        monitorEnabled = false;
+        const auto err = monitor.open();   // (fails again: gives the reason)
+        monitor.close();
+        return err.isNotEmpty() ? err : tr ("Ses cihazı açılamadı");
+    }
+    return {};
+}
+
+void AudioEngine::updateMonitorDevice()
+{
+    const bool needed = monitorEnabled || testState == TestState::playing;
+    if (needed && ! monitor.isOpen())
+        monitor.open();
+    else if (! needed && monitor.isOpen())
+        monitor.close();
+    monitor.setAudible (needed);
+}
+
+juce::String AudioEngine::startTestRecording()
+{
+    if (! inputRunningFlag.load())
+        return tr ("Mikrofon çalışmıyor");
+    stopTest();
+    if (testState != TestState::idle) stopTest();
+    testTotalFrames = testBuffer.getNumSamples();
+    if (testTotalFrames <= 0)
+        return tr ("Mikrofon çalışmıyor");
+    testMode.store (0);
+    testFrames.store (0);
+    testPos.store (0);
+    testMode.store (1, std::memory_order_release);
+    testState = TestState::recording;
+    return {};
+}
+
+void AudioEngine::stopTest()
+{
+    if (testState == TestState::recording)
+    {
+        testTotalFrames = testFrames.load();
+        testTick();   // plays what there is
+        if (testState == TestState::recording)   // nothing recorded
+        {
+            testMode.store (0);
+            testState = TestState::idle;
+        }
+        return;
+    }
+    if (testState == TestState::playing)
+    {
+        testMode.store (0);
+        testState = TestState::idle;
+        updateMonitorDevice();
+    }
+}
+
+double AudioEngine::getTestProgress() const
+{
+    const int total = juce::jmax (1, testState == TestState::playing ? testFrames.load() : testTotalFrames);
+    const int at = testState == TestState::playing ? testPos.load() : testFrames.load();
+    return juce::jlimit (0.0, 1.0, (double) at / (double) total);
+}
+
+void AudioEngine::testTick()
+{
+    if (testState == TestState::recording && testFrames.load (std::memory_order_acquire) >= juce::jmax (1, testTotalFrames))
+    {
+        testMode.store (0);
+        if (testFrames.load() == 0) { testState = TestState::idle; return; }
+        testPos.store (0);
+        testState = TestState::playing;
+        updateMonitorDevice();
+        testMode.store (2, std::memory_order_release);
+        juce::Logger::writeToLog (tr ("Deneme kaydı çalınıyor: ") + monitor.getOpenDeviceName());
+    }
+    else if (testState == TestState::playing && testPos.load (std::memory_order_acquire) >= testFrames.load())
+    {
+        // let the headphones play out what is still in their buffer (~0.3 s) before closing them
+        const auto now = juce::Time::getMillisecondCounter();
+        if (playbackEndMs == 0) playbackEndMs = now;
+        if (now - playbackEndMs < 400) return;
+        playbackEndMs = 0;
+        testMode.store (0);
+        testState = TestState::idle;
+        updateMonitorDevice();
+    }
 }

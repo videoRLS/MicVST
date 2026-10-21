@@ -9,6 +9,15 @@ TrayIcon::TrayIcon()
     updateIcon();                 // erzeugt erst das Icon (pimpl) ...
     setIconTooltip ("MicVST");    // ... sonst verpufft der Tooltip (pimpl wäre noch null)
     juce::Desktop::getInstance().addDarkModeSettingListener (this);
+    startTimer (400);
+}
+
+void TrayIcon::timerCallback()
+{
+    const bool m = isMuted && isMuted();
+    if (m == shownMuted) return;
+    shownMuted = m;
+    setIconTooltip (m ? "MicVST - " + tr ("Sessiz") : juce::String ("MicVST"));
 }
 
 TrayIcon::~TrayIcon()
@@ -32,7 +41,17 @@ void TrayIcon::mouseDown (const juce::MouseEvent& e)
 {
     if (e.mods.isRightButtonDown())
     {
+        constexpr int presetOffset = 1000;
         juce::PopupMenu m;
+        if (toggleMute)
+            m.addItem (3, tr ("Sustur"), true, isMuted && isMuted());
+        if (addPresetMenus)
+        {
+            juce::PopupMenu presetsMenu;
+            addPresetMenus (presetsMenu, presetOffset);
+            m.addSubMenu (tr ("Hazır ayar"), presetsMenu);
+        }
+        m.addSeparator();
         m.addItem (1, tr ("Windows açılışında başlat"),
                    true, isAutostartOn && isAutostartOn());
         m.addSeparator();
@@ -41,6 +60,8 @@ void TrayIcon::mouseDown (const juce::MouseEvent& e)
         {
             if      (result == 1 && setAutostart && isAutostartOn) setAutostart (! isAutostartOn());
             else if (result == 2 && onQuit)                        onQuit();
+            else if (result == 3 && toggleMute)                    toggleMute();
+            else if (result > presetOffset && loadPreset)          loadPreset (result - presetOffset);
         });
     }
     else if (onToggleWindow)

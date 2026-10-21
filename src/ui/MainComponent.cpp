@@ -1,4 +1,6 @@
 #include "ui/MainComponent.h"
+#include "ui/HotkeyDialog.h"
+#include "ui/DarkTitleBar.h"
 #include "ui/Theme.h"
 #include "audio/PluginChain.h"
 #include "Text.h"
@@ -63,7 +65,19 @@ namespace
             "\n"
             "Gizlilik\n"
             "    MicVST internete hiç bağlanmaz: güncelleme denetimi, veri toplama ya da\n"
-            "    web bağlantısı yoktur.");
+            "    web bağlantısı yoktur.")
+             + "\n\n"
+             + tr (
+            "Sustur, kısayollar, kendini dinleme\n"
+            "    - \"Sustur\" sesi tıksız kapatır; F9 (değiştirilebilir) MicVST arka plandayken de\n"
+            "      susturur. \"Kısayollar\" ile tuşu değiştirin ya da kapatın; saatin yanındaki\n"
+            "      simgenin menüsünde de \"Sustur\" ve hazır ayarlar vardır.\n"
+            "    - \"Ham ses\" kabloya bir anlığına zincirsiz mikrofon sesini verir: önce / sonra.\n"
+            "    - \"Kulaklık\" satırında dinleme cihazını seçin; \"Kendini dinle\" işlenmiş sesi\n"
+            "      oradan çalar (hoparlör değil kulaklık kullanın). \"Deneme kaydı\" 10 saniye\n"
+            "      kaydeder ve hemen kulaklıktan çalar.\n"
+            "    - \"Dahili - Dinamik\": Kompresör ve Gürültü Kapısı. Hazır ayarlar ikisini de\n"
+            "      ölçülü kullanır; \"Kaydet\" menüsünden ayarlar dosyaya aktarılıp paylaşılabilir.");
     }
 
     // Inhalt des How-To-Fensters: nur Anleitungstext (keine klickbaren Links mehr - MicVST
@@ -318,6 +332,42 @@ MainComponent::MainComponent (AudioEngine& e) : engine (e)
     cableHint.setJustificationType (juce::Justification::centredLeft);
     addChildComponent (cableHint);   // Sichtbarkeit steuert updateCableHint()
 
+    for (auto* b : { &muteBtn, &compareBtn, &monitorBtn, &testBtn, &hotkeysBtn })
+        addAndMakeVisible (b);
+    muteBtn.setButtonText (tr ("Sustur"));
+    muteBtn.setColour (juce::TextButton::buttonOnColourId, micvst::theme::error);
+    muteBtn.onClick = [this] { engine.setMuted (! engine.isMuted()); updateActionButtons(); };
+    compareBtn.setButtonText (tr ("Ham ses"));
+    compareBtn.setTooltip (tr ("Önce / sonra: kabloya bir anlığına zincirsiz, ham mikrofon sesi gider (aynı gecikmeyle). "
+                               "Tekrar tıklayınca işlenmiş sese döner."));
+    compareBtn.setColour (juce::TextButton::buttonOnColourId, micvst::theme::warning);
+    compareBtn.onClick = [this] { engine.setRawCompare (! engine.isRawCompare()); updateActionButtons(); };
+    monitorBtn.setButtonText (tr ("Kendini dinle"));
+    monitorBtn.setTooltip (tr ("İşlenmiş sesi \"Kulaklık\" çıkışından anlık dinlersiniz. Hoparlörle değil kulaklıkla "
+                               "kullanın: hoparlörden mikrofona dönen ses yankı ve ıslık yapar."));
+    monitorBtn.onClick = [this]
+    {
+        const auto err = engine.setMonitorEnabled (! engine.isMonitorEnabled());
+        if (err.isNotEmpty())
+            juce::NativeMessageBox::showAsync (juce::MessageBoxOptions::makeOptionsOk (juce::MessageBoxIconType::WarningIcon,
+                tr ("Kendini dinle"), tr ("Kulaklık çıkışı açılamadı: ") + err, tr ("Tamam")), [] (int) {});
+        updateActionButtons();
+    };
+    testBtn.setTooltip (tr ("10 saniye konuşun; MicVST kaydeder ve işlenmiş sesinizi hemen \"Kulaklık\" çıkışından "
+                            "çalar. Kablo bu sırada canlı sesi göndermeye devam eder. Tıklayınca durur."));
+    testBtn.onClick = [this]
+    {
+        if (engine.getTestState() != AudioEngine::TestState::idle) engine.stopTest();
+        else if (const auto err = engine.startTestRecording(); err.isNotEmpty())
+            juce::NativeMessageBox::showAsync (juce::MessageBoxOptions::makeOptionsOk (juce::MessageBoxIconType::WarningIcon,
+                tr ("Deneme kaydı"), err, tr ("Tamam")), [] (int) {});
+        updateActionButtons();
+    };
+    hotkeysBtn.setButtonText (tr ("Kısayollar"));
+    hotkeysBtn.setTooltip (tr ("Sustur ve Ham ses için klavye kısayolları (MicVST arka plandayken de çalışır)"));
+    hotkeysBtn.onClick = [this] { showHotkeys(); };
+    updateActionButtons();
+
     engine.onStatusChanged = [this] { updateCableHint(); };
     updateCableHint();
 
@@ -338,11 +388,73 @@ void MainComponent::timerCallback()
 
     // Mit der Registry synchron halten (z. B. wenn der Tray den Autostart umschaltet) - einmal
     // pro Sekunde reicht (1.1.1 las die Registry 30-mal pro Sekunde).
+    engine.testTick();
+    updateActionButtons();
     if (++timerTicks >= 30)
     {
         timerTicks = 0;
         autostartToggle.setToggleState (AutostartRegistry::isEnabled(), juce::dontSendNotification);
     }
+}
+
+void MainComponent::setHotkeys (GlobalHotkeys* keys, std::function<bool (GlobalHotkeys::Action, const GlobalHotkeys::Binding&)> setter)
+{
+    hotkeys = keys;
+    setHotkey = std::move (setter);
+    hotkeysBtn.setEnabled (hotkeys != nullptr && GlobalHotkeys::supported());
+    updateActionButtons();
+    resized();
+}
+
+void MainComponent::updateActionButtons()
+{
+    auto withKey = [this] (const juce::String& text, GlobalHotkeys::Action a)
+    {
+        if (hotkeys == nullptr || ! hotkeys->get (a).enabled || ! hotkeys->isActive (a)) return text;
+        return text + " (" + GlobalHotkeys::describe (hotkeys->get (a)) + ")";
+    };
+    const bool m = engine.isMuted();
+    const auto muteText = withKey (m ? tr ("Sesi aç") : tr ("Sustur"), GlobalHotkeys::mute);
+    if (muteBtn.getButtonText() != muteText) muteBtn.setButtonText (muteText);
+    muteBtn.setToggleState (m, juce::dontSendNotification);
+    muteBtn.setTooltip (m ? tr ("Ses kapalı: kabloya sessizlik gidiyor. Tıklayınca ses açılır.")
+                          : tr ("Sesi tıksız kapatır (15 ms yumuşak geçiş); tekrar tıklayınca açılır."));
+    const auto cmpText = withKey (tr ("Ham ses"), GlobalHotkeys::rawCompare);
+    if (compareBtn.getButtonText() != cmpText) compareBtn.setButtonText (cmpText);
+    compareBtn.setToggleState (engine.isRawCompare(), juce::dontSendNotification);
+    monitorBtn.setToggleState (engine.isMonitorEnabled(), juce::dontSendNotification);
+
+    juce::String t;
+    const int secs = juce::roundToInt (AudioEngine::testSeconds * (1.0 - engine.getTestProgress()) + 0.49);
+    switch (engine.getTestState())
+    {
+        case AudioEngine::TestState::idle:      t = tr ("Deneme kaydı (10 sn)"); break;
+        case AudioEngine::TestState::recording: t = tr ("Kaydediliyor... ") + juce::String (secs); break;
+        case AudioEngine::TestState::playing:   t = tr ("Çalınıyor... ") + juce::String (secs); break;
+    }
+    if (testBtn.getButtonText() != t) testBtn.setButtonText (t);
+    testBtn.setToggleState (engine.getTestState() != AudioEngine::TestState::idle, juce::dontSendNotification);
+}
+
+void MainComponent::showHotkeys()
+{
+    if (hotkeys == nullptr || ! setHotkey) return;
+    juce::DialogWindow::LaunchOptions o;
+    juce::Component::SafePointer<MainComponent> safe (this);   // the dialog may outlive this content (theme change)
+    o.content.setOwned (new HotkeyDialog (*hotkeys, [setter = setHotkey, safe] (GlobalHotkeys::Action a, const GlobalHotkeys::Binding& b)
+    {
+        const bool ok = setter (a, b);
+        if (safe != nullptr) { safe->updateActionButtons(); safe->resized(); }
+        return ok;
+    }));
+    o.dialogTitle = tr ("Kısayollar");
+    o.dialogBackgroundColour = micvst::theme::background;
+    o.escapeKeyTriggersCloseButton = false;   // Esc belongs to the key capture
+    o.useNativeTitleBar = true;
+    o.resizable = false;
+    o.componentToCentreAround = this;
+    if (auto* w = o.launchAsync())
+        micvst::useDarkTitleBar (*w, micvst::theme::dark);
 }
 
 void MainComponent::showHowTo()
@@ -405,6 +517,33 @@ void MainComponent::resized()
     // DevicePanel meldet seine Höhe selbst (Input/Output/Safety, +1 wenn die Buffer-Zeile
     // sichtbar ist, plus zwei Statuszeilen); die Plugin-Liste bekommt den ganzen Rest.
     devicePanel->setBounds (r.removeFromTop (devicePanel->preferredHeight()));
+    r.removeFromTop (6);
+    {
+        auto row = r.removeFromTop (28);
+        // widths after the texts (the mute and test buttons change their text: room for the longest)
+        auto w = [] (const juce::String& longest)
+        {
+            return juce::roundToInt (juce::GlyphArrangement::getStringWidth (juce::Font (juce::FontOptions (15.0f)), longest)) + 22;
+        };
+        juce::String keyPart;
+        if (hotkeys != nullptr && hotkeys->get (GlobalHotkeys::mute).enabled && hotkeys->isActive (GlobalHotkeys::mute))
+            keyPart = " (" + GlobalHotkeys::describe (hotkeys->get (GlobalHotkeys::mute)) + ")";
+        const juce::String muteLongest = (tr ("Sustur").length() > tr ("Sesi aç").length() ? tr ("Sustur") : tr ("Sesi aç")) + keyPart;
+        int widths[] = { w (muteLongest), w (compareBtn.getButtonText()), w (monitorBtn.getButtonText()),
+                         w (tr ("Deneme kaydı (10 sn)")), w (hotkeysBtn.getButtonText()) };
+        int total = 0;
+        for (int x : widths) total += x;
+        const int gap = 6, avail = row.getWidth() - 4 * gap;
+        const double scale = total > avail ? (double) avail / total : 1.0;
+        juce::TextButton* btns[] = { &muteBtn, &compareBtn, &monitorBtn, &testBtn, &hotkeysBtn };
+        for (int i = 0; i < 5; ++i)
+        {
+            const int bw = i == 4 && scale < 1.0 ? row.getWidth() : (int) (widths[i] * scale);
+            if (i == 4 && scale >= 1.0) { btns[i]->setBounds (row.removeFromRight (bw)); continue; }
+            btns[i]->setBounds (row.removeFromLeft (bw));
+            row.removeFromLeft (gap);
+        }
+    }
     r.removeFromTop (8);
     pluginList->setBounds (r);
 }

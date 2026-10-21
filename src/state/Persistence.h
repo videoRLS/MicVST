@@ -27,6 +27,10 @@ struct MicVSTState
     bool presetModified = false;       // the chain was changed after loading it
     juce::String theme;                // colour theme id (ui/Theme.h); empty = Gece (default)
     juce::String language;             // interface language id (Text.h); empty = Türkçe (default)
+    juce::String monitorDevice;        // "Kendini dinle" output (headphones); empty = Windows' default output
+    float monitorVolumeDb = 0.0f;      // (monitoring itself always starts off: no feedback through speakers)
+    // shortcut keys (ui/GlobalHotkeys.h) as "enabled:keyCode:modifiers"; empty = the default
+    juce::String hotkeyMute, hotkeyCompare;
     // (Kein Update-Check mehr: MicVST 1.2 hat keinerlei Netzwerkzugriff. Die alten Felder
     //  updateCheckEnabled/-Asked/lastNotifiedVersion in bestehenden config.xml werden ignoriert.)
 };
