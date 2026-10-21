@@ -27,9 +27,18 @@ public:
 
     static juce::String windowTitle();
 
+    // Where the page is scrolled to: the section at the top and how far into it. Kept when the
+    // window is rebuilt (theme or language changed: the section positions move with the texts),
+    // so a change never throws the viewer to another section.
+    struct ViewState { int section = 0; int offset = 0; };
+    ViewState getViewState() const;
+    void setViewState (ViewState);
+
 private:
     void timerCallback() override;   // keeps "start with Windows" in step with the registry
     void scrollTo (int section);
+    void updateNav();   // the section button of what is shown is lit
+    int  sectionAt (int y) const;
 
     struct Page : juce::Component { void paint (juce::Graphics&) override; std::vector<juce::Rectangle<int>> lines; };
 

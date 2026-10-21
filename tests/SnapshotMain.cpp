@@ -106,6 +106,8 @@ namespace
     };
 }
 
+static int viewFailures = 0;
+
 int main (int argc, char** argv)
 {
     const juce::File dir = juce::File::getCurrentWorkingDirectory().getChildFile (argc > 1 ? argv[1] : "ui");
@@ -273,6 +275,23 @@ int main (int argc, char** argv)
             cb.setHotkey = [&] (GlobalHotkeys::Action a, const GlobalHotkeys::Binding& b) { keys.set (a, b); return true; };
             SettingsComponent settings (engine, &keys, cb);
             pump (200);
+            // a change in a section never throws the view to another section: relayout (window
+            // resized, a row appearing) and rebuild (theme / language) keep the section in view
+            for (int sec = 0; sec < 5; ++sec)
+            {
+                settings.setViewState ({ sec, 0 });
+                const auto before = settings.getViewState();
+                settings.setSize (640, 560); settings.setSize (640, 600);
+                const auto afterResize = settings.getViewState();
+                SettingsComponent rebuilt (engine, &keys, cb);
+                rebuilt.setViewState (before);
+                const auto afterRebuild = rebuilt.getViewState();
+                const bool ok = before.section == sec && afterResize.section == sec && afterRebuild.section == sec;
+                std::printf ("settings view %s section %d: resize -> %d, rebuild -> %d %s\n", id.toRawUTF8(), sec,
+                             afterResize.section, afterRebuild.section, ok ? "ok" : "FAIL");
+                if (! ok) viewFailures++;
+            }
+            settings.setViewState ({ 0, 0 });
             snap (settings, 640, 600, dir.getChildFile ("12_lang_" + id + "_settings.png"));
             settings.setSize (640, 1100);
             snap (settings, 640, 1100, dir.getChildFile ("12_lang_" + id + "_settings_all.png"));
@@ -342,5 +361,6 @@ int main (int argc, char** argv)
         snap (mc, 640, 600, dir.getChildFile ("1b_main_device_missing.png"));
     }
     juce::LookAndFeel::setDefaultLookAndFeel (nullptr);
-    return 0;
+    std::printf ("settings view checks: %d failures\n", viewFailures);
+    return viewFailures == 0 ? 0 : 3;
 }

@@ -136,13 +136,14 @@ SettingsComponent::SettingsComponent (AudioEngine& e, GlobalHotkeys* keys, Callb
     viewport.setScrollBarsShown (true, false);
     addAndMakeVisible (viewport);
     setSize (640, 600);
-    startTimer (1000);
+    startTimer (250);
 }
 
 SettingsComponent::~SettingsComponent() { stopTimer(); }
 
 void SettingsComponent::timerCallback()
 {
+    updateNav();
     autostartToggle.setToggleState (AutostartRegistry::isEnabled(), juce::dontSendNotification);
     if (soundPanel.getHeight() != soundPanel.preferredHeight())   // the buffer row came or went (device change)
         resized();
@@ -161,10 +162,47 @@ void SettingsComponent::scrollTo (int section)
 {
     if (juce::isPositiveAndBelow (section, (int) sectionY.size()))
         viewport.setViewPosition (0, juce::jmin (sectionY[(size_t) section], page.getHeight() - viewport.getHeight()));
+    updateNav();
+}
+
+int SettingsComponent::sectionAt (int y) const
+{
+    int s = 0;
+    for (int i = 0; i < (int) sectionY.size(); ++i)
+        if (y + 4 >= sectionY[(size_t) i]) s = i;
+    return s;
+}
+
+SettingsComponent::ViewState SettingsComponent::getViewState() const
+{
+    ViewState v;
+    const int y = viewport.getViewPositionY();
+    v.section = sectionAt (y);
+    v.offset = sectionY.empty() ? y : y - sectionY[(size_t) v.section];
+    return v;
+}
+
+void SettingsComponent::setViewState (ViewState v)
+{
+    if (! juce::isPositiveAndBelow (v.section, (int) sectionY.size())) return;
+    viewport.setViewPosition (0, juce::jlimit (0, juce::jmax (0, page.getHeight() - viewport.getHeight()),
+                                               sectionY[(size_t) v.section] + juce::jmax (0, v.offset)));
+    updateNav();
+}
+
+void SettingsComponent::updateNav()
+{
+    const int s = sectionAt (viewport.getViewPositionY());
+    for (int i = 0; i < navButtons.size(); ++i)
+        if (navButtons[i]->getToggleState() != (i == s))
+            navButtons[i]->setToggleState (i == s, juce::dontSendNotification);
 }
 
 void SettingsComponent::resized()
 {
+    // a new layout (window resized, a row came or went) keeps the section in view
+    const bool laidOut = ! sectionY.empty();
+    const auto keep = laidOut ? getViewState() : ViewState{};
     auto nav = juce::Rectangle<int> (0, 0, navW, getHeight()).reduced (10, 14);
     for (auto* b : navButtons)
     {
@@ -236,4 +274,5 @@ void SettingsComponent::resized()
 
     // the last section can still scroll to the top
     page.setSize (viewport.getWidth() - viewport.getScrollBarThickness(), juce::jmax (y + pad, sectionY.back() + viewport.getHeight()));
+    if (laidOut) setViewState (keep);
 }

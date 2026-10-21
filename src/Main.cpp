@@ -476,18 +476,26 @@ private:
             if (onThemeApplied) onThemeApplied();   // LookAndFeel takes the new colours; saved
             setBackgroundColour (micvst::theme::background);
             juce::Rectangle<int> settingsBounds;
+            SettingsComponent::ViewState settingsView;
             const bool settingsOpen = settingsWindow != nullptr && settingsWindow->isVisible();
-            if (settingsWindow != nullptr) settingsBounds = settingsWindow->getBounds();
+            if (settingsWindow != nullptr)
+            {
+                settingsBounds = settingsWindow->getBounds();
+                if (auto* sc = dynamic_cast<SettingsComponent*> (settingsWindow->getContentComponent()))
+                    settingsView = sc->getViewState();
+            }
             settingsWindow = nullptr;
             clearContentComponent();                // the old content (and its engine callbacks) first ...
             content = nullptr;
             createContent();                        // ... then the new one, built with the new colours
             micvst::useDarkTitleBar (*this, micvst::theme::dark);
             repaint();
-            if (settingsOpen)                       // the settings window again, where it was
+            if (settingsOpen)                       // the settings window again, where it was, at the same section
             {
                 showSettings();
                 settingsWindow->setBounds (settingsBounds);
+                if (auto* sc = dynamic_cast<SettingsComponent*> (settingsWindow->getContentComponent()))
+                    sc->setViewState (settingsView);
             }
         }
         AudioEngine& engineRef;
