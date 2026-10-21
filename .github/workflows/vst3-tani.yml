@@ -1,9 +1,10 @@
 name: vst3-tani
 
-# Diagnosis of the long run through real VST3 effects (vst3long): with "[vst3tani]" in the commit
-# message. The same long run with progress lines (which plug-in is being scanned / loaded), then the
-# same run with each bundle alone, then with every bundle but one - to find the plug-in (or the
-# combination) that ends the process. Results: ci-sonuclari/<branch>-vst3tani.
+# VST3 diagnosis with "[vst3tani]" in the commit message: MicVST's real plug-in scanner
+# (MicVST.exe --scan <bundle> --out <file>, a separate process as in the app) run 20 times per free
+# test plug-in, with and without full CPU load - how often a plug-in's own scan code ends the scan
+# process, and that it never takes anything else down (exit codes counted). Then the in-process path
+# of the engine test (long 2, ETEST_PROGRESS). Results: ci-sonuclari/<branch>-vst3tani.
 on:
   push:
     branches: [ 'kararlilik/**' ]
@@ -15,42 +16,48 @@ jobs:
   diag:
     if: ${{ contains(github.event.head_commit.message, '[vst3tani]') }}
     runs-on: windows-latest
-    timeout-minutes: 120
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v7
       - name: Build
         shell: pwsh
-        run: ./tools/ci-build.ps1 -Source . -Build build -Targets "MicVSTEngineTest" -Out results
-      - name: Runs
+        run: ./tools/ci-build.ps1 -Source . -Build build -Targets "MicVST MicVSTEngineTest" -Out results
+      - name: Scanner runs
         continue-on-error: true
         shell: pwsh
         run: |
           . ./tools/ci-suite-plugins.ps1 -NoteFile results/vst3-suite-source.txt
-          $exe = "build/MicVSTEngineTest_artefacts/Release/MicVSTEngineTest.exe"
+          $app = (Resolve-Path "build/MicVST_artefacts/Release/MicVST.exe").Path
+          $etest = (Resolve-Path "build/MicVSTEngineTest_artefacts/Release/MicVSTEngineTest.exe").Path
           $all = $env:MICVST_TEST_VST3_DIR
-          $env:ETEST_LONG_VST3 = "1"
-          $env:ETEST_PROGRESS = "1"
-          $env:ETEST_LONG_PRIORITY = "0"
-          $env:ETEST_LONG_BURN = "$([Environment]::ProcessorCount)"
-          ./tools/ci-run-timed.ps1 -Exe $exe -OutFile results/all-burn.txt -TimeoutSeconds 600 -Arguments @("long", "2")
-          $env:ETEST_LONG_BURN = ""
-          ./tools/ci-run-timed.ps1 -Exe $exe -OutFile results/all-noburn.txt -TimeoutSeconds 600 -Arguments @("long", "2")
-          $bundles = @(Get-ChildItem -Directory $all -Filter "*.vst3")
-          foreach ($b in $bundles) {
-            $one = Join-Path $env:RUNNER_TEMP ("only-" + $b.BaseName)
-            New-Item -ItemType Directory -Force $one | Out-Null
-            Copy-Item -Recurse -Force $b.FullName $one
-            $env:MICVST_TEST_VST3_DIR = $one
-            ./tools/ci-run-timed.ps1 -Exe $exe -OutFile ("results/only-" + $b.BaseName + ".txt") -TimeoutSeconds 600 -Arguments @("long", "1")
-            $but = Join-Path $env:RUNNER_TEMP ("without-" + $b.BaseName)
-            New-Item -ItemType Directory -Force $but | Out-Null
-            foreach ($o in $bundles) { if ($o.FullName -ne $b.FullName) { Copy-Item -Recurse -Force $o.FullName $but } }
-            $env:MICVST_TEST_VST3_DIR = $but
-            ./tools/ci-run-timed.ps1 -Exe $exe -OutFile ("results/without-" + $b.BaseName + ".txt") -TimeoutSeconds 600 -Arguments @("long", "1")
+          $bundles = @(Get-ChildItem $all -Filter "*.vst3")
+          $report = "results/scanner.md"
+          "| Plug-in | load | runs | exit 0 (found) | crashed (code) | other |" | Set-Content $report
+          "|---|---|---:|---:|---|---:|" | Add-Content $report
+          foreach ($load in @($false, $true)) {
+            $burn = $null
+            if ($load) { $burn = Start-Process -FilePath $etest -ArgumentList @("burn", "$([Environment]::ProcessorCount)", "1800") -PassThru -WindowStyle Hidden }
+            foreach ($b in $bundles) {
+              $ok = 0; $other = 0; $crashes = @{}
+              for ($i = 0; $i -lt 20; $i++) {
+                $out = Join-Path $env:RUNNER_TEMP "scan-out.xml"
+                Remove-Item $out -ErrorAction SilentlyContinue
+                $p = Start-Process -FilePath $app -ArgumentList @("--scan", "`"$($b.FullName)`"", "--out", "`"$out`"") -PassThru -WindowStyle Hidden
+                if (-not $p.WaitForExit(120000)) { $p.Kill(); $other++; continue }
+                $c = $p.ExitCode
+                if ($c -eq 0) { $ok++ }
+                elseif ($c -lt 0 -or $c -gt 255) { $k = "0x{0:X8}" -f $c; $crashes[$k] = 1 + [int] $crashes[$k] }
+                else { $other++ }
+              }
+              $cr = ($crashes.GetEnumerator() | ForEach-Object { "$($_.Key) x$($_.Value)" }) -join ", "
+              "| $($b.Name) | $(if ($load) { 'full CPU load' } else { 'idle' }) | 20 | $ok | $(if ($cr) { $cr } else { '0' }) | $other |" | Add-Content $report
+            }
+            if ($burn) { Stop-Process -Id $burn.Id -Force -ErrorAction SilentlyContinue }
           }
-          $env:MICVST_TEST_VST3_DIR = $all
-          foreach ($b in $bundles) { ./tools/ci-run-timed.ps1 -Exe $exe -OutFile ("results/vst3info-" + $b.BaseName + ".txt") -TimeoutSeconds 300 -Arguments @("vst3info", "`"$($b.FullName)`"") }
-          Get-ChildItem results/*.txt | ForEach-Object { "=== " + $_.Name; Get-Content $_ -Tail 12 } | Set-Content results/summary.txt
+          $env:ETEST_LONG_VST3 = "1"; $env:ETEST_PROGRESS = "1"; $env:ETEST_LONG_PRIORITY = "0"
+          $env:ETEST_LONG_BURN = "$([Environment]::ProcessorCount)"
+          ./tools/ci-run-timed.ps1 -Exe $etest -OutFile results/long-burn-after-chain.txt -TimeoutSeconds 900 -Arguments @("long", "3")
+          Get-Content $report
       - name: Publish
         if: ${{ !cancelled() }}
         shell: pwsh

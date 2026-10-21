@@ -521,8 +521,21 @@ namespace fxtest
                 for (int k = 0; k < 120 && e.getTestState() == AudioEngine::TestState::recording; ++k) pump (0.1);
                 recorded = e.getTestState() == AudioEngine::TestState::playing;
                 pres.speakerPeak = 0.0f; pres.speakerSamples = 0;
-                for (int k = 0; k < 130 && e.getTestState() == AudioEngine::TestState::playing; ++k) { pump (0.1); e.testTick(); }
-                playback = { 20.0 * std::log10 (std::max (1.0e-9, (double) pres.speakerPeak.load())), pres.speakerSamples.load() };
+                juce::String perSecond;
+                float overall = 0.0f;
+                for (int k = 0; k < 130 && e.getTestState() == AudioEngine::TestState::playing; ++k)
+                {
+                    pump (0.1); e.testTick();
+                    if (k % 10 == 9)
+                    {
+                        const float pk = pres.speakerPeak.exchange (0.0f);
+                        overall = std::max (overall, pk);
+                        perSecond << juce::String (20.0 * std::log10 (std::max (1.0e-9, (double) pk)), 2) << " ";
+                    }
+                }
+                overall = std::max (overall, pres.speakerPeak.load());
+                playback = { 20.0 * std::log10 (std::max (1.0e-9, (double) overall)), pres.speakerSamples.load() };
+                pr ("    headphone peak per second during the playback: " + perSecond);
                 idle = e.getTestState() == AudioEngine::TestState::idle;
                 const int64_t cableNow = vdev::recorder().available.load();
                 {

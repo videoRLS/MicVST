@@ -159,7 +159,8 @@ jobs:
         run: ./tools/ci-publish.ps1 -Dir results -Branch "ci-sonuclari/${{ github.ref_name }}-uzun-win11arm" -Message "MicVST ${{ github.ref_name }} win11arm"
 
   vst3long:
-    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[uzun]') }}
+    # also alone with "[vst3uzun]"
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[uzun]') || contains(github.event.head_commit.message, '[vst3uzun]') }}
     runs-on: windows-latest
     timeout-minutes: 358
     strategy:

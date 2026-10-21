@@ -1110,13 +1110,18 @@ namespace
             auto& e = *run.engine;
             if (priority >= 0) e.setProcessPriority (priority);
             std::unique_ptr<juce::ChildProcess> burner;
-            if (burnThreads > 0)
+            // the load program starts once the chain is built: the plug-ins are scanned and loaded
+            // here in this process, while MicVST scans in a separate process (MicVST.exe --scan) where
+            // a plug-in that crashes while being scanned cannot take the program down (seen: the free
+            // TDR VOS SlickEQ 1.3.9 ended this process in its own scan code under full CPU load)
+            auto startBurner = [&]
             {
+                if (burnThreads <= 0) return;
                 juce::StringArray a; a.add (juce::File::getSpecialLocation (juce::File::currentExecutableFile).getFullPathName());
                 a.add ("burn"); a.add (juce::String (burnThreads)); a.add (juce::String (seconds + 30.0, 0));
                 burner = std::make_unique<juce::ChildProcess>();
                 if (! burner->start (a)) pr ("  could not start the load program");
-            }
+            };
             if (withVst3)
                 pr ("chain: " + suite::buildLongChain (e));
             else
@@ -1131,6 +1136,7 @@ namespace
                 const AudioEngine::ChainEdit edit (e);
                 e.rebuildGraph();
             }
+            startBurner();
             const double start = juce::Time::getMillisecondCounterHiRes() * 0.001;
             // ETEST_CHANGE_EVERY / ETEST_DEVICE_EVERY (s): other intervals for the chaos mode
             const double changeEvery = juce::jmax (2.0, juce::SystemStats::getEnvironmentVariable ("ETEST_CHANGE_EVERY", "20").getDoubleValue());
