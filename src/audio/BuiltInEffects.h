@@ -7,7 +7,7 @@
 // MicVST's built-in effects (EQ, cleaning, colour, level, time/channel tools, meters). Each one is a
 // separate chain element like a VST3 plug-in: it is listed in the picker under "Dahili - ...",
 // can be moved, bypassed and removed, and keeps its settings in config.xml. None of them is put
-// into the chain by itself. (No noise gate and no compressor - by the user's choice.)
+// into the chain by itself (the factory presets use neither the compressor nor the noise gate).
 //
 // Common rules (BuiltInEffect below):
 //  * Parameters are JUCE parameters (float / choice / bool) with fixed ASCII ids and Turkish names;
@@ -90,7 +90,7 @@ public:
     uint64_t getRejectedInputBlocks() const noexcept  { return rejectedInput.load (std::memory_order_relaxed); }
     uint64_t getRepairedOutputBlocks() const noexcept { return repairedOutput.load (std::memory_order_relaxed); }
 
-    enum class Unit { plain, count, hertz, decibel, dbAmount, percent, milliseconds, seconds, dbPerOctave };
+    enum class Unit { plain, count, hertz, decibel, dbAmount, percent, milliseconds, seconds, dbPerOctave, ratio };
 
 protected:
     // --- for the effects -------------------------------------------------------------------------
@@ -134,8 +134,8 @@ private:
 
 namespace builtin
 {
-    // Every built-in effect, in the order of the list in docs (Ton ve EQ, Temizlik, Renk ve ortam,
-    // Seviye ve koruma, Zaman ve kanal, Ölçüm).
+    // Every built-in effect, in the order of the list in docs (Ton ve EQ, Temizlik, Dinamik, Renk ve
+    // ortam, Seviye ve koruma, Zaman ve kanal, Ölçüm).
     const std::vector<BuiltInEffect::Info>& effects();
     const BuiltInEffect::Info* find (const juce::String& id);
     bool isEffectId (const juce::String& id);

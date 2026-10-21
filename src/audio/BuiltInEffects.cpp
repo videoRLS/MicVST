@@ -230,6 +230,7 @@ namespace builtin
     {
         static const char* const eq      = TRK ("Dahili - Ton ve EQ");
         static const char* const clean   = TRK ("Dahili - Temizlik");
+        static const char* const dyn     = TRK ("Dahili - Dinamik");
         static const char* const colour  = TRK ("Dahili - Renk ve ortam");
         static const char* const level   = TRK ("Dahili - Seviye ve koruma");
         static const char* const timeCh  = TRK ("Dahili - Zaman ve kanal");
@@ -267,6 +268,15 @@ namespace builtin
               "Göreli algılamada eşik, tiz bölgenin sesin geneline göre seviyesidir (-15 dB: tizler sesin geneline 15 dB "
               "yaklaşınca kısar; mikrofon seviyesinden bağımsız). En fazla \"Azaltma\" kadar kısar."), false, &fx::createDeEsser },
 
+            { "builtin:compressor", TRK ("Kompresör"), dyn,
+              TRK ("Sesin yüksek yerlerini eşiğin üstünde orana göre kısar: konuşma daha dengeli ve dolgun duyulur. "
+              "Atak ne kadar hızlı kısacağını, bırakma ne kadar hızlı geri bırakacağını belirler; telafi kazancı "
+              "kısılan seviyeyi geri ekler. Karışım %100'ün altında paralel sıkıştırmadır."), false, &fx::createCompressor },
+            { "builtin:gate", TRK ("Gürültü Kapısı (Noise Gate)"), dyn,
+              TRK ("Konuşmadığınızda (ses eşiğin altındayken) sesi \"Kısma\" kadar kısar: oda gürültüsü, fan, klavye. "
+              "3 ms ileri bakar, kelimelerin başı kesilmez. Eşiği oda gürültüsünün biraz üstüne, konuşmanın altına koyun; "
+              "fazla yüksek eşik sessiz heceleri keser."), false, &fx::createGate },
+
             { "builtin:saturation", TRK ("Sıcak Saturasyon (Tüp / Bant)"), colour,
               TRK ("Hafif harmonik ekler (4x aşırı örnekleme ile, kenar yumuşatmalı). Seviye otomatik dengelenir."), false, &fx::createSaturation },
             { "builtin:lofi", TRK ("Telefon / Radyo / Megafon"), colour,
@@ -288,7 +298,7 @@ namespace builtin
             { "builtin:syncdelay", TRK ("Ses Gecikmesi (Senkron)"), timeCh,
               TRK ("Sesi verilen süre kadar geciktirir: görüntüyle (kamera, yayın) hizalamak için."), false, &fx::createSyncDelay },
             { "builtin:channel", TRK ("Kanal Araçları (Faz / Kanal / Denge)"), timeCh,
-              "Faz çevirme, sol ya da sağ kanalı iki kanala verme, kanalları değiştirme, mono toplama ve sağ-sol denge.",
+              TRK ("Faz çevirme, sol ya da sağ kanalı iki kanala verme, kanalları değiştirme, mono toplama ve sağ-sol denge."),
               true, &fx::createChannelTool },
 
             { "builtin:lufs", TRK ("LUFS Ölçer"), meter,
@@ -343,6 +353,7 @@ namespace builtin
             case U::seconds:      return num (v, 2) + " s";
             case U::dbPerOctave:  return num (v, 0) + micvst::tr (" dB/oktav");
             case U::count:        return juce::String (juce::roundToInt (v));
+            case U::ratio:        return num (v, 1) + ":1";
             case U::plain:        break;
         }
         return num (v, 2);
@@ -354,6 +365,7 @@ namespace builtin
         double mult = 1.0;
         if (unit == BuiltInEffect::Unit::hertz && t.containsChar ('k')) mult = 1000.0;
         if (unit == BuiltInEffect::Unit::milliseconds && t.endsWith ("s") && ! t.endsWith ("ms")) mult = 1000.0;
+        if (unit == BuiltInEffect::Unit::ratio) t = t.upToFirstOccurrenceOf (":", false, false);   // "4:1" -> 4
         return (float) (t.retainCharacters ("-.0123456789").getDoubleValue() * mult);
     }
 }

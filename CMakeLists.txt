@@ -46,6 +46,7 @@ add_library(MicVSTCore STATIC
     src/audio/fx/EqEffects.cpp
     src/audio/fx/ColourEffects.cpp
     src/audio/fx/LevelEffects.cpp
+    src/audio/fx/DynamicsEffects.cpp
     src/audio/fx/MeterEffects.cpp
     src/ui/BuiltInEffectEditor.cpp
     src/audio/RealtimeSupport.cpp

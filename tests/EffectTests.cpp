@@ -179,10 +179,10 @@ struct EffectBasicsTest : juce::UnitTest
 
     void runTest() override
     {
-        beginTest ("24 effects, unique ids, all create, names and descriptions in Turkish");
+        beginTest ("26 effects, unique ids, all create, names and descriptions in Turkish");
         {
             const auto& list = builtin::effects();
-            expectEquals ((int) list.size(), 24);
+            expectEquals ((int) list.size(), 26);
             std::map<juce::String, int> seen;
             for (auto& i : list)
             {
@@ -199,8 +199,6 @@ struct EffectBasicsTest : juce::UnitTest
                 std::map<juce::String, int> pids;
                 for (auto* p : e->getEffectParameters())
                     expect (++pids[p->getParameterID()] == 1, juce::String (i.id) + " duplicate parameter " + p->getParameterID());
-                // never a gate or a compressor
-                expect (! juce::String (i.id).containsIgnoreCase ("gate") && ! juce::String (i.id).containsIgnoreCase ("comp"));
             }
             expect (builtin::create ("builtin:doesnotexist") == nullptr);
             expect (! builtin::isEffectId ("builtin:gain"));   // the older built-ins keep their own code
@@ -327,8 +325,10 @@ struct EffectRobustnessTest : juce::UnitTest
                     expect (allFinite (x), i.id);
                     // the input peaks near -14 dBFS; the strongest settings (saturation, EQ +18 dB,
                     // echo feedback) must still stay far from the engine's +24 dBFS invalid mark
-                    // (Parametrik EQ may stack four +18 dB bands: +36 dB - checked for finite output only)
-                    expectLessThan (maxAbs (x), juce::String (i.id) == "builtin:parameq" ? 1000.0f : 8.0f,
+                    // (Parametrik EQ may stack four +18 dB bands: +36 dB - checked for finite output only;
+                    // the compressor's make-up gain goes up to +24 dB)
+                    expectLessThan (maxAbs (x), juce::String (i.id) == "builtin:parameq" ? 1000.0f
+                                              : juce::String (i.id) == "builtin:compressor" ? 16.0f : 8.0f,
                                     juce::String (i.id) + " round " + juce::String (round));
                     expectEquals ((int) e->getRepairedOutputBlocks(), 0, i.id);
                 }
@@ -497,6 +497,7 @@ struct EffectClickTest : juce::UnitTest
                         if (id == "builtin:reverb" || id == "builtin:echo") e->setParam ("mix", 30.0f);
                         if (id == "builtin:chorus" && pid != "mode") e->setParam ("mix", 50.0f);
                         if (id == "builtin:deesser") e->setParam ("threshold", -40.0f);
+                        if (id == "builtin:compressor" && pid != "threshold") e->setParam ("threshold", -40.0f);
                         if (id == "builtin:limiter" && pid != "ceiling") e->setParam ("ceiling", -18.0f);
                         e->findParameter (pid)->setValueNotifyingHost (from);
                         e->setActiveChannels (2);
@@ -918,6 +919,124 @@ struct EffectDynamicsTest : juce::UnitTest
             double worst = 0.0;
             for (size_t k = 1440; k < s.size(); ++k) worst = std::max (worst, std::abs ((double) b[0][k] - s[k]));
             expectEquals (worst, 0.0);
+        }
+
+        beginTest ("compressor: static curve (threshold, ratio, soft knee)");
+        {
+            expectEquals (fx::compressorReductionDb (-40.0, -20.0, 4.0, 0.0), 0.0);
+            expectWithinAbsoluteError (fx::compressorReductionDb (-10.0, -20.0, 4.0, 0.0), 7.5, 1.0e-9);   // 10 dB over at 4:1
+            expectWithinAbsoluteError (fx::compressorReductionDb (0.0, -20.0, 2.0, 6.0), 10.0, 1.0e-9);
+            expectEquals (fx::compressorReductionDb (0.0, -20.0, 1.0, 6.0), 0.0);                       // 1:1 does nothing
+            double prev = -1.0;
+            for (double l = -40.0; l <= 0.0; l += 0.05)   // monotonic and continuous through the knee
+            {
+                const double g = fx::compressorReductionDb (l, -20.0, 6.0, 12.0);
+                expect (g >= prev - 1.0e-12);
+                if (prev >= 0.0) expectLessThan (g - prev, 0.06);
+                prev = g;
+            }
+        }
+
+        beginTest ("compressor: steady sine reaches the static curve; below the threshold bit-exact");
+        {
+            auto e = make ("builtin:compressor");
+            e->setParam ("threshold", -30.0f);
+            e->setParam ("ratio", 4.0f);
+            e->setParam ("knee", 0.0f);
+            e->setParam ("attack", 1.0f);
+            e->setParam ("release", 200.0f);
+            e->prepareToPlay (fs, 480);
+            const auto s = sine (96000, fs, 1000.0, std::pow (10.0, -10.0 / 20.0));
+            Buf a { s, s };
+            run (*e, a);
+            const double outDb = 20.0 * std::log10 (maxAbs (a, 48000));
+            expectWithinAbsoluteError (outDb, -25.0, 0.6, "-10 dBFS through 4:1 at -30 dB");
+            e->setParam ("makeup", 6.0f);
+            Buf b { s, s };
+            run (*e, b);
+            expectWithinAbsoluteError (20.0 * std::log10 (maxAbs (b, 48000)), -19.0, 0.6, "with 6 dB make-up");
+
+            auto q = make ("builtin:compressor");   // defaults: threshold -24 dB
+            const auto low = sine (48000, fs, 300.0, std::pow (10.0, -40.0 / 20.0));
+            Buf c { low, low };
+            const Buf in = c;
+            run (*q, c);
+            expect (c == in, "a quiet voice below the threshold passes unchanged");
+        }
+
+        beginTest ("compressor: parallel mix 0 % = dry");
+        {
+            auto e = make ("builtin:compressor");
+            e->setParam ("threshold", -50.0f);
+            e->setParam ("mix", 0.0f);
+            e->prepareToPlay (fs, 480);
+            const auto v = speechSignal (2.0, -12.0, 3);
+            Buf x { v, v };
+            const Buf in = x;
+            run (*e, x);
+            expect (x == in);
+        }
+
+        beginTest ("noise gate: room noise turned down by the range, words pass whole (look-ahead)");
+        {
+            auto e = make ("builtin:gate");   // threshold -50 dBFS, range 40 dB
+            e->prepareToPlay (fs, 480);
+            const int L = e->getLatencySamples();
+            expectEquals (L, (int) std::lround (0.003 * fs));
+            // 1 s room noise (-66 dBFS peak), 0.5 s "word" (400 Hz at -20 dBFS) with the noise, 1 s noise
+            const size_t n1 = 48000, n2 = 24000, n = n1 + n2 + 48000;
+            auto nz = noise (n, std::pow (10.0, -66.0 / 20.0), 31);
+            std::vector<float> in (nz);
+            for (size_t k = 0; k < n2; ++k)
+                in[n1 + k] += (float) (0.1 * std::sin (twoPi * 400.0 * (double) k / fs));
+            Buf x { in, in };
+            run (*e, x);
+            auto rmsDb = [] (const std::vector<float>& v, size_t a, size_t b)
+            {
+                double s2 = 0.0;
+                for (size_t k = a; k < b; ++k) s2 += (double) v[k] * v[k];
+                return 10.0 * std::log10 (std::max (1.0e-30, s2 / (double) (b - a)));
+            };
+            const size_t lat = (size_t) L;
+            // noise before the word (after closing): 40 dB down
+            const double noiseIn = rmsDb (in, 30000, 46000), noiseOut = rmsDb (x[0], 30000 + lat, 46000 + lat);
+            expectWithinAbsoluteError (noiseOut - noiseIn, -40.0, 1.0, "noise turned down by the range");
+            // the word: from its very first millisecond at full level (the gate opened in advance)
+            const double w1In = rmsDb (in, n1, n1 + 48), w1Out = rmsDb (x[0], n1 + lat, n1 + lat + 48);
+            expectGreaterThan (w1Out - w1In, -1.0, "first millisecond of the word not cut");
+            const double wIn = rmsDb (in, n1 + 480, n1 + n2), wOut = rmsDb (x[0], n1 + 480 + lat, n1 + n2 + lat);
+            expectWithinAbsoluteError (wOut - wIn, 0.0, 0.01, "the word itself unchanged");
+            // after the word: hold (120 ms) keeps it open, then it closes
+            expectWithinAbsoluteError (rmsDb (x[0], n1 + n2 + lat + 1000, n1 + n2 + lat + 4800) - rmsDb (in, n1 + n2 + 1000, n1 + n2 + 4800),
+                                       0.0, 0.5, "hold: still open just after the word");
+            expectWithinAbsoluteError (rmsDb (x[0], n - 16000, n) - rmsDb (in, n - 16000 - lat, n - lat), -40.0, 1.0, "closed again");
+        }
+
+        beginTest ("noise gate: a level right at the threshold does not flutter (hysteresis)");
+        {
+            auto e = make ("builtin:gate");
+            e->setParam ("threshold", -30.0f);
+            e->prepareToPlay (fs, 480);
+            // a 1 kHz tone whose level wobbles +/- 1.5 dB around -31 dBFS: the gate opens once and stays open
+            std::vector<float> v (96000);
+            for (size_t k = 0; k < v.size(); ++k)
+            {
+                const double lvl = -29.5 + 1.5 * std::sin (twoPi * 3.0 * (double) k / fs);
+                v[k] = (float) (std::pow (10.0, lvl / 20.0) * std::sin (twoPi * 1000.0 * (double) k / fs));
+            }
+            Buf x { v, v };
+            run (*e, x);
+            int changes = 0;
+            bool loud = true;
+            for (size_t k = 4800; k + 480 < v.size(); k += 480)
+            {
+                double m = 0.0;
+                for (size_t j = k; j < k + 480; ++j) m = std::max (m, std::abs ((double) x[0][j]));
+                const bool now = m > 0.01;
+                if (now != loud) ++changes;
+                loud = now;
+            }
+            expectEquals (changes, 0);
         }
     }
 };

@@ -13,9 +13,13 @@ namespace fx
     Factory createSaturation, createLoFi, createReverb, createEcho, createChorus;
     // LevelEffects.cpp
     Factory createLimiter, createMute, createDeEsser, createSyncDelay, createChannelTool;
+    // DynamicsEffects.cpp
+    Factory createCompressor, createGate;
     // MeterEffects.cpp
     Factory createLufsMeter, createSpectrum;
 
     // Static curve of the de-esser (dB of reduction for a detector level), for the unit tests.
     double deEsserReductionDb (double levelDb, double thresholdDb, double rangeDb);
+    // Static curve of the compressor (dB of reduction), for the unit tests.
+    double compressorReductionDb (double levelDb, double thresholdDb, double ratio, double kneeDb);
 }
