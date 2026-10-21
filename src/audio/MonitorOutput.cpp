@@ -110,8 +110,10 @@ void MonitorOutput::audioDeviceAboutToStart (juce::AudioIODevice* d)
     const double sr = d->getCurrentSampleRate();
     bridge.setOutputRate (sr);
     bridge.setConsumerActive (true);
-    gain = 0.0;
-    gainStep = 1.0 / std::max (1.0, 0.02 * sr);   // 20 ms for the whole way
+    fade = 0.0;
+    fadeStep = 1.0 / std::max (1.0, 0.02 * sr);   // 20 ms for the whole way
+    level = std::pow (10.0, (double) juce::jlimit (minVolumeDb, maxVolumeDb, volumeDb.load()) / 20.0);
+    levelCoeff = std::exp (-1.0 / std::max (1.0, 0.01 * sr));
     running.store (true);
 }
 
@@ -127,15 +129,15 @@ void MonitorOutput::audioDeviceIOCallbackWithContext (const float* const*, int, 
     rt::configureAudioThread();
     const juce::ScopedNoDenormals noDenormals;
     bridge.pull (out, numOut, numSamples, juce::Time::getMillisecondCounterHiRes() * 0.001);
-    const double target = audible.load (std::memory_order_relaxed)
-                        ? std::pow (10.0, (double) juce::jlimit (minVolumeDb, maxVolumeDb, volumeDb.load (std::memory_order_relaxed)) / 20.0)
-                        : 0.0;
+    const double fadeTarget = audible.load (std::memory_order_relaxed) ? 1.0 : 0.0;
+    const double levelTarget = std::pow (10.0, (double) juce::jlimit (minVolumeDb, maxVolumeDb, volumeDb.load (std::memory_order_relaxed)) / 20.0);
     for (int i = 0; i < numSamples; ++i)
     {
-        if (gain < target)      gain = std::min (target, gain + gainStep);
-        else if (gain > target) gain = std::max (target, gain - gainStep);
-        // raised-cosine shaped while it moves between 0 and 1 (no corner at the ends)
-        const double g = gain < 1.0 ? 0.5 - 0.5 * std::cos (juce::MathConstants<double>::pi * gain) : gain;
+        if (fade < fadeTarget)      fade = std::min (fadeTarget, fade + fadeStep);
+        else if (fade > fadeTarget) fade = std::max (fadeTarget, fade - fadeStep);
+        level = levelTarget + (level - levelTarget) * levelCoeff;
+        // on/off: raised-cosine shaped (no corner at the ends); the volume itself is applied exactly
+        const double g = (0.5 - 0.5 * std::cos (juce::MathConstants<double>::pi * fade)) * level;
         for (int c = 0; c < numOut; ++c)
             if (out[c] != nullptr) out[c][i] = (float) (out[c][i] * g);
     }

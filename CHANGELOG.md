@@ -53,6 +53,12 @@ project follows [Semantic Versioning](https://semver.org/).
   WASAPI shared, own thread and bridge, opened only while needed; monitoring always starts off).
   Deneme kaydı: 10 s of what the cable gets, played back on the headphones at once.
 - Presets can be exported to a .micvstpreset file and imported (menu "Kaydet").
+- Fixed: the headphone volume (Kendini dinle, Deneme kaydı) followed a raised-cosine curve instead of
+  the dB value set: -12 dB played at -16.6 dB, -20 dB at -32 dB, -40 dB at about -72 dB. The on/off
+  fade and the volume are now separate; the volume is exact (measured: -12 dB -> -12.00 dB).
+- The log names the real audio formats at every device setup: MicVST's stream and internal
+  processing (32-bit float) and the format Windows runs each endpoint in (e.g. microphone 32 bit,
+  cable 24 bit PCM, 48000 Hz). Ham ses on/off is logged like Sustur.
 - New main window (640x600): level card with the peak values and a one-line status, a big Sustur
   button (red while muted, shows its key), microphone and cable side by side, the preset row with
   "+ Eklenti", on/off switches in the chain rows, and a bottom bar (Ham ses, Kendini dinle, Deneme

@@ -1,5 +1,6 @@
 #include <juce_core/juce_core.h>
 #include "audio/DeviceFormat.h"
+#include "Text.h"
 #include <vector>
 
 // The endpoint formats Windows reports (PKEY_AudioEngine_DeviceFormat): WAVEFORMATEX and

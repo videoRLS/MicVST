@@ -51,6 +51,8 @@ private:
     std::atomic<float> volumeDb { 0.0f };
     std::atomic<bool> audible { false };
     std::atomic<bool> running { false };
-    double gain = 0.0;            // device thread
-    double gainStep = 0.001;      // device thread
+    // device thread: on/off fade (0..1, raised-cosine shaped, 20 ms) and the volume as a plain gain
+    // factor that glides (10 ms) - kept apart, so the volume is exactly the dB value set
+    double fade = 0.0, fadeStep = 0.001;
+    double level = 1.0, levelCoeff = 0.99;
 };

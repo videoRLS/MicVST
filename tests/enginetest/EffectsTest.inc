@@ -248,7 +248,7 @@ namespace fxtest
             check (totalClicks == 0, "live parameter changes: clicks");
         }
 
-        if (only.isNotEmpty()) { pr ("effects: " + juce::String (failures) + " failures"); return; }
+        if (only.isNotEmpty() && only != "monitor") { pr ("effects: " + juce::String (failures) + " failures"); return; }   // "effects monitor": the sections below
         pr ("");
         pr ("## Saved and restored (captureState -> config.xml -> applyState): every parameter, order, bypass");
         {
@@ -545,7 +545,7 @@ namespace fxtest
             check (std::abs (quiet.first - (expectDb - 12.0)) < 0.5, "headphone volume -12 dB");
             check (offAgain.second == 0, "monitoring switched off: the headphones are silent");
             check (recorded && idle, "test recording: record -> play on the headphones -> done");
-            check (playback.second > (int64_t) (5.0 * 48000.0) && playback.first > expectDb - 12.0 - 1.0, "test recording: heard on the headphones");
+            check (playback.second > (int64_t) (5.0 * 48000.0) && std::abs (playback.first - (expectDb - 12.0)) < 0.6, "test recording: heard on the headphones at the headphone volume (-12 dB)");
             check (std::abs (cableDuring - expectDb) < 0.5, "the cable keeps its audio while the test recording plays");
             check (after.second == 0, "after the test recording the headphone device is closed again (monitoring off)");
         }
