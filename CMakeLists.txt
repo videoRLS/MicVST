@@ -75,8 +75,8 @@ juce_add_gui_app(MicVST
     PRODUCT_NAME "MicVST"
     COMPANY_NAME "MicVST"
     VERSION      ${PROJECT_VERSION}
-    ICON_BIG   "${CMAKE_CURRENT_SOURCE_DIR}/resources/iconDarkMode.png"
-    ICON_SMALL "${CMAKE_CURRENT_SOURCE_DIR}/resources/iconDarkMode.png"
+    ICON_BIG   "${CMAKE_CURRENT_SOURCE_DIR}/resources/appIcon.png"
+    ICON_SMALL "${CMAKE_CURRENT_SOURCE_DIR}/resources/appIconSmall.png"
 )
 
 # Beide Icon-Varianten als Binärdaten einbetten (für das theme-adaptive Tray-Icon).

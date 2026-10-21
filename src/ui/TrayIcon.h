@@ -26,7 +26,7 @@ public:
 
     void mouseDown (const juce::MouseEvent&) override;
 
-    // Tray-Icon passend zum aktuellen Windows-Hell/Dunkel-Modus setzen.
+    // Tray-Icon passend zum aktuellen Windows-Hell/Dunkel-Modus setzen (stumm: roter Punkt).
     void updateIcon();
     void darkModeSettingChanged() override { updateIcon(); }   // Live-Umschaltung
 private:
