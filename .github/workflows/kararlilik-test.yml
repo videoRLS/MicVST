@@ -121,6 +121,12 @@ jobs:
         shell: pwsh
         run: ./tools/ci-runtime-check.ps1 -Exe build/MicVST_artefacts/Release/MicVST.exe -Out results/runtime
 
+      - name: Desktop helpers (MicVST_Oncelik.vbs, MicVST_Simgeleri.vbs) on real Windows
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && env.QUICK != 'true' && hashFiles('tools/ci-desktop-scripts.ps1') != '' }}
+        continue-on-error: true
+        shell: pwsh
+        run: ./tools/ci-desktop-scripts.ps1 -Exe build/MicVST_artefacts/Release/MicVST.exe -Out results/desktop
+
       - name: Publish
         if: ${{ !cancelled() }}
         shell: pwsh

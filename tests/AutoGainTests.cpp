@@ -819,6 +819,57 @@ struct AutoGainTest : juce::UnitTest
             expectEquals ((int) normalForgotten, 0, "normal speech is not touched");
         }
 
+        beginTest ("regression: the first 0.5 s of a sudden shout at full gain and normal speech afterwards (spec: never above -10 dBFS)");
+        {
+            // A voice, then a sudden shout 14-18 dB louder for 3 s, then the voice again: the shout's
+            // first moments arrive while the gain is still up - the case where a -8.85 dBFS transient
+            // was once reported. Output sample peaks must stay at or under -10 dBFS everywhere, also in
+            // the first 0.5 s; the true peak only within the documented margin of the 8x detection.
+            // Afterwards the voice must not stay low: back at its level from before the shout.
+            //  quiet voice (-32 dBFS): the full +6 dB is not enough for -20 dBFS - it stays at +6 (spec 0 ... +6 dB)
+            //  normal voice (-25 dBFS): reaches the -20 dBFS aim with about +5 dB
+            struct Case { const char* name; double voiceDb, shoutDb; };
+            for (const Case c : { Case { "quiet voice -32 dBFS, shout -14 dBFS", -32.0, -14.0 }, Case { "normal voice -25 dBFS, shout -11 dBFS", -25.0, -11.0 } })
+            {
+                double worstOnsetSample = -200.0, worstOnsetTrue = -200.0, worstSample = -200.0, gainBefore = 0.0, gainAfter = 0.0;
+                std::vector<double> before, after;
+                for (unsigned v = 0; v < 6; ++v)
+                {
+                    const auto sOwner = newStage (fs); auto& s = *sOwner;
+                    auto calm = talk (30.0, c.voiceDb, 1200 + v, -65.0, -20.0);
+                    auto shoutPart = talk (3.0, c.shoutDb, 1300 + v, -65.0, -8.0);
+                    auto calm2 = talk (20.0, c.voiceDb, 1400 + v, -65.0, -20.0);
+                    std::vector<float> x = calm.x;
+                    const double onset = (double) x.size() / fs;
+                    x.insert (x.end(), shoutPart.x.begin(), shoutPart.x.end());
+                    const double back = (double) x.size() / fs;
+                    x.insert (x.end(), calm2.x.begin(), calm2.x.end());
+                    const auto g = run (s, x);
+                    gainBefore += g[(size_t) (onset * 100.0) - 1] / 6.0;
+                    gainAfter += g.back() / 6.0;
+                    worstOnsetSample = std::max (worstOnsetSample, peakDbOf (x, onset, onset + 0.5));
+                    worstOnsetTrue = std::max (worstOnsetTrue, truePeakDbOf (x, onset, onset + 0.5));
+                    worstSample = std::max (worstSample, peakDbOf (x, 0.0, (double) x.size() / fs));
+                    before.push_back (typicalOf (x, onset - 14.0, onset));
+                    after.push_back (typicalOf (x, back + 6.0, back + 20.0));
+                }
+                const double bm = mean (before), am = mean (after);
+                logMessage ("    " + juce::String (c.name) + ": gain before the shout " + d2 (gainBefore) + " dB, at the end " + d2 (gainAfter)
+                            + " dB; first 0.5 s of the shout: sample peak " + juce::String (worstOnsetSample, 3) + " dBFS, true peak "
+                            + juce::String (worstOnsetTrue, 3) + " dBFS; whole run " + juce::String (worstSample, 3) + " dBFS; voice typical before "
+                            + d2 (bm) + ", 6-20 s after " + d2 (am) + " dBFS");
+                expectLessOrEqual (worstOnsetSample, ceiling + 1.0e-5, "no sample over -10 dBFS in the shout's first 0.5 s");
+                expectLessThan (worstOnsetTrue, ceiling + 0.3, "true peak within the documented margin");
+                expectLessOrEqual (worstSample, ceiling + 1.0e-5);
+                expectWithinAbsoluteError (am, bm, 1.0, "the voice is back at its level from before the shout");
+                expectWithinAbsoluteError (gainAfter, gainBefore, 1.0, "the gain is back");
+                if (c.voiceDb + maxBoost >= normal)
+                    expectWithinAbsoluteError (am, normal, 1.5, "a voice that can reach the aim is at -20 dBFS again");
+                else
+                    expectGreaterThan (gainBefore, maxBoost - 0.5, "a voice too quiet for the aim gets the full +6 dB");
+            }
+        }
+
         beginTest ("naturalness: how much the gain moves inside phrases and between phrases (measured, see the log)");
         {
             std::vector<double> ranges, slopes, per100;
