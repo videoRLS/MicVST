@@ -95,7 +95,8 @@ namespace rectest
             if (hiccupsAB == 0)
             {
                 check (ca.clk.events == 0 && cb.clk.events == 0, "the cable has no clicks, with or without a recording (start and stop included)");
-                check (std::abs (cb.thdn - ca.thdn) < 3.0 && std::abs (cb.gainDb - ca.gainDb) < 0.01, "the cable's quality and level do not change while recording");
+                // worse by less than 3 dB (the fit's own spread between two 12 s windows); better is fine
+                check (cb.thdn - ca.thdn < 3.0 && std::abs (cb.gainDb - ca.gainDb) < 0.01, "the cable's quality and level do not get worse while recording");
                 check (diag1.bridge.underruns == diag0.bridge.underruns && diag1.bridge.droppedBlocks == diag0.bridge.droppedBlocks,
                        "no underruns or dropped blocks on the cable while recording");
                 check (std::abs (latencyB - latencyA) < 1.0, "the latency does not change while recording");
