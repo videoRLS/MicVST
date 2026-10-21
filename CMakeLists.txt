@@ -99,6 +99,7 @@ target_sources(MicVST PRIVATE
     src/ui/DarkTitleBar.cpp
     src/ui/GlobalHotkeys.cpp
     src/ui/HotkeyDialog.cpp
+    src/ui/SettingsComponent.cpp
     src/state/AutostartRegistry.cpp
 )
 target_compile_definitions(MicVST PRIVATE
@@ -179,6 +180,7 @@ target_sources(MicVSTSnapshot PRIVATE
     src/ui/DarkTitleBar.cpp
     src/ui/GlobalHotkeys.cpp
     src/ui/HotkeyDialog.cpp
+    src/ui/SettingsComponent.cpp
     src/state/AutostartRegistry.cpp
 )
 target_include_directories(MicVSTSnapshot BEFORE PRIVATE tests/snapshot tests)

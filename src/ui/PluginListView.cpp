@@ -75,17 +75,35 @@ void PluginListView::TrashButton::paintButton (juce::Graphics& g, bool highlight
 
 // ============================ Row ============================
 
+void PluginListView::SwitchButton::paintButton (juce::Graphics& g, bool highlighted, bool)
+{
+    const bool on = ! getToggleState();   // toggle state = bypassed
+    auto b = getLocalBounds().toFloat().reduced (1.0f);
+    const float h = juce::jmin (b.getHeight(), 18.0f);
+    auto track = b.withSizeKeepingCentre (juce::jmin (b.getWidth(), h * 1.9f), h);
+    g.setColour (on ? micvst::theme::accent : micvst::theme::outline);
+    g.fillRoundedRectangle (track, h * 0.5f);
+    if (highlighted)
+    {
+        g.setColour (micvst::theme::textBright.withAlpha (0.25f));
+        g.drawRoundedRectangle (track, h * 0.5f, 1.0f);
+    }
+    const float d = h - 4.0f;
+    const float x = on ? track.getRight() - 2.0f - d : track.getX() + 2.0f;
+    g.setColour (on ? juce::Colours::white : micvst::theme::textDim);
+    g.fillEllipse (x, track.getY() + 2.0f, d, d);
+}
+
 PluginListView::Row::Row (PluginListView& ownerIn, int idx) : owner (ownerIn), index (idx)
 {
     const auto& es = owner.engine.getChain().entries();
     const bool bypassed = juce::isPositiveAndBelow (index, (int) es.size())
                           && es[(size_t) index].bypassed;
 
-    bypassBtn.setButtonText (tr ("Devre dışı"));
     bypassBtn.setTooltip (tr ("Eklentiyi geçici olarak devre dışı bırak (ses onu atlar)"));
+    bypassBtn.setTitle (tr ("Etkin"));
     bypassBtn.setClickingTogglesState (true);
     bypassBtn.setToggleState (bypassed, juce::dontSendNotification);
-    bypassBtn.setColour (juce::TextButton::buttonOnColourId, micvst::theme::warning);
     bypassBtn.onClick = [this] { owner.toggleBypass (index); };
     addAndMakeVisible (bypassBtn);
 
@@ -175,7 +193,7 @@ void PluginListView::Row::resized()
     auto r = getLocalBounds().reduced (2);
     trashBtn.setBounds (r.removeFromRight (28));
     r.removeFromRight (4);
-    bypassBtn.setBounds (r.removeFromRight (80));
+    bypassBtn.setBounds (r.removeFromRight (44).withSizeKeepingCentre (36, 20));
 
     if (isGainRow)
     {
@@ -294,7 +312,8 @@ PluginListView::PluginListView (AudioEngine& e) : engine (e)
     addBtn.onClick = [this] { showPluginPicker(); };
 
     addAndMakeVisible (manageFoldersBtn);
-    manageFoldersBtn.onClick = [this] { showFolderMenu(); };
+    manageFoldersBtn.onClick = [this] { showFolderMenu (&manageFoldersBtn); };
+    manageFoldersBtn.setVisible (false);   // in the settings window now (Eklentiler)
 
     presetBox.setTextWhenNothingSelected (tr ("Hazır ayar seçin"));
     presetBox.setTooltip (tr ("Hazır ayarlar: tüm zincir tek tıkla değişir. \"Erkek Sesi Ayarları\" ve \"Kadın Sesi Ayarları\" "
@@ -319,6 +338,8 @@ PluginListView::PluginListView (AudioEngine& e) : engine (e)
     addChildComponent (scanBar);
     addChildComponent (skipScanBtn);
     addBtn.setButtonText (tr ("+ Eklenti"));
+    addBtn.setColour (juce::TextButton::buttonColourId, micvst::theme::accent);
+    addBtn.setColour (juce::TextButton::textColourOffId, micvst::theme::dark ? micvst::theme::background : juce::Colours::white);
     manageFoldersBtn.setButtonText (tr ("VST3 klasörleri"));
     skipScanBtn.setButtonText (tr ("Atla"));
     skipScanBtn.setTooltip (tr ("Şu an taranan eklentiyi atla"));
@@ -392,17 +413,16 @@ void PluginListView::gainChanged (int index, float gainDb)
 void PluginListView::resized()
 {
     auto r = getLocalBounds();
-    auto top = r.removeFromTop (30);
-    constexpr int btnH = 26;   // einheitliche Button-Höhe (wie Row-/DevicePanel-Buttons)
-    addBtn.setBounds (top.removeFromLeft (110).withSizeKeepingCentre (106, btnH));
-    manageFoldersBtn.setBounds (top.removeFromRight (150).withSizeKeepingCentre (146, btnH));   // rechtsbündig
-    // Hazır ayarlar between them: the list and its menu (save, rename, delete, back)
-    top.removeFromLeft (4);
-    top.removeFromRight (8);
-    presetMenuBtn.setBounds (top.removeFromRight (86).withSizeKeepingCentre (86, btnH));
-    top.removeFromRight (4);
+    auto top = r.removeFromTop (34);
+    constexpr int btnH = 32;   // einheitliche Button-Höhe (wie Row-/DevicePanel-Buttons)
+    // the preset list (wide), its menu "Kaydet", and "+ Eklenti" (accent) on the right
+    const auto textW = [] (juce::TextButton& b) { return juce::roundToInt (juce::GlyphArrangement::getStringWidth (juce::Font (juce::FontOptions (15.0f)), b.getButtonText())) + 28; };
+    addBtn.setBounds (top.removeFromRight (juce::jmax (110, textW (addBtn))).withSizeKeepingCentre (juce::jmax (110, textW (addBtn)), btnH));
+    top.removeFromRight (6);
+    presetMenuBtn.setBounds (top.removeFromRight (juce::jmax (86, textW (presetMenuBtn))).withSizeKeepingCentre (juce::jmax (86, textW (presetMenuBtn)), btnH));
+    top.removeFromRight (6);
     presetBox.setBounds (top.withSizeKeepingCentre (top.getWidth(), btnH));
-    r.removeFromTop (4);
+    r.removeFromTop (8);
 
     if (scanLabel.isVisible())
     {
@@ -618,7 +638,7 @@ void PluginListView::addFromPicker (const juce::PluginDescription& desc)
     }
 }
 
-void PluginListView::showFolderMenu()
+void PluginListView::showFolderMenu (juce::Component* target)
 {
     juce::PopupMenu m;
     m.addItem (1, tr ("Klasör ekle..."));
@@ -661,7 +681,7 @@ void PluginListView::showFolderMenu()
     // zerstört den ScanCoordinator, bevor je wieder etwas den Cache speichert.
     m.addItem (resetItemId, tr ("Programı sıfırla (tüm veriler silinir)..."), ! engine.isScanning());
 
-    m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (&manageFoldersBtn),
+    m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (target != nullptr ? target : &manageFoldersBtn),
         [this, rescanItemId, retryItemId, resetItemId] (int res)
         {
             if (res == 1) { chooseFolder(); return; }

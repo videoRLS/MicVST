@@ -49,6 +49,13 @@ project follows [Semantic Versioning](https://semver.org/).
   WASAPI shared, own thread and bridge, opened only while needed; monitoring always starts off).
   Deneme kaydı: 10 s of what the cable gets, played back on the headphones at once.
 - Presets can be exported to a .micvstpreset file and imported (menu "Kaydet").
+- New main window (640x600): level card with the peak values and a one-line status, a big Sustur
+  button (red while muted, shows its key), microphone and cable side by side, the preset row with
+  "+ Eklenti", on/off switches in the chain rows, and a bottom bar (Ham ses, Kendini dinle, Deneme
+  kaydı, help, Ayarlar). Everything set once moved into the new "Ayarlar" window (sections: Ses,
+  Kısayollar, Görünüm ve başlangıç, Eklentiler, Hakkında).
+- New app icon (microphone with the effect chain), tray icons for dark and light Windows; the tray
+  icon shows a red dot while muted.
 - The how-to window wraps its paragraphs and list items to the window width (hanging indent),
   right to left for Arabic. Its footer: version and "Relios tarafından geliştirilmiştir."
 

@@ -15,7 +15,9 @@ HotkeyDialog::HotkeyDialog (GlobalHotkeys& k, Setter s) : keys (k), setBinding (
     {
         const auto a = (GlobalHotkeys::Action) i;
         auto& l = lines[i];
-        l.enabled.setButtonText (tr ("Etkin"));
+        l.enabled.setButtonText ({});
+        l.enabled.setTooltip (tr ("Etkin"));
+        l.enabled.setTitle (tr ("Etkin"));
         l.enabled.onClick = [this, a, &l]
         {
             auto b = keys.get (a);
@@ -48,7 +50,7 @@ HotkeyDialog::HotkeyDialog (GlobalHotkeys& k, Setter s) : keys (k), setBinding (
     addAndMakeVisible (hint);
     setWantsKeyboardFocus (true);
     refresh();
-    setSize (520, 30 + GlobalHotkeys::numActions * 58 + 50);
+    setSize (448, 24 + GlobalHotkeys::numActions * 58 + 56);
 }
 
 HotkeyDialog::~HotkeyDialog() { endCapture(); }
@@ -105,14 +107,15 @@ void HotkeyDialog::paint (juce::Graphics& g)
 
 void HotkeyDialog::resized()
 {
-    auto r = getLocalBounds().reduced (12);
+    auto r = getLocalBounds();
     for (auto& l : lines)
     {
         auto row = r.removeFromTop (28);
-        l.enabled.setBounds (row.removeFromLeft (90));
-        l.reset.setBounds (row.removeFromRight (100));
+        l.enabled.setBounds (row.removeFromLeft (30));
+        const int resetW = juce::jmax (80, juce::roundToInt (juce::GlyphArrangement::getStringWidth (juce::Font (juce::FontOptions (15.0f)), l.reset.getButtonText())) + 20);
+        l.reset.setBounds (row.removeFromRight (resetW));
         row.removeFromRight (6);
-        l.key.setBounds (row.removeFromRight (140));
+        l.key.setBounds (row.removeFromRight (120));
         row.removeFromRight (6);
         l.name.setBounds (row);
         l.problem.setBounds (r.removeFromTop (22));

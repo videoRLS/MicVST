@@ -7,51 +7,58 @@
 #include "state/AutostartRegistry.h"
 #include "ui/GlobalHotkeys.h"
 
-// MicVST 1.2: keinerlei Netzwerkcode - kein Update-Check, keine klickbaren Web-Links
-// (URLs nur noch als reiner Text).
+// The big mute button of the main window: microphone icon, "Sustur" / "Sesi aç" and the shortcut
+// key; red while muted.
+class MuteButton final : public juce::Button
+{
+public:
+    MuteButton();
+    void setState (bool muted, const juce::String& keyText);
+    void paintButton (juce::Graphics&, bool highlighted, bool down) override;
+private:
+    bool muted = false;
+    juce::String keyText;
+};
+
+// The main window (MicVST 1.3 layout): what is used every day is in front - the levels with a big
+// mute button, microphone and cable, presets and the chain, A/B, monitoring and the test recording.
+// Everything set once (buffer, safety margin, priority, headphones, shortcut keys, language, theme,
+// VST3 folders) is in the settings window (SettingsComponent), opened with "Ayarlar".
+// MicVST has no network code at all - no update check, no clickable web links.
 class MainComponent : public juce::Component, private juce::Timer
 {
 public:
     explicit MainComponent (AudioEngine& engine);
     ~MainComponent() override;
+    void paint (juce::Graphics&) override;
     void resized() override;
 
     // Inhalt + Titel des Anleitungsfensters (auch für die Oberflächen-Schnappschüsse der Tests).
     static juce::String howToTitle();
     static std::unique_ptr<juce::Component> createHowToContent();
+    void showHowTo();         // öffnet das How-To-Fenster
 
-    // The app's shortcut keys (they outlive this window content); changes are saved by the app.
-    void setHotkeys (GlobalHotkeys* keys, std::function<bool (GlobalHotkeys::Action, const GlobalHotkeys::Binding&)> setter);
+    // The app's shortcut keys (they outlive this window content): shown on the buttons.
+    void setHotkeys (GlobalHotkeys* keys);
     PluginListView& getPluginList() { return *pluginList; }
+    std::function<void()> onShowSettings;   // set by the window
 
 private:
     void timerCallback() override;
     void updateCableHint();   // zeigt den VB-Cable-Hinweis, wenn kein virtuelles Kabel installiert ist
-    void showHowTo();         // öffnet das How-To-Fenster
-    AudioEngine& engine;
-    std::unique_ptr<DevicePanel> devicePanel;
-    LevelMeterComponent inMeter, outMeter;
-    DbScaleComponent dbScale;
-    juce::Label inLabel, outLabel;       // "Giriş" / "Çıkış" (Texte im Konstruktor, UTF-8)
-    std::unique_ptr<PluginListView> pluginList;
-    juce::Label versionLabel;            // Versionsnummer (reiner Text, kein Link)
-    juce::TextButton howToBtn;           // "Kullanım"
-    std::unique_ptr<juce::DocumentWindow> howToWindow;
-    juce::ComboBox languageBox;          // interface language (Text.h); the app rebuilds the window
-    juce::ComboBox themeBox;             // colour theme (ui/Theme.h); the app rebuilds the window
-public:
-    std::function<void (const juce::String& themeId)> onThemeChosen;      // set by the window
-    std::function<void (const juce::String& languageId)> onLanguageChosen;
-private:
-    juce::ToggleButton autostartToggle;  // "Açılışta başlat"
-
-    // Action row under the devices: Sustur, Ham ses (A/B), Kendini dinle, Deneme kaydı, Kısayollar
-    juce::TextButton muteBtn, compareBtn, monitorBtn, testBtn, hotkeysBtn;
     void updateActionButtons();
-    void showHotkeys();
+
+    AudioEngine& engine;
+    LevelMeterComponent inMeter, outMeter;
+    juce::Label inLabel, outLabel, inValue, outValue;
+    float inHeld = -120.0f, outHeld = -120.0f;
+    juce::Rectangle<int> levelCard;
+    MuteButton muteBtn;
+    std::unique_ptr<DevicePanel> devicePanel;
+    std::unique_ptr<PluginListView> pluginList;
+    juce::TextButton compareBtn, monitorBtn, testBtn, helpBtn, settingsBtn;
+    std::unique_ptr<juce::DocumentWindow> howToWindow;
     GlobalHotkeys* hotkeys = nullptr;
-    std::function<bool (GlobalHotkeys::Action, const GlobalHotkeys::Binding&)> setHotkey;
     juce::Label cableHint;               // VB-Cable-Hinweis (reiner Text, kein Link)
     juce::TooltipWindow tooltipWindow { nullptr, 100 };   // Hover-Tooltips, fast instant (100 ms)
-    int timerTicks = 0;                  // Registry-Abgleich nur jede Sekunde
 };

@@ -33,7 +33,11 @@ class DevicePanel : public juce::Component,
                     private juce::Timer
 {
 public:
-    explicit DevicePanel (AudioEngine&);
+    // compact: the main window's row - microphone and cable side by side (the one-line status is
+    // shown by the window, getStatusLabel()). Otherwise the settings window's rows: buffer, safety
+    // margin, process priority, headphones (the device combos exist but stay hidden).
+    explicit DevicePanel (AudioEngine&, bool compact = true);
+    juce::Label& getStatusLabel() { return statusLabel; }
     ~DevicePanel() override;
     void resized() override;
 
@@ -72,4 +76,7 @@ private:
     juce::Label    statsLabel;    // CPU-Last / Safety / Drift / Aussetzer (immer sichtbar)
 
     bool updating = false;        // Re-entrancy-Guard beim Befüllen
+    const bool compact;
+    bool bufShown = false;        // the device offers buffer sizes (the row is shown in the settings)
+    bool priorityShown() const { return ! compact && rt::processPrioritySupported(); }
 };

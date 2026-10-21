@@ -26,7 +26,11 @@ private:
 
     void showPluginPicker();            // "+ Plugin": Picker mit Suchfeld (CallOutBox)
     void addFromPicker (const juce::PluginDescription&);
-    void showFolderMenu();              // Custom-VST3-Ordner verwalten (hinzufügen/entfernen)
+public:
+    // Custom-VST3-Ordner verwalten (hinzufügen/entfernen, neu scannen, zurücksetzen); the menu opens
+    // at target (the settings window's button).
+    void showFolderMenu (juce::Component* target);
+private:
     void chooseFolder();                // VST3-Ordner per Dialog wählen + rescannen
     void openEditor (int row);
     void rebuildRows();                 // Zeilen-Components aus der aktuellen Kette neu erzeugen
@@ -41,6 +45,13 @@ private:
     // Ziehen erzeugt viele Werte, und jedes Speichern serialisiert alle Plugin-Zustände.
     bool gainPersistPending = false;
     juce::uint32 lastGainChangeMs = 0;
+
+    // On/off switch of a row (on = the element works; off = bypassed). Toggle state = bypassed.
+    struct SwitchButton : juce::Button
+    {
+        SwitchButton() : juce::Button ("switch") {}
+        void paintButton (juce::Graphics&, bool highlighted, bool down) override;
+    };
 
     // Per-Row gezeichneter Mülleimer-Button.
     struct TrashButton : juce::Button
@@ -75,7 +86,7 @@ private:
 
         PluginListView& owner;
         int index;
-        juce::TextButton bypassBtn;
+        SwitchButton bypassBtn;
         TrashButton trashBtn;
         bool isGainRow = false;
         juce::Slider gainSlider;   // nur in Kazanç-Zeilen sichtbar

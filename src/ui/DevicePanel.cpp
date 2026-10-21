@@ -3,10 +3,10 @@
 
 using micvst::tr;
 
-DevicePanel::DevicePanel (AudioEngine& e) : engine (e)
+DevicePanel::DevicePanel (AudioEngine& e, bool compactMode) : engine (e), compact (compactMode)
 {
-    inLabel.setText (tr ("Giriş"), juce::dontSendNotification);
-    outLabel.setText (tr ("Çıkış"), juce::dontSendNotification);
+    inLabel.setText (compact ? tr ("Mikrofon") : tr ("Giriş"), juce::dontSendNotification);
+    outLabel.setText (compact ? tr ("Kablo") : tr ("Çıkış"), juce::dontSendNotification);
     bufLabel.setText (tr ("Tampon"), juce::dontSendNotification);
     safetyLabel.setText (tr ("Güvenlik payı"), juce::dontSendNotification);
     for (auto* l : { &inLabel, &outLabel })
@@ -56,7 +56,7 @@ DevicePanel::DevicePanel (AudioEngine& e) : engine (e)
     priorityBox.addItem (tr ("Normalin Üstünde"), 2);
     priorityBox.addItem (tr ("Yüksek"), 3);
     priorityBox.onChange = [this] { applyPriority(); };
-    if (rt::processPrioritySupported())
+    if (priorityShown())
     {
         addAndMakeVisible (priorityLabel); addAndMakeVisible (priorityBox); addAndMakeVisible (priorityInfo);
     }
@@ -96,6 +96,28 @@ DevicePanel::DevicePanel (AudioEngine& e) : engine (e)
 
     inBox.onChange  = [this] { apply(); };
     outBox.onChange = [this] { apply(); };
+
+    // one window shows the device combos, the other the settings rows
+    for (auto* c : { (juce::Component*) &inLabel, (juce::Component*) &inBox, (juce::Component*) &inInfo,
+                     (juce::Component*) &outLabel, (juce::Component*) &outBox, (juce::Component*) &outInfo })
+        c->setVisible (compact);
+    inInfo.setVisible (false);
+    outInfo.setVisible (false);
+    inBox.setTooltip (inInfo.getTooltip());
+    outBox.setTooltip (outInfo.getTooltip());
+    if (compact)
+    {
+        for (auto* c : { (juce::Component*) &safetyLabel, (juce::Component*) &safetyBox, (juce::Component*) &safetyInfo,
+                         (juce::Component*) &monitorLabel, (juce::Component*) &monitorBox, (juce::Component*) &monitorVol,
+                         (juce::Component*) &monitorInfo, (juce::Component*) &statsLabel })
+            c->setVisible (false);
+        statusLabel.setFont (juce::Font (juce::FontOptions (12.0f)));
+    }
+    else
+    {
+        statusLabel.setVisible (false);
+        statsLabel.setVisible (false);
+    }
 
     // Seit 1.2 sind Mikrofon und Kabel zwei eigene Geräte (je ein eigener Echtzeit-Thread).
     engine.getInputDeviceManager().addChangeListener (this);
@@ -202,10 +224,15 @@ void DevicePanel::refresh()
         if (pref > 0 && idx < 0)
             engine.setPreferredBufferSize (0);
     }
-    if (showBuf != bufBox.isVisible())
+    if (showBuf != bufShown)
     {
-        bufLabel.setVisible (showBuf); bufBox.setVisible (showBuf); bufInfo.setVisible (showBuf);
-        if (auto* p = getParentComponent()) p->resized();   // MainComponent-Layout nachziehen
+        bufShown = showBuf;
+        if (! compact)
+        {
+            bufLabel.setVisible (showBuf); bufBox.setVisible (showBuf); bufInfo.setVisible (showBuf);
+            resized();
+            if (auto* p = getParentComponent()) p->resized();   // Layout nachziehen
+        }
     }
 
     {
@@ -225,7 +252,7 @@ void DevicePanel::refresh()
 
 void DevicePanel::syncPriority()
 {
-    if (! priorityBox.isVisible() || priorityBox.isPopupActive())
+    if (! priorityShown() || priorityBox.isPopupActive())
         return;
 
     // Shows what Windows reports right now - after MicVST applied the saved choice at start, and
@@ -296,6 +323,20 @@ void DevicePanel::updateStatus()
     statsLabel.setColour (juce::Label::textColourId, tooHeavy ? micvst::theme::error
                                                    : dropouts > 0 ? micvst::theme::warning : micvst::theme::textDim);
 
+    if (compact)
+    {
+        // one line for the main window: state, latency, CPU, dropouts (the rest in the tooltip)
+        juce::String line = engine.isRunning() ? tr ("Çalışıyor") : tr ("Durdu - cihaz bağlı değil");
+        if (d.latencyMs > 0.0) line << "  ·  " << tr ("gecikme ") << micvst::trNumber (d.latencyMs, 1) << " ms";
+        line << "  ·  " << tr ("İşlemci ") << micvst::trPercent (d.dspLoadPercent);
+        if (tooHeavy) line << tr (" - zincir çok ağır");
+        line << "  ·  " << tr ("kesinti ") << juce::String ((juce::int64) dropouts);
+        statusLabel.setText (line, juce::dontSendNotification);
+        statusLabel.setColour (juce::Label::textColourId, tooHeavy ? micvst::theme::error
+                                                        : dropouts > 0 ? micvst::theme::warning
+                                                        : engine.isRunning() ? micvst::theme::textDim : micvst::theme::warning);
+    }
+
     juce::String tip;
     tip << tr ("Çıkışta ses kesildi: ") << (juce::int64) d.bridge.underruns << "\n"
         << tr ("Zincir yetişemedi, ses atlandı: ") << (juce::int64) d.inputSkips;
@@ -310,6 +351,7 @@ void DevicePanel::updateStatus()
         << "\n" << tr ("Saat farkı mikrofon/kablo: ") << (d.bridge.driftPpm >= 0 ? "+" : "")
         << juce::roundToInt (d.bridge.driftPpm) << " ppm";
     statsLabel.setTooltip (tip);
+    if (compact) statusLabel.setTooltip (st + "\n" + s2 + "\n\n" + tip);
 }
 
 void DevicePanel::apply()
@@ -337,7 +379,7 @@ void DevicePanel::apply()
     // weil setDeviceConfig 0 als "unverändert" interpretiert (sonst kein Zurückstellen).
     auto* dev = engine.getInputDeviceManager().getCurrentAudioDevice();
     int buf = 0;
-    if (bufBox.isVisible() && bufBox.getSelectedId() >= 2)
+    if (bufShown && bufBox.getSelectedId() >= 2)
     {
         const auto sizes = dev != nullptr ? dev->getAvailableBufferSizes() : juce::Array<int>();
         const int idx = bufBox.getSelectedId() - 2;
@@ -361,11 +403,28 @@ void DevicePanel::applySafety()
 
 void DevicePanel::resized()
 {
+    if (compact)
+    {
+        // Mikrofon | Kablo side by side; each label inside its half, then the combo
+        auto r = getLocalBounds();
+        auto left = r.removeFromLeft ((r.getWidth() - 8) / 2);
+        r.removeFromLeft (8);
+        auto place = [] (juce::Rectangle<int> area, juce::Label& l, juce::ComboBox& box)
+        {
+            const int w = juce::jlimit (50, 110, juce::roundToInt (juce::GlyphArrangement::getStringWidth (l.getFont(), l.getText())) + 10);
+            l.setBounds (area.removeFromLeft (w));
+            box.setBounds (area);
+        };
+        place (left, inLabel, inBox);
+        place (r, outLabel, outBox);
+        return;
+    }
+
     // labelW: Platz für das längste Label ("Güvenlik payı" auf Türkisch: 118) plus "?"-Icon; in
     // anderen Sprachen so breit wie das längste Label (höchstens 190), damit nichts gekürzt wird.
-    constexpr int rowH = 26, statusH = 20, gap = 4;
+    constexpr int rowH = 30, gap = 6;
     int labelW = 118;
-    for (auto* l : { &inLabel, &outLabel, &bufLabel, &safetyLabel, &priorityLabel, &monitorLabel })
+    for (auto* l : { &bufLabel, &safetyLabel, &priorityLabel, &monitorLabel })
         if (l->isVisible())
             labelW = juce::jmax (labelW, juce::roundToInt (juce::GlyphArrangement::getStringWidth (l->getFont(), l->getText()) + 0.5f) + 18 + 8);
     labelW = juce::jmin (labelW, 190);
@@ -377,48 +436,28 @@ void DevicePanel::resized()
         r.removeFromTop (gap);
         return a;
     };
-
-    // Label + "?"-Icon in der Label-Spalte, danach die ComboBox.
-    auto labelWithInfo = [labelW] (juce::Rectangle<int> r, juce::Label& lbl, InfoIcon& info)
+    auto labelWithInfo = [labelW] (juce::Rectangle<int> area, juce::Label& lbl, InfoIcon& info)
     {
-        auto col = r.removeFromLeft (labelW);
+        auto col = area.removeFromLeft (labelW);
         info.setBounds (col.removeFromRight (18).reduced (2));
         lbl.setBounds (col);
-        return r;
+        return area;
     };
 
-    auto inRow = row (rowH);
-    inBox.setBounds (labelWithInfo (inRow, inLabel, inInfo));
-    auto outRow = row (rowH);
-    outBox.setBounds (labelWithInfo (outRow, outLabel, outInfo));
-
     if (bufBox.isVisible())
-    {
-        auto bufRow = row (rowH);
-        bufBox.setBounds (labelWithInfo (bufRow, bufLabel, bufInfo));
-    }
-
-    auto safetyRow = row (rowH);
-    safetyBox.setBounds (labelWithInfo (safetyRow, safetyLabel, safetyInfo));
-
+        bufBox.setBounds (labelWithInfo (row (rowH), bufLabel, bufInfo));
+    safetyBox.setBounds (labelWithInfo (row (rowH), safetyLabel, safetyInfo));
+    if (priorityBox.isVisible())
+        priorityBox.setBounds (labelWithInfo (row (rowH), priorityLabel, priorityInfo));
     auto monitorRow = labelWithInfo (row (rowH), monitorLabel, monitorInfo);
     monitorVol.setBounds (monitorRow.removeFromRight (110));
     monitorRow.removeFromRight (6);
     monitorBox.setBounds (monitorRow);
-
-    if (priorityBox.isVisible())
-    {
-        auto priorityRow = row (rowH);
-        priorityBox.setBounds (labelWithInfo (priorityRow, priorityLabel, priorityInfo));
-    }
-
-    statusLabel.setBounds (row (statusH));   // dauerhafte Info-Zeilen unter den Geräten
-    statsLabel.setBounds (row (statusH));
 }
 
 int DevicePanel::preferredHeight() const
 {
-    // Input, Output, Safety, Kulaklık (+ Buffer, + Priorität unter Windows) à 26, zwei Info-Zeilen
-    // à 20, Lücken à 4 dazwischen: 4 Zeilen -> 4*26 + 2*20 + 5*4 = 164; jede weitere Zeile +30.
-    return 164 + (bufBox.isVisible() ? 30 : 0) + (priorityBox.isVisible() ? 30 : 0);
+    if (compact) return 34;
+    // Safety, Kulaklık (+ Buffer, + Priorität unter Windows) à 30, Lücken à 6
+    return 2 * 36 + (bufBox.isVisible() ? 36 : 0) + (priorityBox.isVisible() ? 36 : 0) - 6;
 }

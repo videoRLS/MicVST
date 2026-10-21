@@ -6,6 +6,7 @@
 #include "ui/MainComponent.h"
 #include "ui/TrayIcon.h"
 #include "ui/GlobalHotkeys.h"
+#include "ui/SettingsComponent.h"
 #include "ui/Theme.h"
 #include "ui/DarkTitleBar.h"
 #include "Text.h"
@@ -390,14 +391,14 @@ private:
             // über das Minimum hinaus.
             createContent();
             setResizable (true, false);
-            // Mindestgröße = Startgröße (600x660); zusätzliche Höhe verlängert die Plugin-Liste.
-            setResizeLimits (600, 660, 1600, 1400);
+            // Mindestgröße 600x540, Start 640x600; zusätzliche Höhe verlängert die Plugin-Liste.
+            setResizeLimits (600, 540, 1600, 1400);
             // Letzte Größe/Position wiederherstellen (innerhalb der Resize-Limits), sonst zentriert
             // auf Startgröße. restoreWindowStateFromString respektiert die gesetzten Limits.
             if (windowState.isNotEmpty())
                 restoreWindowStateFromString (windowState);
             else
-                centreWithSize (600, 660);
+                centreWithSize (640, 600);
         }
         std::function<void()> onHide;
         std::function<void()> onThemeApplied;   // the app: LookAndFeel refresh + save
@@ -412,26 +413,49 @@ private:
         void createContent()
         {
             content = new MainComponent (engineRef);
-            content->onThemeChosen = [this] (const juce::String& id)
-            {
-                // later, outside the list's own callback: the content (with that list) is rebuilt
-                juce::Component::SafePointer<MainWindow> safe (this);
-                juce::MessageManager::callAsync ([safe, id]
-                {
-                    if (safe != nullptr) safe->applyTheme (id);
-                });
-            };
-            content->onLanguageChosen = [this] (const juce::String& id)
-            {
-                juce::Component::SafePointer<MainWindow> safe (this);
-                juce::MessageManager::callAsync ([safe, id]
-                {
-                    if (safe != nullptr) safe->applyLanguage (id);
-                });
-            };
-            content->setHotkeys (hotkeys, setHotkey);
+            content->setHotkeys (hotkeys);
+            content->onShowSettings = [this] { showSettings(); };
             setContentOwned (content, false);
         }
+
+        // "Ayarlar": its own window (kept by this window: it survives the content's rebuild and is
+        // rebuilt with it when the theme or the language changes).
+        struct SettingsWindow : juce::DocumentWindow
+        {
+            SettingsWindow() : juce::DocumentWindow (SettingsComponent::windowTitle(), micvst::theme::background,
+                                                     juce::DocumentWindow::closeButton) {}
+            void closeButtonPressed() override { setVisible (false); }
+        };
+        std::unique_ptr<SettingsWindow> settingsWindow;
+
+    public:
+        void showSettings()
+        {
+            if (settingsWindow == nullptr)
+            {
+                settingsWindow = std::make_unique<SettingsWindow>();
+                settingsWindow->setUsingNativeTitleBar (true);
+                SettingsComponent::Callbacks cb;
+                juce::Component::SafePointer<MainWindow> safe (this);
+                // later, outside the combo box's own callback: both windows are rebuilt
+                cb.chooseTheme = [safe] (const juce::String& id)
+                    { juce::MessageManager::callAsync ([safe, id] { if (safe != nullptr) safe->applyTheme (id); }); };
+                cb.chooseLanguage = [safe] (const juce::String& id)
+                    { juce::MessageManager::callAsync ([safe, id] { if (safe != nullptr) safe->applyLanguage (id); }); };
+                cb.showFolderMenu = [safe] (juce::Component* target)
+                    { if (safe != nullptr && safe->content != nullptr) safe->content->getPluginList().showFolderMenu (target); };
+                cb.showHowTo = [safe] { if (safe != nullptr && safe->content != nullptr) safe->content->showHowTo(); };
+                cb.setHotkey = setHotkey;
+                settingsWindow->setContentOwned (new SettingsComponent (engineRef, hotkeys, cb), true);
+                settingsWindow->setResizable (true, false);
+                settingsWindow->setResizeLimits (560, 420, 1200, 1400);
+                settingsWindow->centreAroundComponent (this, settingsWindow->getWidth(), settingsWindow->getHeight());
+            }
+            settingsWindow->setVisible (true);
+            micvst::useDarkTitleBar (*settingsWindow, micvst::theme::dark);
+            settingsWindow->toFront (true);
+        }
+    private:
         void applyLanguage (const juce::String& id)
         {
             if (id == micvst::currentLanguage()) return;
@@ -451,11 +475,20 @@ private:
         {
             if (onThemeApplied) onThemeApplied();   // LookAndFeel takes the new colours; saved
             setBackgroundColour (micvst::theme::background);
+            juce::Rectangle<int> settingsBounds;
+            const bool settingsOpen = settingsWindow != nullptr && settingsWindow->isVisible();
+            if (settingsWindow != nullptr) settingsBounds = settingsWindow->getBounds();
+            settingsWindow = nullptr;
             clearContentComponent();                // the old content (and its engine callbacks) first ...
             content = nullptr;
             createContent();                        // ... then the new one, built with the new colours
             micvst::useDarkTitleBar (*this, micvst::theme::dark);
             repaint();
+            if (settingsOpen)                       // the settings window again, where it was
+            {
+                showSettings();
+                settingsWindow->setBounds (settingsBounds);
+            }
         }
         AudioEngine& engineRef;
         GlobalHotkeys* hotkeys = nullptr;
