@@ -171,7 +171,7 @@ yavaşladığından 30× hızlı 20 dk testinde ve bellek ölçümünde beklenen
   yükü altında kendi tarama kodunda çöktü. MicVST eklentileri ayrı bir süreçte tarar.
 - **Kanıt:** MicVST'nin gerçek tarayıcısı 6 eklenti × 20 tarama × (boşta + tam yük) = **240/240**
   başarılı (W). Yük, zincir kurulduktan sonra başlatılınca 3 dk koşu geçti.
-- **Durum:** düzeltilmiş 5,5 saatlik VST3 koşuları: {{VST3LONG}}
+- **Durum:** düzeltilmiş 5,5 saatlik VST3 koşuları (3 öncelik) çıkış kodu 0 ile bitti – BAŞARILI (bölüm 7).
 
 ### 4.4 Test araçlarındaki hatalar (ürün değil)
 
@@ -214,7 +214,7 @@ korunur, gürültü kapısı yok; zincirde yeri değiştirilebilir; kapatınca 0
 | Gerçek MicVST.exe, 330 dk | özel bellek −0,03 MB/sa; tutamaç/GDI sabit; temiz kapanış | W |
 | Windows 11 ARM64, 60 dk | tık 0, boşluk 0, THD+N −112 dB | A |
 | 168 saat (1 hafta) simülasyon | MicVST'ye bağlı tık 0 | S |
-| VST3 eklentili 330 dk (3 öncelik) | {{VST3LONG}} | W |
+| VST3 eklentili 330 dk, tam CPU yükü, 3 öncelik (Normal / Normalin Üstünde / Yüksek); zincir: Otomatik Kazanç → ZL Equalizer 2 → ZL Compressor (de-esser) → ZL Compressor → Fire → ZL Compressor (limiter) | her öncelikte açıklanamayan tık 0, boşluk 0; bellek eğimi 0,00–0,01 MB/sa; çıkış kodu 0 (THD+N −40,7 dB: Fire satürasyon eklentisinin kendi bozulması) | W |
 
 ## 8. İnternetsiz çalışma
 
