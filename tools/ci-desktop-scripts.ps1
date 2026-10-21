@@ -91,7 +91,9 @@ Check (@(Get-Process MicVST -ErrorAction SilentlyContinue).Count -eq 0) "MicVST 
 
 W ""
 W "## MicVST_Simgeleri.vbs"
-$docs = Join-Path $env:TEMP "masaustu-docs"
+# the long form of the path (on the runners %TEMP% is the 8.3 short form, C:\Users\RUNNER~1\...,
+# while Windows stores and reports shortcut targets in the long form)
+$docs = Join-Path ([Environment]::GetFolderPath("LocalApplicationData")) "Temp\masaustu-docs"
 New-Item -ItemType Directory -Force -Path $docs | Out-Null
 $profiles = @("Renk_Ince.vbs", "Renk_Tok.vbs", "Ince VST.vbs", "Tok VST.vbs")
 $made = @()

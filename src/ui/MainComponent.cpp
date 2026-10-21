@@ -77,7 +77,16 @@ namespace
             "      oradan çalar (hoparlör değil kulaklık kullanın). \"Deneme kaydı\" 10 saniye\n"
             "      kaydeder ve hemen kulaklıktan çalar.\n"
             "    - \"Dahili - Dinamik\": Kompresör ve Gürültü Kapısı. Hazır ayarlar ikisini de\n"
-            "      ölçülü kullanır; \"Kaydet\" menüsünden ayarlar dosyaya aktarılıp paylaşılabilir.");
+            "      ölçülü kullanır; \"Kaydet\" menüsünden ayarlar dosyaya aktarılıp paylaşılabilir.")
+             + "\n\n"
+             + tr (
+            "Kayıt\n"
+            "    - \"Kayıt\" düğmesi kabloya giden sesi (karşı tarafın duyduğunu) dosyaya kaydeder;\n"
+            "      tekrar tıklayınca durur, dosya kapatılır ve doğrulanır. Saatin yanındaki simgenin\n"
+            "      menüsünden de başlatılıp durdurulabilir.\n"
+            "    - \"Ayarlar > Kayıt\": biçim (WAV, FLAC, MP3), kalite, örnekleme hızı, kanal ve\n"
+            "      klasör. Varsayılan: WAV 24 bit, 48 kHz, stereo; Belgeler\\MicVST Kayıtları.\n"
+            "    - Dosya adı tarih ve saattir; var olan bir kaydın üzerine asla yazılmaz.");
     }
 
     // Inhalt des How-To-Fensters: nur Anleitungstext (keine klickbaren Links mehr - MicVST

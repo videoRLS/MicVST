@@ -280,6 +280,7 @@
  "Kaydı durdur": "停止录音",
  "Kayıp örnek: ": "丢失样本: ",
  "Kayıt": "录音",
+ "Kayıt\n    - \"Kayıt\" düğmesi kabloya giden sesi (karşı tarafın duyduğunu) dosyaya kaydeder;\n      tekrar tıklayınca durur, dosya kapatılır ve doğrulanır. Saatin yanındaki simgenin\n      menüsünden de başlatılıp durdurulabilir.\n    - \"Ayarlar > Kayıt\": biçim (WAV, FLAC, MP3), kalite, örnekleme hızı, kanal ve\n      klasör. Varsayılan: WAV 24 bit, 48 kHz, stereo; Belgeler\\MicVST Kayıtları.\n    - Dosya adı tarih ve saattir; var olan bir kaydın üzerine asla yazılmaz.": "录音\n    - “录音”按钮把发送到线缆的声音（对方听到的）录制到文件；\n      再次单击停止：文件会被关闭并验证。时钟旁图标的菜单\n      也可以开始和停止录音。\n    - “设置 > 录音”：格式（WAV、FLAC、MP3）、质量、采样率、声道和\n      文件夹。默认：WAV 24 位、48 kHz、立体声；文档\\MicVST Kayıtları。\n    - 文件名为日期和时间；绝不会覆盖已有录音。",
  "Kayıt başladı: ": "录音已开始: ",
  "Kayıt başlatılamadı: ": "无法开始录音: ",
  "Kayıt bitti ve kaydedildi.": "录音已结束并保存。",

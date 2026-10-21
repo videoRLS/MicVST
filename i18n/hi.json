@@ -280,6 +280,7 @@
  "Kaydı durdur": "रिकॉर्डिंग रोकें",
  "Kayıp örnek: ": "खोए सैंपल: ",
  "Kayıt": "रिकॉर्ड",
+ "Kayıt\n    - \"Kayıt\" düğmesi kabloya giden sesi (karşı tarafın duyduğunu) dosyaya kaydeder;\n      tekrar tıklayınca durur, dosya kapatılır ve doğrulanır. Saatin yanındaki simgenin\n      menüsünden de başlatılıp durdurulabilir.\n    - \"Ayarlar > Kayıt\": biçim (WAV, FLAC, MP3), kalite, örnekleme hızı, kanal ve\n      klasör. Varsayılan: WAV 24 bit, 48 kHz, stereo; Belgeler\\MicVST Kayıtları.\n    - Dosya adı tarih ve saattir; var olan bir kaydın üzerine asla yazılmaz.": "रिकॉर्डिंग\n    - \"रिकॉर्ड\" बटन केबल पर जाने वाली ध्वनि (जो सामने वाला सुनता है) फ़ाइल में रिकॉर्ड करता है;\n      फिर क्लिक करने पर रुकता है: फ़ाइल बंद और सत्यापित होती है। घड़ी के पास वाले\n      आइकन के मेनू से भी शुरू और बंद किया जा सकता है।\n    - \"सेटिंग्स > रिकॉर्ड\": फ़ॉर्मैट (WAV, FLAC, MP3), गुणवत्ता, सैंपल दर, चैनल और\n      फ़ोल्डर। डिफ़ॉल्ट: WAV 24 बिट, 48 kHz, स्टीरियो; Documents\\MicVST Kayıtları।\n    - फ़ाइल का नाम तारीख और समय है; किसी मौजूदा रिकॉर्डिंग पर कभी नहीं लिखा जाता।",
  "Kayıt başladı: ": "रिकॉर्डिंग शुरू: ",
  "Kayıt başlatılamadı: ": "रिकॉर्डिंग शुरू नहीं हो सकी: ",
  "Kayıt bitti ve kaydedildi.": "रिकॉर्डिंग पूरी हुई और सहेजी गई।",

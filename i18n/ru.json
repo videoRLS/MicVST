@@ -280,6 +280,7 @@
  "Kaydı durdur": "Остановить запись",
  "Kayıp örnek: ": "Потеряно сэмплов: ",
  "Kayıt": "Запись",
+ "Kayıt\n    - \"Kayıt\" düğmesi kabloya giden sesi (karşı tarafın duyduğunu) dosyaya kaydeder;\n      tekrar tıklayınca durur, dosya kapatılır ve doğrulanır. Saatin yanındaki simgenin\n      menüsünden de başlatılıp durdurulabilir.\n    - \"Ayarlar > Kayıt\": biçim (WAV, FLAC, MP3), kalite, örnekleme hızı, kanal ve\n      klasör. Varsayılan: WAV 24 bit, 48 kHz, stereo; Belgeler\\MicVST Kayıtları.\n    - Dosya adı tarih ve saattir; var olan bir kaydın üzerine asla yazılmaz.": "Запись\n    - Кнопка «Запись» записывает в файл то, что идёт в кабель (что слышит собеседник);\n      повторный щелчок останавливает: файл закрывается и проверяется. Меню значка рядом\n      с часами тоже может начать и остановить запись.\n    - «Настройки > Запись»: формат (WAV, FLAC, MP3), качество, частота, каналы и\n      папка. По умолчанию: WAV 24 бит, 48 кГц, стерео; Документы\\MicVST Kayıtları.\n    - Имя файла — дата и время; существующая запись никогда не перезаписывается.",
  "Kayıt başladı: ": "Запись начата: ",
  "Kayıt başlatılamadı: ": "Не удалось начать запись: ",
  "Kayıt bitti ve kaydedildi.": "Запись завершена и сохранена.",

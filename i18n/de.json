@@ -280,6 +280,7 @@
  "Kaydı durdur": "Aufnahme beenden",
  "Kayıp örnek: ": "Verlorene Samples: ",
  "Kayıt": "Aufnahme",
+ "Kayıt\n    - \"Kayıt\" düğmesi kabloya giden sesi (karşı tarafın duyduğunu) dosyaya kaydeder;\n      tekrar tıklayınca durur, dosya kapatılır ve doğrulanır. Saatin yanındaki simgenin\n      menüsünden de başlatılıp durdurulabilir.\n    - \"Ayarlar > Kayıt\": biçim (WAV, FLAC, MP3), kalite, örnekleme hızı, kanal ve\n      klasör. Varsayılan: WAV 24 bit, 48 kHz, stereo; Belgeler\\MicVST Kayıtları.\n    - Dosya adı tarih ve saattir; var olan bir kaydın üzerine asla yazılmaz.": "Aufnahme\n    - Die Taste „Aufnahme\" nimmt auf, was zum Kabel geht (was die Gegenseite hört);\n      erneutes Klicken beendet sie: die Datei wird geschlossen und geprüft. Das Menü des\n      Symbols neben der Uhr kann sie ebenfalls starten und beenden.\n    - „Einstellungen > Aufnahme\": Format (WAV, FLAC, MP3), Qualität, Abtastrate, Kanäle und\n      Ordner. Standard: WAV 24 Bit, 48 kHz, Stereo; Dokumente\\MicVST Kayıtları.\n    - Der Dateiname ist Datum und Uhrzeit; eine vorhandene Aufnahme wird nie überschrieben.",
  "Kayıt başladı: ": "Aufnahme gestartet: ",
  "Kayıt başlatılamadı: ": "Aufnahme konnte nicht starten: ",
  "Kayıt bitti ve kaydedildi.": "Aufnahme beendet und gespeichert.",

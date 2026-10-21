@@ -280,6 +280,7 @@
  "Kaydı durdur": "Parar gravação",
  "Kayıp örnek: ": "Amostras perdidas: ",
  "Kayıt": "Gravar",
+ "Kayıt\n    - \"Kayıt\" düğmesi kabloya giden sesi (karşı tarafın duyduğunu) dosyaya kaydeder;\n      tekrar tıklayınca durur, dosya kapatılır ve doğrulanır. Saatin yanındaki simgenin\n      menüsünden de başlatılıp durdurulabilir.\n    - \"Ayarlar > Kayıt\": biçim (WAV, FLAC, MP3), kalite, örnekleme hızı, kanal ve\n      klasör. Varsayılan: WAV 24 bit, 48 kHz, stereo; Belgeler\\MicVST Kayıtları.\n    - Dosya adı tarih ve saattir; var olan bir kaydın üzerine asla yazılmaz.": "Gravação\n    - O botão \"Gravar\" grava em arquivo o que vai para o cabo (o que o outro lado ouve);\n      clique de novo para parar: o arquivo é fechado e verificado. O menu do ícone ao lado\n      do relógio também inicia e para a gravação.\n    - \"Configurações > Gravar\": formato (WAV, FLAC, MP3), qualidade, taxa de amostragem, canais e\n      pasta. Padrão: WAV 24 bits, 48 kHz, estéreo; Documentos\\MicVST Kayıtları.\n    - O nome do arquivo é a data e hora; uma gravação existente nunca é sobrescrita.",
  "Kayıt başladı: ": "Gravação iniciada: ",
  "Kayıt başlatılamadı: ": "Não foi possível iniciar a gravação: ",
  "Kayıt bitti ve kaydedildi.": "Gravação concluída e salva.",

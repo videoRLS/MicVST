@@ -206,6 +206,15 @@ namespace rectest
                     + juce::String (cpuA * 100.0, 2) + " %), verified " + (r.verified ? "yes" : "NO"));
                 check (r.verified && r.droppedFrames == 0, juce::String (heavy) + ": verified, nothing dropped");
             }
+            // the settings go into config.xml with the rest of the state and come back the same
+            {
+                const auto chosen = RecordSettings::decode ("mp3:v2|44100|1", dir.getChildFile (juce::String::fromUTF8 ("Kayıtlarım")).getFullPathName());
+                e.setRecordSettings (chosen);
+                const auto st = fromValueTree (juce::ValueTree::fromXml (*juce::parseXML (toValueTree (e.captureState()).createXml()->toString())));
+                const auto back = RecordSettings::decode (st.recordFormat, st.recordFolder);
+                pr ("config.xml: recordFormat=\"" + st.recordFormat + "\" recordFolder=\"" + st.recordFolder + "\"");
+                check (back == chosen, "Kayıt settings saved with the state and read back the same (restart)");
+            }
             pr ("    " + diagLine (e) + (hiccups() > 0 ? ", machine hiccups " + juce::String (hiccups()) : juce::String()));
         }
         dir.deleteRecursively();

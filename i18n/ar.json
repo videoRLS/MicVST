@@ -280,6 +280,7 @@
  "Kaydı durdur": "إيقاف التسجيل",
  "Kayıp örnek: ": "عينات مفقودة: ",
  "Kayıt": "تسجيل",
+ "Kayıt\n    - \"Kayıt\" düğmesi kabloya giden sesi (karşı tarafın duyduğunu) dosyaya kaydeder;\n      tekrar tıklayınca durur, dosya kapatılır ve doğrulanır. Saatin yanındaki simgenin\n      menüsünden de başlatılıp durdurulabilir.\n    - \"Ayarlar > Kayıt\": biçim (WAV, FLAC, MP3), kalite, örnekleme hızı, kanal ve\n      klasör. Varsayılan: WAV 24 bit, 48 kHz, stereo; Belgeler\\MicVST Kayıtları.\n    - Dosya adı tarih ve saattir; var olan bir kaydın üzerine asla yazılmaz.": "التسجيل\n    - زر \"تسجيل\" يسجّل في ملف ما يذهب إلى الكابل (ما يسمعه الطرف الآخر)؛\n      النقر مرة أخرى يوقفه: يُغلق الملف ويُتحقق منه. يمكن أيضًا البدء والإيقاف من\n      قائمة الأيقونة بجوار الساعة.\n    - \"الإعدادات > تسجيل\": الصيغة (WAV وFLAC وMP3) والجودة ومعدل العينات والقنوات\n      والمجلد. الافتراضي: WAV ‏24 بت، 48 kHz، ستيريو؛ Documents\\MicVST Kayıtları.\n    - اسم الملف هو التاريخ والوقت؛ لا يُكتب فوق تسجيل موجود أبدًا.",
  "Kayıt başladı: ": "بدأ التسجيل: ",
  "Kayıt başlatılamadı: ": "تعذر بدء التسجيل: ",
  "Kayıt bitti ve kaydedildi.": "انتهى التسجيل وحُفظ.",

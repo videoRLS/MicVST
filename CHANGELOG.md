@@ -6,6 +6,17 @@ project follows [Semantic Versioning](https://semver.org/).
 
 ## [1.2.2] - Unreleased
 
+- Kayıt (recording): the "● Kayıt" button (and the tray menu) records what goes to the cable into
+  a file, with the running time on the button; stopping closes the file and reads it back to
+  check it. "Ayarlar > Kayıt": WAV 16/24/32 bit PCM and 32 bit float (Broadcast WAV; RF64 past
+  4 GB), FLAC 16/24 bit with compression 0-8, MP3 (LAME 4.0, built in) CBR 128-320 kbps or VBR
+  V0/V2/V4; 44.1 or 48 kHz (88.2-192 kHz when the microphone runs that fast) through a 140 dB
+  linear-phase converter; stereo or mono; any folder (default Documents\MicVST Kayıtları).
+  Default WAV 24 bit 48 kHz stereo. Names are date and time, never overwritten. The audio thread
+  only copies into a 10 s lock-free buffer; a low-priority thread converts and writes; the WAV
+  header is rewritten every second (a crash keeps everything up to the last second); a full disk
+  or a write error stops the recording with a message. Settings saved in config.xml.
+- The developer signature is no longer shown (main window footer, Ayarlar > Hakkında).
 - İşlem önceliği (process priority) in the window: Normal (default), Normalin Üstünde, Yüksek.
   Applied at once, read back from Windows, saved; the audio threads stay MMCSS in every case.
 - A mono part of the chain (mono microphone, a mono plug-in such as RNNoise) followed by a stereo

@@ -189,6 +189,19 @@ struct PersistenceTest : juce::UnitTest
             const auto written = toValueTree (o);
             expect (! written.hasProperty ("updateCheckEnabled"), "no update keys are written any more");
             expect (! written.hasProperty ("lastNotifiedVersion"));
+            expect (! written.hasProperty ("recordFormat") && ! written.hasProperty ("recordFolder"), "no Kayıt keys until set");
+            expectEquals (o.recordFormat, juce::String());   // -> RecordSettings default: WAV 24 bit 48 kHz stereo
+        }
+
+        beginTest ("Kayıt settings survive a restart (config.xml as text)");
+        {
+            MicVSTState s;
+            s.recordFormat = "flac:16:8|44100|1";
+            s.recordFolder = juce::File::getSpecialLocation (juce::File::tempDirectory).getChildFile (juce::String::fromUTF8 ("Kayıtlar ş ğ")).getFullPathName();
+            const auto xml = toValueTree (s).createXml()->toString();
+            const auto back = fromValueTree (juce::ValueTree::fromXml (*juce::parseXML (xml)));
+            expectEquals (back.recordFormat, s.recordFormat);
+            expectEquals (back.recordFolder, s.recordFolder);
         }
 
         beginTest ("plug-in identity inside a multi-plug-in file survives a round trip");

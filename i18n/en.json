@@ -280,6 +280,7 @@
  "Kaydı durdur": "Stop recording",
  "Kayıp örnek: ": "Lost samples: ",
  "Kayıt": "Record",
+ "Kayıt\n    - \"Kayıt\" düğmesi kabloya giden sesi (karşı tarafın duyduğunu) dosyaya kaydeder;\n      tekrar tıklayınca durur, dosya kapatılır ve doğrulanır. Saatin yanındaki simgenin\n      menüsünden de başlatılıp durdurulabilir.\n    - \"Ayarlar > Kayıt\": biçim (WAV, FLAC, MP3), kalite, örnekleme hızı, kanal ve\n      klasör. Varsayılan: WAV 24 bit, 48 kHz, stereo; Belgeler\\MicVST Kayıtları.\n    - Dosya adı tarih ve saattir; var olan bir kaydın üzerine asla yazılmaz.": "Recording\n    - The \"Record\" button records what goes to the cable (what the other side hears) to a file;\n      click again to stop: the file is closed and verified. The menu of the icon next to the\n      clock can also start and stop it.\n    - \"Settings > Record\": format (WAV, FLAC, MP3), quality, sample rate, channels and\n      folder. Default: WAV 24 bit, 48 kHz, stereo; Documents\\MicVST Kayıtları.\n    - The file name is the date and time; an existing recording is never overwritten.",
  "Kayıt başladı: ": "Recording started: ",
  "Kayıt başlatılamadı: ": "Recording could not start: ",
  "Kayıt bitti ve kaydedildi.": "Recording finished and saved.",

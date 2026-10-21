@@ -280,6 +280,7 @@
  "Kaydı durdur": "Arrêter l'enregistrement",
  "Kayıp örnek: ": "Échantillons perdus : ",
  "Kayıt": "Enregistrer",
+ "Kayıt\n    - \"Kayıt\" düğmesi kabloya giden sesi (karşı tarafın duyduğunu) dosyaya kaydeder;\n      tekrar tıklayınca durur, dosya kapatılır ve doğrulanır. Saatin yanındaki simgenin\n      menüsünden de başlatılıp durdurulabilir.\n    - \"Ayarlar > Kayıt\": biçim (WAV, FLAC, MP3), kalite, örnekleme hızı, kanal ve\n      klasör. Varsayılan: WAV 24 bit, 48 kHz, stereo; Belgeler\\MicVST Kayıtları.\n    - Dosya adı tarih ve saattir; var olan bir kaydın üzerine asla yazılmaz.": "Enregistrement\n    - Le bouton « Enregistrer » enregistre dans un fichier ce qui part vers le câble (ce qu'entend\n      votre interlocuteur) ; un nouveau clic l'arrête : le fichier est fermé et vérifié. Le menu de\n      l'icône près de l'horloge peut aussi le démarrer et l'arrêter.\n    - « Réglages > Enregistrer » : format (WAV, FLAC, MP3), qualité, fréquence, canaux et\n      dossier. Par défaut : WAV 24 bits, 48 kHz, stéréo ; Documents\\MicVST Kayıtları.\n    - Le nom du fichier est la date et l'heure ; un enregistrement existant n'est jamais écrasé.",
  "Kayıt başladı: ": "Enregistrement démarré : ",
  "Kayıt başlatılamadı: ": "Impossible de démarrer l'enregistrement : ",
  "Kayıt bitti ve kaydedildi.": "Enregistrement terminé et sauvegardé.",

@@ -18,6 +18,8 @@
 - cadena demasiado pesada
 @@9
 Hz, búfer
+@@10
+ bits flotante
 @@11
  bits de contenedor
 @@12
@@ -54,10 +56,14 @@ ms omitidos (
 ms)
 @@28
 ms por detrás del tiempo real - audio del micrófono:
+@@29
+.
 @@30
 | canales
 @@31
 | salida
+@@32
+ ahora); la grabación será de 
 @@33
 muestras (
 @@34
@@ -108,8 +114,12 @@ Sobrescribir "
 + Plugin
 @@57
 , sin acceso a Internet)
+@@58
+, frecuencia de proceso 
 @@59
 , el resto del tiempo esperó a la CPU
+@@60
+, muestras perdidas: 
 @@61
 , pico
 @@62
@@ -128,12 +138,16 @@ Hable 10 segundos; MicVST graba y reproduce al instante su voz procesada por la 
 12 dB/oct
 @@69
 Realza la zona de 120-250 Hz con una curva ancha: sonido más lleno y redondo. En exceso suena apagado.
+@@70
+24 bits: 144 dB de rango dinámico, se abre en cualquier programa (recomendado). 16 bits: calidad CD, redondeo con dither. 32 bits flotante: el audio interno de MicVST exacto, nunca se recorta.
 @@71
 24 dB/oct
 @@72
 Realza la zona de 3-5 kHz: más inteligibilidad. En exceso suena áspero.
 @@73
 Atenúa la zona de 300-500 Hz: menos sonido turbio y "de caja".
+@@74
+44,1 kHz es el estándar de música/CD y 48 kHz el de vídeo y emisión. Las frecuencias más altas solo se ofrecen si el micrófono funciona a esa frecuencia: subir un audio de menor frecuencia no añade calidad.
 @@75
 ; proporción de ejecución del hilo
 @@76
@@ -236,6 +250,8 @@ Mi ajuste
 Elemento interno desconocido omitido:
 @@125
 Escriba un nombre.
+@@126
+Formato
 @@127
 Este nombre es de un ajuste de fábrica; elija otro nombre.
 @@128
@@ -243,10 +259,14 @@ Ya existe un ajuste con este nombre.
 @@129
 Estos plugins del ajuste no están en este equipo o no se pudieron cargar; se cargó sin ellos:
 
+@@130
+No se pudo iniciar la grabación en este formato: 
 @@131
 Este archivo no es un ajuste de MicVST: 
 @@132
 Devuelve todos los ajustes de este efecto a sus valores iniciales
+@@133
+No se puede escribir en esta carpeta (sin permiso o de solo lectura): 
 @@134
 Este atajo ya lo usa la otra acción. Elija otra tecla.
 @@135
@@ -303,14 +323,28 @@ Balance (- izquierda / + derecha)
 Profesional equilibrado
 @@161
 Profundo y cálido
+@@162
+Cambiar...
 @@163
 Idioma
 @@164
 Idioma:
+@@165
+Disco lleno (menos de 30 MB libres): grabación detenida.
+@@166
+El nombre del archivo es la fecha y hora (MicVST_2026-10-21_21-58-03.wav); nunca se sobrescribe una grabación existente.
+@@167
+No se pudo verificar el archivo.
+@@168
+Archivo verificado: la parte grabada está completa.
 @@169
 No se pudo leer el archivo:
+@@170
+No se pudo crear el archivo: 
 @@171
 No se pudo escribir el archivo:
+@@172
+Archivo: 
 @@173
 Importar desde archivo...
 @@174
@@ -361,6 +395,10 @@ Sí
 Pendiente
 @@197
 Umbral
+@@198
+FLAC no pierde calidad en ningún nivel; solo cambian el tamaño del archivo y el tiempo de procesador.
+@@199
+FLAC no tiene pérdidas: al abrirlo es idéntico al WAV bit a bit.
 @@200
 Ratón 4 (atrás)
 @@201
@@ -475,12 +513,16 @@ Guía rápida de configuración
 Sonoridad ITU-R BS.1770 / EBU R128: momentánea (400 ms), a corto plazo (3 s), integrada y pico real. No cambia el sonido.
 @@256
 Cable
+@@257
+Graba en un archivo lo que va al cable (lo que oye la otra persona). Clic para empezar, otro clic para detener.
 @@258
 Voz femenina -
 @@259
 Ajustes para voz femenina
 @@260
 Quitar
+@@261
+Calidad
 @@262
 Canal
 @@263
@@ -499,83 +541,131 @@ Puerta: reduciendo
 Mezcla
 @@270
 Mezcla (solo chorus)
+@@271
+Guardado: 
 @@272
 No se pudo verificar el archivo guardado:
+@@273
+Se graba: el sonido procesado que va al cable (lo que oye la otra persona). Archivo: 
 @@274
 Grabando... 
+@@275
+Grabando: 
 @@276
 Guardar
+@@277
+Iniciar grabación
+@@278
+Detener grabación
+@@279
+Muestras perdidas: 
+@@280
+Grabar
+@@282
+Grabación iniciada: 
+@@283
+No se pudo iniciar la grabación: 
+@@284
+Grabación terminada y guardada.
+@@285
+Grabación terminada: 
+@@286
+No se pudo abrir el archivo de grabación (tiempo agotado): 
+@@287
+No se pudo escribir en el archivo (el disco puede estar lleno o desconectado): 
+@@288
+No se pudo crear la carpeta de grabaciones: 
+@@289
+Elija la carpeta de grabaciones
+@@290
+No hay espacio en el disco de la carpeta (menos de 100 MB): 
+@@291
+Los ajustes se bloquean durante la grabación; los cambios se aplican a la siguiente.
 @@292
-Ganancia
+Ya hay una grabación en curso
 @@293
-Ganancia (Gain)
+Ganancia
 @@294
-Ganancia: de -30 dB a +12 dB en pasos de 0,1 dB (también puede escribir el valor). Un doble clic vuelve a 0 dB. Para evitar la saturación, use la Ganancia antes del limitador; la línea de pico del medidor de Salida se pone roja a 0 dB.
+Ganancia (Gain)
 @@295
-Mis ajustes
+Ganancia: de -30 dB a +12 dB en pasos de 0,1 dB (también puede escribir el valor). Un doble clic vuelve a 0 dB. Para evitar la saturación, use la Ganancia antes del limitador; la línea de pico del medidor de Salida se pone roja a 0 dB.
 @@296
-Escucharte
+Mis ajustes
 @@297
+Escucharte
+@@298
 Cortar
 @@299
-Añadir carpeta...
+Carpeta
 @@300
+Añadir carpeta...
+@@301
 No se pudo crear la carpeta:
 @@302
-Compresor
+Abrir carpeta
 @@303
-Mientras no habla (el audio está por debajo del umbral) baja el audio según la "Atenuación": ruido de la sala, ventilador, teclado. Mira 3 ms por delante, así que el inicio de las palabras no se corta. Ponga el umbral un poco por encima del ruido de la sala y por debajo de su voz; un umbral demasiado alto corta las sílabas suaves.
+Compresor
 @@304
-Copiar
+Mientras no habla (el audio está por debajo del umbral) baja el audio según la "Atenuación": ruido de la sala, ventilador, teclado. Mira 3 ms por delante, así que el inicio de las palabras no se corta. Ponga el umbral un poco por encima del ruido de la sala y por debajo de su voz; un umbral demasiado alto corta las sílabas suaves.
 @@305
-Claridad cristalina
+Copiar
 @@306
-Auriculares
+Claridad cristalina
 @@307
-No se pudo abrir la salida de auriculares: 
+Auriculares
 @@308
-Salida de auriculares abierta: 
+No se pudo abrir la salida de auriculares: 
 @@309
-Ayuda
+Salida de auriculares abierta: 
 @@310
-Configuración: entrada
+Ayuda
 @@311
-Puente:
+Configuración: entrada
 @@312
-Puente: latencia devuelta al objetivo (total
+Puente:
 @@313
-Puente: corte de audio en la salida,
+Puente: latencia devuelta al objetivo (total
 @@314
-Ceniza
+Puente: corte de audio en la salida,
 @@315
-Corto plazo (3 s)
+Ceniza
 @@316
-Un atajo puede ser una tecla (también con Ctrl / Alt / Mayús), el botón central del ratón, los botones laterales (4 / 5) o la rueda del ratón con Ctrl / Alt / Mayús. Los atajos funcionan también con MicVST en segundo plano; mientras MicVST está abierto, la tecla o el botón de un atajo activo no llega a otros programas - si hace falta, elija otro o desactívelo.
+Corto plazo (3 s)
 @@317
-Atajos
+Un atajo puede ser una tecla (también con Ctrl / Alt / Mayús), el botón central del ratón, los botones laterales (4 / 5) o la rueda del ratón con Ctrl / Alt / Mayús. Los atajos funcionan también con MicVST en segundo plano; mientras MicVST está abierto, la tecla o el botón de un atajo activo no llega a otros programas - si hace falta, elija otro o desactívelo.
 @@318
-Los atajos también funcionan con MicVST en segundo plano. Mientras MicVST está en marcha, la tecla de un atajo activo no llega a otros programas; si hace falta, elija otra tecla o desactívelo.
+Atajos
 @@319
+Los atajos también funcionan con MicVST en segundo plano. Mientras MicVST está en marcha, la tecla de un atajo activo no llega a otros programas; si hace falta, elija otra tecla o desactívelo.
+@@320
 Atenuación
 @@321
-Medidor LUFS
+LAME 4.0. CBR: tasa de bits constante, funciona en cualquier dispositivo. VBR: tasa variable, archivo más pequeño con la misma calidad.
 @@322
-MMCSS 'Pro Audio' (un nivel por debajo de los hilos de dispositivo)
+Medidor LUFS
 @@323
+MMCSS 'Pro Audio' (un nivel por debajo de los hilos de dispositivo)
+@@324
 MMCSS no disponible - prioridad crítica
+@@325
+No se pudo completar el archivo MP3 (el disco puede estar lleno)
+@@326
+No se pudo iniciar el codificador MP3
 @@327
-Megáfono
+El codificador MP3 no aceptó este ajuste: 
 @@328
-Centro
+Megáfono
 @@329
-MicVST - Configuración
+Centro
 @@330
-MicVST - Ayuda
+MicVST - Configuración
 @@331
-MicVST sigue funcionando en segundo plano. Haga clic derecho en el icono para ver opciones.
+MicVST - Ayuda
 @@332
-Registro de MicVST - inicio:
+MicVST sigue funcionando en segundo plano. Haga clic derecho en el icono para ver opciones.
 @@333
+Registro de MicVST - inicio:
+@@334
 Cómo usar MicVST
 
 1)  Instale un cable de audio virtual
@@ -630,178 +720,190 @@ Cómo usar MicVST
 Privacidad
     MicVST nunca se conecta a Internet: sin búsqueda de actualizaciones, sin recogida
     de datos, sin conexiones web.
-@@334
-MicVST funciona totalmente sin conexión (nunca se conecta a Internet)
 @@335
-Prioridad del proceso de MicVST en Windows. Los hilos de audio (micrófono, cadena de plugins, cable) siempre funcionan con la prioridad de audio en tiempo real de Windows (MMCSS), sea cual sea la opción. Este ajuste adelanta los demás hilos de MicVST (ventana, medidores, cambios de dispositivo, ventanas de plugins, trabajo en segundo plano de algunos plugins) frente a otros programas. Se recomienda Normal; si la ventana de MicVST o la de un plugin se traba durante un juego pesado o un procesamiento de vídeo, pruebe Por encima de lo normal.
+MicVST funciona totalmente sin conexión (nunca se conecta a Internet)
 @@336
-Cerrar MicVST
+Prioridad del proceso de MicVST en Windows. Los hilos de audio (micrófono, cadena de plugins, cable) siempre funcionan con la prioridad de audio en tiempo real de Windows (MMCSS), sea cual sea la opción. Este ajuste adelanta los demás hilos de MicVST (ventana, medidores, cambios de dispositivo, ventanas de plugins, trabajo en segundo plano de algunos plugins) frente a otros programas. Se recomienda Normal; si la ventana de MicVST o la de un plugin se traba durante un juego pesado o un procesamiento de vídeo, pruebe Por encima de lo normal.
 @@337
-Restablecer MicVST
+Cerrar MicVST
 @@338
-Micrófono
+Restablecer MicVST
 @@339
-No se encontró micrófono -> entrada 'ninguna'
+Micrófono
 @@340
-Pérdidas en el controlador del micrófono:
+No se encontró micrófono -> entrada 'ninguna'
 @@341
-El micrófono no está funcionando
+Pérdidas en el controlador del micrófono:
 @@342
-Añade (+) la plenitud grave de hablar cerca del micrófono, o reduce su exceso (-).
+El micrófono no está funcionando
 @@343
+Añade (+) la plenitud grave de hablar cerca del micrófono, o reduce su exceso (-).
+@@344
 Audio guardado en reserva entre el micrófono y el cable. Evita chasquidos en picos de carga como juegos pesados o procesamiento de vídeo. "Automático" empieza en 10 ms y crece solo si el audio se corta. Valor mayor: más robusto, algo más de latencia.
 @@345
-Elija aquí su micrófono.
+La frecuencia de muestreo del micrófono cambió: la grabación terminó en este punto.
 @@346
-Cantidad
+Elija aquí su micrófono.
 @@347
-Cantidad (profundidad / anchura)
+Cantidad
 @@348
+Cantidad (profundidad / anchura)
+@@349
 Modo
 @@350
+Mono (suficiente para voz, la mitad de tamaño)
+@@351
 Mono (izquierda + derecha)
 @@352
-Absoluta (dBFS)
+Mono: el promedio de ambos canales. Con un micrófono de un canal el sonido se conserva exactamente.
 @@353
-Presencia
+Absoluta (dBFS)
 @@354
-Normal
+Presencia
 @@355
-Por encima de lo normal
+Normal
 @@356
-Reverberación de sala
+Por encima de lo normal
 @@357
-Tamaño de la sala
+Reverberación de sala
 @@358
-Océano
+Tamaño de la sala
 @@359
-Relación
+Océano
 @@360
-Bosque
+Relación
 @@361
-Botón central del ratón
+Bosque
 @@362
-Automático (predeterminado)
+Botón central del ratón
 @@363
-Automático (recomendado)
+Automático (predeterminado)
 @@364
-Ganancia automática
+Automático (recomendado)
 @@365
-Ganancia automática (Auto Gain)
+Ganancia automática
 @@366
+Ganancia automática (Auto Gain)
+@@367
 Ganancia automática: analiza su voz en vivo y lleva el pico a unos -20 dBFS al hablar normal y a unos -15 dBFS al gritar. La ganancia cambia despacio, solo lo necesario, entre 0 y +6 dB según su voz (nunca baja el volumen): conserva en gran medida las subidas y bajadas naturales de sílabas y frases, y sigue en pocos segundos cuando su voz cambia de forma duradera; los clics breves, las explosivas "p" y los golpes no reducen la ganancia. Ningún pico supera -10 dBFS (limitador suave con 3 ms de anticipación). En silencio mantiene exactamente la última ganancia; no hay noise gate, el sonido nunca se corta. Su lugar en la cadena se cambia arrastrando. Al desactivarla, la ganancia vuelve suavemente a 0 dB.
 Indicador: ganancia aplicada (pico de entrada -> pico de salida, dBFS). Blanco: voz detectada, gris: ganancia mantenida o desactivada.
-@@367
-Juegos / Streaming
 @@368
-EQ paramétrico
+Juegos / Streaming
 @@369
-Tema de color de la ventana. Predeterminado: Noche.
+EQ paramétrico
 @@370
-Ping-pong (derecha-izquierda)
+Tema de color de la ventana. Predeterminado: Noche.
 @@371
-Podcast / Charla
+Ping-pong (derecha-izquierda)
 @@372
-Restablecer el programa (se borran todos los datos)...
+Podcast / Charla
 @@373
-Radio
+Restablecer el programa (se borran todos los datos)...
 @@374
-Locutor de radio
+Radio
 @@375
-Deriva de reloj micrófono/cable:
+Locutor de radio
 @@376
-No se encontró cable virtual -> salida 'ninguna'
+Deriva de reloj micrófono/cable:
 @@377
-No se encontró ningún cable de audio virtual - instale VB-Cable (vb-audio.com/Cable) y reinicie MicVST
+No se encontró cable virtual -> salida 'ninguna'
 @@378
-Invertir fase del canal derecho
+No se encontró ningún cable de audio virtual - instale VB-Cable (vb-audio.com/Cable) y reinicie MicVST
 @@379
-Canal derecho a ambos
+Invertir fase del canal derecho
 @@380
-Atenúa los sonidos ásperos de "s", "ch" y "z" por encima de la frecuencia elegida, solo en el momento en que aparecen. Con detección relativa, el umbral es el nivel de los agudos respecto al conjunto de la voz (-15 dB: atenúa cuando los agudos se acercan a 15 dB del conjunto de la voz; independiente del nivel del micrófono). Atenúa como máximo la "Reducción".
+Canal derecho a ambos
 @@381
-Sonido
+Atenúa los sonidos ásperos de "s", "ch" y "z" por encima de la frecuencia elegida, solo en el momento en que aparecen. Con detección relativa, el umbral es el nivel de los agudos respecto al conjunto de la voz (-15 dB: atenúa cuando los agudos se acercan a 15 dB del conjunto de la voz; independiente del nivel del micrófono). Atenúa como máximo la "Reducción".
 @@382
-Retardo de audio (sincronía)
+Sonido
 @@383
-Sonido activado
+Retardo de audio (sincronía)
 @@384
-Formato de audio: flujo de MicVST y procesamiento interno en coma flotante de 32 bits; formato del dispositivo en Windows: entrada 
+Sonido activado
 @@385
-Tamaño de los bloques de audio. Valor menor: menos latencia pero más carga de CPU. "Automático" usa el valor propio del dispositivo.
+Formato de audio: flujo de MicVST y procesamiento interno en coma flotante de 32 bits; formato del dispositivo en Windows: entrada 
 @@386
-No se pudo abrir el dispositivo de audio
+Tamaño de los bloques de audio. Valor menor: menos latencia pero más carga de CPU. "Automático" usa el valor propio del dispositivo.
 @@387
-No se pudo abrir el dispositivo de audio - puede que otro programa lo use en exclusiva
+No se pudo abrir el dispositivo de audio
 @@388
-Silenciado: al cable va silencio. Haga clic para activar el sonido.
+No se pudo abrir el dispositivo de audio - puede que otro programa lo use en exclusiva
 @@389
+Silenciado: al cable va silencio. Haga clic para activar el sonido.
+@@390
 Sonido desactivado (silencio)
 @@391
-Sonido, auriculares, atajos, idioma, tema, carpetas VST3
+El audio no funciona: primero deben estar activos el micrófono y el cable
 @@392
-Audio: detenido (¿dispositivo no conectado?)
+Sonido, auriculares, atajos, idioma, tema, carpetas VST3
 @@393
-Audio: funcionando
+Audio: detenido (¿dispositivo no conectado?)
 @@394
-Activar sonido
+Audio: funcionando
 @@395
-Hace que la voz suene como un teléfono, una radio antigua o un megáfono.
+Activar sonido
 @@396
-Silencia el audio sin clics (con un fundido corto). También se activa con la casilla de su fila.
+Hace que la voz suene como un teléfono, una radio antigua o un megáfono.
 @@397
-Silencia el audio sin clics (fundido de 15 ms); al volver a hacer clic se activa de nuevo.
+Silencia el audio sin clics (con un fundido corto). También se activa con la casilla de su fila.
 @@398
-Silencia el audio sin clics (fundido de 15 ms); al volver a hacer clic vuelve el sonido.
+Silencia el audio sin clics (fundido de 15 ms); al volver a hacer clic se activa de nuevo.
 @@399
-Retrasa el audio el tiempo indicado: para alinearlo con la imagen (cámara, emisión).
+Silencia el audio sin clics (fundido de 15 ms); al volver a hacer clic vuelve el sonido.
 @@400
-Muestra en vivo la distribución de frecuencias del audio. No cambia el sonido.
+Retrasa el audio el tiempo indicado: para alinearlo con la imagen (cámara, emisión).
 @@401
-Baja las partes fuertes por encima del umbral según la relación: la voz suena más uniforme y llena. El ataque fija lo rápido que reduce y la liberación lo rápido que suelta; la ganancia de compensación devuelve el nivel reducido. Una mezcla por debajo del 100 % es compresión en paralelo.
+Muestra en vivo la distribución de frecuencias del audio. No cambia el sonido.
 @@402
-Locución / Narrador
+Baja las partes fuertes por encima del umbral según la relación: la voz suena más uniforme y llena. El ataque fija lo rápido que reduce y la liberación lo rápido que suelta; la ganancia de compensación devuelve el nivel reducido. Una mezcla por debajo del 100 % es compresión en paralelo.
 @@403
-Locución / Documental
+Locución / Narrador
 @@404
-Audiolibro
+Locución / Documental
 @@405
-Silencio
+Audiolibro
 @@406
-Silenciar (Mute)
+Silencio
 @@407
-Corta por debajo de la frecuencia elegida: retumbo, vibración de mesa/soporte y la parte baja de las explosivas "p". La base de la voz (~100-140 Hz en voces masculinas) se conserva; no se recomienda pasar de 100 Hz.
+Silenciar (Mute)
 @@408
-Corta por encima de la frecuencia elegida: siseo y soplido.
+Corta por debajo de la frecuencia elegida: retumbo, vibración de mesa/soporte y la parte baja de las explosivas "p". La base de la voz (~100-140 Hz en voces masculinas) se conserva; no se recomienda pasar de 100 Hz.
 @@409
+Corta por encima de la frecuencia elegida: siseo y soplido.
+@@410
 Realza por encima de la frecuencia elegida con una curva de estante: brillo y apertura.
 @@411
-El dispositivo elegido no está conectado; se abrirá al enchufarlo:
+La frecuencia elegida no está disponible ahora (el micrófono funciona a 
 @@412
-Eliminar
+El dispositivo elegido no está conectado; se abrirá al enchufarlo:
 @@413
-Eliminar...
+Eliminar
 @@414
-No se pudo eliminar.
+Eliminar...
 @@415
-Voz de cine
+No se pudo eliminar.
 @@416
-Elimina un desplazamiento constante (DC) de la señal por debajo de 5 Hz. No tiene ajustes; no cambia nada audible.
+Voz de cine
 @@417
-Invertir fase del canal izquierdo
+Elimina un desplazamiento constante (DC) de la señal por debajo de 5 Hz. No tiene ajustes; no cambia nada audible.
 @@418
-Canal izquierdo a ambos
+Invertir fase del canal izquierdo
 @@419
+Canal izquierdo a ambos
+@@420
 Analizador de espectro
 @@421
-Estéreo (sin cambios)
+Estéreo
 @@422
-Ensanchador estéreo
+Estéreo (sin cambios)
 @@423
-Silenciar
+Ensanchador estéreo
 @@424
-Silenciar / activar sonido
+Silenciar
 @@425
+Silenciar / activar sonido
+@@426
 Silenciar, atajos, escucharte
     - "Silenciar" corta el sonido sin clics; F9 (se puede cambiar) silencia incluso con
       MicVST en segundo plano. Cambie el atajo (teclado o botón del ratón) o desactívelo en "Configuración > Atajos"; el menú del
@@ -812,373 +914,279 @@ Silenciar, atajos, escucharte
       segundos y los reproduce enseguida en los auriculares.
     - "Integrado - Dinámica": Compresor y Puerta de ruido. Los ajustes de fábrica los usan
       con moderación; desde el menú "Guardar" los ajustes se exportan a un archivo.
-@@426
-Amortiguación
 @@427
+Amortiguación
+@@428
 Tiempo
 @@429
-Saturación (Drive)
+Duración: 
 @@430
-Saturación cálida (válvula / cinta)
+Saturación (Drive)
 @@431
-Cálido y lleno
+Saturación cálida (válvula / cinta)
 @@432
-Restablecer
+Cálido y lleno
 @@433
+Restablecer
+@@434
 Restablecimiento: todos los datos borrados, el programa se cierra
 @@435
-Aceptar
+Compresión
 @@436
-Búfer
+Aceptar
 @@437
-Análisis
+Búfer
 @@438
-Análisis omitido (
+Análisis
 @@439
-Análisis:
+Análisis omitido (
 @@440
-Análisis: omisión retirada (archivo cambiado o eliminado):
+Análisis:
 @@441
-Techo (dBTP)
+Análisis: omisión retirada (archivo cambiado o eliminado):
 @@442
-Inclina todo el tono con un solo deslizador: a la izquierda cálido (más graves, menos agudos), a la derecha brillante.
+Techo (dBTP)
 @@443
-Rueda abajo
+Inclina todo el tono con un solo deslizador: a la izquierda cálido (más graves, menos agudos), a la derecha brillante.
 @@444
-Rueda arriba
+Rueda abajo
 @@445
-Eco repetido. La realimentación fija el número de repeticiones; el Tono, su brillo.
+Rueda arriba
 @@446
-Ganancia de compensación
+Eco repetido. La realimentación fija el número de repeticiones; el Tono, su brillo.
 @@447
-Teléfono
+Ganancia de compensación
 @@448
-Teléfono / Radio / Megáfono
+Teléfono
 @@449
-Tema
+Teléfono / Radio / Megáfono
 @@450
-Tema:
+Tema
 @@451
-Campana (Bell)
+Tema:
 @@452
-Tilt EQ (equilibrio tonal)
+Campana (Bell)
 @@453
-Tono (- cálido / + brillante)
+Tilt EQ (equilibrio tonal)
 @@454
-Tono (brillo de las repeticiones)
+Tono (- cálido / + brillante)
 @@455
-Reunión / Clase
+Tono (brillo de las repeticiones)
 @@456
-Tecla / botón del ratón...
+Reunión / Clase
 @@457
-Se borrarán todos los ajustes, la lista de plugins y la cadena de plugins, y después MicVST se cerrará. Al volver a abrirlo se realizará la configuración inicial. ¿Continuar?
+Tecla / botón del ratón...
 @@458
-Volver a analizar todos los plugins
+Se borrarán todos los ajustes, la lista de plugins y la cadena de plugins, y después MicVST se cerrará. Al volver a abrirlo se realizará la configuración inicial. ¿Continuar?
 @@459
-Toda la voz (banda ancha)
+Volver a analizar todos los plugins
 @@460
-Integrada
+Toda la voz (banda ancha)
 @@461
-Reinicia la medición integrada, los valores máximos y el pico real
+Integrada
 @@462
-Seleccionar todo
+Reinicia la medición integrada, los valores máximos y el pico real
 @@463
-Válvula
+Seleccionar todo
 @@464
-Tipo
+Válvula
 @@465
+Tipo
+@@466
 Haga clic y pulse la nueva tecla o botón del ratón (también con Ctrl / Alt / Mayús); Esc o un segundo clic cancela
 @@467
-Advertencia: '
+Haga clic para detener y cerrar el archivo.
 @@468
-Eliminador de zumbido (50/60 Hz)
+Advertencia: '
 @@469
-Carpetas VST3
+Eliminador de zumbido (50/60 Hz)
 @@470
-Carpetas VST3 y análisis...
+Carpetas VST3
 @@471
-Elegir una carpeta VST3
+Carpetas VST3 y análisis...
 @@472
-Por defecto
+Elegir una carpeta VST3
 @@473
+Por defecto
+@@474
 Valores predeterminados
 @@475
-Inicia MicVST como icono, sin ventana, al arrancar Windows
+WAV: sin pérdidas, se abre en cualquier programa (recomendado). FLAC: sin pérdidas y aprox. la mitad de tamaño. MP3: con pérdidas, el archivo más pequeño; para compartir.
 @@476
-Iniciar con Windows
+Inicia MicVST como icono, sin ventana, al arrancar Windows
 @@477
-Predeterminado de Windows
+Iniciar con Windows
 @@478
-Proximidad
+Predeterminado de Windows
 @@479
-Solo agudos (dividido)
+Proximidad
 @@480
-Pegar
+Solo agudos (dividido)
 @@481
-Nombre nuevo:
+Pegar
 @@482
-Guardar como ajuste nuevo...
+Nombre nuevo:
 @@483
-Renombrar
+Guardar como ajuste nuevo...
 @@484
-Renombrar...
+Renombrar
 @@485
-Rehacer
+Renombrar...
 @@486
-Rodilla suave
+Rehacer
 @@487
-Suave y sedoso
+Rodilla suave
 @@488
-Alta
+Suave y sedoso
 @@489
-Corte de agudos (High-Cut)
+Alta
 @@490
-Alto contraste
+Corte de agudos (High-Cut)
 @@491
-Estante de agudos
+Alto contraste
 @@492
-La cadena no dio abasto, audio omitido:
+Estante de agudos
 @@493
-Guarde la cadena como ajuste propio; renómbrelo, elimínelo o vuelva a la cadena anterior
+La cadena no dio abasto, audio omitido:
 @@494
-La restauración de la cadena espera al análisis de plugins
+Guarde la cadena como ajuste propio; renómbrelo, elimínelo o vuelva a la cadena anterior
 @@495
-omitido
+La restauración de la cadena espera al análisis de plugins
 @@496
-otro nivel
+omitido
 @@497
-desconocido
+otro nivel
 @@498
+desconocido
+@@499
 no compatible
+@@500
+min
+@@501
+el archivo NO se pudo verificar
+@@502
+archivo verificado
+@@503
+convertido
+@@504
+más rápido
+@@505
+mejor
 @@506
-latencia
+archivo más pequeño
 @@507
-el dispositivo de entrada
+latencia
 @@508
-margen de seguridad
+el dispositivo de entrada
 @@509
-error
+margen de seguridad
 @@510
-cable
+error
 @@511
-coma flotante
+cable
 @@512
-cortes
+coma flotante
 @@513
+cortes
+@@514
 micrófono
 @@515
-mono
+igual que el micrófono
 @@516
+mono
+@@517
 últimos 60 s (corto plazo)
 @@518
-correcto
+estéreo
 @@519
+correcto
+@@520
 análisis fallido
 @@521
-no responde
+por defecto
 @@522
-Reproduciendo... 
+no responde
 @@523
-Funcionando
+Reproduciendo... 
 @@524
-Limpiador de turbidez
+Funcionando
 @@525
-Salida
+Limpiador de turbidez
 @@526
-Salida (cable) =
+Salida
 @@527
-Limitador de salida
+Salida (cable) =
 @@528
-Salida iniciada:
+Limitador de salida
 @@529
-No se pudo abrir el dispositivo de salida (tamaño de búfer incompatible)
+Salida iniciada:
 @@530
-¡No se pudo abrir el dispositivo de salida!
+No se pudo abrir el dispositivo de salida (tamaño de búfer incompatible)
 @@531
-No se pudo abrir el dispositivo de salida: '
+¡No se pudo abrir el dispositivo de salida!
 @@532
-¡No se pudo iniciar el dispositivo de salida!
+No se pudo abrir el dispositivo de salida: '
 @@533
-Error del dispositivo de salida:
+¡No se pudo iniciar el dispositivo de salida!
 @@534
-Cortes de audio en la salida:
+Error del dispositivo de salida:
 @@535
-Tiempo medido
+Cortes de audio en la salida:
 @@536
-Antes / después: el cable recibe un momento el micrófono sin procesar, sin la cadena (con el mismo retardo). Al volver a hacer clic vuelve la voz procesada.
+Tiempo medido
 @@537
+Antes / después: el cable recibe un momento el micrófono sin procesar, sin la cadena (con el mismo retardo). Al volver a hacer clic vuelve la voz procesada.
+@@538
 Cadena anterior
 @@539
-Sobrescribir
+Frecuencia de muestreo
 @@540
-Sobrescribir (elija uno de sus ajustes)
+Sobrescribir
 @@541
-falló (
+Sobrescribir (elija uno de sus ajustes)
 @@542
+falló (
+@@543
 el dispositivo de salida
 @@544
-Cancelar
-@@545
-Prioridad del proceso
-@@546
-Prioridad del proceso "
-@@547
-Prioridad del proceso:
-@@548
-Proceso: limitación de energía desactivada
-@@549
-CPU
-@@550
-Procesamiento:
-@@551
-Procesamiento: la cadena de plugins se retrasó más de
-@@552
-Procesamiento: cola de entrada llena -
-@@553
-Procesamiento: no se procesó nada durante 3 s aunque el micrófono da audio - puede que un plugin se haya colgado
-@@554
-Escuche su voz procesada en directo por la salida "Auriculares". Use auriculares, no altavoces: el sonido de los altavoces que vuelve al micrófono produce eco y pitidos.
-@@555
-Canto / Voz
-@@556
-Red eléctrica
-@@557
-Elimina el zumbido de la red eléctrica (50 Hz y múltiplos; 60 Hz seleccionable) con muescas muy estrechas.
-@@558
-Omitir el plugin que se está analizando
-@@559
-—
-@@10
- bits flotante
-@@29
-.
-@@32
- ahora); la grabación será de 
-@@58
-, frecuencia de proceso 
-@@60
-, muestras perdidas: 
-@@70
-24 bits: 144 dB de rango dinámico, se abre en cualquier programa (recomendado). 16 bits: calidad CD, redondeo con dither. 32 bits flotante: el audio interno de MicVST exacto, nunca se recorta.
-@@74
-44,1 kHz es el estándar de música/CD y 48 kHz el de vídeo y emisión. Las frecuencias más altas solo se ofrecen si el micrófono funciona a esa frecuencia: subir un audio de menor frecuencia no añade calidad.
-@@126
-Formato
-@@130
-No se pudo iniciar la grabación en este formato: 
-@@133
-No se puede escribir en esta carpeta (sin permiso o de solo lectura): 
-@@162
-Cambiar...
-@@165
-Disco lleno (menos de 30 MB libres): grabación detenida.
-@@166
-El nombre del archivo es la fecha y hora (MicVST_2026-10-21_21-58-03.wav); nunca se sobrescribe una grabación existente.
-@@167
-No se pudo verificar el archivo.
-@@168
-Archivo verificado: la parte grabada está completa.
-@@170
-No se pudo crear el archivo: 
-@@172
-Archivo: 
-@@198
-FLAC no pierde calidad en ningún nivel; solo cambian el tamaño del archivo y el tiempo de procesador.
-@@199
-FLAC no tiene pérdidas: al abrirlo es idéntico al WAV bit a bit.
-@@257
-Graba en un archivo lo que va al cable (lo que oye la otra persona). Clic para empezar, otro clic para detener.
-@@261
-Calidad
-@@271
-Guardado: 
-@@273
-Se graba: el sonido procesado que va al cable (lo que oye la otra persona). Archivo: 
-@@275
-Grabando: 
-@@277
-Iniciar grabación
-@@278
-Detener grabación
-@@279
-Muestras perdidas: 
-@@280
-Grabar
-@@281
-Grabación iniciada: 
-@@282
-No se pudo iniciar la grabación: 
-@@283
-Grabación terminada y guardada.
-@@284
-Grabación terminada: 
-@@285
-No se pudo abrir el archivo de grabación (tiempo agotado): 
-@@286
-No se pudo escribir en el archivo (el disco puede estar lleno o desconectado): 
-@@287
-No se pudo crear la carpeta de grabaciones: 
-@@288
-Elija la carpeta de grabaciones
-@@289
-No hay espacio en el disco de la carpeta (menos de 100 MB): 
-@@290
-Los ajustes se bloquean durante la grabación; los cambios se aplican a la siguiente.
-@@291
-Ya hay una grabación en curso
-@@298
-Carpeta
-@@301
-Abrir carpeta
-@@320
-LAME 4.0. CBR: tasa de bits constante, funciona en cualquier dispositivo. VBR: tasa variable, archivo más pequeño con la misma calidad.
-@@324
-No se pudo completar el archivo MP3 (el disco puede estar lleno)
-@@325
-No se pudo iniciar el codificador MP3
-@@326
-El codificador MP3 no aceptó este ajuste: 
-@@344
-La frecuencia de muestreo del micrófono cambió: la grabación terminó en este punto.
-@@349
-Mono (suficiente para voz, la mitad de tamaño)
-@@351
-Mono: el promedio de ambos canales. Con un micrófono de un canal el sonido se conserva exactamente.
-@@390
-El audio no funciona: primero deben estar activos el micrófono y el cable
-@@410
-La frecuencia elegida no está disponible ahora (el micrófono funciona a 
-@@420
-Estéreo
-@@428
-Duración: 
-@@434
-Compresión
-@@466
-Haga clic para detener y cerrar el archivo.
-@@474
-WAV: sin pérdidas, se abre en cualquier programa (recomendado). FLAC: sin pérdidas y aprox. la mitad de tamaño. MP3: con pérdidas, el archivo más pequeño; para compartir.
-@@499
-min
-@@500
-el archivo NO se pudo verificar
-@@501
-archivo verificado
-@@502
-convertido
-@@503
-más rápido
-@@504
-mejor
-@@505
-archivo más pequeño
-@@514
-igual que el micrófono
-@@517
-estéreo
-@@520
-por defecto
-@@538
-Frecuencia de muestreo
-@@543
 recomendado
+@@545
+Cancelar
+@@546
+Prioridad del proceso
+@@547
+Prioridad del proceso "
+@@548
+Prioridad del proceso:
+@@549
+Proceso: limitación de energía desactivada
+@@550
+CPU
+@@551
+Procesamiento:
+@@552
+Procesamiento: la cadena de plugins se retrasó más de
+@@553
+Procesamiento: cola de entrada llena -
+@@554
+Procesamiento: no se procesó nada durante 3 s aunque el micrófono da audio - puede que un plugin se haya colgado
+@@555
+Escuche su voz procesada en directo por la salida "Auriculares". Use auriculares, no altavoces: el sonido de los altavoces que vuelve al micrófono produce eco y pitidos.
+@@556
+Canto / Voz
+@@557
+Red eléctrica
+@@558
+Elimina el zumbido de la red eléctrica (50 Hz y múltiplos; 60 Hz seleccionable) con muescas muy estrechas.
+@@559
+Omitir el plugin que se está analizando
+@@560
+—
+@@281
+Grabación
+    - El botón "Grabar" graba en un archivo lo que va al cable (lo que oye la otra persona);
+      otro clic la detiene: el archivo se cierra y se verifica. El menú del icono junto al
+      reloj también puede iniciarla y detenerla.
+    - "Ajustes > Grabar": formato (WAV, FLAC, MP3), calidad, frecuencia de muestreo, canales y
+      carpeta. Por defecto: WAV 24 bits, 48 kHz, estéreo; Documentos\MicVST Kayıtları.
+    - El nombre del archivo es la fecha y hora; nunca se sobrescribe una grabación existente.
