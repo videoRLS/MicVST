@@ -216,6 +216,8 @@
  "Hakkında": "关于",
  "Ham ses": "原声",
  "Ham ses (önce / sonra)": "原声（处理前 / 处理后）",
+ "Ham ses: açık (zincir atlanıyor)": "原声：开（跳过处理链）",
+ "Ham ses: kapalı (işlenmiş ses)": "原声：关（处理后的声音）",
  "Harmonik sayısı": "谐波数量",
  "Hava (Air)": "空气感（Air）",
  "Hayır": "否",

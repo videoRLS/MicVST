@@ -216,6 +216,8 @@
  "Hakkında": "About",
  "Ham ses": "Raw",
  "Ham ses (önce / sonra)": "Raw (before / after)",
+ "Ham ses: açık (zincir atlanıyor)": "Raw: on (chain bypassed)",
+ "Ham ses: kapalı (işlenmiş ses)": "Raw: off (processed audio)",
  "Harmonik sayısı": "Harmonics",
  "Hava (Air)": "Air",
  "Hayır": "No",

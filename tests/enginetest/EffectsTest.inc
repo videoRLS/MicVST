@@ -486,6 +486,71 @@ namespace fxtest
         }
 
         pr ("");
+        pr ("## Kendini dinle (headphones = virtual VSpeakers) and the test recording played there (997 Hz -20 dBFS; chain: Kazanc -6 dB)");
+        {
+            sineConfig (997.0, 0.1, cfg.micRate);
+            auto& pres = vdev::presence();
+            auto window = [&] (double seconds) { pres.speakerPeak = 0.0f; pres.speakerSamples = 0; pump (seconds);
+                                                 return std::pair<double, int64_t> (20.0 * std::log10 (std::max (1.0e-9, (double) pres.speakerPeak.load())), pres.speakerSamples.load()); };
+            const double expectDb = -26.0;   // -20 dBFS sine through Kazanc -6 dB
+            juce::String err;
+            std::pair<double, int64_t> off0, on0, quiet, offAgain, playback, after;
+            double cableDuring = -999.0;
+            bool recorded = false, idle = false;
+            {
+                EngineRun run (480, 40.0);
+                auto& e = *run.engine;
+                e.getChain().addGain (-6.0f);
+                { const AudioEngine::ChainEdit ce (e); e.rebuildGraph(); }
+                e.setMonitorDevice ("VSpeakers");
+                pump (1.0);
+                off0 = window (1.0);                         // monitoring off: the headphones get nothing
+                err = e.setMonitorEnabled (true);
+                pump (1.5);
+                on0 = window (2.0);                          // processed audio at 0 dB
+                e.setMonitorVolumeDb (-12.0f);
+                pump (0.5);
+                quiet = window (1.5);                        // -12 dB on the headphones only
+                e.setMonitorEnabled (false);
+                pump (0.5);
+                offAgain = window (1.0);                     // closed again
+                // the test recording plays on the headphone device even with monitoring off
+                const int64_t cableAt = vdev::recorder().available.load();
+                check (e.startTestRecording().isEmpty(), "test recording starts (headphones VSpeakers)");
+                for (int k = 0; k < 120 && e.getTestState() == AudioEngine::TestState::recording; ++k) pump (0.1);
+                recorded = e.getTestState() == AudioEngine::TestState::playing;
+                pres.speakerPeak = 0.0f; pres.speakerSamples = 0;
+                for (int k = 0; k < 130 && e.getTestState() == AudioEngine::TestState::playing; ++k) { pump (0.1); e.testTick(); }
+                playback = { 20.0 * std::log10 (std::max (1.0e-9, (double) pres.speakerPeak.load())), pres.speakerSamples.load() };
+                idle = e.getTestState() == AudioEngine::TestState::idle;
+                const int64_t cableNow = vdev::recorder().available.load();
+                {
+                    const auto& L = vdev::recorder().left;
+                    double s2 = 0.0; int64_t n = 0;
+                    for (int64_t i = std::max (cableAt, cableNow - (int64_t) (2.0 * vdev::config().cableRate)); i < cableNow; ++i) { s2 += (double) L[(size_t) i] * L[(size_t) i]; ++n; }
+                    cableDuring = n > 0 ? 10.0 * std::log10 (std::max (1.0e-20, s2 / (double) n)) + 3.01 : -999.0;   // sine: rms + 3 dB = peak
+                }
+                pump (0.5);
+                after = window (1.0);                        // finished: the device is closed again
+                e.setMonitorVolumeDb (0.0f);
+            }
+            pr ("monitoring off: headphone samples " + juce::String ((int) off0.second) + "; on (0 dB): peak " + db (on0.first, 2) + " (expected " + db (expectDb, 1)
+                + "), samples " + juce::String ((int) on0.second) + "; at -12 dB: peak " + db (quiet.first, 2) + "; off again: samples " + juce::String ((int) offAgain.second));
+            pr ("test recording on the headphones: recorded " + juce::String (recorded ? "yes" : "NO") + ", playback peak " + db (playback.first, 2) + ", samples "
+                + juce::String ((int) playback.second) + ", finished " + juce::String (idle ? "yes" : "NO") + "; cable during playback " + db (cableDuring, 2)
+                + "; after: samples " + juce::String ((int) after.second) + (err.isNotEmpty() ? "; error: " + err : juce::String()));
+            check (err.isEmpty(), "Kendini dinle opens the headphone device");
+            check (off0.second == 0, "monitoring off: nothing on the headphones");
+            check (on0.second > (int64_t) (1.5 * 48000.0) && std::abs (on0.first - expectDb) < 0.5, "Kendini dinle: the processed audio at its level");
+            check (std::abs (quiet.first - (expectDb - 12.0)) < 0.5, "headphone volume -12 dB");
+            check (offAgain.second == 0, "monitoring switched off: the headphones are silent");
+            check (recorded && idle, "test recording: record -> play on the headphones -> done");
+            check (playback.second > (int64_t) (5.0 * 48000.0) && playback.first > expectDb - 12.0 - 1.0, "test recording: heard on the headphones");
+            check (std::abs (cableDuring - expectDb) < 0.5, "the cable keeps its audio while the test recording plays");
+            check (after.second == 0, "after the test recording the headphone device is closed again (monitoring off)");
+        }
+
+        pr ("");
         pr ("## Mono microphone with effects: both cable channels carry the voice");
         {
             cfg.micChannels = 1;

@@ -1427,6 +1427,7 @@ void AudioEngine::setMuted (bool m)
 void AudioEngine::setRawCompare (bool on)
 {
     if (rawCompare.exchange (on) == on) return;
+    juce::Logger::writeToLog (on ? tr ("Ham ses: açık (zincir atlanıyor)") : tr ("Ham ses: kapalı (işlenmiş ses)"));
 }
 
 void AudioEngine::setMonitorDevice (const juce::String& name)

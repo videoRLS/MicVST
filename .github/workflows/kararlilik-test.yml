@@ -121,6 +121,12 @@ jobs:
         shell: pwsh
         run: ./tools/ci-runtime-check.ps1 -Exe build/MicVST_artefacts/Release/MicVST.exe -Out results/runtime
 
+      - name: Shortcuts of the real MicVST.exe (keyboard + mouse, injected input)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && env.QUICK != 'true' && hashFiles('tools/ci-hotkeys.ps1') != '' }}
+        continue-on-error: true
+        shell: pwsh
+        run: ./tools/ci-hotkeys.ps1 -Exe build/MicVST_artefacts/Release/MicVST.exe -Out results/hotkeys
+
       - name: Desktop helpers (MicVST_Oncelik.vbs, MicVST_Simgeleri.vbs) on real Windows
         if: ${{ !cancelled() && steps.build.outcome == 'success' && env.QUICK != 'true' && hashFiles('tools/ci-desktop-scripts.ps1') != '' }}
         continue-on-error: true

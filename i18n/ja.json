@@ -216,6 +216,8 @@
  "Hakkında": "バージョン情報",
  "Ham ses": "原音",
  "Ham ses (önce / sonra)": "原音（処理前 / 処理後）",
+ "Ham ses: açık (zincir atlanıyor)": "原音: オン（チェーンをバイパス）",
+ "Ham ses: kapalı (işlenmiş ses)": "原音: オフ（処理後の音）",
  "Harmonik sayısı": "倍音の数",
  "Hava (Air)": "エア（Air）",
  "Hayır": "いいえ",

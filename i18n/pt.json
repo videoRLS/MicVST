@@ -216,6 +216,8 @@
  "Hakkında": "Sobre",
  "Ham ses": "Sem efeitos",
  "Ham ses (önce / sonra)": "Sem efeitos (antes / depois)",
+ "Ham ses: açık (zincir atlanıyor)": "Sem efeitos: ligado (cadeia ignorada)",
+ "Ham ses: kapalı (işlenmiş ses)": "Sem efeitos: desligado (áudio processado)",
  "Harmonik sayısı": "Número de harmônicos",
  "Hava (Air)": "Ar (Air)",
  "Hayır": "Não",
