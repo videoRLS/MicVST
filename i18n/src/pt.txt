@@ -1,0 +1,869 @@
+@@0
+(ajustes em transição)
+@@1
+(não conectado)
+@@2
+(código de erro
+@@3
+(automático)
+@@4
+(pico
+@@5
+(aplicada, lida de volta do Windows)
+@@6
+(cadeia trocada)
+@@7
+(cache=
+@@8
+- cadeia pesada demais
+@@9
+Hz, buffer
+@@10
+blocos demoraram mais que o tempo real (carga dos plugins média
+@@11
+bloco(s) afetado(s), essas amostras foram silenciadas. Se o problema continuar, remova o último plugin que você adicionou e adicione-o de novo.
+@@12
+não deu áudio por 3 s - reabrindo
+@@13
+dB/oit
+@@14
+arquivo(s) a verificar
+@@15
+arquivo=
+@@16
+plugin(s) ignorado(s) - passe o mouse para ver detalhes
+@@17
+plugins recuperados
+@@18
+bloco(s) de entrada descartado(s) (a saída tinha parado)
+@@19
+caracteres.
+@@20
+vez(es) (com um fade curto). Margem de segurança agora
+@@21
+vez(es), com um fade curto). Com a carga atual a cadeia precisa de mais tempo de CPU do que o tempo real.
+@@22
+bloco(s) do microfone descartado(s) (o processamento dos plugins parou por mais de um segundo)
+@@23
+ms pulados (
+@@24
+ms)
+@@25
+ms atrás do tempo real - áudio do microfone:
+@@26
+| canais
+@@27
+| saída
+@@28
+amostras (
+@@29
+→
+@@30
+Sobrescrever "
+@@31
+": excluir esta predefinição? (A cadeia atual não muda.)
+@@32
+" não pôde ser aplicada: o Windows não permitiu esta alteração
+@@33
+" não pôde ser carregado. Detalhes no arquivo de log (%APPDATA%\MicVST\log.txt).
+@@34
+" já existe. Sobrescrever?
+@@35
+": remover da cadeia?
+@@36
+"
+@@37
+' aberto (tentativa
+@@38
+' contém vários plugins; o arquivo de ajustes antigo não registrou qual era usado - o primeiro foi carregado. Adicione o plugin correto novamente uma vez.
+@@39
+' não abriu no modo de baixa latência (
+@@40
+' está na lista mas não pode ser aberto (outro programa pode estar usando-o com exclusividade) - tentativa
+@@41
+(desconhecido)
+@@42
+(alterado):
+@@43
+(nenhuma pasta extra)
+@@44
+(nenhuma ainda - adicione com "Salvar")
+@@45
+(sem opções)
+@@46
+(novo):
+@@47
+(nenhum)
+@@48
+(forçado):
+@@49
+) - tentando de novo no modo compartilhado
+@@50
++ Plugin
+@@51
+, sem acesso à internet)
+@@52
+, no resto do tempo esperou pela CPU
+@@53
+, pico
+@@54
+, limitação de temporizadores desativada
+@@55
+; nova tentativa automática (no máximo a cada 10 s)
+@@56
+)
+@@57
+. Prioridade atual:
+@@58
+Atenua a região de 0,8-1,3 kHz: um médio anasalado e áspero fica mais suave.
+@@59
+12 dB/oit
+@@60
+Realça a região de 120-250 Hz com uma curva larga: som mais cheio e encorpado. Em excesso fica abafado.
+@@61
+24 dB/oit
+@@62
+Realça a região de 3-5 kHz: mais inteligibilidade. Em excesso fica áspero.
+@@63
+Atenua a região de 300-500 Hz: menos som embolado e "de caixa".
+@@64
+; taxa de execução da thread
+@@65
+; o áudio esperou no máximo
+@@66
+Nome
+@@67
+O nome pode ter no máximo
+@@68
+Detecção
+@@69
+Corte de graves (Low-Cut)
+@@70
+Prateleira de graves
+@@71
+Ametista
+@@72
+Momentânea (400 ms)
+@@73
+Redução atual:
+@@74
+Faixa (LRA)
+@@75
+Idioma da interface. Padrão: Türkçe (turco).
+@@76
+Pular
+@@77
+Tentar de novo os plugins ignorados
+@@78
+Predefinição não encontrada.
+@@79
+Não foi possível carregar a predefinição
+@@80
+Salvar predefinição
+@@81
+Excluir predefinição
+@@82
+Claro
+@@83
+Redução
+@@84
+Ligado
+@@85
+Iniciar com o sistema
+@@86
+Fita
+@@87
+Banda 1 Q
+@@88
+Banda 1 frequência
+@@89
+Banda 1 ganho
+@@90
+Banda 1 tipo
+@@91
+Banda 2 Q
+@@92
+Banda 2 frequência
+@@93
+Banda 2 ganho
+@@94
+Banda 2 tipo
+@@95
+Banda 3 Q
+@@96
+Banda 3 frequência
+@@97
+Banda 3 ganho
+@@98
+Banda 3 tipo
+@@99
+Banda 4 Q
+@@100
+Banda 4 frequência
+@@101
+Banda 4 ganho
+@@102
+Banda 4 tipo
+@@103
+Reverb de sala simples. Para a fala recomenda-se uma mistura baixa (5-15%).
+@@104
+Alguns plugins não foram encontrados
+@@105
+Outro nível (alterado externamente)
+@@106
+Elemento interno desconhecido ignorado:
+@@107
+Digite um nome.
+@@108
+Este é o nome de uma predefinição de fábrica; escolha outro nome.
+@@109
+Já existe uma predefinição com este nome.
+@@110
+Estes plugins da predefinição não existem neste computador ou não puderam ser carregados; ela foi carregada sem eles:
+
+@@111
+Volta todos os ajustes deste efeito aos valores iniciais
+@@112
+Com que nome salvar esta cadeia (todos os efeitos e plugins, com seus ajustes)?
+@@113
+Escolha aqui "CABLE Input"; em programas como Discord ou OBS escolha "CABLE Output" como microfone.
+@@114
+Tempo de liberação
+@@115
+Chorus
+@@116
+Chorus / Ampliador estéreo
+@@117
+Chorus: uma voz dobrada que ondula suavemente. Ampliador: abre uma voz mono em estéreo; quando os dois canais são somados (mono), o som não muda.
+@@118
+Dispositivo não encontrado:
+@@119
+Dispositivo reaberto:
+@@120
+Dispositivo reconectado, abrindo:
+@@121
+Removedor de deslocamento DC
+@@122
+Interno
+@@123
+Interno - Cor e ambiente
+@@124
+Interno - Nível e proteção
+@@125
+Interno - Limpeza
+@@126
+Interno - Timbre e EQ
+@@127
+Interno - Tempo e canais
+@@128
+Interno - Medição
+@@129
+Estreiteza (Q)
+@@130
+De-esser
+@@131
+Vigilância:
+@@132
+Balanço (- esquerda / + direita)
+@@133
+Profissional equilibrado
+@@134
+Profundo e quente
+@@135
+Bypass
+@@136
+Idioma:
+@@137
+Não foi possível ler o arquivo:
+@@138
+Não foi possível gravar o arquivo:
+@@139
+Parado - dispositivo não conectado
+@@140
+Quatro bandas, cada uma com tipo, frequência, ganho e Q. Uma banda com ganho de 0 dB não altera o som.
+@@141
+Pesquisar plugins...
+@@142
+Plugin não encontrado:
+@@143
+Thread dos plugins:
+@@144
+Processamento de plugins travado:
+@@145
+Não foi possível carregar o plugin
+@@146
+Não foi possível carregar o plugin:
+@@147
+A cadeia de plugins gerou áudio inutilizável (NaN, infinito, valor absurdamente alto ou erro):
+@@148
+Cache de plugins ausente ou danificado -> verificação completa
+@@149
+Áudio inválido de um plugin (silenciado):
+@@150
+Verificando plugins...
+@@151
+Ignorar o plugin temporariamente (o áudio passa por fora dele)
+@@152
+Remover plugin
+@@153
+Remover o plugin da cadeia
+@@154
+Redução máxima
+@@155
+Voz masculina -
+@@156
+Predefinições para voz masculina
+@@157
+Ativo
+@@158
+Sim
+@@159
+Inclinação
+@@160
+Limiar
+@@161
+Frequência
+@@162
+Noite (padrão)
+@@163
+Meia-noite (preto)
+@@164
+Atraso
+@@165
+Delay / Eco
+@@166
+Correções de latência:
+@@167
+Redutor nasal
+@@168
+Largura
+@@169
+Largura (Q)
+@@170
+Desfazer
+@@171
+Realimentação
+@@172
+Pico real
+@@173
+Blocos de plugin atrasados (compensados sem falhas):
+@@174
+Entrada
+@@175
+Entrada (microfone) =
+@@176
+Entrada iniciada:
+@@177
+Não foi possível abrir o dispositivo de entrada!
+@@178
+Não foi possível abrir o dispositivo de entrada: '
+@@179
+Não foi possível iniciar o dispositivo de entrada!
+@@180
+Erro do dispositivo de entrada:
+@@181
+Ganho de entrada
+@@182
+Os dispositivos de entrada e saída não têm uma taxa de amostragem em comum!
+@@183
+Relativa (em relação à própria voz)
+@@184
+Corpo / Calor
+@@185
+Pôr do sol
+@@186
+Margem de segurança
+@@187
+Adiciona harmônicos suaves (com sobreamostragem 4x e antialiasing). O nível é compensado automaticamente.
+@@188
+Número de harmônicos
+@@189
+Ar (Air)
+@@190
+Não
+@@191
+Predefinição
+@@192
+Não foi possível ler um arquivo de predefinição, ignorado:
+@@193
+Escolha uma predefinição
+@@194
+Predefinição carregada:
+@@195
+Predefinições: a cadeia inteira muda com um clique. "Predefinições para voz masculina" e "Predefinições para voz feminina" usam apenas os efeitos internos (funcionam para todos); "Minhas predefinições" são as cadeias que você salvou (com plugins VST3 e seus ajustes). Entre predefinições formadas pelos mesmos elementos os ajustes deslizam suavemente; uma cadeia diferente troca com um fade curto (alguns ms). * : a cadeia foi alterada depois de carregada.
+@@196
+Mantém cada pico abaixo do teto (pico real, 3 ms de antecipação, o mesmo método do limitador do Ganho automático). Coloque-o no fim da cadeia.
+@@197
+Velocidade (só chorus)
+@@198
+Guia rápido de configuração
+@@199
+Loudness ITU-R BS.1770 / EBU R128: momentânea (400 ms), curto prazo (3 s), integrada e pico real. Não altera o som.
+@@200
+Voz feminina -
+@@201
+Predefinições para voz feminina
+@@202
+Remover
+@@203
+Canal
+@@204
+Ferramentas de canal (Fase / Canal / Balanço)
+@@205
+Trocar canais
+@@206
+Desligado
+@@207
+Mistura
+@@208
+Mistura (só chorus)
+@@209
+Não foi possível verificar o arquivo salvo:
+@@210
+Salvar
+@@211
+Ganho
+@@212
+Ganho (Gain)
+@@213
+Ganho: de -30 dB a +12 dB em passos de 0,1 dB (também dá para digitar o valor). Um clique duplo volta a 0 dB. Para não distorcer, use o Ganho antes do limitador; a linha de pico do medidor de Saída fica vermelha em 0 dB.
+@@214
+Minhas predefinições
+@@215
+Recortar
+@@216
+Adicionar pasta...
+@@217
+Não foi possível criar a pasta:
+@@218
+Copiar
+@@219
+Clareza cristalina
+@@220
+Ajuda
+@@221
+Configuração: entrada
+@@222
+Ponte:
+@@223
+Ponte: latência trazida de volta ao alvo (total
+@@224
+Ponte: falha de áudio na saída,
+@@225
+Cinza
+@@226
+Curto prazo (3 s)
+@@227
+Medidor LUFS
+@@228
+MMCSS 'Pro Audio' (um nível abaixo das threads dos dispositivos)
+@@229
+MMCSS indisponível - prioridade crítica
+@@230
+Megafone
+@@231
+Centro
+@@232
+MicVST - Ajuda
+@@233
+O MicVST continua rodando em segundo plano. Clique com o botão direito no ícone para ver as opções.
+@@234
+Log do MicVST - início:
+@@235
+Como usar o MicVST
+
+1)  Instale um cabo de áudio virtual
+    Recomenda-se o VB-Cable gratuito: vb-audio.com/Cable. O MicVST o encontra sozinho.
+
+2)  Escolha os dispositivos (no alto da janela)
+    Entrada  =  seu microfone
+    Saída    =  o cabo virtual (ex.: "CABLE Input")
+
+3)  Monte sua cadeia de plugins
+    - "+ Plugin" abre uma lista pesquisável de todos os efeitos VST3 e das ferramentas
+      internas, agrupados por fabricante. Adicione os efeitos que quiser (EQ, redução
+      de ruído, compressor...).
+    - Adicione "Mono -> Stereo" onde quiser estéreo; a parte anterior funciona em mono
+      (menos CPU). "Stereo -> Mono" também existe. Uma cadeia que termina em mono
+      é enviada aos dois canais do cabo.
+    - "Ganho" (Interno) abaixa/aumenta o áudio entre -30 e +12 dB; mude o valor com
+      o controle deslizante da linha. Coloque-o antes de um limitador para não distorcer.
+    - "Ganho automático" (Interno) analisa sua voz ao vivo: na fala normal o pico fica
+      em cerca de -20 dBFS, gritando em cerca de -15 dBFS; nenhum pico passa de
+      -10 dBFS. O ganho varia entre 0 e +6 dB e
+      é mantido no silêncio (sem noise gate). Você pode movê-lo para qualquer
+      lugar da cadeia; a caixa da linha o liga e desliga.
+    - Arraste a alça à esquerda para reordenar; a lixeira remove (pede confirmação).
+    - Clique duas vezes no nome de um plugin para abrir a janela dele.
+    - "Pastas VST3" adiciona plugins de outros locais.
+    - Os efeitos internos (EQ, de-esser, saturação, limitador, medidor LUFS...) ficam sob
+      os títulos "Interno - ..."; clique duas vezes no nome para os ajustes.
+    - A lista "Predefinição" troca a cadeia inteira com uma escolha: as predefinições de
+      fábrica usam só efeitos internos; "Salvar" guarda a cadeia atual (com plugins VST3
+      e seus ajustes) como predefinição sua. "Cadeia anterior" desfaz a última escolha.
+
+4)  Use em qualquer programa
+    No Discord, OBS, Zoom etc., escolha "CABLE Output" como microfone.
+
+5)  Áudio sem interrupções
+    O microfone, a cadeia de plugins e o cabo funcionam separadamente; uma pequena
+    margem de segurança entre eles absorve picos de carga. "Automático" aumenta essa
+    margem sozinho quando preciso. As linhas de baixo mostram a latência, a carga da
+    CPU e cada falha. Se aparecer "cadeia pesada demais", os plugins não acompanham a
+    carga atual: reduza os ajustes de qualidade deles (sobreamostragem, antecipação) ou
+    reduza a prioridade do programa pesado em segundo plano.
+    "Prioridade do processo" (Normal recomendado) coloca a janela e o trabalho com
+    dispositivos do MicVST à frente de outros programas; o áudio é sempre processado
+    na prioridade de áudio em tempo real do Windows.
+
+6)  É isso
+    Os ajustes são salvos automaticamente. Ao fechar a janela, o MicVST continua
+    rodando como ícone ao lado do relógio (botão direito no ícone para opções).
+    Com "Iniciar com o sistema" ele inicia em silêncio junto com o Windows.
+
+Privacidade
+    O MicVST nunca se conecta à internet: sem verificação de atualizações, sem coleta
+    de dados, sem conexões web.
+@@236
+O MicVST funciona totalmente offline (nunca se conecta à internet)
+@@237
+Prioridade do processo do MicVST no Windows. As threads de áudio (microfone, cadeia de plugins, cabo) sempre rodam na prioridade de áudio em tempo real do Windows (MMCSS), seja qual for a opção. Este ajuste coloca as demais threads do MicVST (janela, medidores, trocas de dispositivo, janelas de plugins, trabalho em segundo plano de alguns plugins) à frente de outros programas. Recomenda-se Normal; se a janela do MicVST ou a de um plugin travar durante um jogo pesado ou processamento de vídeo, experimente Acima do normal.
+@@238
+Fechar o MicVST
+@@239
+Redefinir o MicVST
+@@240
+Nenhum microfone encontrado -> entrada 'nenhuma'
+@@241
+Perdas no driver do microfone:
+@@242
+Adiciona (+) o encorpado grave de falar perto do microfone, ou reduz o excesso dele (-).
+@@243
+Áudio mantido em reserva entre o microfone e o cabo. Evita estalos em picos de carga como jogos pesados ou processamento de vídeo. "Automático" começa em 10 ms e aumenta sozinho se o áudio falhar. Valor maior: mais robusto, um pouco mais de latência.
+@@244
+Escolha seu microfone aqui.
+@@245
+Quantidade
+@@246
+Quantidade (profundidade / largura)
+@@247
+Modo
+@@248
+Mono (esquerda + direita)
+@@249
+Absoluta (dBFS)
+@@250
+Presença
+@@251
+Normal
+@@252
+Acima do normal
+@@253
+Reverb de sala
+@@254
+Tamanho da sala
+@@255
+Oceano
+@@256
+Floresta
+@@257
+Automático (padrão)
+@@258
+Automático (recomendado)
+@@259
+Ganho automático
+@@260
+Ganho automático (Auto Gain)
+@@261
+Ganho automático: analisa sua voz ao vivo e leva o pico a cerca de -20 dBFS na fala normal e a cerca de -15 dBFS ao gritar. O ganho muda devagar, só o necessário, entre 0 e +6 dB conforme sua voz (nunca abaixa o som): preserva em grande parte o sobe e desce natural de sílabas e frases, e acompanha em poucos segundos quando sua voz muda de forma duradoura; cliques curtos, estouros de "p" e batidas não reduzem o ganho. Nenhum pico passa de -10 dBFS (limitador suave com 3 ms de antecipação). No silêncio mantém exatamente o último ganho; não há noise gate, o som nunca é cortado. A posição na cadeia pode ser mudada arrastando. Ao desligar, o ganho volta suavemente a 0 dB.
+Indicador: ganho aplicado (pico de entrada -> pico de saída, dBFS). Branco: fala detectada, cinza: ganho mantido ou desligado.
+@@262
+Jogos / Live
+@@263
+EQ paramétrico
+@@264
+Tema de cores da janela. Padrão: Noite.
+@@265
+Pingue-pongue (direita-esquerda)
+@@266
+Podcast / Conversa
+@@267
+Redefinir o programa (todos os dados são apagados)...
+@@268
+Rádio
+@@269
+Locutor de rádio
+@@270
+Desenvolvido por Relios.
+@@271
+Desvio de relógio microfone/cabo:
+@@272
+Nenhum cabo virtual encontrado -> saída 'nenhuma'
+@@273
+Nenhum cabo de áudio virtual encontrado - instale o VB-Cable (vb-audio.com/Cable) e reinicie o MicVST
+@@274
+Inverter fase do canal direito
+@@275
+Canal direito nos dois
+@@276
+Atenua sons ásperos de "s", "x" e "ch" acima da frequência escolhida, só no momento em que aparecem. Na detecção relativa, o limiar é o nível dos agudos em relação à voz inteira (-15 dB: atenua quando os agudos chegam a 15 dB da voz inteira; independe do nível do microfone). Atenua no máximo a "Redução".
+@@277
+Atraso de áudio (sincronia)
+@@278
+Tamanho dos blocos de áudio. Valor menor: menos latência, porém mais carga na CPU. "Automático" usa o valor do próprio dispositivo.
+@@279
+Não foi possível abrir o dispositivo de áudio - outro programa pode estar usando-o com exclusividade
+@@280
+Áudio: parado (dispositivo não conectado?)
+@@281
+Áudio: funcionando
+@@282
+Faz a voz soar como um telefone, um rádio antigo ou um megafone.
+@@283
+Silencia o áudio sem cliques (com um fade curto). Também pode ser ligado na caixa da linha.
+@@284
+Silencia o áudio sem cliques (fade de 15 ms); clique de novo para o som voltar.
+@@285
+Atrasa o áudio pelo tempo indicado: para alinhar com a imagem (câmera, transmissão).
+@@286
+Mostra ao vivo a distribuição de frequências do áudio. Não altera o som.
+@@287
+Locução / Narrador
+@@288
+Locução / Documentário
+@@289
+Mudo
+@@290
+Silenciar (Mute)
+@@291
+Corta abaixo da frequência escolhida: ronco, vibração de mesa/suporte e a parte baixa dos estouros de "p". A base da voz (~100-140 Hz em vozes masculinas) é preservada; acima de 100 Hz não é recomendado.
+@@292
+Corta acima da frequência escolhida: chiado e sibilância.
+@@293
+Realça acima da frequência escolhida com uma curva de prateleira: brilho e abertura.
+@@294
+O dispositivo escolhido não está conectado; será aberto quando for plugado:
+@@295
+Excluir
+@@296
+Excluir...
+@@297
+Não foi possível excluir.
+@@298
+Voz de cinema
+@@299
+Remove um deslocamento constante (DC) do sinal abaixo de 5 Hz. Não tem ajustes; não muda nada audível.
+@@300
+Inverter fase do canal esquerdo
+@@301
+Canal esquerdo nos dois
+@@302
+Analisador de espectro
+@@303
+Estéreo (sem mudança)
+@@304
+Ampliador estéreo
+@@305
+Amortecimento
+@@306
+Tempo
+@@307
+Drive
+@@308
+Saturação quente (válvula / fita)
+@@309
+Quente e encorpado
+@@310
+Redefinir
+@@311
+Redefinição: todos os dados apagados, o programa está fechando
+@@312
+OK
+@@313
+Buffer
+@@314
+Verificação
+@@315
+Verificação ignorada (
+@@316
+Verificação:
+@@317
+Verificação: exclusão removida (arquivo alterado ou apagado):
+@@318
+Teto (dBTP)
+@@319
+Inclina todo o timbre com um só controle: à esquerda quente (mais graves, menos agudos), à direita brilhante.
+@@320
+Eco repetido. A realimentação define o número de repetições; o Tom, o brilho delas.
+@@321
+Telefone
+@@322
+Telefone / Rádio / Megafone
+@@323
+Tema:
+@@324
+Sino (Bell)
+@@325
+Tilt EQ (equilíbrio tonal)
+@@326
+Tom (- quente / + brilhante)
+@@327
+Tom (brilho das repetições)
+@@328
+Todos os ajustes, a lista de plugins e a cadeia de plugins serão apagados e o MicVST será fechado. Ao abrir de novo, a configuração inicial será feita. Continuar?
+@@329
+Verificar todos os plugins de novo
+@@330
+Voz inteira (banda larga)
+@@331
+Integrada
+@@332
+Zera a medição integrada, os valores máximos e o pico real
+@@333
+Selecionar tudo
+@@334
+Válvula
+@@335
+Tipo
+@@336
+Aviso: '
+@@337
+Removedor de zumbido (50/60 Hz)
+@@338
+Pastas VST3
+@@339
+Escolha uma pasta VST3
+@@340
+Restaurar padrões
+@@341
+Inicia o MicVST como ícone, sem janela, quando o Windows inicia
+@@342
+Iniciar com o Windows
+@@343
+Proximidade
+@@344
+Só agudos (dividido)
+@@345
+Colar
+@@346
+Novo nome:
+@@347
+Salvar como nova predefinição...
+@@348
+Renomear
+@@349
+Renomear...
+@@350
+Refazer
+@@351
+Suave e aveludado
+@@352
+Alta
+@@353
+Corte de agudos (High-Cut)
+@@354
+Alto contraste
+@@355
+Prateleira de agudos
+@@356
+A cadeia não acompanhou, áudio pulado:
+@@357
+Salve a cadeia como predefinição sua; renomeie, exclua ou volte à cadeia anterior
+@@358
+A restauração da cadeia aguarda a verificação de plugins
+@@359
+ignorado
+@@360
+outro nível
+@@361
+sem suporte
+@@362
+latência
+@@363
+o dispositivo de entrada
+@@364
+margem de segurança
+@@365
+erro
+@@366
+cabo
+@@367
+falhas
+@@368
+microfone
+@@369
+mono
+@@370
+últimos 60 s (curto prazo)
+@@371
+ok
+@@372
+falha na verificação
+@@373
+não responde
+@@374
+Funcionando
+@@375
+Limpador de embolamento
+@@376
+Saída
+@@377
+Saída (cabo) =
+@@378
+Limitador de saída
+@@379
+Saída iniciada:
+@@380
+Não foi possível abrir o dispositivo de saída (tamanho de buffer incompatível)
+@@381
+Não foi possível abrir o dispositivo de saída!
+@@382
+Não foi possível abrir o dispositivo de saída: '
+@@383
+Não foi possível iniciar o dispositivo de saída!
+@@384
+Erro do dispositivo de saída:
+@@385
+Falhas de áudio na saída:
+@@386
+Tempo medido
+@@387
+Cadeia anterior
+@@388
+Sobrescrever
+@@389
+Sobrescrever (escolha uma predefinição sua)
+@@390
+travou (
+@@391
+o dispositivo de saída
+@@392
+Cancelar
+@@393
+Prioridade do processo
+@@394
+Prioridade do processo "
+@@395
+Prioridade do processo:
+@@396
+Processo: limitação de energia desativada
+@@397
+CPU
+@@398
+Processamento:
+@@399
+Processamento: a cadeia de plugins ficou mais de
+@@400
+Processamento: fila de entrada cheia -
+@@401
+Processamento: nada foi processado por 3 s embora o microfone esteja dando áudio - um plugin pode ter travado
+@@402
+Canto / Vocal
+@@403
+Rede elétrica
+@@404
+Remove o zumbido da rede elétrica (50 Hz e múltiplos; 60 Hz selecionável) com entalhes muito estreitos.
+@@405
+Pular o plugin que está sendo verificado
+@@406
+—

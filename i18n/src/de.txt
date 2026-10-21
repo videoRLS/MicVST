@@ -1,0 +1,869 @@
+@@0
+(Einstellungen übergeblendet)
+@@1
+(nicht verbunden)
+@@2
+(Fehlercode
+@@3
+(automatisch)
+@@4
+(Spitze
+@@5
+(angewendet, von Windows zurückgelesen)
+@@6
+(Kette gewechselt)
+@@7
+(Cache=
+@@8
+- Kette zu schwer
+@@9
+Hz, Puffer
+@@10
+Blöcke dauerten länger als Echtzeit (Plugin-Last Mittel
+@@11
+Block/Blöcke betroffen, die Samples wurden stummgeschaltet. Wenn das Problem bleibt, entfernen Sie das zuletzt hinzugefügte Plugin und fügen Sie es erneut hinzu.
+@@12
+lieferte 3 s lang keinen Ton - wird neu geöffnet
+@@13
+dB/Okt.
+@@14
+Datei(en) werden gescannt
+@@15
+Datei=
+@@16
+Plugin(s) übersprungen - für Details mit der Maus darüberfahren
+@@17
+Plugins gerettet
+@@18
+Eingangsblock/-blöcke verworfen (Ausgang war stehen geblieben)
+@@19
+Zeichen lang sein.
+@@20
+Mal (mit kurzer Überblendung). Sicherheitspuffer jetzt
+@@21
+Mal, mit kurzer Überblendung). Die Kette braucht bei der aktuellen Last mehr Rechenzeit als Echtzeit.
+@@22
+Mikrofonblock/-blöcke verworfen (Plugin-Verarbeitung stand länger als eine Sekunde)
+@@23
+ms übersprungen (
+@@24
+ms)
+@@25
+ms hinter die Echtzeit zurück - vom Mikrofonton wurden
+@@26
+| Kanäle
+@@27
+| Ausgang
+@@28
+Samples (
+@@29
+→
+@@30
+"
+@@31
+" löschen? (Die aktuelle Kette bleibt unverändert.)
+@@32
+" konnte nicht gesetzt werden: Windows hat diese Änderung nicht erlaubt
+@@33
+" konnte nicht geladen werden. Details stehen in der Logdatei (%APPDATA%\MicVST\log.txt).
+@@34
+" existiert bereits. Überschreiben?
+@@35
+" aus der Kette entfernen?
+@@36
+" überschreiben
+@@37
+' geöffnet (
+@@38
+' enthält mehrere Plugins; die alte Einstellungsdatei hat nicht gespeichert, welches verwendet wurde - das erste wurde geladen. Fügen Sie das richtige Plugin einmal neu hinzu.
+@@39
+' ließ sich nicht im Modus mit niedriger Latenz öffnen (
+@@40
+' ist aufgelistet, lässt sich aber nicht öffnen (ein anderes Programm nutzt es möglicherweise exklusiv) -
+@@41
+(unbekannt)
+@@42
+(geändert):
+@@43
+(keine zusätzlichen Ordner)
+@@44
+(noch keine - mit „Speichern“ hinzufügen)
+@@45
+(keine Auswahl)
+@@46
+(neu):
+@@47
+(keine)
+@@48
+(erzwungen):
+@@49
+) - neuer Versuch im gemeinsamen Modus
+@@50
++ Plugin
+@@51
+, kein Internetzugriff)
+@@52
+, in der übrigen Zeit wartete er auf die CPU
+@@53
+, Spitze
+@@54
+, Timer-Drosselung aus
+@@55
+. Versuch; wird automatisch wiederholt (höchstens alle 10 s)
+@@56
+. Versuch)
+@@57
+. Aktuelle Priorität:
+@@58
+Senkt den Bereich 0,8-1,3 kHz: ein nasaler, harter Mittenbereich wird weicher.
+@@59
+12 dB/Okt.
+@@60
+Hebt den Bereich 120-250 Hz mit einer breiten Kurve an: vollerer, satterer Klang. Zu viel klingt dumpf.
+@@61
+24 dB/Okt.
+@@62
+Hebt den Bereich 3-5 kHz an: mehr Verständlichkeit. Zu viel klingt scharf.
+@@63
+Senkt den Bereich 300-500 Hz: weniger Dumpfheit und „Pappkarton“-Klang.
+@@64
+; Laufanteil des Threads
+@@65
+; der Ton wartete höchstens
+@@66
+Name
+@@67
+Der Name darf höchstens
+@@68
+Erkennung
+@@69
+Low-Cut (Trittschallfilter)
+@@70
+Low-Shelf
+@@71
+Amethyst
+@@72
+Momentan (400 ms)
+@@73
+Aktuelle Absenkung:
+@@74
+Bereich (LRA)
+@@75
+Sprache der Oberfläche. Standard: Türkçe (Türkisch).
+@@76
+Überspringen
+@@77
+Übersprungene Plugins erneut versuchen
+@@78
+Preset nicht gefunden.
+@@79
+Preset konnte nicht geladen werden
+@@80
+Preset speichern
+@@81
+Preset löschen
+@@82
+Hell
+@@83
+Absenkung
+@@84
+Ein
+@@85
+Autostart
+@@86
+Band
+@@87
+Band 1 Q
+@@88
+Band 1 Frequenz
+@@89
+Band 1 Verstärkung
+@@90
+Band 1 Typ
+@@91
+Band 2 Q
+@@92
+Band 2 Frequenz
+@@93
+Band 2 Verstärkung
+@@94
+Band 2 Typ
+@@95
+Band 3 Q
+@@96
+Band 3 Frequenz
+@@97
+Band 3 Verstärkung
+@@98
+Band 3 Typ
+@@99
+Band 4 Q
+@@100
+Band 4 Frequenz
+@@101
+Band 4 Verstärkung
+@@102
+Band 4 Typ
+@@103
+Einfacher Raumhall. Für Sprache wird ein geringer Anteil (5-15 %) empfohlen.
+@@104
+Einige Plugins wurden nicht gefunden
+@@105
+Andere Stufe (von außen geändert)
+@@106
+Unbekanntes internes Element übersprungen:
+@@107
+Geben Sie einen Namen ein.
+@@108
+Dies ist der Name eines Werks-Presets; wählen Sie einen anderen Namen.
+@@109
+Ein Preset mit diesem Namen existiert bereits.
+@@110
+Diese Plugins des Presets fehlen auf diesem Computer oder konnten nicht geladen werden; es wurde ohne sie geladen:
+
+@@111
+Setzt alle Einstellungen dieses Effekts auf ihre Anfangswerte zurück
+@@112
+Unter welchem Namen soll diese Kette (alle Effekte und Plugins mit ihren Einstellungen) gespeichert werden?
+@@113
+Wählen Sie hier „CABLE Input“; in Programmen wie Discord oder OBS wählen Sie „CABLE Output“ als Mikrofon.
+@@114
+Rücklaufzeit
+@@115
+Chorus
+@@116
+Chorus / Stereo-Verbreiterung
+@@117
+Chorus: eine sanft schwebende Doppelstimme. Verbreiterung: macht eine Monostimme stereo breit; wenn beide Kanäle summiert werden (Mono), ändert sich der Klang nicht.
+@@118
+Gerät nicht gefunden:
+@@119
+Gerät neu geöffnet:
+@@120
+Gerät wieder verbunden, wird geöffnet:
+@@121
+DC-Versatz-Entferner
+@@122
+Intern
+@@123
+Intern - Klangfarbe und Raum
+@@124
+Intern - Pegel und Schutz
+@@125
+Intern - Bereinigung
+@@126
+Intern - Klang und EQ
+@@127
+Intern - Zeit und Kanäle
+@@128
+Intern - Messung
+@@129
+Schmalheit (Q)
+@@130
+De-Esser
+@@131
+Überwachung:
+@@132
+Balance (- links / + rechts)
+@@133
+Ausgewogen Profi
+@@134
+Tief und Warm
+@@135
+Bypass
+@@136
+Sprache:
+@@137
+Datei konnte nicht gelesen werden:
+@@138
+Datei konnte nicht geschrieben werden:
+@@139
+Angehalten - Gerät nicht verbunden
+@@140
+Vier Bänder mit je Typ, Frequenz, Verstärkung und Q. Ein Band mit 0 dB Verstärkung verändert den Klang nicht.
+@@141
+Plugins suchen...
+@@142
+Plugin nicht gefunden:
+@@143
+Plugin-Thread:
+@@144
+Plugin-Verarbeitung blockiert:
+@@145
+Plugin konnte nicht geladen werden
+@@146
+Plugin konnte nicht geladen werden:
+@@147
+Die Plugin-Kette lieferte unbrauchbaren Ton (NaN, unendlich, absurd hohe Werte oder ein Fehler):
+@@148
+Plugin-Cache fehlt oder ist beschädigt -> vollständiger Scan
+@@149
+Ungültiger Ton von einem Plugin (stummgeschaltet):
+@@150
+Plugins werden gescannt...
+@@151
+Plugin vorübergehend umgehen (der Ton läuft an ihm vorbei)
+@@152
+Plugin entfernen
+@@153
+Plugin aus der Kette entfernen
+@@154
+Maximale Absenkung
+@@155
+Männerstimme -
+@@156
+Presets für Männerstimmen
+@@157
+Aktiv
+@@158
+Ja
+@@159
+Flankensteilheit
+@@160
+Schwelle
+@@161
+Frequenz
+@@162
+Nacht (Standard)
+@@163
+Mitternacht (schwarz)
+@@164
+Verzögerung
+@@165
+Delay / Echo
+@@166
+Latenzkorrekturen:
+@@167
+Nasalitäts-Reduzierer
+@@168
+Breite
+@@169
+Breite (Q)
+@@170
+Rückgängig
+@@171
+Rückkopplung
+@@172
+True Peak
+@@173
+Verspätete Plugin-Blöcke (ohne Aussetzer ausgeglichen):
+@@174
+Eingang
+@@175
+Eingang (Mikrofon) =
+@@176
+Eingang gestartet:
+@@177
+Eingabegerät konnte nicht geöffnet werden!
+@@178
+Eingabegerät konnte nicht geöffnet werden: '
+@@179
+Eingabegerät konnte nicht gestartet werden!
+@@180
+Fehler des Eingabegeräts:
+@@181
+Eingangsverstärkung
+@@182
+Eingabe- und Ausgabegerät haben keine gemeinsame Abtastrate!
+@@183
+Relativ (zur Stimme selbst)
+@@184
+Körper / Wärme
+@@185
+Sonnenuntergang
+@@186
+Sicherheitspuffer
+@@187
+Fügt sanfte Obertöne hinzu (mit 4-facher Überabtastung und Anti-Aliasing). Der Pegel wird automatisch ausgeglichen.
+@@188
+Anzahl der Obertöne
+@@189
+Air (Glanz)
+@@190
+Nein
+@@191
+Preset
+@@192
+Preset-Datei konnte nicht gelesen werden, übersprungen:
+@@193
+Preset wählen
+@@194
+Preset geladen:
+@@195
+Presets: die ganze Kette wechselt mit einem Klick. „Presets für Männerstimmen“ und „Presets für Frauenstimmen“ verwenden nur die internen Effekte (sie funktionieren bei allen); „Meine Presets“ sind die Ketten, die Sie gespeichert haben (mit VST3-Plugins und ihren Einstellungen). Zwischen Presets aus denselben Elementen gleiten die Einstellungen sanft; eine andere Kette wechselt mit einer kurzen Überblendung (wenige ms). * : die Kette wurde nach dem Laden verändert.
+@@196
+Hält jede Spitze unter der Obergrenze (True Peak, 3 ms Vorausschau, dieselbe Methode wie der Limiter in der Auto-Verstärkung). Setzen Sie ihn ans Ende der Kette.
+@@197
+Geschwindigkeit (nur Chorus)
+@@198
+Kurzanleitung zur Einrichtung
+@@199
+Lautheit nach ITU-R BS.1770 / EBU R128: momentan (400 ms), kurzzeitig (3 s), integriert und True Peak. Verändert den Klang nicht.
+@@200
+Frauenstimme -
+@@201
+Presets für Frauenstimmen
+@@202
+Entfernen
+@@203
+Kanal
+@@204
+Kanalwerkzeuge (Phase / Kanal / Balance)
+@@205
+Kanäle tauschen
+@@206
+Aus
+@@207
+Mischung
+@@208
+Mischung (nur Chorus)
+@@209
+Die gespeicherte Datei konnte nicht überprüft werden:
+@@210
+Speichern
+@@211
+Verstärkung
+@@212
+Verstärkung (Gain)
+@@213
+Verstärkung: -30 dB bis +12 dB in Schritten von 0,1 dB (auch in das Wertfeld eintippbar). Doppelklick setzt auf 0 dB zurück. Damit nichts übersteuert, die Verstärkung vor einem Limiter einsetzen; die Spitzenlinie der Ausgangsanzeige wird bei 0 dB rot.
+@@214
+Meine Presets
+@@215
+Ausschneiden
+@@216
+Ordner hinzufügen...
+@@217
+Ordner konnte nicht erstellt werden:
+@@218
+Kopieren
+@@219
+Kristallklar
+@@220
+Anleitung
+@@221
+Einrichtung: Eingang
+@@222
+Brücke:
+@@223
+Brücke: Latenz auf den Zielwert zurückgeführt (insgesamt
+@@224
+Brücke: Tonaussetzer am Ausgang,
+@@225
+Asche
+@@226
+Kurzzeitig (3 s)
+@@227
+LUFS-Messgerät
+@@228
+MMCSS 'Pro Audio' (eine Stufe unter den Geräte-Threads)
+@@229
+MMCSS nicht verfügbar - zeitkritische Priorität
+@@230
+Megafon
+@@231
+Mitte
+@@232
+MicVST - Anleitung
+@@233
+MicVST läuft im Hintergrund weiter. Rechtsklick auf das Symbol für Optionen.
+@@234
+MicVST-Protokoll - Start:
+@@235
+So verwenden Sie MicVST
+
+1)  Virtuelles Audiokabel installieren
+    Empfohlen wird das kostenlose VB-Cable: vb-audio.com/Cable. MicVST findet es selbst.
+
+2)  Geräte wählen (oben im Fenster)
+    Eingang  =  Ihr Mikrofon
+    Ausgang  =  das virtuelle Kabel (z. B. „CABLE Input“)
+
+3)  Plugin-Kette aufbauen
+    - „+ Plugin“ öffnet eine durchsuchbare, nach Hersteller gruppierte Liste aller
+      VST3-Effekte und internen Werkzeuge. Fügen Sie die gewünschten Effekte hinzu
+      (EQ, Rauschunterdrückung, Kompressor...).
+    - Fügen Sie „Mono -> Stereo“ dort ein, wo Sie Stereo möchten; der Teil davor läuft
+      mono (weniger CPU). „Stereo -> Mono“ gibt es ebenfalls. Eine Kette, die mono
+      endet, wird auf beide Kanäle des Kabels gegeben.
+    - „Verstärkung“ (Intern) senkt/hebt den Ton zwischen -30 und +12 dB; den Wert
+      mit dem Regler in der Zeile ändern. Vor einen Limiter setzen, damit nichts übersteuert.
+    - „Auto-Verstärkung“ (Intern) analysiert Ihre Stimme live: bei normaler Sprache
+      liegt die Spitze bei etwa -20 dBFS, beim Rufen bei etwa -15 dBFS; keine Spitze
+      überschreitet -10 dBFS. Die Verstärkung bewegt sich zwischen 0 und +6 dB und
+      wird in Stille gehalten (kein Noise Gate). Sie können sie an jede Stelle der
+      Kette ziehen; das Kästchen in der Zeile schaltet sie ein und aus.
+    - Zum Sortieren den Griff links ziehen; der Papierkorb entfernt (mit Rückfrage).
+    - Doppelklick auf den Namen eines Plugins öffnet sein Fenster.
+    - „VST3-Ordner“ fügt Plugins aus anderen Orten hinzu.
+    - Die internen Effekte (EQ, De-Esser, Sättigung, Limiter, LUFS-Messgerät...) stehen
+      unter den Überschriften „Intern - ...“; Doppelklick auf den Namen öffnet sie.
+    - Die Liste „Preset“ wechselt die ganze Kette mit einer Auswahl: die Werks-Presets
+      verwenden nur interne Effekte; „Speichern“ sichert die aktuelle Kette (mit VST3-
+      Plugins und ihren Einstellungen) als eigenes Preset. „Vorherige Kette“ macht die letzte Auswahl rückgängig.
+
+4)  In jedem Programm verwenden
+    In Discord, OBS, Zoom usw. „CABLE Output“ als Mikrofon wählen.
+
+5)  Unterbrechungsfreier Ton
+    Mikrofon, Plugin-Kette und Kabel laufen getrennt; ein kleiner Sicherheitspuffer
+    dazwischen fängt kurze Lastspitzen ab. „Automatisch“ vergrößert ihn bei Bedarf
+    selbst. Die unteren Zeilen zeigen Latenz, CPU-Last und jeden Aussetzer.
+    Steht dort „Kette zu schwer“, kommen die Plugins bei der aktuellen Last nicht mit:
+    ihre Qualitätseinstellungen (Überabtastung, Vorausschau) senken oder die Priorität
+    des schweren Programms im Hintergrund verringern.
+    „Prozesspriorität“ (Normal empfohlen) stellt Fenster- und Gerätearbeit von MicVST
+    vor andere Programme; der Ton wird immer mit Windows' Echtzeit-Audiopriorität
+    verarbeitet.
+
+6)  Das war's
+    Einstellungen werden automatisch gespeichert. Nach dem Schließen des Fensters läuft
+    MicVST als Symbol neben der Uhr weiter (Rechtsklick auf das Symbol für Optionen).
+    Mit „Beim Start ausführen“ startet es still mit Windows.
+
+Datenschutz
+    MicVST verbindet sich nie mit dem Internet: keine Update-Prüfung, keine
+    Datenerfassung, keine Webverbindungen.
+@@236
+MicVST arbeitet vollständig offline (es verbindet sich nie mit dem Internet)
+@@237
+Windows-Prozesspriorität von MicVST. Die Audio-Threads (Mikrofon, Plugin-Kette, Kabel) laufen bei jeder Auswahl mit Windows' Echtzeit-Audiopriorität (MMCSS). Diese Einstellung stellt die übrigen Threads von MicVST (Fenster, Anzeigen, Gerätewechsel, Plugin-Fenster, Hintergrundarbeit mancher Plugins) vor andere Programme. Normal wird empfohlen; wenn das Fenster von MicVST oder ein Plugin-Fenster bei einem schweren Spiel oder Videobearbeitung ruckelt, versuchen Sie Höher als normal.
+@@238
+MicVST beenden
+@@239
+MicVST zurücksetzen
+@@240
+Kein Mikrofon gefunden -> Eingang 'keiner'
+@@241
+Verluste im Mikrofontreiber:
+@@242
+Fügt die Bassfülle hinzu, die beim nahen Sprechen ans Mikrofon entsteht (+), oder verringert zu viel davon (-).
+@@243
+Ton, der zwischen Mikrofon und Kabel in Reserve gehalten wird. Verhindert Knacksen bei kurzen Lastspitzen wie schweren Spielen oder Videobearbeitung. „Automatisch“ beginnt mit 10 ms und wächst von selbst, wenn der Ton aussetzt. Größerer Wert: robuster, etwas mehr Latenz.
+@@244
+Wählen Sie hier Ihr Mikrofon.
+@@245
+Menge
+@@246
+Menge (Tiefe / Breite)
+@@247
+Modus
+@@248
+Mono (links + rechts)
+@@249
+Absolut (dBFS)
+@@250
+Präsenz
+@@251
+Normal
+@@252
+Höher als normal
+@@253
+Raumhall
+@@254
+Raumgröße
+@@255
+Ozean
+@@256
+Wald
+@@257
+Automatisch (Standard)
+@@258
+Automatisch (empfohlen)
+@@259
+Auto-Verstärkung
+@@260
+Auto-Verstärkung (Auto Gain)
+@@261
+Auto-Verstärkung: analysiert Ihre Stimme live und bringt den Spitzenpegel bei normaler Sprache auf etwa -20 dBFS, beim Rufen auf etwa -15 dBFS. Die Verstärkung ändert sich langsam und nur so weit wie nötig zwischen 0 und +6 dB, je nach Stimme (sie senkt den Ton nie ab): das natürliche Auf und Ab von Silben und Sätzen bleibt weitgehend erhalten, und wenn sich Ihre Stimme dauerhaft ändert, folgt sie innerhalb weniger Sekunden; kurze Klicks, „P“-Plosive und Stöße senken die Verstärkung nicht. Keine Spitze überschreitet -10 dBFS (sanfter Limiter mit 3 ms Vorausschau). In Stille wird die letzte Verstärkung genau gehalten; es gibt kein Noise Gate, der Ton wird nie abgeschnitten. Die Position in der Kette lässt sich durch Ziehen ändern. Beim Ausschalten kehrt die Verstärkung sanft auf 0 dB zurück.
+Anzeige: angewendete Verstärkung (Eingangsspitze -> Ausgangsspitze, dBFS). Weiß: Sprache erkannt, grau: Verstärkung gehalten oder aus.
+@@262
+Gaming / Streaming
+@@263
+Parametrischer EQ
+@@264
+Farbschema des Fensters. Standard: Nacht.
+@@265
+Ping-Pong (rechts-links)
+@@266
+Podcast / Gespräch
+@@267
+Programm zurücksetzen (alle Daten werden gelöscht)...
+@@268
+Radio
+@@269
+Radiosprecher
+@@270
+Entwickelt von Relios.
+@@271
+Taktabweichung Mikrofon/Kabel:
+@@272
+Kein virtuelles Kabel gefunden -> Ausgang 'keiner'
+@@273
+Kein virtuelles Audiokabel gefunden - installieren Sie VB-Cable (vb-audio.com/Cable) und starten Sie MicVST neu
+@@274
+Phase des rechten Kanals umkehren
+@@275
+Rechter Kanal auf beide
+@@276
+Senkt scharfe „s“-, „sch“- und „tsch“-Laute oberhalb der gewählten Frequenz, nur in dem Moment, in dem sie auftreten. Bei relativer Erkennung ist die Schwelle der Pegel des Höhenbereichs im Verhältnis zur ganzen Stimme (-15 dB: senkt, wenn die Höhen bis auf 15 dB an die ganze Stimme heranreichen; unabhängig vom Mikrofonpegel). Senkt höchstens um die „Absenkung“.
+@@277
+Audio-Verzögerung (Synchron)
+@@278
+Größe der Audioblöcke. Kleinerer Wert: weniger Latenz, aber mehr CPU-Last. „Automatisch“ verwendet den Wert des Geräts.
+@@279
+Audiogerät konnte nicht geöffnet werden - ein anderes Programm nutzt es möglicherweise exklusiv
+@@280
+Ton: angehalten (Gerät nicht verbunden?)
+@@281
+Ton: läuft
+@@282
+Lässt die Stimme wie ein Telefon, ein altes Radio oder ein Megafon klingen.
+@@283
+Schaltet den Ton klickfrei stumm (mit kurzer Überblendung). Lässt sich auch mit dem Kästchen in der Zeile schalten.
+@@284
+Schaltet den Ton klickfrei stumm (15 ms Überblendung); erneut klicken bringt den Ton zurück.
+@@285
+Verzögert den Ton um die angegebene Zeit: zum Abgleich mit dem Bild (Kamera, Stream).
+@@286
+Zeigt die Frequenzverteilung des Tons live. Verändert den Klang nicht.
+@@287
+Sprecher / Erzähler
+@@288
+Sprecher / Dokumentation
+@@289
+Stumm
+@@290
+Stummschalten (Mute)
+@@291
+Schneidet unterhalb der gewählten Frequenz ab: Rumpeln, Tisch-/Stativvibrationen und das untere Ende von „P“-Plosiven. Das Fundament der Stimme (~100-140 Hz bei Männerstimmen) bleibt erhalten; über 100 Hz wird nicht empfohlen.
+@@292
+Schneidet oberhalb der gewählten Frequenz ab: Rauschen und Zischen.
+@@293
+Hebt oberhalb der gewählten Frequenz mit einer Shelf-Kurve an: Helligkeit und Offenheit.
+@@294
+Das gewählte Gerät ist nicht verbunden; es wird beim Einstecken geöffnet:
+@@295
+Löschen
+@@296
+Löschen...
+@@297
+Konnte nicht gelöscht werden.
+@@298
+Kinostimme
+@@299
+Entfernt einen konstanten Versatz (DC) im Signal unterhalb von 5 Hz. Hat keine Einstellungen; ändert nichts Hörbares.
+@@300
+Phase des linken Kanals umkehren
+@@301
+Linker Kanal auf beide
+@@302
+Spektrumanalysator
+@@303
+Stereo (unverändert)
+@@304
+Stereo-Verbreiterung
+@@305
+Dämpfung
+@@306
+Zeit
+@@307
+Antrieb (Drive)
+@@308
+Warme Sättigung (Röhre / Band)
+@@309
+Warm und Voll
+@@310
+Zurücksetzen
+@@311
+Zurücksetzen: alle Daten gelöscht, das Programm wird beendet
+@@312
+OK
+@@313
+Puffer
+@@314
+Scan
+@@315
+Scan übersprungen (
+@@316
+Scan:
+@@317
+Scan: Überspringen aufgehoben (Datei geändert oder gelöscht):
+@@318
+Obergrenze (dBTP)
+@@319
+Neigt den ganzen Klang mit einem Regler: links warm (mehr Bass, weniger Höhen), rechts hell.
+@@320
+Wiederholendes Echo. Rückkopplung bestimmt die Anzahl der Wiederholungen, Ton ihre Helligkeit.
+@@321
+Telefon
+@@322
+Telefon / Radio / Megafon
+@@323
+Design:
+@@324
+Glocke (Peak)
+@@325
+Tilt-EQ (Klangbalance)
+@@326
+Ton (- warm / + hell)
+@@327
+Ton (Helligkeit der Wiederholungen)
+@@328
+Alle Einstellungen, die Plugin-Liste und die Plugin-Kette werden gelöscht, danach wird MicVST beendet. Beim nächsten Öffnen läuft die Ersteinrichtung. Fortfahren?
+@@329
+Alle Plugins neu scannen
+@@330
+Ganze Stimme (Breitband)
+@@331
+Integriert
+@@332
+Setzt die integrierte Messung, die Höchstwerte und den True Peak zurück
+@@333
+Alles auswählen
+@@334
+Röhre
+@@335
+Typ
+@@336
+Warnung: '
+@@337
+Brummentferner (50/60 Hz)
+@@338
+VST3-Ordner
+@@339
+VST3-Ordner wählen
+@@340
+Standardwerte
+@@341
+Startet MicVST beim Windows-Start als Symbol, ohne Fenster
+@@342
+Mit Windows starten
+@@343
+Nahbesprechung (Proximity)
+@@344
+Nur Höhen (geteilt)
+@@345
+Einfügen
+@@346
+Neuer Name:
+@@347
+Als neues Preset speichern...
+@@348
+Umbenennen
+@@349
+Umbenennen...
+@@350
+Wiederholen
+@@351
+Weich und Geschmeidig
+@@352
+Hoch
+@@353
+High-Cut (Höhenfilter)
+@@354
+Hoher Kontrast
+@@355
+High-Shelf
+@@356
+Kette kam nicht mit, Ton übersprungen:
+@@357
+Die Kette als eigenes Preset speichern; umbenennen, löschen oder zur vorherigen Kette zurückkehren
+@@358
+Die Wiederherstellung der Kette wartet auf den Plugin-Scan
+@@359
+übersprungen
+@@360
+eine andere Stufe
+@@361
+nicht unterstützt
+@@362
+Latenz
+@@363
+Eingabegerät
+@@364
+Sicherheitspuffer
+@@365
+Fehler
+@@366
+Kabel
+@@367
+Aussetzer
+@@368
+Mikrofon
+@@369
+mono
+@@370
+letzte 60 s (kurzzeitig)
+@@371
+ok
+@@372
+Scan fehlgeschlagen
+@@373
+reagiert nicht
+@@374
+Läuft
+@@375
+Dumpfheits-Entferner
+@@376
+Ausgang
+@@377
+Ausgang (Kabel) =
+@@378
+Ausgangs-Limiter
+@@379
+Ausgang gestartet:
+@@380
+Ausgabegerät konnte nicht geöffnet werden (Puffergröße passt nicht)
+@@381
+Ausgabegerät konnte nicht geöffnet werden!
+@@382
+Ausgabegerät konnte nicht geöffnet werden: '
+@@383
+Ausgabegerät konnte nicht gestartet werden!
+@@384
+Fehler des Ausgabegeräts:
+@@385
+Tonaussetzer am Ausgang:
+@@386
+Gemessene Dauer
+@@387
+Vorherige Kette
+@@388
+Überschreiben
+@@389
+Überschreiben (eigenes Preset wählen)
+@@390
+abgestürzt (
+@@391
+Ausgabegerät
+@@392
+Abbrechen
+@@393
+Prozesspriorität
+@@394
+Prozesspriorität "
+@@395
+Prozesspriorität:
+@@396
+Prozess: Energiedrosselung aus
+@@397
+CPU
+@@398
+Verarbeitung:
+@@399
+Verarbeitung: die Plugin-Kette fiel mehr als
+@@400
+Verarbeitung: Eingangswarteschlange voll -
+@@401
+Verarbeitung: 3 s lang wurde nichts verarbeitet, obwohl das Mikrofon Ton liefert - ein Plugin hängt möglicherweise
+@@402
+Gesang / Vocals
+@@403
+Netz
+@@404
+Entfernt Netzbrummen (50 Hz und Vielfache; 60 Hz wählbar) mit sehr schmalen Kerbfiltern.
+@@405
+Das gerade gescannte Plugin überspringen
+@@406
+—
