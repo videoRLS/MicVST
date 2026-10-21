@@ -19,8 +19,8 @@
 //  * Channels: stereo, or mono (L+R)/2 - a voice is mono, the file half the size.
 //
 // Realtime: push() (the plug-in thread) only copies into a lock-free FIFO that start() allocated;
-// a writer thread drains it, converts and writes - nothing on the audio thread ever waits,
-// allocates, encodes or touches the disk. A full FIFO (the disk stalled for 10 s) drops audio and
+// a writer thread (above normal priority, below the audio) drains it, converts and writes - nothing on the audio thread ever waits,
+// allocates, encodes or touches the disk. A full FIFO (the disk stalled for 30 s) drops audio and
 // counts it. WAV: the header is rewritten every second, so after a crash the file is valid up to
 // the last second. A failed write or a nearly full disk stops the recording with a message.
 struct RecordSettings
@@ -64,6 +64,7 @@ class Recorder
 public:
     Recorder();
     ~Recorder();
+    static constexpr double fifoSeconds = 30.0;   // what the disk may lag behind before audio is dropped
 
     // --- message thread ---
     // Starts a new file (never over an existing one). "" = recording; otherwise why not (translated).

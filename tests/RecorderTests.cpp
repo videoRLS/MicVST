@@ -28,7 +28,7 @@ struct RecorderTest : juce::UnitTest
     }
 
     // feeds 'seconds' of the signal in 480-frame blocks (10 ms at 48 kHz) like the plug-in thread;
-    // paced so the 10 s FIFO never fills (speed = times real time)
+    // paced so the FIFO never fills (speed = times real time)
     static int64_t feed (Recorder& rec, double rate, double seconds, double speed = 50.0, bool mono = false, float gain = 1.0f)
     {
         const int block = (int) std::lround (rate / 100.0);
@@ -448,12 +448,12 @@ struct RecorderTest : juce::UnitTest
             rec.stop();
         }
 
-        beginTest ("FIFO overflow (disk stalled > 10 s): counted, the file stays consistent");
+        beginTest ("FIFO overflow (disk stalled > 30 s): counted, the file stays consistent");
         {
             dir.deleteRecursively();
             Recorder rec;
             expectEquals (rec.start (RecordSettings::decode ("wav:24", dir.getFullPathName()), 48000.0), juce::String());
-            const int n = 48000 * 12;   // 12 s at once: more than the 10 s FIFO
+            const int n = (int) (48000 * (Recorder::fifoSeconds + 2.0));   // more than the FIFO at once
             std::vector<float> l ((size_t) n, 0.1f);
             const float* ch[2] = { l.data(), l.data() };
             rec.push (ch, 2, n);

@@ -461,11 +461,13 @@ juce::String Recorder::start (const RecordSettings& settings, double processRate
     s->outRate = settings.effectiveRate (processRate);
     s->inChannels = juce::jlimit (1, 2, numChannels);
     s->outChannels = settings.channels == 1 ? 1 : 2;
-    const int frames = (int) std::ceil (10.0 * processRate);   // 10 s: room for a stalled disk
+    const int frames = (int) std::ceil (fifoSeconds * processRate);   // room for a stalled disk (USB drive, virus scan)
     s->ring.setSize (s->inChannels, frames);
     s->ring.clear();
     s->fifo.setTotalSize (frames);
-    s->startThread (juce::Thread::Priority::low);   // gives way to the audio and everything else: the 10 s FIFO waits
+    // above normal (Windows: THREAD_PRIORITY_ABOVE_NORMAL, performance cores): a game or a render at
+    // 100 % CPU must not starve the file - and still far below the audio threads (MMCSS / realtime)
+    s->startThread (juce::Thread::Priority::high);
     if (! s->opened.wait (15000))
         return tr ("Kayıt dosyası açılamadı (zaman aşımı): ") + s->file.getFullPathName();   // ~Session waits for the thread
     if (s->openError.isNotEmpty())

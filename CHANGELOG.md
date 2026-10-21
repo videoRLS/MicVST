@@ -13,7 +13,8 @@ project follows [Semantic Versioning](https://semver.org/).
   V0/V2/V4; 44.1 or 48 kHz (88.2-192 kHz when the microphone runs that fast) through a 140 dB
   linear-phase converter; stereo or mono; any folder (default Documents\MicVST Kayıtları).
   Default WAV 24 bit 48 kHz stereo. Names are date and time, never overwritten. The audio thread
-  only copies into a 10 s lock-free buffer; a low-priority thread converts and writes; the WAV
+  only copies into a 30 s lock-free buffer; a writer thread (above normal priority, below the
+  audio) converts and writes; the WAV
   header is rewritten every second (a crash keeps everything up to the last second); a full disk
   or a write error stops the recording with a message. Settings saved in config.xml.
 - The developer signature is no longer shown (main window footer, Ayarlar > Hakkında).
