@@ -81,6 +81,7 @@ public:
     Result stop();                      // writes the rest, closes and checks the file
     bool isRecording() const noexcept   { return session != nullptr; }
     double getSeconds() const noexcept; // audio taken so far
+    int64_t getFramesWritten() const noexcept;   // in the file so far (at the file's rate)
     juce::File getFile() const;
     int64_t getDroppedFrames() const noexcept;
     // a write error / full disk seen by the writer thread (the caller then stops)

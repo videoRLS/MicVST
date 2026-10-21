@@ -544,6 +544,7 @@ Recorder::Result Recorder::stop()
 }
 
 double Recorder::getSeconds() const noexcept { return session != nullptr ? (double) session->pushed.load() / session->inRate : 0.0; }
+int64_t Recorder::getFramesWritten() const noexcept { return session != nullptr ? session->written.load() : 0; }
 juce::File Recorder::getFile() const { return session != nullptr ? session->file : juce::File(); }
 int64_t Recorder::getDroppedFrames() const noexcept { return session != nullptr ? session->dropped.load() : 0; }
 bool Recorder::hasFailed() const noexcept

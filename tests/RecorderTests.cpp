@@ -563,12 +563,15 @@ struct RecorderTest : juce::UnitTest
             const float* ch[2] = { l.data(), r.data() };
             const int64_t target = (4500ll * 1024 * 1024) / 8;   // 4.5 GB of 2 x 32 bit
             int64_t pushed = 0;
+            // as fast as the disk takes it: at most 10 s ahead of what is in the file
+            const auto t0 = juce::Time::getMillisecondCounterHiRes();
             while (pushed < target)
             {
+                while (pushed - rec.getFramesWritten() > 10 * block) juce::Thread::sleep (5);
                 rec.push (ch, 2, block);
                 pushed += block;
-                juce::Thread::sleep (20);   // ~75 MB/s
             }
+            logMessage ("RF64: disk took " + juce::String ((double) pushed * 8.0 / 1.048576e6 / ((juce::Time::getMillisecondCounterHiRes() - t0) / 1000.0), 0) + " MB/s");
             const auto res = rec.stop();
             expect (res.verified, "RF64 read back");
             expectEquals ((int64_t) res.droppedFrames, (int64_t) 0);
