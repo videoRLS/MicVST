@@ -168,6 +168,8 @@ Retry skipped plug-ins
 Preset not found.
 @@84
 Could not load preset
+@@85
+Settings
 @@86
 Save preset
 @@87
@@ -220,6 +222,8 @@ Simple room reverb. For speech a low mix (5-15%) is recommended.
 Some plug-ins were not found
 @@111
 Another level (changed from outside)
+@@112
+Add VST3 plug-ins from other locations, rescan all plug-ins or reset the program.
 @@113
 Hold
 @@114
@@ -229,18 +233,18 @@ Unknown built-in element skipped:
 @@116
 Enter a name.
 @@117
-Press a key...
-@@118
 This is the name of a factory preset; choose another name.
-@@119
+@@118
 A preset with this name already exists.
-@@120
+@@119
 These plug-ins of the preset are missing on this computer or could not be loaded; it was loaded without them:
 
-@@121
+@@120
 This file is not a MicVST preset: 
-@@122
+@@121
 Resets all settings of this effect to their initial values
+@@122
+This shortcut is already used by the other action. Choose another key.
 @@123
 This key cannot be used: another program may have taken it. Choose another key.
 @@124
@@ -295,6 +299,8 @@ Balance (- left / + right)
 Balanced Pro
 @@149
 Deep & Warm
+@@150
+Language
 @@151
 Language:
 @@152
@@ -327,6 +333,8 @@ The plug-in chain produced unusable audio (NaN, infinite, absurdly high values o
 Plug-in cache missing or damaged -> full scan
 @@166
 Invalid audio from a plug-in (muted):
+@@167
+Plug-ins
 @@168
 Scanning plug-ins...
 @@169
@@ -350,585 +358,216 @@ Slope
 @@178
 Threshold
 @@179
-Phase inversion, one channel to both, swapping the channels, mono sum and left-right balance.
+Mouse 4 (back)
 @@180
-Film Dialogue
+Mouse 5 (forward)
 @@181
-Frequency
+The mouse shortcut could not be enabled. Try again or choose a keyboard key.
 @@182
-Night (default)
+Phase inversion, one channel to both, swapping the channels, mono sum and left-right balance.
 @@183
-Midnight (black)
+Film Dialogue
 @@184
-Delay
+Frequency
 @@185
-Delay / Echo
+Night (default)
 @@186
-Latency corrections:
+Midnight (black)
 @@187
-Nasal Reducer
+Delay
 @@188
-Width
+Delay / Echo
 @@189
-Width (Q)
+Latency corrections:
 @@190
-Undo
+Nasal Reducer
 @@191
-Feedback
+Width
 @@192
-True peak
+Width (Q)
 @@193
-Late plug-in blocks (made up without a dropout):
+Undo
 @@194
-Input
+Feedback
 @@195
-Input (microphone) =
+True peak
 @@196
-Input started:
+Late plug-in blocks (made up without a dropout):
 @@197
-Couldn't open the input device!
+Input
 @@198
-Could not open the input device: '
+Input (microphone) =
 @@199
-Couldn't start the input device!
+Input started:
 @@200
-Input device error:
+Couldn't open the input device!
 @@201
-Input gain
+Could not open the input device: '
 @@202
-The input and output devices don't share a common sample rate!
+Couldn't start the input device!
 @@203
-Relative (to the voice itself)
+Input device error:
+@@204
+Input gain
 @@205
-Body / Warmth
+The input and output devices don't share a common sample rate!
 @@206
-Sunset
+Relative (to the voice itself)
 @@207
-Noise Gate
+Appearance and startup
 @@208
-Safety margin
+Body / Warmth
 @@209
-News Anchor
+Sunset
 @@210
-Adds gentle harmonics (with 4x oversampling and anti-aliasing). The level is balanced automatically.
+Noise Gate
+@@211
+Safety margin
 @@212
-Raw
+News Anchor
 @@213
-Raw (before / after)
+Adds gentle harmonics (with 4x oversampling and anti-aliasing). The level is balanced automatically.
 @@214
-Harmonics
+About
 @@215
-Air
+Raw
 @@216
-No
+Raw (before / after)
 @@217
-Preset
+Harmonics
 @@218
-Could not read a preset file, skipped:
+Air
 @@219
-Choose a preset file
+No
 @@220
-Preset exported to: 
+Preset
 @@221
-Preset imported: 
+Could not read a preset file, skipped:
 @@222
-Choose a preset
+Choose a preset file
 @@223
-Preset loaded:
+Preset exported to: 
 @@224
-Presets: the whole chain changes with one click. "Male Voice Presets" and "Female Voice Presets" use only the built-in effects (they work for everyone); "My Presets" are the chains you saved (including VST3 plug-ins and their settings). Between presets made of the same elements the settings glide smoothly; a different chain switches with a short crossfade (a few ms). * : the chain was changed after it was loaded.
+Preset imported: 
 @@225
-Export preset to file
+Choose a preset
 @@226
-Keeps every peak below the ceiling (true peak, 3 ms look-ahead, the same method as the limiter in Auto Gain). Put it at the end of the chain.
+Preset loaded:
 @@227
-Rate (chorus only)
+Presets: the whole chain changes with one click. "Male Voice Presets" and "Female Voice Presets" use only the built-in effects (they work for everyone); "My Presets" are the chains you saved (including VST3 plug-ins and their settings). Between presets made of the same elements the settings glide smoothly; a different chain switches with a short crossfade (a few ms). * : the chain was changed after it was loaded.
 @@228
-Quick setup guide
+Export preset to file
 @@229
-ITU-R BS.1770 / EBU R128 loudness: momentary (400 ms), short-term (3 s), integrated and true peak. Does not change the sound.
+Keeps every peak below the ceiling (true peak, 3 ms look-ahead, the same method as the limiter in Auto Gain). Put it at the end of the chain.
+@@230
+Rate (chorus only)
 @@231
-Female Voice -
+Quick setup guide
 @@232
-Female Voice Presets
+ITU-R BS.1770 / EBU R128 loudness: momentary (400 ms), short-term (3 s), integrated and true peak. Does not change the sound.
 @@233
-Remove
+Cable
 @@234
-Channel
+Female Voice -
 @@235
-Channel Tools (Phase / Channel / Balance)
+Female Voice Presets
 @@236
-Swap channels
+Remove
 @@237
-Off
+Channel
 @@238
-Closing time
+Channel Tools (Phase / Channel / Balance)
 @@239
-Gate: open
+Swap channels
 @@240
-Gate: reducing 
+Off
 @@241
-Mix
+Closing time
 @@242
-Mix (chorus only)
+Gate: open
 @@243
-Could not verify the saved file:
+Gate: reducing 
 @@244
-Recording... 
+Mix
 @@245
-Save
+Mix (chorus only)
 @@246
-Gain
+Could not verify the saved file:
 @@247
-Gain
+Recording... 
 @@248
-Gain: -30 dB to +12 dB in 0.1 dB steps (you can also type into the value box). A double-click returns to 0 dB. To avoid clipping, use Gain before the limiter; the peak line of the Output meter turns red at 0 dB.
+Save
 @@249
-My Presets
+Gain
 @@250
-Monitor
+Gain
 @@251
-Cut
+Gain: -30 dB to +12 dB in 0.1 dB steps (you can also type into the value box). A double-click returns to 0 dB. To avoid clipping, use Gain before the limiter; the peak line of the Output meter turns red at 0 dB.
 @@252
-Add folder...
+My Presets
 @@253
-Could not create folder:
+Monitor
 @@254
-Compressor
+Cut
 @@255
-While you are not speaking (the audio is below the threshold) it turns the audio down by the "Range": room noise, fan, keyboard. It looks 3 ms ahead, so the beginnings of words are not cut. Set the threshold a little above the room noise and below your speech; a threshold that is too high cuts quiet syllables.
+Add folder...
 @@256
-Copy
+Could not create folder:
 @@257
-Crystal Clear
+Compressor
 @@258
-Headphones
+While you are not speaking (the audio is below the threshold) it turns the audio down by the "Range": room noise, fan, keyboard. It looks 3 ms ahead, so the beginnings of words are not cut. Set the threshold a little above the room noise and below your speech; a threshold that is too high cuts quiet syllables.
 @@259
-Could not open the headphone output: 
+Copy
 @@260
-Headphone output opened: 
+Crystal Clear
 @@261
-How To
+Headphones
 @@262
-Setup: input
+Could not open the headphone output: 
 @@263
-Bridge:
+Headphone output opened: 
 @@264
-Bridge: latency pulled back to the target (total
+How To
 @@265
-Bridge: audio dropped at the output,
+Setup: input
 @@266
-Ash
+Bridge:
 @@267
-Short-term (3 s)
+Bridge: latency pulled back to the target (total
 @@268
-Shortcuts
+Bridge: audio dropped at the output,
 @@269
-The shortcuts also work while MicVST is in the background. While MicVST is running, the key of an enabled shortcut does not reach other programs - if needed, choose another key or switch it off.
+Ash
 @@270
-Range
+Short-term (3 s)
 @@271
-LUFS Meter
+A shortcut can be a keyboard key (also with Ctrl / Alt / Shift), the middle mouse button, the side mouse buttons (4 / 5) or the mouse wheel with Ctrl / Alt / Shift. Shortcuts also work while MicVST is in the background; while MicVST is running, the key or button of an enabled shortcut does not reach other programs - if needed, choose another one or switch it off.
 @@272
-MMCSS 'Pro Audio' (one step below the device threads)
+Shortcuts
 @@273
-MMCSS not available - time-critical priority
+The shortcuts also work while MicVST is in the background. While MicVST is running, the key of an enabled shortcut does not reach other programs - if needed, choose another key or switch it off.
 @@274
-Megaphone
+Range
 @@275
-Centre
+LUFS Meter
+@@276
+MMCSS 'Pro Audio' (one step below the device threads)
 @@277
-MicVST - How To
+MMCSS not available - time-critical priority
 @@278
-MicVST keeps running in the background. Right-click the icon for options.
+Megaphone
 @@279
-MicVST log - started:
-@@281
-MicVST works completely offline (it never connects to the internet)
-@@282
-MicVST's Windows process priority. The audio threads (microphone, plug-in chain, cable) always run at Windows' real-time audio priority (MMCSS), whatever is chosen here. This setting puts MicVST's other threads (window, meters, device changes, plug-in windows, some plug-ins' background work) ahead of other programs. Normal is recommended; if MicVST's window or a plug-in window stutters during a heavy game or video processing, try Above Normal.
-@@283
-Quit MicVST
-@@284
-Reset MicVST
-@@286
-No microphone found -> input 'none'
-@@287
-Microphone driver losses:
-@@288
-The microphone is not running
-@@289
-Adds (+) the low-end fullness of speaking close to the microphone, or reduces too much of it (-).
-@@290
-Audio held in reserve between the microphone and the cable. Prevents crackles during short load peaks such as heavy games or video processing. "Automatic" starts at 10 ms and grows by itself if the audio drops out. Larger value: more robust, slightly more latency.
-@@291
-Choose your microphone here.
-@@292
-Amount
-@@293
-Amount (depth / width)
-@@294
-Mode
-@@295
-Mono (left + right)
-@@296
-Absolute (dBFS)
-@@297
-Presence
-@@298
-Normal
-@@299
-Above Normal
-@@300
-Room Reverb
-@@301
-Room size
-@@302
-Ocean
-@@303
-Ratio
-@@304
-Forest
-@@305
-Automatic (default)
-@@306
-Automatic (recommended)
-@@307
-Auto Gain
-@@308
-Auto Gain
-@@309
-Auto Gain: analyses your voice live and brings the peak level to about -20 dBFS in normal speech and about -15 dBFS when shouting. The gain changes slowly, only as much as needed, between 0 and +6 dB depending on your voice (it never turns the sound down): it largely keeps the natural rise and fall of syllables and sentences and follows within a few seconds when your voice changes for good; short clicks, "p" pops and knocks do not lower the gain. No peak ever goes above -10 dBFS (soft limiter with 3 ms look-ahead). In silence it keeps the last gain exactly; there is no noise gate, the sound is never cut. Its place in the chain can be changed by dragging. When switched off, the gain returns smoothly to 0 dB.
-Display: applied gain (input peak -> output peak, dBFS). White: speech detected, grey: gain held or off.
-@@310
-Gaming / Streaming
-@@311
-Parametric EQ
-@@312
-Colour theme of the window. Default: Night.
-@@313
-Ping-pong (right-left)
-@@314
-Podcast / Talk
-@@315
-Reset the program (deletes all data)...
-@@316
-Radio
-@@317
-Radio Announcer
-@@318
-Developed by Relios.
-@@319
-Clock drift microphone/cable:
-@@320
-No virtual cable found -> output 'none'
-@@321
-No virtual audio cable found - install VB-Cable (vb-audio.com/Cable) and restart MicVST
-@@322
-Invert right channel phase
-@@323
-Right channel to both
-@@324
-Turns down harsh "s", "sh" and "ch" sounds above the chosen frequency, only while they happen. With relative detection the threshold is the level of the treble region compared with the whole voice (-15 dB: reduces when the treble comes within 15 dB of the whole voice; independent of the microphone level). Reduces by at most "Reduction".
-@@326
-Audio Delay (Sync)
-@@327
-Audio on
-@@328
-Size of the audio blocks. Smaller value: less latency but more load on the CPU. "Automatic" uses the device's own value.
-@@329
-Could not open the audio device
-@@330
-Could not open the audio device - another program may be using it exclusively
-@@331
-Muted: silence goes to the cable. Click to turn the audio back on.
-@@332
-Audio off (muted)
-@@334
-Audio: stopped (device not connected?)
-@@335
-Audio: running
-@@336
-Unmute
-@@337
-Makes the voice sound like a telephone, an old radio or a megaphone.
-@@338
-Mutes the audio without clicks (with a short fade). Can also be switched with the box in its row.
-@@339
-Turns the audio off without clicks (15 ms fade); click again to turn it back on.
-@@340
-Mutes the audio without clicks (15 ms fade); click again to bring it back.
-@@341
-Delays the audio by the given time: to line it up with the picture (camera, stream).
-@@342
-Shows the frequency distribution of the audio live. Does not change the sound.
-@@343
-Turns the loud parts down above the threshold, by the ratio: speech sounds more even and fuller. Attack sets how fast it turns down, release how fast it lets go; make-up gain adds back the level taken away. A mix below 100% is parallel compression.
-@@344
-Voice-over / Narrator
-@@345
-Voice-over / Documentary
-@@346
-Audiobook
-@@347
-Mute
-@@348
-Mute
-@@349
-Cuts below the chosen frequency: rumble, desk/stand vibration and the low end of "p" pops. The foundation of the voice (~100-140 Hz for male voices) is kept; above 100 Hz is not recommended.
-@@350
-Cuts above the chosen frequency: hiss and fizz.
-@@351
-Boosts above the chosen frequency with a shelf curve: brightness and openness.
-@@352
-The selected device is not connected; it will be opened when plugged in:
-@@353
-Delete
-@@354
-Delete...
-@@355
-Could not delete.
-@@356
-Cinema Voice
-@@357
-Removes a constant offset (DC) in the signal below 5 Hz. Has no settings; changes nothing audible.
-@@358
-Invert left channel phase
-@@359
-Left channel to both
-@@360
-Spectrum Analyser
-@@361
-Stereo (unchanged)
-@@362
-Stereo widener
-@@363
-Mute
-@@364
-Mute / unmute
-@@366
-Damping
-@@367
-Time
-@@368
-Drive
-@@369
-Warm Saturation (Tube / Tape)
-@@370
-Warm & Full
-@@371
-Reset
-@@372
-Reset: all data deleted, the program is closing
-@@373
-OK
-@@374
-Buffer
-@@375
-Scan
-@@376
-Scan skipped (
-@@377
-Scan:
-@@378
-Scan: skip removed (file changed or deleted):
-@@379
-Ceiling (dBTP)
-@@380
-Tilts the whole tone with one slider: left is warm (more bass, less treble), right is bright.
-@@381
-Repeating echo. Feedback sets the number of repeats, Tone their brightness.
-@@382
-Make-up gain
-@@383
-Telephone
-@@384
-Telephone / Radio / Megaphone
-@@386
-Theme:
-@@387
-Peak (bell)
-@@388
-Tilt EQ (Tone Balance)
-@@389
-Tone (- warm / + bright)
-@@390
-Tone (brightness of the repeats)
-@@391
-Meeting / Lecture
-@@392
-All settings, the plug-in list and the plug-in chain will be deleted, then MicVST closes. The next time you open it, the first-time setup runs. Continue?
-@@393
-Rescan all plug-ins
-@@394
-Whole voice (broadband)
-@@395
-Integrated
-@@396
-Resets the integrated measurement, the maximum values and the true peak
-@@397
-Select All
-@@398
-Tube
-@@399
-Type
-@@400
-Click, then press the new key (also with Ctrl / Alt / Shift); Esc cancels
-@@401
-Warning: '
-@@402
-Hum Remover (50/60 Hz)
-@@403
-VST3 folders
-@@405
-Choose a VST3 folder
-@@406
-Default
-@@407
-Reset to defaults
-@@408
-Starts MicVST as an icon, without a window, when Windows starts
-@@409
-Start with Windows
-@@410
-Windows default
-@@411
-Proximity
-@@412
-Treble only (split)
-@@413
-Paste
-@@414
-New name:
-@@415
-Save as new preset...
-@@416
-Rename
-@@417
-Rename...
-@@418
-Redo
-@@419
-Soft knee
-@@420
-Soft & Smooth
-@@421
-High
-@@422
-High Cut
-@@423
-High Contrast
-@@424
-High shelf
-@@425
-Chain could not keep up, audio skipped:
-@@426
-Save the chain as your own preset; rename, delete or go back to the previous chain
-@@427
-Restoring the chain is waiting for the plug-in scan
-@@428
-skipped
-@@429
-another level
-@@430
-not supported
-@@431
-latency
-@@432
-input
-@@433
-safety margin
-@@434
-error
-@@435
-cable
-@@436
-dropouts
-@@437
-mic
-@@438
-mono
-@@439
-last 60 s (short-term)
-@@440
-ok
-@@441
-scan failed
-@@442
-not responding
-@@443
-Playing... 
-@@444
-Running
-@@445
-Mud Cleaner
-@@446
-Output
-@@447
-Output (cable) =
-@@448
-Output Limiter
-@@449
-Output started:
-@@450
-Couldn't open the output device (buffer size mismatch)
-@@451
-Couldn't open the output device!
-@@452
-Could not open the output device: '
-@@453
-Couldn't start the output device!
-@@454
-Output device error:
-@@455
-Audio dropped at the output:
-@@456
-Measured time
-@@457
-Before / after: for a moment the cable gets the raw microphone without the chain (with the same delay). Click again to return to the processed voice.
-@@458
-Previous chain
-@@459
-Overwrite
-@@460
-Overwrite (choose one of your own presets)
-@@461
-crashed (
-@@462
-output
-@@463
-Cancel
-@@464
-Process priority
-@@465
-Process priority "
-@@466
-Process priority:
-@@467
-Process: power throttling off
-@@468
-CPU
-@@469
-Processing:
-@@470
-Processing: the plug-in chain fell more than
-@@471
-Processing: input queue full -
-@@472
-Processing: no audio was processed for 3 s although the microphone delivers audio - a plug-in may be hung
-@@473
-Listen to your processed voice live on the "Headphones" output. Use headphones, not speakers: sound from the speakers back into the microphone causes echo and howling.
-@@474
-Singing / Vocals
-@@475
-Mains
-@@476
-Removes mains hum (50 Hz and its multiples; 60 Hz selectable) with very narrow notches.
-@@477
-Skip the plug-in being scanned now
-@@478
-—
+Centre
 @@280
+MicVST - Settings
+@@281
+MicVST - How To
+@@282
+MicVST keeps running in the background. Right-click the icon for options.
+@@283
+MicVST log - started:
+@@284
 How to use MicVST
 
 1)  Install a virtual audio cable
@@ -983,10 +622,181 @@ How to use MicVST
 Privacy
     MicVST never connects to the internet: no update checks, no data collection,
     no web connections.
+@@285
+MicVST works completely offline (it never connects to the internet)
+@@286
+MicVST's Windows process priority. The audio threads (microphone, plug-in chain, cable) always run at Windows' real-time audio priority (MMCSS), whatever is chosen here. This setting puts MicVST's other threads (window, meters, device changes, plug-in windows, some plug-ins' background work) ahead of other programs. Normal is recommended; if MicVST's window or a plug-in window stutters during a heavy game or video processing, try Above Normal.
+@@287
+Quit MicVST
+@@288
+Reset MicVST
+@@289
+Microphone
+@@290
+No microphone found -> input 'none'
+@@291
+Microphone driver losses:
+@@292
+The microphone is not running
+@@293
+Adds (+) the low-end fullness of speaking close to the microphone, or reduces too much of it (-).
+@@294
+Audio held in reserve between the microphone and the cable. Prevents crackles during short load peaks such as heavy games or video processing. "Automatic" starts at 10 ms and grows by itself if the audio drops out. Larger value: more robust, slightly more latency.
+@@295
+Choose your microphone here.
+@@296
+Amount
+@@297
+Amount (depth / width)
+@@298
+Mode
+@@299
+Mono (left + right)
+@@300
+Absolute (dBFS)
+@@301
+Presence
+@@302
+Normal
+@@303
+Above Normal
+@@304
+Room Reverb
+@@305
+Room size
+@@306
+Ocean
+@@307
+Ratio
+@@308
+Forest
+@@309
+Middle mouse button
+@@310
+Automatic (default)
+@@311
+Automatic (recommended)
+@@312
+Auto Gain
+@@313
+Auto Gain
+@@314
+Auto Gain: analyses your voice live and brings the peak level to about -20 dBFS in normal speech and about -15 dBFS when shouting. The gain changes slowly, only as much as needed, between 0 and +6 dB depending on your voice (it never turns the sound down): it largely keeps the natural rise and fall of syllables and sentences and follows within a few seconds when your voice changes for good; short clicks, "p" pops and knocks do not lower the gain. No peak ever goes above -10 dBFS (soft limiter with 3 ms look-ahead). In silence it keeps the last gain exactly; there is no noise gate, the sound is never cut. Its place in the chain can be changed by dragging. When switched off, the gain returns smoothly to 0 dB.
+Display: applied gain (input peak -> output peak, dBFS). White: speech detected, grey: gain held or off.
+@@315
+Gaming / Streaming
+@@316
+Parametric EQ
+@@317
+Colour theme of the window. Default: Night.
+@@318
+Ping-pong (right-left)
+@@319
+Podcast / Talk
+@@320
+Reset the program (deletes all data)...
+@@321
+Radio
+@@322
+Radio Announcer
+@@323
+Developed by Relios.
+@@324
+Clock drift microphone/cable:
+@@325
+No virtual cable found -> output 'none'
+@@326
+No virtual audio cable found - install VB-Cable (vb-audio.com/Cable) and restart MicVST
+@@327
+Invert right channel phase
+@@328
+Right channel to both
+@@329
+Turns down harsh "s", "sh" and "ch" sounds above the chosen frequency, only while they happen. With relative detection the threshold is the level of the treble region compared with the whole voice (-15 dB: reduces when the treble comes within 15 dB of the whole voice; independent of the microphone level). Reduces by at most "Reduction".
+@@330
+Sound
+@@331
+Audio Delay (Sync)
+@@332
+Audio on
+@@333
+Size of the audio blocks. Smaller value: less latency but more load on the CPU. "Automatic" uses the device's own value.
+@@334
+Could not open the audio device
+@@335
+Could not open the audio device - another program may be using it exclusively
+@@336
+Muted: silence goes to the cable. Click to turn the audio back on.
+@@337
+Audio off (muted)
+@@338
+Sound, headphones, shortcuts, language, theme, VST3 folders
+@@339
+Audio: stopped (device not connected?)
+@@340
+Audio: running
+@@341
+Unmute
+@@342
+Makes the voice sound like a telephone, an old radio or a megaphone.
+@@343
+Mutes the audio without clicks (with a short fade). Can also be switched with the box in its row.
+@@344
+Turns the audio off without clicks (15 ms fade); click again to turn it back on.
+@@345
+Mutes the audio without clicks (15 ms fade); click again to bring it back.
+@@346
+Delays the audio by the given time: to line it up with the picture (camera, stream).
+@@347
+Shows the frequency distribution of the audio live. Does not change the sound.
+@@348
+Turns the loud parts down above the threshold, by the ratio: speech sounds more even and fuller. Attack sets how fast it turns down, release how fast it lets go; make-up gain adds back the level taken away. A mix below 100% is parallel compression.
+@@349
+Voice-over / Narrator
+@@350
+Voice-over / Documentary
+@@351
+Audiobook
+@@352
+Mute
+@@353
+Mute
+@@354
+Cuts below the chosen frequency: rumble, desk/stand vibration and the low end of "p" pops. The foundation of the voice (~100-140 Hz for male voices) is kept; above 100 Hz is not recommended.
+@@355
+Cuts above the chosen frequency: hiss and fizz.
+@@356
+Boosts above the chosen frequency with a shelf curve: brightness and openness.
+@@357
+The selected device is not connected; it will be opened when plugged in:
+@@358
+Delete
+@@359
+Delete...
+@@360
+Could not delete.
+@@361
+Cinema Voice
+@@362
+Removes a constant offset (DC) in the signal below 5 Hz. Has no settings; changes nothing audible.
+@@363
+Invert left channel phase
+@@364
+Left channel to both
 @@365
+Spectrum Analyser
+@@366
+Stereo (unchanged)
+@@367
+Stereo widener
+@@368
+Mute
+@@369
+Mute / unmute
+@@370
 Mute, shortcuts, monitoring
     - "Mute" turns the audio off without clicks; F9 (changeable) mutes even while MicVST
-      is in the background. Change the key or switch it off in "Settings > Shortcuts"; the menu
+      is in the background. Change the shortcut (keyboard or mouse button) or switch it off in "Settings > Shortcuts"; the menu
       of the icon next to the clock also has "Mute" and the presets.
     - "Raw" sends the microphone without the chain to the cable for a moment: before / after.
     - Choose the listening device in "Settings > Sound > Headphones"; "Monitor" plays the processed
@@ -994,29 +804,235 @@ Mute, shortcuts, monitoring
       and plays them back on the headphones right away.
     - "Built-in - Dynamics": Compressor and Noise Gate. The presets use both moderately;
       presets can be exported to a file and shared from the "Save" menu.
-@@85
-Settings
-@@112
-Add VST3 plug-ins from other locations, rescan all plug-ins or reset the program.
-@@150
-Language
-@@167
-Plug-ins
-@@204
-Appearance and startup
-@@211
-About
-@@230
-Cable
-@@276
-MicVST - Settings
-@@285
-Microphone
-@@325
-Sound
-@@333
-Sound, headphones, shortcuts, language, theme, VST3 folders
+@@371
+Damping
+@@372
+Time
+@@373
+Drive
+@@374
+Warm Saturation (Tube / Tape)
+@@375
+Warm & Full
+@@376
+Reset
+@@377
+Reset: all data deleted, the program is closing
+@@378
+OK
+@@379
+Buffer
+@@380
+Scan
+@@381
+Scan skipped (
+@@382
+Scan:
+@@383
+Scan: skip removed (file changed or deleted):
+@@384
+Ceiling (dBTP)
 @@385
+Tilts the whole tone with one slider: left is warm (more bass, less treble), right is bright.
+@@386
+Wheel down
+@@387
+Wheel up
+@@388
+Repeating echo. Feedback sets the number of repeats, Tone their brightness.
+@@389
+Make-up gain
+@@390
+Telephone
+@@391
+Telephone / Radio / Megaphone
+@@392
 Theme
+@@393
+Theme:
+@@394
+Peak (bell)
+@@395
+Tilt EQ (Tone Balance)
+@@396
+Tone (- warm / + bright)
+@@397
+Tone (brightness of the repeats)
+@@398
+Meeting / Lecture
+@@400
+All settings, the plug-in list and the plug-in chain will be deleted, then MicVST closes. The next time you open it, the first-time setup runs. Continue?
+@@401
+Rescan all plug-ins
+@@402
+Whole voice (broadband)
+@@403
+Integrated
 @@404
+Resets the integrated measurement, the maximum values and the true peak
+@@405
+Select All
+@@406
+Tube
+@@407
+Type
+@@408
+Click, then press the new key or mouse button (also with Ctrl / Alt / Shift); Esc or a second click cancels
+@@409
+Warning: '
+@@410
+Hum Remover (50/60 Hz)
+@@411
+VST3 folders
+@@412
 VST3 folders and scanning...
+@@413
+Choose a VST3 folder
+@@414
+Default
+@@415
+Reset to defaults
+@@416
+Starts MicVST as an icon, without a window, when Windows starts
+@@417
+Start with Windows
+@@418
+Windows default
+@@419
+Proximity
+@@420
+Treble only (split)
+@@421
+Paste
+@@422
+New name:
+@@423
+Save as new preset...
+@@424
+Rename
+@@425
+Rename...
+@@426
+Redo
+@@427
+Soft knee
+@@428
+Soft & Smooth
+@@429
+High
+@@430
+High Cut
+@@431
+High Contrast
+@@432
+High shelf
+@@433
+Chain could not keep up, audio skipped:
+@@434
+Save the chain as your own preset; rename, delete or go back to the previous chain
+@@435
+Restoring the chain is waiting for the plug-in scan
+@@436
+skipped
+@@437
+another level
+@@438
+not supported
+@@439
+latency
+@@440
+input
+@@441
+safety margin
+@@442
+error
+@@443
+cable
+@@444
+dropouts
+@@445
+mic
+@@446
+mono
+@@447
+last 60 s (short-term)
+@@448
+ok
+@@449
+scan failed
+@@450
+not responding
+@@451
+Playing... 
+@@452
+Running
+@@453
+Mud Cleaner
+@@454
+Output
+@@455
+Output (cable) =
+@@456
+Output Limiter
+@@457
+Output started:
+@@458
+Couldn't open the output device (buffer size mismatch)
+@@459
+Couldn't open the output device!
+@@460
+Could not open the output device: '
+@@461
+Couldn't start the output device!
+@@462
+Output device error:
+@@463
+Audio dropped at the output:
+@@464
+Measured time
+@@465
+Before / after: for a moment the cable gets the raw microphone without the chain (with the same delay). Click again to return to the processed voice.
+@@466
+Previous chain
+@@467
+Overwrite
+@@468
+Overwrite (choose one of your own presets)
+@@469
+crashed (
+@@470
+output
+@@471
+Cancel
+@@472
+Process priority
+@@473
+Process priority "
+@@474
+Process priority:
+@@475
+Process: power throttling off
+@@476
+CPU
+@@477
+Processing:
+@@478
+Processing: the plug-in chain fell more than
+@@479
+Processing: input queue full -
+@@480
+Processing: no audio was processed for 3 s although the microphone delivers audio - a plug-in may be hung
+@@481
+Listen to your processed voice live on the "Headphones" output. Use headphones, not speakers: sound from the speakers back into the microphone causes echo and howling.
+@@482
+Singing / Vocals
+@@483
+Mains
+@@484
+Removes mains hum (50 Hz and its multiples; 60 Hz selectable) with very narrow notches.
+@@485
+Skip the plug-in being scanned now
+@@486
+—
+@@399
+Press key / mouse button...

@@ -237,7 +237,7 @@ void SettingsComponent::resized()
     line (soundPanel, soundPanel.preferredHeight());
 
     heading (1);
-    if (hotkeys != nullptr) line (*hotkeys, hotkeys->getHeight());
+    if (hotkeys != nullptr) line (*hotkeys, hotkeys->preferredHeight (w));
     else                    line (noHotkeys, 48);
 
     heading (2);

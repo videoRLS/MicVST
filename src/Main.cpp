@@ -223,8 +223,8 @@ public:
 
         // Shortcut keys (system-wide): from config.xml, otherwise the defaults (Sustur = F9)
         hotkeys = std::make_unique<GlobalHotkeys>();
-        hotkeys->set (GlobalHotkeys::mute, decodeHotkey (state.hotkeyMute, GlobalHotkeys::mute));
-        hotkeys->set (GlobalHotkeys::rawCompare, decodeHotkey (state.hotkeyCompare, GlobalHotkeys::rawCompare));
+        hotkeys->set (GlobalHotkeys::mute, GlobalHotkeys::decode (state.hotkeyMute, GlobalHotkeys::mute));
+        hotkeys->set (GlobalHotkeys::rawCompare, GlobalHotkeys::decode (state.hotkeyCompare, GlobalHotkeys::rawCompare));
         hotkeys->onPressed = [this] (GlobalHotkeys::Action a)
         {
             if (engine == nullptr) return;
@@ -319,25 +319,10 @@ private:
         s.language = micvst::currentLanguage();
         if (hotkeys != nullptr)
         {
-            s.hotkeyMute = encodeHotkey (hotkeys->get (GlobalHotkeys::mute));
-            s.hotkeyCompare = encodeHotkey (hotkeys->get (GlobalHotkeys::rawCompare));
+            s.hotkeyMute = GlobalHotkeys::encode (hotkeys->get (GlobalHotkeys::mute));
+            s.hotkeyCompare = GlobalHotkeys::encode (hotkeys->get (GlobalHotkeys::rawCompare));
         }
         saveState (s);
-    }
-
-    static juce::String encodeHotkey (const GlobalHotkeys::Binding& b)
-    {
-        return juce::String (b.enabled ? 1 : 0) + ":" + juce::String (b.keyCode) + ":" + juce::String (b.modifiers);
-    }
-    static GlobalHotkeys::Binding decodeHotkey (const juce::String& text, GlobalHotkeys::Action a)
-    {
-        const auto parts = juce::StringArray::fromTokens (text, ":", "");
-        if (parts.size() != 3) return GlobalHotkeys::defaultFor (a);
-        GlobalHotkeys::Binding b;
-        b.enabled = parts[0].getIntValue() != 0;
-        b.keyCode = parts[1].getIntValue();
-        b.modifiers = parts[2].getIntValue();
-        return b;
     }
 
     // "Reset app (clear all data)": Einstellungen + Plugin-Cache + Tray-Hinweis-Marker

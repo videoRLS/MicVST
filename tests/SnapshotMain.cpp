@@ -299,9 +299,25 @@ int main (int argc, char** argv)
         {
             GlobalHotkeys keys;
             keys.set (GlobalHotkeys::mute, GlobalHotkeys::defaultFor (GlobalHotkeys::mute));
-            keys.set (GlobalHotkeys::rawCompare, GlobalHotkeys::defaultFor (GlobalHotkeys::rawCompare));
+            {
+                GlobalHotkeys::Binding wheel;   // a mouse shortcut, the longest text
+                wheel.enabled = true;
+                wheel.mouse = GlobalHotkeys::wheelUp;
+                wheel.modifiers = juce::ModifierKeys::ctrlModifier;
+                keys.set (GlobalHotkeys::rawCompare, wheel);
+            }
             HotkeyDialog dlg (keys, [&] (GlobalHotkeys::Action a, const GlobalHotkeys::Binding& b) { keys.set (a, b); return true; });
-            snap (dlg, dlg.getWidth(), dlg.getHeight(), dir.getChildFile ("12_lang_" + id + "_hotkeys.png"));
+            const int w = 424;   // as wide as in "Ayarlar" (640 px window)
+            snap (dlg, w, dlg.preferredHeight (w), dir.getChildFile ("12_lang_" + id + "_hotkeys.png"));
+            // waiting for the new key or mouse button (the longest button text)
+            for (auto* c : dlg.getChildren())
+                if (auto* tb = dynamic_cast<juce::TextButton*> (c))
+                    if (tb->getButtonText() == GlobalHotkeys::describe (keys.get (GlobalHotkeys::mute)) && tb->onClick)
+                    {
+                        tb->onClick();
+                        break;
+                    }
+            snap (dlg, w, dlg.preferredHeight (w), dir.getChildFile ("12_lang_" + id + "_hotkeys_capture.png"));
         }
         renderMenu ({ tr ("Yeni ayar olarak kaydet..."), tr ("Üzerine kaydet (kendi ayarınızı seçin)"), tr ("Yeniden adlandır..."),
                       tr ("Sil..."), "-", tr ("Önceki zincire dön"), "-", tr ("Dosyaya aktar (paylaşmak için)..."),

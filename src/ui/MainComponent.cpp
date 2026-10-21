@@ -70,8 +70,8 @@ namespace
              + tr (
             "Sustur, kısayollar, kendini dinleme\n"
             "    - \"Sustur\" sesi tıksız kapatır; F9 (değiştirilebilir) MicVST arka plandayken de\n"
-            "      susturur. \"Ayarlar > Kısayollar\" ile tuşu değiştirin ya da kapatın; saatin yanındaki\n"
-            "      simgenin menüsünde de \"Sustur\" ve hazır ayarlar vardır.\n"
+            "      susturur. \"Ayarlar > Kısayollar\" ile kısayolu (klavye ya da fare tuşu) değiştirin\n"
+            "      ya da kapatın; saatin yanındaki simgenin menüsünde de \"Sustur\" ve hazır ayarlar vardır.\n"
             "    - \"Ham ses\" kabloya bir anlığına zincirsiz mikrofon sesini verir: önce / sonra.\n"
             "    - \"Ayarlar > Ses > Kulaklık\" ile dinleme cihazını seçin; \"Kendini dinle\" işlenmiş sesi\n"
             "      oradan çalar (hoparlör değil kulaklık kullanın). \"Deneme kaydı\" 10 saniye\n"

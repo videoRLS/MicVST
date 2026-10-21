@@ -135,7 +135,9 @@ target_sources(MicVSTTests PRIVATE
     tests/AutoGainTests.cpp
     tests/EffectTests.cpp
     tests/PresetTests.cpp
+    tests/HotkeyTests.cpp
     src/audio/PluginChain.cpp
+    src/ui/GlobalHotkeys.cpp
 )
 target_include_directories(MicVSTTests PRIVATE tests)
 target_compile_definitions(MicVSTTests PRIVATE
@@ -145,6 +147,7 @@ target_compile_definitions(MicVSTTests PRIVATE
 target_link_libraries(MicVSTTests PRIVATE
     MicVSTCore
     juce::juce_audio_processors
+    juce::juce_gui_basics
     juce::juce_core
     juce::juce_recommended_config_flags
     juce::juce_recommended_warning_flags

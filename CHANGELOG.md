@@ -45,6 +45,10 @@ project follows [Semantic Versioning](https://semver.org/).
   chain's latency, 30 ms equal-power crossfade) in a new row under the devices; system-wide
   shortcut keys (Sustur F9 by default, Ham ses F10 off), changeable and switchable off in
   "Kısayollar"; the tray menu has Sustur and every preset.
+- Shortcuts can also be mouse buttons, separately for Sustur and Ham ses: the middle button, the
+  side buttons (mouse 4 / 5) or the wheel with Ctrl / Alt / Shift (low-level mouse hook on its own
+  thread, installed only while a mouse shortcut is on). The same shortcut cannot be given to both
+  actions; config.xml keeps them ("enabled:key:modifiers:mouse", older entries still read).
 - Kendini dinle: the processed voice on a headphone output (new "Kulaklık" row: device and level;
   WASAPI shared, own thread and bridge, opened only while needed; monitoring always starts off).
   Deneme kaydı: 10 s of what the cable gets, played back on the headphones at once.
