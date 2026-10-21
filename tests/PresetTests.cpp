@@ -61,10 +61,10 @@ struct PresetTest : juce::UnitTest
 
     void runTest() override
     {
-        beginTest ("factory presets: five, built-in only, same elements in the same order, every state valid");
+        beginTest ("factory presets: 15 + 15, built-in only, same elements in the same order, every state valid");
         {
             const auto& f = presets::factoryPresets();
-            expectEquals ((int) f.size(), 20);
+            expectEquals ((int) f.size(), 30);
             int menCount = 0, womenCount = 0;
             std::map<juce::String, int> names;
             for (auto& p : f)
@@ -74,8 +74,8 @@ struct PresetTest : juce::UnitTest
                 expect (++names[p.name] == 1, "duplicate name " + p.name);
                 expect (p.name.endsWith (p.shortName));
             }
-            expectEquals (menCount, 10);
-            expectEquals (womenCount, 10);
+            expectEquals (menCount, 15);
+            expectEquals (womenCount, 15);
             for (const char* n : { "Erkek Sesi - Radyo Spikeri", "Kadın Sesi - Şarkı / Vokal", "Erkek Sesi - Dengeli Profesyonel" })
                 expect (presets::findFactory (juce::String::fromUTF8 (n)) != nullptr, juce::String::fromUTF8 (n));
             for (auto& p : f)
@@ -95,14 +95,22 @@ struct PresetTest : juce::UnitTest
                         expect (xml != nullptr && fx->applyStateXml (*xml), p.name + ": state of " + e.fileOrId);
                     }
                 }
-                // never a gate or a compressor; Otomatik Kazanç once
-                int autos = 0;
-                for (auto& e : p.elements) if (e.fileOrId == "builtin:autogain") ++autos;
+                // Otomatik Kazanç once, before the gate and the compressor; the limiter last
+                int autos = 0, autoAt = -1, gateAt = -1, compAt = -1;
+                for (int i = 0; i < p.elements.size(); ++i)
+                {
+                    const auto& id = p.elements.getReference (i).fileOrId;
+                    if (id == "builtin:autogain") { ++autos; autoAt = i; }
+                    if (id == "builtin:gate") gateAt = i;
+                    if (id == "builtin:compressor") compAt = i;
+                }
                 expectEquals (autos, 1);
+                expect (autoAt >= 0 && autoAt < gateAt && gateAt < compAt, p.name + ": order");
+                expect (p.elements.getLast().fileOrId == "builtin:limiter", p.name + ": limiter last");
             }
         }
 
-        beginTest ("factory presets: really different tone curves (EQ part: at least 1.5 dB apart somewhere)");
+        beginTest ("factory presets: really different (EQ curves 1.5 dB apart somewhere, or clearly different dynamics)");
         {
             const double fs = 48000.0;
             auto curve = [&] (const presets::Preset& p)
@@ -124,6 +132,17 @@ struct PresetTest : juce::UnitTest
                 }
                 return c;
             };
+            auto dyn = [] (const presets::Preset& p, const char* id, const char* param)
+            {
+                for (auto& e : p.elements)
+                    if (e.fileOrId == id)
+                        if (auto fx = builtin::create (e.fileOrId))
+                        {
+                            fx->setStateInformation (e.state.getData(), (int) e.state.getSize());
+                            return fx->getParam (param);
+                        }
+                return 0.0f;
+            };
             const auto& f = presets::factoryPresets();
             std::vector<std::vector<double>> curves;
             for (auto& p : f) curves.push_back (curve (p));
@@ -132,8 +151,12 @@ struct PresetTest : juce::UnitTest
                 {
                     double most = 0.0;
                     for (size_t k = 0; k < curves[a].size(); ++k) most = std::max (most, std::abs (curves[a][k] - curves[b][k]));
-                    logMessage (f[a].name + " vs " + f[b].name + ": up to " + juce::String (most, 1) + " dB apart");
-                    expectGreaterThan (most, 1.5);
+                    const bool dynamicsDiffer = std::abs (dyn (f[a], "builtin:compressor", "ratio") - dyn (f[b], "builtin:compressor", "ratio")) >= 0.5f
+                                             || std::abs (dyn (f[a], "builtin:compressor", "threshold") - dyn (f[b], "builtin:compressor", "threshold")) >= 2.0f
+                                             || std::abs (dyn (f[a], "builtin:gate", "range") - dyn (f[b], "builtin:gate", "range")) >= 4.0f;
+                    logMessage (f[a].name + " vs " + f[b].name + ": up to " + juce::String (most, 1) + " dB apart"
+                                + (dynamicsDiffer ? ", dynamics differ" : ""));
+                    expect (most > 1.5 || dynamicsDiffer, f[a].name + " vs " + f[b].name);
                 }
             // nothing extreme above the low cut (100 Hz on): no point of any curve beyond +/- 9 dB
             for (auto& c : curves)

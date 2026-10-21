@@ -56,18 +56,23 @@ namespace
     //  cut 90-115 Hz, body around 200-230 Hz, mud 350 Hz, box 600 Hz, nasal 1.2 kHz, edge 3.5 kHz,
     //  presence 5 kHz, sibilants higher (de-esser 6.5-7 kHz).
     //  Turkish sibilants (s, ş, ç, z) are frequent: every preset de-esses relative to the voice.
-    // Every preset has the same elements in the same order:
+    // Every preset has the same elements in the same order (switching between them glides):
     //   Low-Cut -> Yakınlık -> Çamur Temizleyici -> Parametrik EQ (kutu, genizlik, sertlik) -> Gövde ->
-    //   Netlik -> Hava -> Otomatik Kazanç -> De-esser -> Sıcak Saturasyon -> Oda Yankısı -> Kazanç
-    // (the room is open only in the singing presets). Otomatik Kazanç sits before the de-esser and the
-    // saturation: they then see the same level for every microphone and voice. The last Kazanç
-    // matches the loudness of all twenty (measured on synthetic men's and women's speech), so
-    // switching does not jump in level.
+    //   Netlik -> Hava -> Otomatik Kazanç -> Gürültü Kapısı -> Kompresör -> De-esser -> Sıcak Saturasyon
+    //   -> Oda Yankısı -> Kazanç -> Çıkış Limiteri
+    // Otomatik Kazanç comes before the dynamics: the gate, the compressor, the de-esser and the
+    // saturation then see the same level (speech peaks about -20 dBFS) for every microphone and voice,
+    // so one threshold fits everyone. The gate is gentle (it turns room noise down by 6-18 dB, never
+    // cuts it off; off in the singing and ASMR presets - sustained notes and whispers), the compressor
+    // moderate (1.8:1 to 4:1, soft knee). The room is open only in the singing presets. The last
+    // Kazanç matches the loudness of all thirty (measured on synthetic men's and women's speech), so
+    // switching does not jump in level; the limiter keeps every true peak below -1 dBTP.
     struct V
     {
         float lowCut, proxDb, proxHz, mudDb, mudHz, boxHz, boxDb, nasalHz, nasalDb, hardHz, hardDb,
               bodyDb, bodyHz, presDb, presHz, airDb, airHz, deessHz, deessThr, deessRange;
-        int satType; float satDrive, satMix, roomSize, roomMix, trimDb;
+        int satType; float satDrive, satMix, roomSize, roomMix;
+        float gateThr, gateRange, compThr, compRatio, compAtk, compRel, trimDb;
     };
 
     std::vector<Setting> chainFor (const V& v)
@@ -84,10 +89,15 @@ namespace
             { "builtin:presence",  { { "gain", v.presDb }, { "freq", v.presHz }, { "q", 1.0f } } },
             { "builtin:air",       { { "gain", v.airDb }, { "freq", v.airHz } } },
             { "builtin:autogain",  {} },
+            { "builtin:gate",      { { "threshold", v.gateThr }, { "range", v.gateRange }, { "attack", 2.0f }, { "hold", 150.0f },
+                                     { "release", 250.0f }, { "detecthp", 100.0f } } },
+            { "builtin:compressor",{ { "threshold", v.compThr }, { "ratio", v.compRatio }, { "attack", v.compAtk }, { "release", v.compRel },
+                                     { "knee", 6.0f }, { "makeup", 0.0f }, { "mix", 100.0f } } },
             { "builtin:deesser",   { { "freq", v.deessHz }, { "threshold", v.deessThr }, { "range", v.deessRange }, { "mode", 0.0f }, { "detect", 0.0f } } },
             { "builtin:saturation",{ { "type", (float) v.satType }, { "drive", v.satDrive }, { "mix", v.satMix } } },
             { "builtin:reverb",    { { "size", v.roomSize }, { "damping", 45.0f }, { "width", 100.0f }, { "mix", v.roomMix } } },
             { "builtin:gain",      { { "gain", v.trimDb } } },
+            { "builtin:limiter",   { { "ceiling", -1.0f }, { "input", 0.0f }, { "release", 80.0f } } },
         };
     }
 
@@ -96,29 +106,39 @@ namespace
         struct Def { const char* group; const char* name; V v; };
         static const char* const men = TRK ("Erkek Sesi Ayarları");
         static const char* const women = TRK ("Kadın Sesi Ayarları");
-        //                                                  LC   prox       mud        kutu      genizlik   sertlik     gövde      netlik     hava        de-esser          sat           oda     trim
+        //                                                   LC   prox       mud        kutu       genizlik    sertlik     gövde      netlik     hava         de-esser        sat         oda     kapı       kompresör              trim
         const std::vector<Def> defs {
-            { men,   TRK ("Dengeli Profesyonel"),   { 80, -1.5, 150, 3.0, 300,  500, -1.5, 1000, -1.0, 3000, -1.5,  1.0, 130,  2.5, 4500,  2.0, 11000,  5500, -14, 6,  0, 3, 50,  30,  0, 0.6f } },
-            { men,   TRK ("Podcast / Sohbet"),      { 80,  1.0, 130, 2.5, 300,  500, -1.5, 1000, -1.0, 3000, -2.0,  2.0, 125,  1.5, 4000,  0.5, 12000,  5500, -14, 7,  1, 3, 40,  30,  0, 0.2f } },
-            { men,   TRK ("Radyo Spikeri"),         { 75,  1.5, 120, 3.0, 300,  500, -2.0, 1000, -1.5, 3000, -1.0,  3.0, 115,  3.0, 4000,  2.5, 11000,  5500, -15, 8,  1, 8, 80,  30,  0, 0.7f } },
-            { men,   TRK ("Seslendirme / Belgesel"),{ 70,  0.5, 130, 3.0, 300,  500, -2.0, 1000, -1.0, 3000, -3.0,  2.0, 120,  1.0, 4200,  1.5, 12000,  5500, -16, 9,  1, 5, 60,  30,  0, 0.7f } },
-            { men,   TRK ("Sinema Sesi"),           { 70,  1.0, 120, 3.5, 300,  500, -2.0, 1000, -1.0, 3000, -2.0,  2.5, 120,  2.0, 4200,  4.0, 12000,  5500, -15, 8,  1, 6, 70,  30,  0, 0.9f } },
-            { men,   TRK ("Kristal Netlik"),        { 90, -3.0, 160, 4.0, 320,  500, -2.0, 1000,  0.0, 3000, -1.0,  0.0, 130,  4.0, 4800,  5.0,  9000,  5500, -14, 8,  0, 0,  0,  30,  0, 1.2f } },
-            { men,   TRK ("Yumuşak ve Pürüzsüz"),   { 75, -1.0, 150, 2.5, 300,  500, -1.0, 1000, -1.5, 3000, -3.0,  1.5, 130,  0.0, 4200, -1.5, 11000,  5000, -16, 9,  0, 3, 50,  30,  0, 0.3f } },
-            { men,   TRK ("Derin ve Sıcak"),        { 70,  2.0, 130, 2.0, 300,  500, -1.5, 1000, -1.0, 3000, -2.0,  3.0, 120,  1.0, 4200, -0.5, 12000,  5500, -15, 7,  1, 7, 70,  30,  0, -0.1f } },
-            { men,   TRK ("Şarkı / Vokal"),         { 90, -1.5, 150, 3.0, 300,  500, -1.5, 1000, -1.0, 3000, -2.0,  1.0, 140,  2.5, 4500,  4.0, 12000,  5500, -15, 8,  0, 5, 60,  45, 18, 0.7f } },
-            { men,   TRK ("Oyun / Canlı Yayın"),    { 95, -2.5, 160, 4.0, 320,  500, -2.0, 1000, -1.5, 3000, -1.0,  0.5, 140,  4.0, 4600,  3.0, 10000,  5500, -14, 8,  0, 4, 50,  30,  0, 1.2f } },
+            { men,   TRK ("Dengeli Profesyonel"),    { 80, -1.5, 150, 3.0, 300,  500, -1.5, 1000, -1.0, 3000, -1.5,  1.0, 130,  2.5, 4500,  2.0, 11000,  5500, -14, 6,  0, 3, 50,  30,  0,  -55,  8,  -28, 2.5f,  8, 150,  4.5f } },
+            { men,   TRK ("Podcast / Sohbet"),       { 80,  1.0, 130, 2.5, 300,  500, -1.5, 1000, -1.0, 3000, -2.0,  2.0, 125,  1.5, 4000,  0.5, 12000,  5500, -14, 7,  1, 3, 40,  30,  0,  -55, 10,  -30, 3.0f,  5, 120,  6.2f } },
+            { men,   TRK ("Radyo Spikeri"),          { 75,  1.5, 120, 3.0, 300,  500, -2.0, 1000, -1.5, 3000, -1.0,  3.0, 115,  3.0, 4000,  2.5, 11000,  5500, -15, 8,  1, 8, 80,  30,  0,  -52, 12,  -32, 4.0f,  3,  80,  8.7f } },
+            { men,   TRK ("Haber Sunucusu"),         { 85, -1.0, 150, 3.0, 300,  500, -2.0, 1000, -1.0, 3000, -1.0,  1.5, 125,  3.0, 4300,  1.5, 11000,  5500, -15, 8,  0, 3, 40,  30,  0,  -53, 12,  -29, 3.0f,  6, 120,  5.6f } },
+            { men,   TRK ("Seslendirme / Belgesel"), { 70,  0.5, 130, 3.0, 300,  500, -2.0, 1000, -1.0, 3000, -3.0,  2.0, 120,  1.0, 4200,  1.5, 12000,  5500, -16, 9,  1, 5, 60,  30,  0,  -55, 10,  -30, 3.0f, 10, 150,  5.8f } },
+            { men,   TRK ("Sesli Kitap"),            { 70,  0.5, 130, 2.5, 300,  500, -1.5, 1000, -1.0, 3000, -2.5,  2.0, 120,  0.5, 4200,  1.0, 12000,  5500, -16, 9,  1, 3, 50,  30,  0,  -57,  8,  -30, 2.0f, 15, 200,  4.2f } },
+            { men,   TRK ("Sinema Sesi"),            { 70,  1.0, 120, 3.5, 300,  500, -2.0, 1000, -1.0, 3000, -2.0,  2.5, 120,  2.0, 4200,  4.0, 12000,  5500, -15, 8,  1, 6, 70,  30,  0,  -56,  8,  -30, 3.5f, 15, 200,  6.0f } },
+            { men,   TRK ("Film Diyaloğu"),          { 70,  0.0, 130, 2.0, 300,  500, -1.0, 1000, -0.5, 3000, -1.0,  1.0, 125,  1.0, 4200,  1.0, 12000,  5500, -16, 6,  0, 2, 30,  30,  0,  -58,  6,  -26, 1.8f, 20, 250,  2.1f } },
+            { men,   TRK ("Kristal Netlik"),         { 90, -3.0, 160, 4.0, 320,  500, -2.0, 1000,  0.0, 3000, -1.0,  0.0, 130,  4.0, 4800,  5.0,  9000,  5500, -14, 8,  0, 0,  0,  30,  0,  -54, 10,  -28, 2.5f,  8, 150,  5.0f } },
+            { men,   TRK ("Yumuşak ve Pürüzsüz"),    { 75, -1.0, 150, 2.5, 300,  500, -1.0, 1000, -1.5, 3000, -3.0,  1.5, 130,  0.0, 4200, -1.5, 11000,  5000, -16, 9,  0, 3, 50,  30,  0,  -58,  6,  -30, 2.0f, 20, 250,  3.9f } },
+            { men,   TRK ("Derin ve Sıcak"),         { 70,  2.0, 130, 2.0, 300,  500, -1.5, 1000, -1.0, 3000, -2.0,  3.0, 120,  1.0, 4200, -0.5, 12000,  5500, -15, 7,  1, 7, 70,  30,  0,  -56,  8,  -30, 3.0f, 10, 150,  5.4f } },
+            { men,   TRK ("Şarkı / Vokal"),          { 90, -1.5, 150, 3.0, 300,  500, -1.5, 1000, -1.0, 3000, -2.0,  1.0, 140,  2.5, 4500,  4.0, 12000,  5500, -15, 8,  0, 5, 60,  45, 18,  -80,  0,  -26, 3.0f, 10, 150,  3.9f } },
+            { men,   TRK ("Oyun / Canlı Yayın"),     { 95, -2.5, 160, 4.0, 320,  500, -2.0, 1000, -1.5, 3000, -1.0,  0.5, 140,  4.0, 4600,  3.0, 10000,  5500, -14, 8,  0, 4, 50,  30,  0,  -50, 18,  -30, 4.0f,  5, 100,  7.1f } },
+            { men,   TRK ("Toplantı / Ders"),        {110, -3.0, 160, 3.5, 320,  500, -2.0, 1000, -1.0, 3000, -1.0,  0.0, 130,  3.5, 4500,  1.0, 10000,  5500, -14, 8,  0, 0,  0,  30,  0,  -50, 15,  -30, 3.0f,  5, 120,  6.5f } },
+            { men,   TRK ("ASMR / Fısıltı"),         { 60,  2.0, 130, 1.5, 300,  500, -1.0, 1000, -0.5, 3000, -2.0,  2.0, 120,  0.0, 4200,  3.0, 12000,  5500, -18, 10, 0, 0,  0,  30,  0,  -80,  0,  -36, 2.5f, 10, 200,  8.0f } },
 
-            { women, TRK ("Dengeli Profesyonel"),   { 100, -1.0, 200, 2.5, 350, 600, -1.5, 1200, -1.0, 3500, -1.5,  1.0, 220,  2.0, 5000,  2.5, 12000,  6500, -14, 7,  0, 2, 40,  30,  0, -0.3f } },
-            { women, TRK ("Podcast / Sohbet"),      { 100,  0.5, 190, 2.0, 350, 600, -1.0, 1200, -1.0, 3500, -2.0,  2.0, 210,  1.0, 4800,  1.0, 12000,  6500, -14, 8,  1, 2, 40,  30,  0, -1.3f } },
-            { women, TRK ("Radyo Spikeri"),         { 95,   1.0, 180, 2.5, 350, 600, -2.0, 1200, -1.5, 3500, -1.5,  3.0, 195,  3.0, 4600,  2.5, 12000,  6500, -15, 9,  1, 6, 70,  30,  0, -1.3f } },
-            { women, TRK ("Seslendirme / Anlatıcı"),{ 90,   0.0, 190, 2.5, 350, 600, -1.5, 1200, -1.5, 3500, -3.0,  2.5, 210,  0.5, 4500,  1.5, 12500,  6500, -16, 9,  1, 4, 50,  30,  0, -1.1f } },
-            { women, TRK ("Sinema Sesi"),           { 90,   0.0, 180, 3.0, 350, 600, -2.0, 1200, -1.0, 3500, -2.0,  2.0, 205,  1.0, 5000,  4.0, 13000,  6500, -15, 8,  1, 5, 60,  30,  0, -0.4f } },
-            { women, TRK ("Kristal Netlik"),        { 110, -2.5, 220, 3.5, 380, 600, -2.0, 1200,  0.0, 3500, -1.0,  0.0, 220,  3.0, 5400,  5.0, 11000,  6500, -14, 9,  0, 0,  0,  30,  0, 0.6f } },
-            { women, TRK ("Yumuşak ve Pürüzsüz"),   { 100, -0.5, 200, 2.0, 350, 600, -1.0, 1200, -1.5, 3500, -3.0,  1.5, 220,  0.0, 4800, -1.0, 12000,  6000, -16, 10, 0, 2, 40,  30,  0, -0.9f } },
-            { women, TRK ("Sıcak ve Dolgun"),       { 90,   1.5, 180, 1.5, 350, 600, -1.5, 1200, -1.0, 3500, -2.0,  3.0, 200,  0.5, 4800,  0.0, 12000,  6500, -15, 8,  1, 6, 60,  30,  0, -2.0f } },
-            { women, TRK ("Şarkı / Vokal"),         { 110, -1.5, 200, 2.5, 350, 600, -1.5, 1200, -1.0, 3500, -2.0,  0.5, 230,  2.0, 5200,  4.5, 12500,  7000, -15, 9,  0, 4, 50,  45, 20, 0.0f } },
-            { women, TRK ("Oyun / Canlı Yayın"),    { 120, -3.0, 230, 3.0, 380, 600, -2.0, 1200, -1.5, 3500, -1.0, -0.5, 230,  4.5, 4600,  2.5, 10000,  6500, -14, 9,  0, 3, 40,  30,  0, 0.4f } },
+            { women, TRK ("Dengeli Profesyonel"),    {100, -1.0, 200, 2.5, 350,  600, -1.5, 1200, -1.0, 3500, -1.5,  1.0, 220,  2.0, 5000,  2.5, 12000,  6500, -14, 7,  0, 2, 40,  30,  0,  -55,  8,  -28, 2.5f,  8, 150,  3.9f } },
+            { women, TRK ("Podcast / Sohbet"),       {100,  0.5, 190, 2.0, 350,  600, -1.0, 1200, -1.0, 3500, -2.0,  2.0, 210,  1.0, 4800,  1.0, 12000,  6500, -14, 8,  1, 2, 40,  30,  0,  -55, 10,  -30, 3.0f,  5, 120,  5.3f } },
+            { women, TRK ("Radyo Spikeri"),          { 95,  1.0, 180, 2.5, 350,  600, -2.0, 1200, -1.5, 3500, -1.5,  3.0, 195,  3.0, 4600,  2.5, 12000,  6500, -15, 9,  1, 6, 70,  30,  0,  -52, 12,  -32, 4.0f,  3,  80,  7.6f } },
+            { women, TRK ("Haber Sunucusu"),         {105, -0.5, 200, 2.5, 350,  600, -2.0, 1200, -1.0, 3500, -1.0,  1.5, 215,  2.5, 4900,  2.0, 12000,  6500, -15, 8,  0, 2, 40,  30,  0,  -53, 12,  -29, 3.0f,  6, 120,  4.9f } },
+            { women, TRK ("Seslendirme / Anlatıcı"), { 90,  0.0, 190, 2.5, 350,  600, -1.5, 1200, -1.5, 3500, -3.0,  2.5, 210,  0.5, 4500,  1.5, 12500,  6500, -16, 9,  1, 4, 50,  30,  0,  -55, 10,  -30, 3.0f, 10, 150,  4.9f } },
+            { women, TRK ("Sesli Kitap"),            { 90,  0.0, 190, 2.0, 350,  600, -1.0, 1200, -1.5, 3500, -2.5,  2.0, 210,  0.5, 4600,  1.0, 12500,  6500, -16, 9,  1, 3, 40,  30,  0,  -57,  8,  -30, 2.0f, 15, 200,  3.2f } },
+            { women, TRK ("Sinema Sesi"),            { 90,  0.0, 180, 3.0, 350,  600, -2.0, 1200, -1.0, 3500, -2.0,  2.0, 205,  1.0, 5000,  4.0, 13000,  6500, -15, 8,  1, 5, 60,  30,  0,  -56,  8,  -30, 3.5f, 15, 200,  5.3f } },
+            { women, TRK ("Film Diyaloğu"),          { 90,  0.0, 190, 1.5, 350,  600, -1.0, 1200, -0.5, 3500, -1.0,  1.0, 210,  1.0, 4800,  1.0, 12500,  6500, -16, 6,  0, 2, 30,  30,  0,  -58,  6,  -26, 1.8f, 20, 250,  1.3f } },
+            { women, TRK ("Kristal Netlik"),         {110, -2.5, 220, 3.5, 380,  600, -2.0, 1200,  0.0, 3500, -1.0,  0.0, 220,  3.0, 5400,  5.0, 11000,  6500, -14, 9,  0, 0,  0,  30,  0,  -54, 10,  -28, 2.5f,  8, 150,  4.4f } },
+            { women, TRK ("Yumuşak ve Pürüzsüz"),    {100, -0.5, 200, 2.0, 350,  600, -1.0, 1200, -1.5, 3500, -3.0,  1.5, 220,  0.0, 4800, -1.0, 12000,  6000, -16, 10, 0, 2, 40,  30,  0,  -58,  6,  -30, 2.0f, 20, 250,  3.2f } },
+            { women, TRK ("Sıcak ve Dolgun"),        { 90,  1.5, 180, 1.5, 350,  600, -1.5, 1200, -1.0, 3500, -2.0,  3.0, 200,  0.5, 4800,  0.0, 12000,  6500, -15, 8,  1, 6, 60,  30,  0,  -56,  8,  -30, 3.0f, 10, 150,  4.5f } },
+            { women, TRK ("Şarkı / Vokal"),          {110, -1.5, 200, 2.5, 350,  600, -1.5, 1200, -1.0, 3500, -2.0,  0.5, 230,  2.0, 5200,  4.5, 12500,  7000, -15, 9,  0, 4, 50,  45, 20,  -80,  0,  -26, 3.0f, 10, 150,  3.2f } },
+            { women, TRK ("Oyun / Canlı Yayın"),     {120, -3.0, 230, 3.0, 380,  600, -2.0, 1200, -1.5, 3500, -1.0, -0.5, 230,  4.5, 4600,  2.5, 10000,  6500, -14, 9,  0, 3, 40,  30,  0,  -50, 18,  -30, 4.0f,  5, 100,  6.4f } },
+            { women, TRK ("Toplantı / Ders"),        {120, -2.5, 230, 3.0, 380,  600, -2.0, 1200, -1.0, 3500, -1.0,  0.0, 220,  3.0, 5000,  1.0, 11000,  6500, -14, 9,  0, 0,  0,  30,  0,  -50, 15,  -30, 3.0f,  5, 120,  5.9f } },
+            { women, TRK ("ASMR / Fısıltı"),         { 80,  1.5, 190, 1.0, 350,  600, -1.0, 1200, -0.5, 3500, -2.0,  2.0, 210,  0.0, 4800,  3.0, 13000,  7000, -18, 10, 0, 0,  0,  30,  0,  -80,  0,  -36, 2.5f, 10, 200,  7.2f } },
         };
 
         std::vector<Preset> out;

@@ -119,7 +119,7 @@ namespace
         explicit NoiseGate (const Info& i) : BuiltInEffect (i)
         {
             thr     = addFloat ("threshold", "Eşik", -80.0f, -10.0f, -50.0f, U::decibel, -45.0f, 0.1f);
-            range   = addFloat ("range", "Kısma", 6.0f, 90.0f, 40.0f, U::dbAmount, 30.0f, 0.5f);
+            range   = addFloat ("range", "Kısma", 0.0f, 90.0f, 40.0f, U::dbAmount, 30.0f, 0.5f);
             attack  = addFloat ("attack", "Açılma süresi", 0.5f, 50.0f, 2.0f, U::milliseconds, 5.0f, 0.1f);
             hold    = addFloat ("hold", "Bekleme", 0.0f, 1000.0f, 120.0f, U::milliseconds, 150.0f, 1.0f);
             release = addFloat ("release", "Kapanma süresi", 10.0f, 2000.0f, 200.0f, U::milliseconds, 200.0f, 1.0f);
