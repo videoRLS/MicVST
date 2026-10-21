@@ -1,4 +1,5 @@
 #include "audio/AudioEngine.h"
+#include "audio/DeviceFormat.h"
 #include "audio/BuiltInAutoGain.h"
 #include "audio/BuiltInGain.h"
 #include "audio/RealtimeSupport.h"
@@ -255,6 +256,17 @@ void AudioEngine::openDevices (const juce::String& input, const juce::String& ou
                               + (inErr.isNotEmpty() ? " [" + micvst::deviceErrorText (inErr) + "]" : juce::String())
                               + tr (" | çıkış ") + describe (outputDevices.getCurrentAudioDevice())
                               + (outErr.isNotEmpty() ? " [" + micvst::deviceErrorText (outErr) + "]" : juce::String()));
+
+    // The real formats: MicVST's streams are 32-bit float (shared mode; JUCE tries float32 first and
+    // the Windows audio engine mixes in float32); the endpoints themselves run in the format set in
+    // Windows (e.g. 32 bit microphone, 24 bit cable) and Windows converts between the two.
+    auto endpoint = [] (juce::AudioIODevice* d, bool capture)
+    {
+        return d == nullptr ? tr ("(yok)") : devfmt::describe (devfmt::windowsEndpointFormat (d->getName(), capture));
+    };
+    juce::Logger::writeToLog (tr ("Ses biçimi: MicVST akışı ve iç işlem 32 bit kayan nokta; Windows aygıt biçimi: giriş ")
+                              + endpoint (inputDevices.getCurrentAudioDevice(), true) + tr (" | çıkış ")
+                              + endpoint (outputDevices.getCurrentAudioDevice(), false));
 }
 
 juce::String AudioEngine::initialise (const juce::String& inputDeviceName,

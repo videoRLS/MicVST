@@ -50,6 +50,7 @@ add_library(MicVSTCore STATIC
     src/audio/fx/MeterEffects.cpp
     src/ui/BuiltInEffectEditor.cpp
     src/audio/RealtimeSupport.cpp
+    src/audio/DeviceFormat.cpp
     src/audio/Metering.cpp
     src/audio/GraphConnections.cpp
     src/audio/ScanCoordinator.cpp
@@ -136,6 +137,7 @@ target_sources(MicVSTTests PRIVATE
     tests/EffectTests.cpp
     tests/PresetTests.cpp
     tests/HotkeyTests.cpp
+    tests/DeviceFormatTests.cpp
     src/audio/PluginChain.cpp
     src/ui/GlobalHotkeys.cpp
 )
