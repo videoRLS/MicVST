@@ -314,7 +314,7 @@ Male Voice -
 @@156
 Male Voice Presets
 @@157
-Enabled
+Active
 @@158
 Yes
 @@159

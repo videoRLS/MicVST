@@ -1,5 +1,6 @@
 #include <juce_core/juce_core.h>
 #include "Text.h"
+#include <map>
 
 // The Turkish user-facing texts: UTF-8 handling, number formatting, stored scan reasons and the
 // translations of JUCE's own strings.
@@ -61,6 +62,71 @@ struct TextTest : juce::UnitTest
                         .startsWith (tr ("Ses cihazı açılamadı")));
             expectEquals (micvst::deviceErrorText (TRANS ("Couldn't open the input device!")), tr ("Giriş cihazı açılamadı!"));
             expectEquals (micvst::deviceErrorText ("Couldn't start the output device!"), tr ("Çıkış cihazı başlatılamadı!"));
+            juce::LocalisedStrings::setCurrentMappings (nullptr);
+        }
+
+        beginTest ("every language has a translation for every Turkish text, with the same edges");
+        {
+            int keys = 0;
+            for (auto* k = micvst::translationKeys(); *k != nullptr; ++k) ++keys;
+            expectGreaterThan (keys, 300);
+            for (auto& l : micvst::languages())
+            {
+                if (juce::String (l.id) == "tr")
+                {
+                    expect (micvst::translationTable ("tr") == nullptr, "Türkçe needs no table");
+                    continue;
+                }
+                const auto* table = micvst::translationTable (l.id);
+                expect (table != nullptr, juce::String ("no table for ") + l.id);
+                if (table == nullptr) continue;
+                std::map<juce::String, juce::String> m;
+                for (auto* p = table; p->key != nullptr; ++p)
+                    m[juce::String::fromUTF8 (p->key)] = juce::String::fromUTF8 (p->text);
+                expectEquals ((int) m.size(), keys, juce::String ("entries of ") + l.id);
+                int missing = 0, bad = 0;
+                for (auto* k = micvst::translationKeys(); *k != nullptr; ++k)
+                {
+                    const auto key = juce::String::fromUTF8 (*k);
+                    const auto it = m.find (key);
+                    if (it == m.end()) { ++missing; continue; }
+                    const auto& t = it->second;
+                    const bool sameEdges = key.startsWithChar (' ') == t.startsWithChar (' ')
+                                        && key.endsWithChar (' ') == t.endsWithChar (' ')
+                                        && juce::StringArray::fromLines (key).size() == juce::StringArray::fromLines (t).size();
+                    if (t.trim().isEmpty() || ! sameEdges) ++bad;
+                }
+                expectEquals (missing, 0, juce::String ("missing in ") + l.id);
+                expectEquals (bad, 0, juce::String ("empty or different edges in ") + l.id);
+            }
+        }
+
+        beginTest ("switching the language: texts, numbers, JUCE's buttons; unknown id = Turkish");
+        {
+            micvst::setLanguage ("en");
+            expectEquals (micvst::currentLanguage(), juce::String ("en"));
+            expectEquals (tr ("Kaydet"), juce::String ("Save"));
+            expectEquals (tr (juce::String::fromUTF8 (TRK ("Erkek Sesi Ayarları"))), juce::String ("Male Voice Presets"));
+            expectEquals (tr ("bu metin tabloda yok"), juce::String ("bu metin tabloda yok"));
+            expectEquals (micvst::trNumber (49.66, 1), juce::String ("49.7"));
+            expectEquals (micvst::trPercent (45.4), juce::String ("45%"));
+            expectEquals (TRANS ("Cancel"), juce::String ("Cancel"));
+
+            micvst::setLanguage ("de");
+            expectEquals (tr ("Kaydet"), juce::String ("Speichern"));
+            expectEquals (micvst::trNumber (49.66, 1), juce::String ("49,7"));
+            expectEquals (TRANS ("Cancel"), juce::String ("Abbrechen"));
+
+            micvst::setLanguage ("ja");
+            expectEquals (tr ("Kaydet"), juce::String (juce::CharPointer_UTF8 ("\xe4\xbf\x9d\xe5\xad\x98")));   // 保存
+
+            micvst::setLanguage ("xx");
+            expectEquals (micvst::currentLanguage(), juce::String ("tr"));
+            expectEquals (tr ("Kaydet"), juce::String (juce::CharPointer_UTF8 ("Kaydet")));
+            expectEquals (micvst::trPercent (45.4), juce::String ("%45"));
+            expectEquals (TRANS ("Cancel"), tr ("İptal"));
+
+            micvst::setLanguage ("tr");
             juce::LocalisedStrings::setCurrentMappings (nullptr);
         }
     }

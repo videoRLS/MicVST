@@ -244,6 +244,34 @@ int main (int argc, char** argv)
     micvst::theme::applyTheme ("gece");
     nightTheme.refresh();
 
+    // every language: main window, the how-to window, an effect window and the preset menu -
+    // texts must fit (German and French run longest) and every script must render
+    for (auto& lang : micvst::languages())
+    {
+        micvst::setLanguage (lang.id);
+        const juce::String id (lang.id);
+        {
+            MainComponent mc (engine);
+            pump (300);
+            snap (mc, 584, 640, dir.getChildFile ("12_lang_" + id + ".png"));
+        }
+        {
+            auto howTo = MainComponent::createHowToContent();
+            snap (*howTo, 556, 600, dir.getChildFile ("12_lang_" + id + "_howto.png"), micvst::theme::surface);
+        }
+        auto fx = builtin::create ("builtin:deesser");
+        fx->setPlayConfigDetails (2, 2, 48000.0, 480);
+        fx->prepareToPlay (48000.0, 480);
+        std::unique_ptr<juce::AudioProcessorEditor> ed (fx->createEditorAndMakeActive());
+        snap (*ed, ed->getWidth(), ed->getHeight(), dir.getChildFile ("12_lang_" + id + "_fx.png"));
+        renderMenu ({ tr ("Yeni ayar olarak kaydet..."), tr ("Üzerine kaydet (kendi ayarınızı seçin)"), tr ("Yeniden adlandır..."),
+                      tr ("Sil..."), "-", tr ("Önceki zincire dön"), "-",
+                      tr (juce::String::fromUTF8 (TRK ("Erkek Sesi Ayarları"))), tr (juce::String::fromUTF8 (TRK ("Kadın Sesi Ayarları"))),
+                      tr ("Kendi Ayarlarım") },
+                    dir.getChildFile ("12_lang_" + id + "_menu.png"));
+    }
+    micvst::setLanguage ("tr");
+
     dir.getChildFile ("5_howto_title.txt").replaceWithText (MainComponent::howToTitle());
     {
         auto howTo = MainComponent::createHowToContent();

@@ -169,7 +169,7 @@ Redução
 @@84
 Ligado
 @@85
-Iniciar com o sistema
+Início automático
 @@86
 Fita
 @@87

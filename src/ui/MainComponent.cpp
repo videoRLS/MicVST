@@ -68,27 +68,128 @@ namespace
 
     // Inhalt des How-To-Fensters: nur Anleitungstext (keine klickbaren Links mehr - MicVST
     // öffnet keine Webseiten).
+    // The how-to text, laid out by MicVST itself: the text (in every language) is written with
+    // hard line breaks and indentation for a fixed width; here the lines of one paragraph or list
+    // item are joined again and wrapped to the window width, with a hanging indent for the "- "
+    // items. So longer languages never break a line in the middle of the indentation, and each
+    // paragraph is shaped as a whole (Devanagari, Arabic, CJK). Arabic runs right to left.
+    class HowToBody : public juce::Component
+    {
+    public:
+        HowToBody()
+        {
+            rtl = micvst::currentLanguage() == "ar";
+            parse (howToText());
+        }
+
+        // Lays the blocks out for a width; returns the height they need.
+        int layoutFor (int width)
+        {
+            int y = 0;
+            for (auto& b : blocks)
+            {
+                if (b.kind == Block::gap) { b.area = { 0, y, width, gapH }; y += gapH; continue; }
+                const int indent = b.kind == Block::item ? itemIndent : b.kind == Block::para ? paraIndent : 0;
+                const int w = juce::jmax (40, width - indent);
+                juce::AttributedString as;
+                as.setWordWrap (juce::AttributedString::byWord);
+                as.setLineSpacing (2.0f);   // room for marks above and below the line (Devanagari, Arabic)
+                as.setJustification (rtl ? juce::Justification::topRight : juce::Justification::topLeft);
+                as.setReadingDirection (rtl ? juce::AttributedString::rightToLeft : juce::AttributedString::leftToRight);
+                as.append (b.text, juce::Font (juce::FontOptions (b.kind == Block::heading ? 15.5f : 15.0f)),
+                           b.kind == Block::heading ? micvst::theme::textBright : micvst::theme::text);
+                b.layout.createLayout (as, (float) w);
+                const int h = (int) std::ceil (b.layout.getHeight()) + lineGap;
+                b.area = rtl ? juce::Rectangle<int> (0, y, w, h) : juce::Rectangle<int> (indent, y, w, h);
+                y += h;
+            }
+            return y;
+        }
+
+        void paint (juce::Graphics& g) override
+        {
+            for (auto& b : blocks)
+            {
+                if (b.kind == Block::gap) continue;
+                if (! g.clipRegionIntersects (b.area)) continue;
+                b.layout.draw (g, b.area.toFloat());
+                if (b.kind == Block::item)   // the dash in front of the item
+                {
+                    g.setColour (micvst::theme::textDim);
+                    g.setFont (juce::Font (juce::FontOptions (15.0f)));
+                    const auto dash = rtl ? juce::Rectangle<int> (b.area.getRight(), b.area.getY(), itemIndent - paraIndent, 18)
+                                          : juce::Rectangle<int> (paraIndent, b.area.getY(), itemIndent - paraIndent, 18);
+                    g.drawText (juce::String (juce::CharPointer_UTF8 ("\xe2\x80\x93")), dash, juce::Justification::centredLeft);
+                }
+            }
+        }
+
+    private:
+        struct Block
+        {
+            enum Kind { heading, para, item, gap } kind;
+            juce::String text;
+            juce::TextLayout layout;
+            juce::Rectangle<int> area;
+        };
+        std::vector<Block> blocks;
+        bool rtl = false;
+        static constexpr int paraIndent = 22, itemIndent = 36, gapH = 10, lineGap = 2;
+
+        static bool joinsWithoutSpace (juce::juce_wchar a, juce::juce_wchar b)
+        {
+            auto cjk = [] (juce::juce_wchar c) { return (c >= 0x2E80 && c < 0xA000) || (c >= 0xF900 && c < 0xFB00) || (c >= 0xFF00 && c < 0xFFF0); };
+            return cjk (a) || cjk (b);
+        }
+
+        void add (Block::Kind k, const juce::String& t) { blocks.push_back ({ k, t, {}, {} }); }
+
+        void appendTo (Block& b, const juce::String& more)
+        {
+            if (b.text.isEmpty() || more.isEmpty()) { b.text += more; return; }
+            if (b.text.endsWithChar ('-') && b.text.length() > 1 && ! juce::CharacterFunctions::isWhitespace (b.text[b.text.length() - 2]))
+                b.text += more;   // a word split at a hyphen ("VST3-" + "Plugins")
+            else
+                b.text += (joinsWithoutSpace (b.text.getLastCharacter(), more[0]) ? "" : " ") + more;
+        }
+
+        void parse (const juce::String& text)
+        {
+            Block* open = nullptr;   // the paragraph or item the next continuation line belongs to
+            for (auto line : juce::StringArray::fromLines (text))
+            {
+                line = line.trimEnd();
+                const auto lead = line.length() - line.trimStart().length();
+                const auto body = line.trimStart();
+                if (body.isEmpty()) { add (Block::gap, {}); open = nullptr; continue; }
+                if (lead == 0)      { add (Block::heading, body); open = nullptr; continue; }
+                if (body.startsWith ("- ")) { add (Block::item, body.substring (2).trimStart()); open = &blocks.back(); continue; }
+                const bool table = body.contains ("  =  ");   // "Giriş  =  mikrofonunuz": one line each
+                if (open != nullptr && ! table && (open->kind == Block::item ? lead > 4 : true))
+                {
+                    appendTo (*open, body);
+                    continue;
+                }
+                add (Block::para, table ? body.replace ("  =  ", " = ") : body);
+                open = table ? nullptr : &blocks.back();
+            }
+        }
+    };
+
     class HowToContent : public juce::Component
     {
     public:
         HowToContent()
         {
-            body.setMultiLine (true);
-            body.setReadOnly (true);
-            body.setCaretVisible (false);
-            body.setScrollbarsShown (true);
-            body.setPopupMenuEnabled (false);
-            body.setColour (juce::TextEditor::backgroundColourId, micvst::theme::surface);
-            body.setColour (juce::TextEditor::outlineColourId, juce::Colours::transparentBlack);
-            body.setColour (juce::TextEditor::textColourId, micvst::theme::text);
-            body.setFont (juce::Font (juce::FontOptions (15.0f)));
-            body.setText (howToText(), false);
-            addAndMakeVisible (body);
+            viewport.setViewedComponent (&body, false);
+            viewport.setScrollBarsShown (true, false);
+            addAndMakeVisible (viewport);
         }
 
         // Footer under the text: a hairline, then the version and the signature, small and quiet.
         void paint (juce::Graphics& g) override
         {
+            g.fillAll (micvst::theme::surface);
             auto foot = getLocalBounds().reduced (12, 0).removeFromBottom (footerH);
             g.setColour (micvst::theme::outline);
             g.fillRect (foot.removeFromTop (1));
@@ -104,12 +205,15 @@ namespace
         {
             auto r = getLocalBounds().reduced (12);
             r.removeFromBottom (footerH - 12 + 4);
-            body.setBounds (r);
+            viewport.setBounds (r);
+            const int w = r.getWidth() - viewport.getScrollBarThickness() - 6;
+            body.setSize (w, body.layoutFor (w));
         }
 
     private:
         static constexpr int footerH = 34;
-        juce::TextEditor body;
+        juce::Viewport viewport;
+        HowToBody body;
     };
 
     // Eigenes Fenster mit der Anleitung. Schließen versteckt nur (Instanz bleibt zum Wieder-Öffnen).
@@ -277,7 +381,9 @@ void MainComponent::resized()
     r.removeFromBottom (4);
 
     // Horizontale Meter: In-Zeile, Out-Zeile, gemeinsame dB-Skala darunter.
-    constexpr int labelW = 40;
+    // as wide as the longer of "Giriş" / "Çıkış" in the current language (40 px for Turkish)
+    auto textW = [] (const juce::Label& l) { return juce::roundToInt (juce::GlyphArrangement::getStringWidth (l.getFont(), l.getText()) + 0.5f); };
+    const int labelW = juce::jlimit (40, 96, juce::jmax (textW (inLabel), textW (outLabel)) + 8);
     auto inRow = r.removeFromTop (22);
     inLabel.setBounds (inRow.removeFromLeft (labelW));
     inMeter.setBounds (inRow.reduced (2, 1));

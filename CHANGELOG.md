@@ -27,7 +27,14 @@ project follows [Semantic Versioning](https://semver.org/).
   "Önceki zincire dön".
 - Tema (bottom of the window): Gece (default, the colours so far), Gece Yarısı, Kül, Aydınlık, Okyanus,
   Ametist, Orman, Gün Batımı, Yüksek Kontrast; switched at once, saved in config.xml; the native
-  title bar follows (light for Açık).
+  title bar follows (light for Aydınlık).
+- Dil (bottom of the window): Türkçe (default), English, 中文, हिन्दी, Español, Français, العربية,
+  Português, Русский, Deutsch, 日本語 - every text of the window, menus, dialogs, effect and preset
+  names, the how-to window and the log; numbers with the language's decimal mark. Translations in
+  i18n/src/<language>.txt (tools/i18n_src.py, tools/i18n.py check / generate); a unit test checks
+  that every language has every text. Label columns grow with longer texts.
+- The how-to window wraps its paragraphs and list items to the window width (hanging indent),
+  right to left for Arabic. Its footer: version and "Relios tarafından geliştirilmiştir."
 
 ## [1.2.1] - Unreleased
 

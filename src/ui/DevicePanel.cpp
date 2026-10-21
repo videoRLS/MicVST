@@ -325,8 +325,14 @@ void DevicePanel::applySafety()
 
 void DevicePanel::resized()
 {
-    // labelW: Platz für das längste türkische Label ("Güvenlik payı") plus "?"-Icon.
-    constexpr int rowH = 26, statusH = 20, labelW = 118, gap = 4;
+    // labelW: Platz für das längste Label ("Güvenlik payı" auf Türkisch: 118) plus "?"-Icon; in
+    // anderen Sprachen so breit wie das längste Label (höchstens 190), damit nichts gekürzt wird.
+    constexpr int rowH = 26, statusH = 20, gap = 4;
+    int labelW = 118;
+    for (auto* l : { &inLabel, &outLabel, &bufLabel, &safetyLabel, &priorityLabel })
+        if (l->isVisible())
+            labelW = juce::jmax (labelW, juce::roundToInt (juce::GlyphArrangement::getStringWidth (l->getFont(), l->getText()) + 0.5f) + 18 + 8);
+    labelW = juce::jmin (labelW, 190);
     auto r = getLocalBounds();
 
     auto row = [&] (int h)

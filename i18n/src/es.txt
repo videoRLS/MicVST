@@ -324,7 +324,7 @@ Umbral
 @@161
 Frecuencia
 @@162
-Noche (predeterminado)
+Noche (por defecto)
 @@163
 Medianoche (negro)
 @@164
