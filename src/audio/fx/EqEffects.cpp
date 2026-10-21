@@ -2,6 +2,7 @@
 // Netlik, Hava, Yakınlık, Tilt EQ, Parametrik EQ, Uğultu Giderici, DC Kayması Giderici.
 #include "audio/fx/EffectFactories.h"
 #include "audio/fx/FilterEffect.h"
+#include "Text.h"
 
 namespace fx
 {
@@ -156,17 +157,19 @@ namespace
             static const float defF[bands] = { 100.0f, 400.0f, 2500.0f, 8000.0f };
             static const int   defT[bands] = { 1, 0, 0, 2 };
             const juce::StringArray types { u8 ("Tepe (Bell)"), u8 ("Alçak raf"), u8 ("Yüksek raf") };
+            static const char* const names[bands][4] = {
+                { TRK ("Bant 1 türü"), TRK ("Bant 1 frekans"), TRK ("Bant 1 kazanç"), TRK ("Bant 1 Q") },
+                { TRK ("Bant 2 türü"), TRK ("Bant 2 frekans"), TRK ("Bant 2 kazanç"), TRK ("Bant 2 Q") },
+                { TRK ("Bant 3 türü"), TRK ("Bant 3 frekans"), TRK ("Bant 3 kazanç"), TRK ("Bant 3 Q") },
+                { TRK ("Bant 4 türü"), TRK ("Bant 4 frekans"), TRK ("Bant 4 kazanç"), TRK ("Bant 4 Q") } };
             for (int b = 0; b < bands; ++b)
             {
                 auto& B = band[(size_t) b];
                 const auto n = juce::String (b + 1);
-                B.type = addChoice (("b" + n + "type").toRawUTF8(), (u8 ("Bant ") + n + u8 (" türü")).toRawUTF8(), types, defT[b]);
-                B.freq = addFloat (("b" + n + "freq").toRawUTF8(), (u8 ("Bant ") + n + u8 (" frekans")).toRawUTF8(),
-                                   20.0f, 20000.0f, defF[b], U::hertz, 1000.0f, 1.0f);
-                B.gain = addFloat (("b" + n + "gain").toRawUTF8(), (u8 ("Bant ") + n + u8 (" kazanç")).toRawUTF8(),
-                                   -18.0f, 18.0f, 0.0f, U::decibel, 0.0f, 0.1f);
-                B.q    = addFloat (("b" + n + "q").toRawUTF8(), (u8 ("Bant ") + n + " Q").toRawUTF8(),
-                                   0.1f, 10.0f, 1.0f, U::plain, 1.0f, 0.01f);
+                B.type = addChoice (("b" + n + "type").toRawUTF8(), names[b][0], types, defT[b]);
+                B.freq = addFloat (("b" + n + "freq").toRawUTF8(), names[b][1], 20.0f, 20000.0f, defF[b], U::hertz, 1000.0f, 1.0f);
+                B.gain = addFloat (("b" + n + "gain").toRawUTF8(), names[b][2], -18.0f, 18.0f, 0.0f, U::decibel, 0.0f, 0.1f);
+                B.q    = addFloat (("b" + n + "q").toRawUTF8(), names[b][3], 0.1f, 10.0f, 1.0f, U::plain, 1.0f, 0.01f);
                 bind (B.gf, B.freq, true);
                 bind (B.gq, B.q, true);
             }
@@ -349,32 +352,32 @@ std::unique_ptr<BuiltInEffect> createHighCut (const BuiltInEffect::Info& i) { re
 
 std::unique_ptr<BuiltInEffect> createBody (const BuiltInEffect::Info& i)
 {
-    return std::make_unique<BandEffect> (i, BandEffect::Spec { BandEffect::Shape::peak, "Miktar", -6.0f, 8.0f, 2.0f,
+    return std::make_unique<BandEffect> (i, BandEffect::Spec { BandEffect::Shape::peak, TRK ("Miktar"), -6.0f, 8.0f, 2.0f,
                                                                100.0f, 300.0f, 180.0f, 170.0f, 0.8f, 0.8f, 0.8f });
 }
 std::unique_ptr<BuiltInEffect> createMud (const BuiltInEffect::Info& i)
 {
-    return std::make_unique<BandEffect> (i, BandEffect::Spec { BandEffect::Shape::cut, "Azaltma", 0.0f, 12.0f, 3.0f,
+    return std::make_unique<BandEffect> (i, BandEffect::Spec { BandEffect::Shape::cut, TRK ("Azaltma"), 0.0f, 12.0f, 3.0f,
                                                                200.0f, 800.0f, 400.0f, 400.0f, 0.5f, 4.0f, 1.2f });
 }
 std::unique_ptr<BuiltInEffect> createNasal (const BuiltInEffect::Info& i)
 {
-    return std::make_unique<BandEffect> (i, BandEffect::Spec { BandEffect::Shape::cut, "Azaltma", 0.0f, 12.0f, 3.0f,
+    return std::make_unique<BandEffect> (i, BandEffect::Spec { BandEffect::Shape::cut, TRK ("Azaltma"), 0.0f, 12.0f, 3.0f,
                                                                600.0f, 2000.0f, 1000.0f, 1100.0f, 0.5f, 4.0f, 1.4f });
 }
 std::unique_ptr<BuiltInEffect> createPresence (const BuiltInEffect::Info& i)
 {
-    return std::make_unique<BandEffect> (i, BandEffect::Spec { BandEffect::Shape::peak, "Kazanç", -6.0f, 8.0f, 2.5f,
+    return std::make_unique<BandEffect> (i, BandEffect::Spec { BandEffect::Shape::peak, TRK ("Kazanç"), -6.0f, 8.0f, 2.5f,
                                                                2000.0f, 6000.0f, 4000.0f, 3500.0f, 0.5f, 3.0f, 0.9f });
 }
 std::unique_ptr<BuiltInEffect> createAir (const BuiltInEffect::Info& i)
 {
-    return std::make_unique<BandEffect> (i, BandEffect::Spec { BandEffect::Shape::highShelf, "Kazanç", -6.0f, 8.0f, 2.5f,
+    return std::make_unique<BandEffect> (i, BandEffect::Spec { BandEffect::Shape::highShelf, TRK ("Kazanç"), -6.0f, 8.0f, 2.5f,
                                                                6000.0f, 16000.0f, 10000.0f, 10000.0f, 0.7f, 0.7f, 0.7f });
 }
 std::unique_ptr<BuiltInEffect> createProximity (const BuiltInEffect::Info& i)
 {
-    return std::make_unique<BandEffect> (i, BandEffect::Spec { BandEffect::Shape::lowShelf, "Miktar", -12.0f, 6.0f, -3.0f,
+    return std::make_unique<BandEffect> (i, BandEffect::Spec { BandEffect::Shape::lowShelf, TRK ("Miktar"), -12.0f, 6.0f, -3.0f,
                                                                80.0f, 300.0f, 150.0f, 160.0f, 0.7f, 0.7f, 0.7f });
 }
 std::unique_ptr<BuiltInEffect> createTilt     (const BuiltInEffect::Info& i) { return std::make_unique<TiltEq> (i); }

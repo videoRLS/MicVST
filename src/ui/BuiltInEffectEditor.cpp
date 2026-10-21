@@ -1,6 +1,7 @@
 #include "ui/BuiltInEffectEditor.h"
 #include "audio/BuiltInEffects.h"
 #include "ui/Theme.h"
+#include "Text.h"
 
 struct BuiltInEffectEditor::Row
 {
@@ -14,7 +15,7 @@ struct BuiltInEffectEditor::Row
 BuiltInEffectEditor::BuiltInEffectEditor (BuiltInEffect& e)
     : juce::AudioProcessorEditor (e), effect (e)
 {
-    description.setText (juce::String::fromUTF8 (e.getInfo().description), juce::dontSendNotification);
+    description.setText (micvst::tr (e.getInfo().description), juce::dontSendNotification);
     description.setColour (juce::Label::textColourId, micvst::theme::textDim);
     description.setFont (juce::Font (juce::FontOptions (13.5f)));
     description.setJustificationType (juce::Justification::topLeft);
@@ -36,20 +37,20 @@ BuiltInEffectEditor::BuiltInEffectEditor (BuiltInEffect& e)
     for (auto* p : e.getEffectParameters())
     {
         auto* row = rows.add (new Row());
-        row->name.setText (p->getName (64), juce::dontSendNotification);
+        row->name.setText (micvst::tr (p->getName (64)), juce::dontSendNotification);   // stored in Turkish (key)
         row->name.setJustificationType (juce::Justification::centredLeft);
         addAndMakeVisible (row->name);
 
         if (auto* choice = dynamic_cast<juce::AudioParameterChoice*> (p))
         {
             auto combo = std::make_unique<juce::ComboBox>();
-            combo->addItemList (choice->choices, 1);
+            for (int k = 0; k < choice->choices.size(); ++k) combo->addItem (micvst::tr (choice->choices[k]), k + 1);
             row->comboAttach = std::make_unique<juce::ComboBoxParameterAttachment> (*choice, *combo);
             row->control = std::move (combo);
         }
         else if (auto* toggle = dynamic_cast<juce::AudioParameterBool*> (p))
         {
-            auto button = std::make_unique<juce::ToggleButton> (juce::String::fromUTF8 ("Açık"));
+            auto button = std::make_unique<juce::ToggleButton> (micvst::tr ("Açık"));
             row->buttonAttach = std::make_unique<juce::ButtonParameterAttachment> (*toggle, *button);
             row->control = std::move (button);
         }
@@ -64,8 +65,8 @@ BuiltInEffectEditor::BuiltInEffectEditor (BuiltInEffect& e)
         addAndMakeVisible (*row->control);
     }
 
-    defaultsBtn.setButtonText (juce::String::fromUTF8 ("Varsayılanlara dön"));
-    defaultsBtn.setTooltip (juce::String::fromUTF8 ("Bu efektin bütün ayarlarını ilk değerlerine döndürür"));
+    defaultsBtn.setButtonText (micvst::tr ("Varsayılanlara dön"));
+    defaultsBtn.setTooltip (micvst::tr ("Bu efektin bütün ayarlarını ilk değerlerine döndürür"));
     defaultsBtn.onClick = [this] { effect.resetToDefaults(); };
     defaultsBtn.setVisible (! rows.isEmpty());
     addChildComponent (defaultsBtn);

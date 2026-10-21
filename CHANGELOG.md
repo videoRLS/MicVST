@@ -25,7 +25,7 @@ project follows [Semantic Versioning](https://semver.org/).
   twenty have the same elements, so switching glides, and the same loudness (within 0.15 LU);
   own presets of the whole chain with the VST3 states (save, overwrite, rename, delete), and
   "Önceki zincire dön".
-- Tema (bottom of the window): Gece (default, the colours so far), Gece Yarısı, Kül, Açık, Okyanus,
+- Tema (bottom of the window): Gece (default, the colours so far), Gece Yarısı, Kül, Aydınlık, Okyanus,
   Ametist, Orman, Gün Batımı, Yüksek Kontrast; switched at once, saved in config.xml; the native
   title bar follows (light for Açık).
 

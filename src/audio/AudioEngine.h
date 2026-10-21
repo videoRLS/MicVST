@@ -223,7 +223,7 @@ private:
             { engine.captureInput (in, numIn, numSamples); }
         void audioDeviceAboutToStart (juce::AudioIODevice* d) override { engine.inputAboutToStart (d); }
         void audioDeviceStopped() override                             { engine.inputStopped(); }
-        void audioDeviceError (const juce::String& e) override         { juce::Logger::writeToLog (juce::String::fromUTF8 ("Giriş cihazı hatası: ") + micvst::deviceErrorText (e)); }
+        void audioDeviceError (const juce::String& e) override         { juce::Logger::writeToLog (micvst::tr ("Giriş cihazı hatası: ") + micvst::deviceErrorText (e)); }
         AudioEngine& engine;
     };
     struct OutputSide final : juce::AudioIODeviceCallback
@@ -234,7 +234,7 @@ private:
             { engine.processOutput (out, numOut, numSamples); }
         void audioDeviceAboutToStart (juce::AudioIODevice* d) override { engine.outputAboutToStart (d); }
         void audioDeviceStopped() override                             { engine.outputStopped(); }
-        void audioDeviceError (const juce::String& e) override         { juce::Logger::writeToLog (juce::String::fromUTF8 ("Çıkış cihazı hatası: ") + micvst::deviceErrorText (e)); }
+        void audioDeviceError (const juce::String& e) override         { juce::Logger::writeToLog (micvst::tr ("Çıkış cihazı hatası: ") + micvst::deviceErrorText (e)); }
         AudioEngine& engine;
     };
 

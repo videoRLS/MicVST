@@ -86,9 +86,29 @@ namespace
             addAndMakeVisible (body);
         }
 
-        void resized() override { body.setBounds (getLocalBounds().reduced (12)); }
+        // Footer under the text: a hairline, then the version and the signature, small and quiet.
+        void paint (juce::Graphics& g) override
+        {
+            auto foot = getLocalBounds().reduced (12, 0).removeFromBottom (footerH);
+            g.setColour (micvst::theme::outline);
+            g.fillRect (foot.removeFromTop (1));
+            g.setFont (juce::Font (juce::FontOptions (13.0f)));
+            g.setColour (micvst::theme::textDim);
+            const auto version = "MicVST v" + juce::String (MICVST_VERSION_STRING);
+            g.drawText (version, foot, juce::Justification::centredLeft);
+            g.setColour (micvst::theme::text);
+            g.drawText (tr ("Relios tarafından geliştirilmiştir."), foot, juce::Justification::centredRight);
+        }
+
+        void resized() override
+        {
+            auto r = getLocalBounds().reduced (12);
+            r.removeFromBottom (footerH - 12 + 4);
+            body.setBounds (r);
+        }
 
     private:
+        static constexpr int footerH = 34;
         juce::TextEditor body;
     };
 
@@ -140,14 +160,31 @@ MainComponent::MainComponent (AudioEngine& e) : engine (e)
     versionLabel.setJustificationType (juce::Justification::centredLeft);
     addAndMakeVisible (versionLabel);
 
-    themeLabel.setText (tr ("Tema"), juce::dontSendNotification);
-    themeLabel.setColour (juce::Label::textColourId, micvst::theme::textDim);
-    themeLabel.setJustificationType (juce::Justification::centredRight);
-    addAndMakeVisible (themeLabel);
+    {
+        int id = 1;
+        for (auto& l : micvst::languages())
+        {
+            // only languages whose translation table is in this build (Türkçe always)
+            if (id > 1 && micvst::translationTable (l.id) == nullptr) { ++id; continue; }
+            languageBox.addItem (juce::String::fromUTF8 (l.nativeName), id);
+            if (micvst::currentLanguage() == l.id) languageBox.setSelectedId (id, juce::dontSendNotification);
+            ++id;
+        }
+    }
+    languageBox.setTooltip (tr ("Arayüz dili. Varsayılan: Türkçe."));
+    languageBox.onChange = [this]
+    {
+        const int idx = languageBox.getSelectedId() - 1;
+        const auto& list = micvst::languages();
+        if (juce::isPositiveAndBelow (idx, (int) list.size()) && onLanguageChosen)
+            onLanguageChosen (list[(size_t) idx].id);
+    };
+    addAndMakeVisible (languageBox);
+    languageBox.setVisible (languageBox.getNumItems() > 1);   // nothing to choose yet: hidden
     {
         int id = 1;
         for (auto& p : micvst::theme::palettes())
-            themeBox.addItem (juce::String::fromUTF8 (p.name), id++);
+            themeBox.addItem (tr (p.name), id++);
         id = 1;
         for (auto& p : micvst::theme::palettes())
         {
@@ -233,8 +270,9 @@ void MainComponent::resized()
     bottomRow.removeFromRight (6);
     howToBtn.setBounds (bottomRow.removeFromRight (80));
     bottomRow.removeFromRight (6);
-    themeBox.setBounds (bottomRow.removeFromRight (170));
-    themeLabel.setBounds (bottomRow.removeFromRight (44));
+    themeBox.setBounds (bottomRow.removeFromRight (150));
+    bottomRow.removeFromRight (4);
+    languageBox.setBounds (bottomRow.removeFromRight (118));
     versionLabel.setBounds (bottomRow);
     r.removeFromBottom (4);
 

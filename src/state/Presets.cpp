@@ -2,6 +2,7 @@
 #include "audio/BuiltInAutoGain.h"
 #include "audio/BuiltInEffects.h"
 #include "audio/BuiltInGain.h"
+#include "Text.h"
 
 namespace presets
 {
@@ -12,6 +13,8 @@ namespace
     constexpr int maxNameLength = 60;
 
     juce::String u8 (const char* s) { return juce::String::fromUTF8 (s); }
+    const char* const prefixMen = TRK ("Erkek Sesi - ");
+    const char* const prefixWomen = TRK ("Kadın Sesi - ");
 
     struct Setting { const char* id; std::vector<std::pair<const char*, float>> params; };
 
@@ -91,31 +94,31 @@ namespace
     std::vector<Preset> build()
     {
         struct Def { const char* group; const char* name; V v; };
-        static const char* const men = "Erkek Sesi Ayarları";
-        static const char* const women = "Kadın Sesi Ayarları";
+        static const char* const men = TRK ("Erkek Sesi Ayarları");
+        static const char* const women = TRK ("Kadın Sesi Ayarları");
         //                                                  LC   prox       mud        kutu      genizlik   sertlik     gövde      netlik     hava        de-esser          sat           oda     trim
         const std::vector<Def> defs {
-            { men,   "Dengeli Profesyonel",   { 80, -1.5, 150, 3.0, 300,  500, -1.5, 1000, -1.0, 3000, -1.5,  1.0, 130,  2.5, 4500,  2.0, 11000,  5500, -14, 6,  0, 3, 50,  30,  0, 0.6f } },
-            { men,   "Podcast / Sohbet",      { 80,  1.0, 130, 2.5, 300,  500, -1.5, 1000, -1.0, 3000, -2.0,  2.0, 125,  1.5, 4000,  0.5, 12000,  5500, -14, 7,  1, 3, 40,  30,  0, 0.2f } },
-            { men,   "Radyo Spikeri",         { 75,  1.5, 120, 3.0, 300,  500, -2.0, 1000, -1.5, 3000, -1.0,  3.0, 115,  3.0, 4000,  2.5, 11000,  5500, -15, 8,  1, 8, 80,  30,  0, 0.7f } },
-            { men,   "Seslendirme / Belgesel",{ 70,  0.5, 130, 3.0, 300,  500, -2.0, 1000, -1.0, 3000, -3.0,  2.0, 120,  1.0, 4200,  1.5, 12000,  5500, -16, 9,  1, 5, 60,  30,  0, 0.7f } },
-            { men,   "Sinema Sesi",           { 70,  1.0, 120, 3.5, 300,  500, -2.0, 1000, -1.0, 3000, -2.0,  2.5, 120,  2.0, 4200,  4.0, 12000,  5500, -15, 8,  1, 6, 70,  30,  0, 0.9f } },
-            { men,   "Kristal Netlik",        { 90, -3.0, 160, 4.0, 320,  500, -2.0, 1000,  0.0, 3000, -1.0,  0.0, 130,  4.0, 4800,  5.0,  9000,  5500, -14, 8,  0, 0,  0,  30,  0, 1.2f } },
-            { men,   "Yumuşak ve Pürüzsüz",   { 75, -1.0, 150, 2.5, 300,  500, -1.0, 1000, -1.5, 3000, -3.0,  1.5, 130,  0.0, 4200, -1.5, 11000,  5000, -16, 9,  0, 3, 50,  30,  0, 0.3f } },
-            { men,   "Derin ve Sıcak",        { 70,  2.0, 130, 2.0, 300,  500, -1.5, 1000, -1.0, 3000, -2.0,  3.0, 120,  1.0, 4200, -0.5, 12000,  5500, -15, 7,  1, 7, 70,  30,  0, -0.1f } },
-            { men,   "Şarkı / Vokal",         { 90, -1.5, 150, 3.0, 300,  500, -1.5, 1000, -1.0, 3000, -2.0,  1.0, 140,  2.5, 4500,  4.0, 12000,  5500, -15, 8,  0, 5, 60,  45, 18, 0.7f } },
-            { men,   "Oyun / Canlı Yayın",    { 95, -2.5, 160, 4.0, 320,  500, -2.0, 1000, -1.5, 3000, -1.0,  0.5, 140,  4.0, 4600,  3.0, 10000,  5500, -14, 8,  0, 4, 50,  30,  0, 1.2f } },
+            { men,   TRK ("Dengeli Profesyonel"),   { 80, -1.5, 150, 3.0, 300,  500, -1.5, 1000, -1.0, 3000, -1.5,  1.0, 130,  2.5, 4500,  2.0, 11000,  5500, -14, 6,  0, 3, 50,  30,  0, 0.6f } },
+            { men,   TRK ("Podcast / Sohbet"),      { 80,  1.0, 130, 2.5, 300,  500, -1.5, 1000, -1.0, 3000, -2.0,  2.0, 125,  1.5, 4000,  0.5, 12000,  5500, -14, 7,  1, 3, 40,  30,  0, 0.2f } },
+            { men,   TRK ("Radyo Spikeri"),         { 75,  1.5, 120, 3.0, 300,  500, -2.0, 1000, -1.5, 3000, -1.0,  3.0, 115,  3.0, 4000,  2.5, 11000,  5500, -15, 8,  1, 8, 80,  30,  0, 0.7f } },
+            { men,   TRK ("Seslendirme / Belgesel"),{ 70,  0.5, 130, 3.0, 300,  500, -2.0, 1000, -1.0, 3000, -3.0,  2.0, 120,  1.0, 4200,  1.5, 12000,  5500, -16, 9,  1, 5, 60,  30,  0, 0.7f } },
+            { men,   TRK ("Sinema Sesi"),           { 70,  1.0, 120, 3.5, 300,  500, -2.0, 1000, -1.0, 3000, -2.0,  2.5, 120,  2.0, 4200,  4.0, 12000,  5500, -15, 8,  1, 6, 70,  30,  0, 0.9f } },
+            { men,   TRK ("Kristal Netlik"),        { 90, -3.0, 160, 4.0, 320,  500, -2.0, 1000,  0.0, 3000, -1.0,  0.0, 130,  4.0, 4800,  5.0,  9000,  5500, -14, 8,  0, 0,  0,  30,  0, 1.2f } },
+            { men,   TRK ("Yumuşak ve Pürüzsüz"),   { 75, -1.0, 150, 2.5, 300,  500, -1.0, 1000, -1.5, 3000, -3.0,  1.5, 130,  0.0, 4200, -1.5, 11000,  5000, -16, 9,  0, 3, 50,  30,  0, 0.3f } },
+            { men,   TRK ("Derin ve Sıcak"),        { 70,  2.0, 130, 2.0, 300,  500, -1.5, 1000, -1.0, 3000, -2.0,  3.0, 120,  1.0, 4200, -0.5, 12000,  5500, -15, 7,  1, 7, 70,  30,  0, -0.1f } },
+            { men,   TRK ("Şarkı / Vokal"),         { 90, -1.5, 150, 3.0, 300,  500, -1.5, 1000, -1.0, 3000, -2.0,  1.0, 140,  2.5, 4500,  4.0, 12000,  5500, -15, 8,  0, 5, 60,  45, 18, 0.7f } },
+            { men,   TRK ("Oyun / Canlı Yayın"),    { 95, -2.5, 160, 4.0, 320,  500, -2.0, 1000, -1.5, 3000, -1.0,  0.5, 140,  4.0, 4600,  3.0, 10000,  5500, -14, 8,  0, 4, 50,  30,  0, 1.2f } },
 
-            { women, "Dengeli Profesyonel",   { 100, -1.0, 200, 2.5, 350, 600, -1.5, 1200, -1.0, 3500, -1.5,  1.0, 220,  2.0, 5000,  2.5, 12000,  6500, -14, 7,  0, 2, 40,  30,  0, -0.3f } },
-            { women, "Podcast / Sohbet",      { 100,  0.5, 190, 2.0, 350, 600, -1.0, 1200, -1.0, 3500, -2.0,  2.0, 210,  1.0, 4800,  1.0, 12000,  6500, -14, 8,  1, 2, 40,  30,  0, -1.3f } },
-            { women, "Radyo Spikeri",         { 95,   1.0, 180, 2.5, 350, 600, -2.0, 1200, -1.5, 3500, -1.5,  3.0, 195,  3.0, 4600,  2.5, 12000,  6500, -15, 9,  1, 6, 70,  30,  0, -1.3f } },
-            { women, "Seslendirme / Anlatıcı",{ 90,   0.0, 190, 2.5, 350, 600, -1.5, 1200, -1.5, 3500, -3.0,  2.5, 210,  0.5, 4500,  1.5, 12500,  6500, -16, 9,  1, 4, 50,  30,  0, -1.1f } },
-            { women, "Sinema Sesi",           { 90,   0.0, 180, 3.0, 350, 600, -2.0, 1200, -1.0, 3500, -2.0,  2.0, 205,  1.0, 5000,  4.0, 13000,  6500, -15, 8,  1, 5, 60,  30,  0, -0.4f } },
-            { women, "Kristal Netlik",        { 110, -2.5, 220, 3.5, 380, 600, -2.0, 1200,  0.0, 3500, -1.0,  0.0, 220,  3.0, 5400,  5.0, 11000,  6500, -14, 9,  0, 0,  0,  30,  0, 0.6f } },
-            { women, "Yumuşak ve Pürüzsüz",   { 100, -0.5, 200, 2.0, 350, 600, -1.0, 1200, -1.5, 3500, -3.0,  1.5, 220,  0.0, 4800, -1.0, 12000,  6000, -16, 10, 0, 2, 40,  30,  0, -0.9f } },
-            { women, "Sıcak ve Dolgun",       { 90,   1.5, 180, 1.5, 350, 600, -1.5, 1200, -1.0, 3500, -2.0,  3.0, 200,  0.5, 4800,  0.0, 12000,  6500, -15, 8,  1, 6, 60,  30,  0, -2.0f } },
-            { women, "Şarkı / Vokal",         { 110, -1.5, 200, 2.5, 350, 600, -1.5, 1200, -1.0, 3500, -2.0,  0.5, 230,  2.0, 5200,  4.5, 12500,  7000, -15, 9,  0, 4, 50,  45, 20, 0.0f } },
-            { women, "Oyun / Canlı Yayın",    { 120, -3.0, 230, 3.0, 380, 600, -2.0, 1200, -1.5, 3500, -1.0, -0.5, 230,  4.5, 4600,  2.5, 10000,  6500, -14, 9,  0, 3, 40,  30,  0, 0.4f } },
+            { women, TRK ("Dengeli Profesyonel"),   { 100, -1.0, 200, 2.5, 350, 600, -1.5, 1200, -1.0, 3500, -1.5,  1.0, 220,  2.0, 5000,  2.5, 12000,  6500, -14, 7,  0, 2, 40,  30,  0, -0.3f } },
+            { women, TRK ("Podcast / Sohbet"),      { 100,  0.5, 190, 2.0, 350, 600, -1.0, 1200, -1.0, 3500, -2.0,  2.0, 210,  1.0, 4800,  1.0, 12000,  6500, -14, 8,  1, 2, 40,  30,  0, -1.3f } },
+            { women, TRK ("Radyo Spikeri"),         { 95,   1.0, 180, 2.5, 350, 600, -2.0, 1200, -1.5, 3500, -1.5,  3.0, 195,  3.0, 4600,  2.5, 12000,  6500, -15, 9,  1, 6, 70,  30,  0, -1.3f } },
+            { women, TRK ("Seslendirme / Anlatıcı"),{ 90,   0.0, 190, 2.5, 350, 600, -1.5, 1200, -1.5, 3500, -3.0,  2.5, 210,  0.5, 4500,  1.5, 12500,  6500, -16, 9,  1, 4, 50,  30,  0, -1.1f } },
+            { women, TRK ("Sinema Sesi"),           { 90,   0.0, 180, 3.0, 350, 600, -2.0, 1200, -1.0, 3500, -2.0,  2.0, 205,  1.0, 5000,  4.0, 13000,  6500, -15, 8,  1, 5, 60,  30,  0, -0.4f } },
+            { women, TRK ("Kristal Netlik"),        { 110, -2.5, 220, 3.5, 380, 600, -2.0, 1200,  0.0, 3500, -1.0,  0.0, 220,  3.0, 5400,  5.0, 11000,  6500, -14, 9,  0, 0,  0,  30,  0, 0.6f } },
+            { women, TRK ("Yumuşak ve Pürüzsüz"),   { 100, -0.5, 200, 2.0, 350, 600, -1.0, 1200, -1.5, 3500, -3.0,  1.5, 220,  0.0, 4800, -1.0, 12000,  6000, -16, 10, 0, 2, 40,  30,  0, -0.9f } },
+            { women, TRK ("Sıcak ve Dolgun"),       { 90,   1.5, 180, 1.5, 350, 600, -1.5, 1200, -1.0, 3500, -2.0,  3.0, 200,  0.5, 4800,  0.0, 12000,  6500, -15, 8,  1, 6, 60,  30,  0, -2.0f } },
+            { women, TRK ("Şarkı / Vokal"),         { 110, -1.5, 200, 2.5, 350, 600, -1.5, 1200, -1.0, 3500, -2.0,  0.5, 230,  2.0, 5200,  4.5, 12500,  7000, -15, 9,  0, 4, 50,  45, 20, 0.0f } },
+            { women, TRK ("Oyun / Canlı Yayın"),    { 120, -3.0, 230, 3.0, 380, 600, -2.0, 1200, -1.5, 3500, -1.0, -0.5, 230,  4.5, 4600,  2.5, 10000,  6500, -14, 9,  0, 3, 40,  30,  0, 0.4f } },
         };
 
         std::vector<Preset> out;
@@ -124,7 +127,7 @@ namespace
             Preset p;
             p.group = u8 (d.group);
             p.shortName = u8 (d.name);
-            p.name = u8 (d.group == men ? "Erkek Sesi - " : "Kadın Sesi - ") + p.shortName;
+            p.name = u8 (d.group == men ? prefixMen : prefixWomen) + p.shortName;   // stored (config.xml): Turkish
             p.factory = true;
             for (auto& s : chainFor (d.v)) p.elements.add (effectEntry (s));
             out.push_back (std::move (p));
@@ -148,6 +151,14 @@ const std::vector<Preset>& factoryPresets()
 {
     static const std::vector<Preset> list = build();
     return list;
+}
+
+juce::String displayName (const juce::String& name)
+{
+    for (auto& p : factoryPresets())
+        if (p.name == name)
+            return micvst::tr (p.group == juce::String::fromUTF8 (TRK ("Erkek Sesi Ayarları")) ? prefixMen : prefixWomen) + micvst::tr (p.shortName);
+    return name;
 }
 
 const Preset* findFactory (const juce::String& name)
@@ -199,7 +210,7 @@ std::vector<Preset> loadUserPresets (const juce::File& folder)
         }
         else
         {
-            juce::Logger::writeToLog (u8 ("Hazır ayar dosyası okunamadı, atlandı: ") + f.getFullPathName());
+            juce::Logger::writeToLog (micvst::tr ("Hazır ayar dosyası okunamadı, atlandı: ") + f.getFullPathName());
         }
     }
     std::sort (out.begin(), out.end(), [] (const Preset& a, const Preset& b) { return a.name.compareNatural (b.name) < 0; });
@@ -209,10 +220,10 @@ std::vector<Preset> loadUserPresets (const juce::File& folder)
 juce::String nameProblem (const juce::String& raw)
 {
     const auto name = raw.trim();
-    if (name.isEmpty()) return u8 ("Bir ad yazın.");
-    if (name.length() > maxNameLength) return u8 ("Ad en fazla ") + juce::String (maxNameLength) + u8 (" karakter olabilir.");
+    if (name.isEmpty()) return micvst::tr ("Bir ad yazın.");
+    if (name.length() > maxNameLength) return micvst::tr ("Ad en fazla ") + juce::String (maxNameLength) + micvst::tr (" karakter olabilir.");
     for (auto& f : factoryPresets())
-        if (f.name.equalsIgnoreCase (name)) return u8 ("Bu ad hazır bir ayarın adı; başka bir ad seçin.");
+        if (f.name.equalsIgnoreCase (name)) return micvst::tr ("Bu ad hazır bir ayarın adı; başka bir ad seçin.");
     return {};
 }
 
@@ -233,23 +244,23 @@ bool saveUserPreset (const juce::String& raw, const juce::Array<PluginEntryState
 {
     const auto name = raw.trim();
     if (const auto problem = nameProblem (name); problem.isNotEmpty()) { error = problem; return false; }
-    if (! folder.createDirectory()) { error = u8 ("Klasör oluşturulamadı: ") + folder.getFullPathName(); return false; }
+    if (! folder.createDirectory()) { error = micvst::tr ("Klasör oluşturulamadı: ") + folder.getFullPathName(); return false; }
     const auto file = fileFor (name, folder);
     auto xml = toXml (name, elements);
     // writeTo goes through a temporary file that replaces the old one at once
-    if (! xml->writeTo (file)) { error = u8 ("Dosya yazılamadı: ") + file.getFullPathName(); return false; }
+    if (! xml->writeTo (file)) { error = micvst::tr ("Dosya yazılamadı: ") + file.getFullPathName(); return false; }
     // read back: what is on disk must be what was meant
     Preset check;
     auto back = juce::XmlDocument::parse (file);
     if (back == nullptr || ! fromXml (*back, check) || check.name != name || check.elements.size() != elements.size())
     {
-        error = u8 ("Kaydedilen dosya doğrulanamadı: ") + file.getFullPathName();
+        error = micvst::tr ("Kaydedilen dosya doğrulanamadı: ") + file.getFullPathName();
         return false;
     }
     for (int i = 0; i < elements.size(); ++i)
         if (check.elements[i].state != elements[i].state || check.elements[i].fileOrId != elements[i].fileOrId)
         {
-            error = u8 ("Kaydedilen dosya doğrulanamadı: ") + file.getFullPathName();
+            error = micvst::tr ("Kaydedilen dosya doğrulanamadı: ") + file.getFullPathName();
             return false;
         }
     return true;
@@ -267,7 +278,7 @@ bool renameUserPreset (const juce::String& from, const juce::String& to, juce::S
     const auto newName = to.trim();
     if (const auto problem = nameProblem (newName); problem.isNotEmpty()) { error = problem; return false; }
     for (auto& p : loadUserPresets (folder))
-        if (p.name == newName && newName != from) { error = u8 ("Bu adda bir ayar zaten var."); return false; }
+        if (p.name == newName && newName != from) { error = micvst::tr ("Bu adda bir ayar zaten var."); return false; }
     for (auto& p : loadUserPresets (folder))
         if (p.name == from)
         {
@@ -276,7 +287,7 @@ bool renameUserPreset (const juce::String& from, const juce::String& to, juce::S
             if (fileFor (newName, folder) != oldFile) oldFile.deleteFile();
             return true;
         }
-    error = u8 ("Ayar bulunamadı.");
+    error = micvst::tr ("Ayar bulunamadı.");
     return false;
 }
 }

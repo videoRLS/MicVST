@@ -57,6 +57,7 @@ add_library(MicVSTCore STATIC
     src/state/PluginScanCache.cpp
     src/ui/PluginSearch.cpp
     src/Text.cpp
+    src/i18n/Translations.cpp
 )
 target_compile_features(MicVSTCore PUBLIC cxx_std_17)
 target_include_directories(MicVSTCore PUBLIC src)

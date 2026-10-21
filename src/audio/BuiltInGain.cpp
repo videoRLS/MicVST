@@ -1,4 +1,5 @@
 #include "audio/BuiltInGain.h"
+#include "Text.h"
 
 namespace
 {
@@ -14,7 +15,7 @@ BuiltInGainProcessor::BuiltInGainProcessor()
 
 const juce::String BuiltInGainProcessor::getName() const
 {
-    return juce::String::fromUTF8 ("Kazanç");
+    return micvst::tr ("Kazanç");
 }
 
 void BuiltInGainProcessor::getStateInformation (juce::MemoryBlock& dest)

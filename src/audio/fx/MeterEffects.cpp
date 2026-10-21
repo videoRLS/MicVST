@@ -4,6 +4,7 @@
 #include "audio/fx/FxDsp.h"
 #include "audio/fx/MeterEffects.h"
 #include "ui/Theme.h"
+#include "Text.h"
 #include <juce_dsp/juce_dsp.h>
 
 namespace fx
@@ -184,12 +185,12 @@ LufsMeter::Readings LufsMeter::read() const
 
 namespace
 {
-    juce::String u8 (const char* s) { return juce::String::fromUTF8 (s); }
+    juce::String u8 (const char* s) { return micvst::tr (s); }   // shown texts: in the user's language
 
     juce::String lufsText (float v, const char* unit = " LUFS")
     {
         if (v < -150.0f) return u8 ("—");
-        return juce::String (v, 1).replaceCharacter ('.', ',') + u8 (unit);
+        return micvst::trNumber (v, 1) + juce::String::fromUTF8 (unit);
     }
 
     //==============================================================================

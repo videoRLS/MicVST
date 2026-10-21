@@ -8,7 +8,7 @@ namespace ids
         window ("windowState"),
         plugins ("plugins"), plugin ("plugin"), fileId ("fileOrId"), byp ("bypassed"), blob ("state"),
         pluginId ("pluginId"), pluginName ("pluginName"), pluginUid ("pluginUid"),
-        preset ("presetName"), presetModified ("presetModified"), theme ("theme");
+        preset ("presetName"), presetModified ("presetModified"), theme ("theme"), language ("language");
 }
 
 juce::ValueTree toValueTree (const MicVSTState& s)
@@ -30,6 +30,8 @@ juce::ValueTree toValueTree (const MicVSTState& s)
     }
     if (s.theme.isNotEmpty())
         t.setProperty (ids::theme, s.theme, nullptr);
+    if (s.language.isNotEmpty())
+        t.setProperty (ids::language, s.language, nullptr);
     t.appendChild (pluginsToValueTree (s.plugins), nullptr);
     return t;
 }
@@ -93,6 +95,7 @@ MicVSTState fromValueTree (const juce::ValueTree& t)
     s.presetName = t.getProperty (ids::preset).toString();
     s.presetModified = (bool) t.getProperty (ids::presetModified, false);
     s.theme = t.getProperty (ids::theme).toString();
+    s.language = t.getProperty (ids::language).toString();
     return s;
 }
 

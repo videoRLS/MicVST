@@ -2,6 +2,7 @@
 // Gecikme / Eko, Chorus / Stereo Genişletici.
 #include "audio/fx/EffectFactories.h"
 #include "audio/fx/FxDsp.h"
+#include "Text.h"
 #include <juce_dsp/juce_dsp.h>
 #include <vector>
 

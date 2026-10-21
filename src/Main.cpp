@@ -156,9 +156,9 @@ public:
             return;
         }
 
-        // Türkische Texte auch für JUCEs eigene Beschriftungen (Dialog-Buttons, Kontextmenü des
-        // Suchfelds) - vor dem Aufbau jeder Oberfläche.
-        micvst::installTurkishTranslations();
+        // Sprache (Standard: Türkçe) - auch für JUCEs eigene Beschriftungen (Dialog-Buttons,
+        // Kontextmenü des Suchfelds) - vor dem Aufbau jeder Oberfläche.
+        micvst::setLanguage (loadState().language);
         // Farbthema (Standard: Gece - dunkel, blendfrei) für alle Fenster, Menüs, Tooltips und
         // Dialoge; die Wahl steht in config.xml (gelesen, bevor irgendeine Oberfläche entsteht).
         micvst::theme::applyTheme (loadState().theme);
@@ -284,6 +284,7 @@ private:
         auto s = engine->captureState();
         if (mainWindow != nullptr) s.windowState = mainWindow->getWindowStateAsString();
         s.theme = micvst::theme::currentId;
+        s.language = micvst::currentLanguage();
         saveState (s);
     }
 
@@ -366,19 +367,39 @@ private:
                     if (safe != nullptr) safe->applyTheme (id);
                 });
             };
+            content->onLanguageChosen = [this] (const juce::String& id)
+            {
+                juce::Component::SafePointer<MainWindow> safe (this);
+                juce::MessageManager::callAsync ([safe, id]
+                {
+                    if (safe != nullptr) safe->applyLanguage (id);
+                });
+            };
             setContentOwned (content, false);
+        }
+        void applyLanguage (const juce::String& id)
+        {
+            if (id == micvst::currentLanguage()) return;
+            micvst::setLanguage (id);
+            juce::Logger::writeToLog (micvst::tr ("Dil: ") + id);
+            rebuild();
         }
         void applyTheme (const juce::String& id)
         {
             if (id == micvst::theme::currentId) return;
             micvst::theme::applyTheme (id);
-            if (onThemeApplied) onThemeApplied();   // LookAndFeel takes the new colours
+            juce::Logger::writeToLog (micvst::tr ("Tema: ") + micvst::tr (micvst::theme::paletteFor (id).name));
+            rebuild();
+        }
+        // The window's content again, with the current colours and language.
+        void rebuild()
+        {
+            if (onThemeApplied) onThemeApplied();   // LookAndFeel takes the new colours; saved
             setBackgroundColour (micvst::theme::background);
             clearContentComponent();                // the old content (and its engine callbacks) first ...
             content = nullptr;
             createContent();                        // ... then the new one, built with the new colours
             micvst::useDarkTitleBar (*this, micvst::theme::dark);
-            juce::Logger::writeToLog (juce::String::fromUTF8 ("Tema: ") + juce::String::fromUTF8 (micvst::theme::paletteFor (id).name));
             repaint();
         }
         AudioEngine& engineRef;

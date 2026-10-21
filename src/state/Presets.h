@@ -28,6 +28,8 @@ namespace presets
 
     const std::vector<Preset>& factoryPresets();
     const Preset* findFactory (const juce::String& name);
+    // A preset name as shown: a factory preset in the user's language, an own preset as it is.
+    juce::String displayName (const juce::String& name);
 
     juce::File userFolder();                               // %APPDATA%\MicVST\presets
     std::vector<Preset> loadUserPresets (const juce::File& folder = userFolder());   // sorted by name

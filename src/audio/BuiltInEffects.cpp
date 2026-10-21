@@ -1,6 +1,7 @@
 #include "audio/BuiltInEffects.h"
 #include "audio/fx/EffectFactories.h"
 #include "ui/BuiltInEffectEditor.h"
+#include "Text.h"
 
 namespace
 {
@@ -43,7 +44,7 @@ BuiltInEffect::~BuiltInEffect()
         p->removeListener (this);
 }
 
-const juce::String BuiltInEffect::getName() const { return utf8 (info.name); }
+const juce::String BuiltInEffect::getName() const { return micvst::tr (info.name); }
 
 juce::AudioProcessorEditor* BuiltInEffect::createEditor() { return new BuiltInEffectEditor (*this); }
 
@@ -75,7 +76,7 @@ juce::AudioParameterChoice* BuiltInEffect::addChoice (const char* paramId, const
 juce::AudioParameterBool* BuiltInEffect::addBool (const char* paramId, const char* name, bool def)
 {
     auto attrs = juce::AudioParameterBoolAttributes()
-                     .withStringFromValueFunction ([] (bool v, int) { return utf8 (v ? "Açık" : "Kapalı"); });
+                     .withStringFromValueFunction ([] (bool v, int) { return micvst::tr (v ? "Açık" : "Kapalı"); });
     auto* p = new juce::AudioParameterBool (juce::ParameterID { paramId, 1 }, utf8 (name), def, attrs);
     addParameter (p);
     params.add (p);
@@ -227,74 +228,74 @@ namespace builtin
 {
     const std::vector<BuiltInEffect::Info>& effects()
     {
-        static const char* const eq      = "Dahili - Ton ve EQ";
-        static const char* const clean   = "Dahili - Temizlik";
-        static const char* const colour  = "Dahili - Renk ve ortam";
-        static const char* const level   = "Dahili - Seviye ve koruma";
-        static const char* const timeCh  = "Dahili - Zaman ve kanal";
-        static const char* const meter   = "Dahili - Ölçüm";
+        static const char* const eq      = TRK ("Dahili - Ton ve EQ");
+        static const char* const clean   = TRK ("Dahili - Temizlik");
+        static const char* const colour  = TRK ("Dahili - Renk ve ortam");
+        static const char* const level   = TRK ("Dahili - Seviye ve koruma");
+        static const char* const timeCh  = TRK ("Dahili - Zaman ve kanal");
+        static const char* const meter   = TRK ("Dahili - Ölçüm");
 
         static const std::vector<BuiltInEffect::Info> list {
-            { "builtin:lowcut", "Alçak Kesici (Low-Cut)", eq,
-              "Seçilen frekansın altını keser: uğultu, masa/stand titreşimi ve \"p\" patlamalarının alt ucu. "
-              "Sesin temeli (erkek sesinde ~100-140 Hz) korunur; 100 Hz'in üstü önerilmez.", false, &fx::createLowCut },
-            { "builtin:highcut", "Yüksek Kesici (High-Cut)", eq,
-              "Seçilen frekansın üstünü keser: cızırtı ve tıslama.", false, &fx::createHighCut },
-            { "builtin:body", "Gövde / Sıcaklık", eq,
-              "120-250 Hz bölgesini geniş bir eğriyle yükseltir: daha tok, dolgun ses. Fazlası boğuklaştırır.", false, &fx::createBody },
-            { "builtin:mud", "Çamur Temizleyici", eq,
-              "300-500 Hz bölgesini kısar: boğukluk ve \"kutu\" sesi azalır.", false, &fx::createMud },
-            { "builtin:nasal", "Genizlik Azaltıcı", eq,
-              "0,8-1,3 kHz bölgesini kısar: genizden gelen, sert orta bölge yumuşar.", false, &fx::createNasal },
-            { "builtin:presence", "Netlik (Presence)", eq,
-              "3-5 kHz bölgesini yükseltir: anlaşılırlık artar. Fazlası sertleştirir.", false, &fx::createPresence },
-            { "builtin:air", "Hava (Air)", eq,
-              "Seçilen frekansın üstünü raf eğrisiyle yükseltir: parlaklık ve açıklık.", false, &fx::createAir },
-            { "builtin:proximity", "Yakınlık (Proximity)", eq,
-              "Mikrofona yakın konuşmanın getirdiği alt bölge tokluğunu ekler (+) ya da fazlasını azaltır (-).", false, &fx::createProximity },
-            { "builtin:tilt", "Tilt EQ (Ton Dengesi)", eq,
-              "Tek kaydırıcıyla tüm tonu eğer: sola sıcak (bas artar, tiz azalır), sağa parlak.", false, &fx::createTilt },
-            { "builtin:parameq", "Parametrik EQ", eq,
-              "Dört bant: her birinde tür, frekans, kazanç ve Q. Kazancı 0 dB olan bant sesi değiştirmez.", false, &fx::createParamEq },
+            { "builtin:lowcut", TRK ("Alçak Kesici (Low-Cut)"), eq,
+              TRK ("Seçilen frekansın altını keser: uğultu, masa/stand titreşimi ve \"p\" patlamalarının alt ucu. "
+              "Sesin temeli (erkek sesinde ~100-140 Hz) korunur; 100 Hz'in üstü önerilmez."), false, &fx::createLowCut },
+            { "builtin:highcut", TRK ("Yüksek Kesici (High-Cut)"), eq,
+              TRK ("Seçilen frekansın üstünü keser: cızırtı ve tıslama."), false, &fx::createHighCut },
+            { "builtin:body", TRK ("Gövde / Sıcaklık"), eq,
+              TRK ("120-250 Hz bölgesini geniş bir eğriyle yükseltir: daha tok, dolgun ses. Fazlası boğuklaştırır."), false, &fx::createBody },
+            { "builtin:mud", TRK ("Çamur Temizleyici"), eq,
+              TRK ("300-500 Hz bölgesini kısar: boğukluk ve \"kutu\" sesi azalır."), false, &fx::createMud },
+            { "builtin:nasal", TRK ("Genizlik Azaltıcı"), eq,
+              TRK ("0,8-1,3 kHz bölgesini kısar: genizden gelen, sert orta bölge yumuşar."), false, &fx::createNasal },
+            { "builtin:presence", TRK ("Netlik (Presence)"), eq,
+              TRK ("3-5 kHz bölgesini yükseltir: anlaşılırlık artar. Fazlası sertleştirir."), false, &fx::createPresence },
+            { "builtin:air", TRK ("Hava (Air)"), eq,
+              TRK ("Seçilen frekansın üstünü raf eğrisiyle yükseltir: parlaklık ve açıklık."), false, &fx::createAir },
+            { "builtin:proximity", TRK ("Yakınlık (Proximity)"), eq,
+              TRK ("Mikrofona yakın konuşmanın getirdiği alt bölge tokluğunu ekler (+) ya da fazlasını azaltır (-)."), false, &fx::createProximity },
+            { "builtin:tilt", TRK ("Tilt EQ (Ton Dengesi)"), eq,
+              TRK ("Tek kaydırıcıyla tüm tonu eğer: sola sıcak (bas artar, tiz azalır), sağa parlak."), false, &fx::createTilt },
+            { "builtin:parameq", TRK ("Parametrik EQ"), eq,
+              TRK ("Dört bant: her birinde tür, frekans, kazanç ve Q. Kazancı 0 dB olan bant sesi değiştirmez."), false, &fx::createParamEq },
 
-            { "builtin:hum", "Uğultu Giderici (50/60 Hz)", clean,
-              "Şebeke uğultusunu (50 Hz ve katları; 60 Hz seçilebilir) çok dar çentiklerle giderir.", false, &fx::createHum },
-            { "builtin:dcblock", "DC Kayması Giderici", clean,
-              "Sinyaldeki sabit kaymayı (DC) 5 Hz'in altında giderir. Ayarı yoktur; duyulur bir şey değiştirmez.", false, &fx::createDcBlock },
-            { "builtin:deesser", "De-esser", clean,
-              "Sert \"s\", \"ş\" ve \"ç\" seslerini yalnızca oldukları anda, seçilen frekansın üstünde kısar. "
+            { "builtin:hum", TRK ("Uğultu Giderici (50/60 Hz)"), clean,
+              TRK ("Şebeke uğultusunu (50 Hz ve katları; 60 Hz seçilebilir) çok dar çentiklerle giderir."), false, &fx::createHum },
+            { "builtin:dcblock", TRK ("DC Kayması Giderici"), clean,
+              TRK ("Sinyaldeki sabit kaymayı (DC) 5 Hz'in altında giderir. Ayarı yoktur; duyulur bir şey değiştirmez."), false, &fx::createDcBlock },
+            { "builtin:deesser", TRK ("De-esser"), clean,
+              TRK ("Sert \"s\", \"ş\" ve \"ç\" seslerini yalnızca oldukları anda, seçilen frekansın üstünde kısar. "
               "Göreli algılamada eşik, tiz bölgenin sesin geneline göre seviyesidir (-15 dB: tizler sesin geneline 15 dB "
-              "yaklaşınca kısar; mikrofon seviyesinden bağımsız). En fazla \"Azaltma\" kadar kısar.", false, &fx::createDeEsser },
+              "yaklaşınca kısar; mikrofon seviyesinden bağımsız). En fazla \"Azaltma\" kadar kısar."), false, &fx::createDeEsser },
 
-            { "builtin:saturation", "Sıcak Saturasyon (Tüp / Bant)", colour,
-              "Hafif harmonik ekler (4x aşırı örnekleme ile, kenar yumuşatmalı). Seviye otomatik dengelenir.", false, &fx::createSaturation },
-            { "builtin:lofi", "Telefon / Radyo / Megafon", colour,
-              "Sesi telefon, eski radyo ya da megafon sesine benzetir.", false, &fx::createLoFi },
-            { "builtin:reverb", "Oda Yankısı", colour,
-              "Basit oda yankısı. Konuşmada düşük karışım (%5-15) önerilir.", true, &fx::createReverb },
-            { "builtin:echo", "Gecikme / Eko", colour,
-              "Tekrarlayan yankı. Geri besleme tekrar sayısını, ton tekrarların parlaklığını belirler.", true, &fx::createEcho },
-            { "builtin:chorus", "Chorus / Stereo Genişletici", colour,
-              "Chorus: hafif dalgalanan çift ses. Genişletici: mono sesi stereo genişletir; iki kanal "
-              "toplanınca (mono) ses değişmez.", true, &fx::createChorus },
+            { "builtin:saturation", TRK ("Sıcak Saturasyon (Tüp / Bant)"), colour,
+              TRK ("Hafif harmonik ekler (4x aşırı örnekleme ile, kenar yumuşatmalı). Seviye otomatik dengelenir."), false, &fx::createSaturation },
+            { "builtin:lofi", TRK ("Telefon / Radyo / Megafon"), colour,
+              TRK ("Sesi telefon, eski radyo ya da megafon sesine benzetir."), false, &fx::createLoFi },
+            { "builtin:reverb", TRK ("Oda Yankısı"), colour,
+              TRK ("Basit oda yankısı. Konuşmada düşük karışım (%5-15) önerilir."), true, &fx::createReverb },
+            { "builtin:echo", TRK ("Gecikme / Eko"), colour,
+              TRK ("Tekrarlayan yankı. Geri besleme tekrar sayısını, ton tekrarların parlaklığını belirler."), true, &fx::createEcho },
+            { "builtin:chorus", TRK ("Chorus / Stereo Genişletici"), colour,
+              TRK ("Chorus: hafif dalgalanan çift ses. Genişletici: mono sesi stereo genişletir; iki kanal "
+              "toplanınca (mono) ses değişmez."), true, &fx::createChorus },
 
-            { "builtin:limiter", "Çıkış Limiteri", level,
-              "Hiçbir tepenin tavanı geçmemesini sağlar (gerçek tepe, 3 ms ileri bakışlı, Otomatik Kazanç'taki "
-              "sınırlayıcıyla aynı yöntem). Zincirin sonuna koyun.", false, &fx::createLimiter },
-            { "builtin:mute", "Sessize Alma (Mute)", level,
-              "Sesi tıksız (yumuşak geçişle) susturur. Satırdaki kutuyla da açılıp kapatılır.", false, &fx::createMute },
+            { "builtin:limiter", TRK ("Çıkış Limiteri"), level,
+              TRK ("Hiçbir tepenin tavanı geçmemesini sağlar (gerçek tepe, 3 ms ileri bakışlı, Otomatik Kazanç'taki "
+              "sınırlayıcıyla aynı yöntem). Zincirin sonuna koyun."), false, &fx::createLimiter },
+            { "builtin:mute", TRK ("Sessize Alma (Mute)"), level,
+              TRK ("Sesi tıksız (yumuşak geçişle) susturur. Satırdaki kutuyla da açılıp kapatılır."), false, &fx::createMute },
 
-            { "builtin:syncdelay", "Ses Gecikmesi (Senkron)", timeCh,
-              "Sesi verilen süre kadar geciktirir: görüntüyle (kamera, yayın) hizalamak için.", false, &fx::createSyncDelay },
-            { "builtin:channel", "Kanal Araçları (Faz / Kanal / Denge)", timeCh,
+            { "builtin:syncdelay", TRK ("Ses Gecikmesi (Senkron)"), timeCh,
+              TRK ("Sesi verilen süre kadar geciktirir: görüntüyle (kamera, yayın) hizalamak için."), false, &fx::createSyncDelay },
+            { "builtin:channel", TRK ("Kanal Araçları (Faz / Kanal / Denge)"), timeCh,
               "Faz çevirme, sol ya da sağ kanalı iki kanala verme, kanalları değiştirme, mono toplama ve sağ-sol denge.",
               true, &fx::createChannelTool },
 
-            { "builtin:lufs", "LUFS Ölçer", meter,
-              "ITU-R BS.1770 / EBU R128 ses yüksekliği: anlık (400 ms), kısa süreli (3 s), tümleşik ve gerçek tepe. "
-              "Sesi değiştirmez.", false, &fx::createLufsMeter },
-            { "builtin:spectrum", "Spektrum Analizörü", meter,
-              "Sesin frekans dağılımını canlı gösterir. Sesi değiştirmez.", false, &fx::createSpectrum },
+            { "builtin:lufs", TRK ("LUFS Ölçer"), meter,
+              TRK ("ITU-R BS.1770 / EBU R128 ses yüksekliği: anlık (400 ms), kısa süreli (3 s), tümleşik ve gerçek tepe. "
+              "Sesi değiştirmez."), false, &fx::createLufsMeter },
+            { "builtin:spectrum", TRK ("Spektrum Analizörü"), meter,
+              TRK ("Sesin frekans dağılımını canlı gösterir. Sesi değiştirmez."), false, &fx::createSpectrum },
         };
         return list;
     }
@@ -324,7 +325,7 @@ namespace builtin
             if (decimals <= 0) return juce::String (juce::roundToInt (x));
             auto s = juce::String (x, decimals);
             if (s.startsWithChar ('-') && s.removeCharacters ("-0.").isEmpty()) s = s.substring (1);   // never "-0,0"
-            return s.replaceCharacter ('.', ',');
+            return micvst::trNumber (s.getDoubleValue(), decimals);
         };
         switch (unit)
         {
@@ -337,10 +338,10 @@ namespace builtin
                 return (r > 0.0 ? "+" : "") + num (std::abs (r) < 0.05 ? 0.0 : r, 1) + " dB";
             }
             case U::dbAmount:     return num (std::round (v * 10.0) / 10.0, 1) + " dB";
-            case U::percent:      return "%" + juce::String (juce::roundToInt (v));
+            case U::percent:      return micvst::trPercent (v);
             case U::milliseconds: return num (v, v < 100.0f ? 1 : 0) + " ms";
             case U::seconds:      return num (v, 2) + " s";
-            case U::dbPerOctave:  return num (v, 0) + " dB/oktav";
+            case U::dbPerOctave:  return num (v, 0) + micvst::tr (" dB/oktav");
             case U::count:        return juce::String (juce::roundToInt (v));
             case U::plain:        break;
         }

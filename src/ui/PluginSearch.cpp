@@ -1,5 +1,6 @@
 #include "ui/PluginSearch.h"
 #include "audio/BuiltInEffects.h"
+#include "Text.h"
 #include <algorithm>
 
 juce::Array<juce::PluginDescription> filterPlugins (const juce::Array<juce::PluginDescription>& all,
@@ -31,7 +32,7 @@ juce::Array<juce::PluginDescription> filterPlugins (const juce::Array<juce::Plug
                       [&] (const juce::PluginDescription& a, const juce::PluginDescription& b)
     {
         // the effects sort as manufacturer "Dahili", behind its own four entries, in list order
-        static const auto dahili = juce::String::fromUTF8 ("Dahili");
+        const auto dahili = micvst::tr ("Dahili");   // as the four older built-ins are listed
         const int ra = groupRank (a), rb = groupRank (b);
         const auto& ma = ra != 0 ? dahili : a.manufacturerName;
         const auto& mb = rb != 0 ? dahili : b.manufacturerName;

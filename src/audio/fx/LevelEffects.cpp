@@ -3,6 +3,7 @@
 #include "audio/fx/EffectFactories.h"
 #include "audio/fx/FxDsp.h"
 #include "audio/fx/Readout.h"
+#include "Text.h"
 #include <vector>
 
 namespace fx
@@ -37,7 +38,7 @@ namespace
             return std::make_unique<Readout> ([this]
             {
                 const float gr = grHold.exchange (0.0f, std::memory_order_relaxed);
-                return u8 ("Anlık azaltma: ") + builtin::formatValue (-gr, U::decibel);
+                return micvst::tr ("Anlık azaltma: ") + builtin::formatValue (-gr, U::decibel);
             });
         }
 
@@ -208,7 +209,7 @@ namespace
             return std::make_unique<Readout> ([this]
             {
                 const float gr = grHold.exchange (0.0f, std::memory_order_relaxed);
-                return u8 ("Anlık azaltma: ") + builtin::formatValue (-gr, U::decibel);
+                return micvst::tr ("Anlık azaltma: ") + builtin::formatValue (-gr, U::decibel);
             });
         }
 

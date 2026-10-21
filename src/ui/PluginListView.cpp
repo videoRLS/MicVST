@@ -17,7 +17,7 @@ namespace
         if (e.fileOrId == PluginChain::stereoToMonoId) return "Stereo -> Mono";
         if (e.fileOrId == PluginChain::gainId)         return tr ("Kazanç");
         if (e.fileOrId == PluginChain::autoGainId)     return tr ("Otomatik Kazanç");
-        if (auto* fxInfo = builtin::find (e.fileOrId)) return juce::String::fromUTF8 (fxInfo->name);
+        if (auto* fxInfo = builtin::find (e.fileOrId)) return tr (fxInfo->name);
         // Name des Plugins selbst (eine Datei kann viele enthalten), sonst der Dateiname
         return e.pluginName.isNotEmpty() ? e.pluginName : juce::File (e.fileOrId).getFileNameWithoutExtension();
     }
@@ -535,8 +535,8 @@ void PluginListView::showPluginPicker()
     for (auto& fxInfo : builtin::effects())   // Dahili efektler, gruplu ("Dahili - Ton ve EQ", ...)
     {
         juce::PluginDescription d;
-        d.name = juce::String::fromUTF8 (fxInfo.name);
-        d.manufacturerName = juce::String::fromUTF8 (fxInfo.group);
+        d.name = tr (fxInfo.name);
+        d.manufacturerName = tr (fxInfo.group);
         d.fileOrIdentifier = fxInfo.id;
         entries.add (d);
     }
@@ -772,8 +772,8 @@ void PluginListView::refreshPresetList()
     for (auto& p : presets::factoryPresets())
     {
         if (menGroup.isEmpty()) menGroup = p.group;
-        if (p.group == menGroup) men.addItem (id++, p.shortName);
-        else { womenGroup = p.group; women.addItem (id++, p.shortName); }
+        if (p.group == menGroup) men.addItem (id++, tr (p.shortName));
+        else { womenGroup = p.group; women.addItem (id++, tr (p.shortName)); }
     }
     if (userPresets.empty())
         mine.addItem (emptyUserId, tr ("(henüz yok - \"Kaydet\" ile ekleyin)"), false);
@@ -781,8 +781,8 @@ void PluginListView::refreshPresetList()
     for (auto& p : userPresets)
         mine.addItem (id++, p.name);
     auto* root = presetBox.getRootMenu();
-    root->addSubMenu (menGroup, men);
-    root->addSubMenu (womenGroup, women);
+    root->addSubMenu (tr (menGroup), men);
+    root->addSubMenu (tr (womenGroup), women);
     root->addSubMenu (tr ("Kendi Ayarlarım"), mine);
     shownPresetName.clear();
     updatePresetBox();
@@ -798,7 +798,7 @@ void PluginListView::updatePresetBox()
     shownPresetModified = modified;
     presetBox.setSelectedId (0, juce::dontSendNotification);   // no item ticked: the text shows the state
     if (name.isEmpty()) presetBox.setText ({}, juce::dontSendNotification);
-    else                presetBox.setText (name + (modified ? " *" : ""), juce::dontSendNotification);
+    else                presetBox.setText (presets::displayName (name) + (modified ? " *" : ""), juce::dontSendNotification);
 }
 
 void PluginListView::presetChosen()

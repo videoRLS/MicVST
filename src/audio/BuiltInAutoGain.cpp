@@ -1,4 +1,5 @@
 #include "audio/BuiltInAutoGain.h"
+#include "Text.h"
 
 namespace
 {
@@ -15,7 +16,7 @@ BuiltInAutoGainProcessor::BuiltInAutoGainProcessor()
 
 const juce::String BuiltInAutoGainProcessor::getName() const
 {
-    return juce::String::fromUTF8 ("Otomatik Kazanç");
+    return micvst::tr ("Otomatik Kazanç");
 }
 
 void BuiltInAutoGainProcessor::getStateInformation (juce::MemoryBlock& dest)
