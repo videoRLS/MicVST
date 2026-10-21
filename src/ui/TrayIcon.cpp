@@ -41,7 +41,7 @@ void TrayIcon::mouseDown (const juce::MouseEvent& e)
 {
     if (e.mods.isRightButtonDown())
     {
-        constexpr int presetOffset = 1000;
+        static constexpr int presetOffset = 1000;
         juce::PopupMenu m;
         if (toggleMute)
             m.addItem (3, tr ("Sustur"), true, isMuted && isMuted());
