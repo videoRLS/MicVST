@@ -314,10 +314,13 @@ namespace suite
             if (! nested) bundles.addIfNotAlreadyThere (f);
         }
         bundles.sort();
+        const bool progress = juce::SystemStats::getEnvironmentVariable ("ETEST_PROGRESS", {}).isNotEmpty();
         for (auto& b : bundles)
         {
             juce::OwnedArray<juce::PluginDescription> types;
+            if (progress) pr ("  scanning " + b.getFileName() + " ...");
             fmt.findAllTypesForFile (types, b.getFullPathName());
+            if (progress) pr ("  scanned " + b.getFileName() + ": " + juce::String (types.size()) + " type(s)");
             for (auto* t : types) if (! t->isInstrument) out.push_back (*t);
         }
         return out;
@@ -843,13 +846,19 @@ namespace suite
             if (idx == -1) { e.getChain().addAutoGain (autoGainOn); continue; }
             if (idx <= -2) { e.getChain().addPlugin (e.getFormatManager(), testDesc ("TestTap", (double) (-2 - idx)), e.getProcessingSampleRate(), e.getProcessingBlockSize(), err); continue; }
             const auto& c = cs[(size_t) idx];
+            const bool progress = juce::SystemStats::getEnvironmentVariable ("ETEST_PROGRESS", {}).isNotEmpty();
+            if (progress) pr ("  loading " + c.label + " ...");
             if (! e.getChain().addPlugin (e.getFormatManager(), c.desc, e.getProcessingSampleRate(), e.getProcessingBlockSize(), err))
             { pr ("  cannot add " + c.label + ": " + err); continue; }
             auto* p = procAt (e, (int) e.getChain().entries().size() - 1);
+            if (progress) pr ("  loaded " + c.label + ", applying settings ...");
             if (p != nullptr && c.kind != Kind::generic) applySettings (*p, c.active);
+            if (progress) pr ("  ready " + c.label);
         }
+        if (juce::SystemStats::getEnvironmentVariable ("ETEST_PROGRESS", {}).isNotEmpty()) pr ("  rebuilding the graph ...");
         const AudioEngine::ChainEdit ce (e);
         e.rebuildGraph();
+        if (juce::SystemStats::getEnvironmentVariable ("ETEST_PROGRESS", {}).isNotEmpty()) pr ("  graph ready");
     }
 
     juce::String orderText (const std::vector<Config>& cs, const std::vector<int>& order)

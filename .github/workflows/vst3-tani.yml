@@ -1,0 +1,59 @@
+name: vst3-tani
+
+# Diagnosis of the long run through real VST3 effects (vst3long): with "[vst3tani]" in the commit
+# message. The same long run with progress lines (which plug-in is being scanned / loaded), then the
+# same run with each bundle alone, then with every bundle but one - to find the plug-in (or the
+# combination) that ends the process. Results: ci-sonuclari/<branch>-vst3tani.
+on:
+  push:
+    branches: [ 'kararlilik/**' ]
+
+permissions:
+  contents: write
+
+jobs:
+  diag:
+    if: ${{ contains(github.event.head_commit.message, '[vst3tani]') }}
+    runs-on: windows-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build
+        shell: pwsh
+        run: ./tools/ci-build.ps1 -Source . -Build build -Targets "MicVSTEngineTest" -Out results
+      - name: Runs
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          . ./tools/ci-suite-plugins.ps1 -NoteFile results/vst3-suite-source.txt
+          $exe = "build/MicVSTEngineTest_artefacts/Release/MicVSTEngineTest.exe"
+          $all = $env:MICVST_TEST_VST3_DIR
+          $env:ETEST_LONG_VST3 = "1"
+          $env:ETEST_PROGRESS = "1"
+          $env:ETEST_LONG_PRIORITY = "0"
+          $env:ETEST_LONG_BURN = "$([Environment]::ProcessorCount)"
+          ./tools/ci-run-timed.ps1 -Exe $exe -OutFile results/all-burn.txt -TimeoutSeconds 600 -Arguments @("long", "2")
+          $env:ETEST_LONG_BURN = ""
+          ./tools/ci-run-timed.ps1 -Exe $exe -OutFile results/all-noburn.txt -TimeoutSeconds 600 -Arguments @("long", "2")
+          $bundles = @(Get-ChildItem -Directory $all -Filter "*.vst3")
+          foreach ($b in $bundles) {
+            $one = Join-Path $env:RUNNER_TEMP ("only-" + $b.BaseName)
+            New-Item -ItemType Directory -Force $one | Out-Null
+            Copy-Item -Recurse -Force $b.FullName $one
+            $env:MICVST_TEST_VST3_DIR = $one
+            ./tools/ci-run-timed.ps1 -Exe $exe -OutFile ("results/only-" + $b.BaseName + ".txt") -TimeoutSeconds 600 -Arguments @("long", "1")
+            $but = Join-Path $env:RUNNER_TEMP ("without-" + $b.BaseName)
+            New-Item -ItemType Directory -Force $but | Out-Null
+            foreach ($o in $bundles) { if ($o.FullName -ne $b.FullName) { Copy-Item -Recurse -Force $o.FullName $but } }
+            $env:MICVST_TEST_VST3_DIR = $but
+            ./tools/ci-run-timed.ps1 -Exe $exe -OutFile ("results/without-" + $b.BaseName + ".txt") -TimeoutSeconds 600 -Arguments @("long", "1")
+          }
+          $env:MICVST_TEST_VST3_DIR = $all
+          foreach ($b in $bundles) { ./tools/ci-run-timed.ps1 -Exe $exe -OutFile ("results/vst3info-" + $b.BaseName + ".txt") -TimeoutSeconds 300 -Arguments @("vst3info", "`"$($b.FullName)`"") }
+          Get-ChildItem results/*.txt | ForEach-Object { "=== " + $_.Name; Get-Content $_ -Tail 12 } | Set-Content results/summary.txt
+      - name: Publish
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./tools/ci-publish.ps1 -Dir results -Branch "ci-sonuclari/${{ github.ref_name }}-vst3tani" -Message "MicVST ${{ github.ref_name }} vst3 diagnosis"
