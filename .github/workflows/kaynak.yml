@@ -1,0 +1,33 @@
+name: kaynak
+
+# "[kaynak]" in the commit message: downloads the source of a third-party library that this
+# session cannot reach (SourceForge), checks it against a pinned SHA-256 and publishes the
+# tarball to ci-sonuclari/kaynak, where it is vendored into third_party/ from.
+#   LAME 4.0 (MP3 encoder, LGPL): hash as in Homebrew's formula.
+on:
+  push:
+    branches: [ 'kararlilik/**' ]
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    if: ${{ contains(github.event.head_commit.message, '[kaynak]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - name: Download and verify
+        shell: bash
+        run: |
+          mkdir -p results
+          curl -sSfL --retry 5 -o results/lame-4.0.tar.gz "https://downloads.sourceforge.net/project/lame/lame/4.0/lame-4.0.tar.gz"
+          echo "3df5124d5ad3a98312ffd7ba6a9b36230e4f8a3e66d3ce0f425e336c32d216eb  results/lame-4.0.tar.gz" | sha256sum -c -
+          sha256sum results/lame-4.0.tar.gz > results/SHA256SUMS
+      - name: Publish
+        if: ${{ success() }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./tools/ci-publish.ps1 -Dir results -Branch "ci-sonuclari/kaynak" -Message "third-party sources"

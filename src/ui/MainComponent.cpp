@@ -200,7 +200,7 @@ namespace
             addAndMakeVisible (viewport);
         }
 
-        // Footer under the text: a hairline, then the version and the signature, small and quiet.
+        // Footer under the text: a hairline, then the version, small and quiet.
         void paint (juce::Graphics& g) override
         {
             g.fillAll (micvst::theme::surface);
@@ -211,8 +211,6 @@ namespace
             g.setColour (micvst::theme::textDim);
             const auto version = "MicVST v" + juce::String (MICVST_VERSION_STRING);
             g.drawText (version, foot, juce::Justification::centredLeft);
-            g.setColour (micvst::theme::text);
-            g.drawText (tr ("Relios tarafından geliştirilmiştir."), foot, juce::Justification::centredRight);
         }
 
         void resized() override

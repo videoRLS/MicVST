@@ -125,11 +125,9 @@ SettingsComponent::SettingsComponent (AudioEngine& e, GlobalHotkeys* keys, Callb
     aboutLine.setText ("MicVST v" + juce::String (MICVST_VERSION_STRING) + "  ·  "
                        + tr ("MicVST tamamen çevrimdışı çalışır (internete bağlanmaz)"), juce::dontSendNotification);
     aboutLine.setColour (juce::Label::textColourId, micvst::theme::textDim);
-    signature.setText (tr ("Relios tarafından geliştirilmiştir."), juce::dontSendNotification);
-    signature.setColour (juce::Label::textColourId, micvst::theme::text);
     howToBtn.setButtonText (tr ("Kullanım"));
     howToBtn.onClick = [this] { if (cb.showHowTo) cb.showHowTo(); };
-    for (auto* c : { (juce::Component*) &aboutLine, (juce::Component*) &signature, (juce::Component*) &howToBtn })
+    for (auto* c : { (juce::Component*) &aboutLine, (juce::Component*) &howToBtn })
         page.addAndMakeVisible (c);
 
     viewport.setViewedComponent (&page, false);
@@ -267,8 +265,6 @@ void SettingsComponent::resized()
     {
         const int bw = juce::roundToInt (juce::GlyphArrangement::getStringWidth (juce::Font (juce::FontOptions (15.0f)), howToBtn.getButtonText())) + 30;
         howToBtn.setBounds (pad, y, bw, 30);
-        signature.setBounds (pad + bw + 12, y, w - bw - 12, 30);
-        signature.setJustificationType (juce::Justification::centredRight);
         y += 40;
     }
 

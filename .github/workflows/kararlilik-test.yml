@@ -56,6 +56,8 @@ jobs:
         run: ./tools-src/tools/ci-publish.ps1 -Dir results -Branch ci-sonuclari/baseline -Message "baseline v1.1.1"
 
   new:
+    # "[kaynak]" commits only fetch a third-party source (kaynak.yml)
+    if: ${{ !contains(github.event.head_commit.message, '[kaynak]') }}
     runs-on: windows-latest
     # "[hizli]" in the commit message: build and publish MicVST.exe only, no tests (for a quick
     # listening test by the user; the full run follows with a normal commit)

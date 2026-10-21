@@ -7,7 +7,7 @@
 
 // "Ayarlar": everything that is set once and then left alone, out of the main window - sound
 // (buffer, safety margin, process priority, headphones), shortcut keys, language, theme and
-// start with Windows, the VST3 folders and the about line with the Relios signature. A list of
+// start with Windows, the VST3 folders and the about line. A list of
 // sections on the left scrolls the page to that section.
 class SettingsComponent final : public juce::Component, private juce::Timer
 {
@@ -56,7 +56,7 @@ private:
     juce::ToggleButton autostartToggle;
     juce::TextButton foldersBtn;
     juce::Label foldersHint;
-    juce::Label aboutLine, signature;
+    juce::Label aboutLine;
     juce::TextButton howToBtn;
     std::vector<int> sectionY;
 };
