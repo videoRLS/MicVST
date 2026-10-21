@@ -14,7 +14,7 @@ namespace rectest
     }
     int hiccups() { return vdev::recorder().deviceGaps.load() + (int) vdev::stats().lostPackets.load(); }
 
-    struct CableStats { Discontinuities clk; double thdn = 0.0, gainDb = 0.0; };
+    struct CableStats { Discontinuities clk; double thdn = 0.0, gainDb = 0.0, thdnP90 = 0.0; };
     CableStats cable (int64_t from, int64_t to, double amp, double freq)
     {
         CableStats c;
@@ -30,7 +30,7 @@ namespace rectest
             g.push_back (juce::Decibels::gainToDecibels (f.amp, -200.0));
         }
         std::sort (t.begin(), t.end()); std::sort (g.begin(), g.end());
-        if (! t.empty()) { c.thdn = t[t.size() / 2]; c.gainDb = g[g.size() / 2]; }
+        if (! t.empty()) { c.thdn = t[t.size() / 2]; c.gainDb = g[g.size() / 2]; c.thdnP90 = t[(t.size() * 9) / 10]; }
         return c;
     }
 
@@ -95,8 +95,11 @@ namespace rectest
             if (hiccupsAB == 0)
             {
                 check (ca.clk.events == 0 && cb.clk.events == 0, "the cable has no clicks, with or without a recording (start and stop included)");
-                // worse by less than 3 dB (the fit's own spread between two 12 s windows); better is fine
-                check (cb.thdn - ca.thdn < 3.0 && std::abs (cb.gainDb - ca.gainDb) < 0.01, "the cable's quality and level do not get worse while recording");
+                // THD+N of the cable wanders by several dB over seconds without any recording (the bridge's
+                // drift-compensating resampler): with a recording, the median may not be worse than the
+                // 90th percentile without (+1 dB); the level must be the same
+                pr ("    cable THD+N without recording: median " + db (ca.thdn) + ", 90th percentile " + db (ca.thdnP90) + "; with: median " + db (cb.thdn));
+                check (cb.thdn < ca.thdnP90 + 1.0 && std::abs (cb.gainDb - ca.gainDb) < 0.01, "the cable's quality and level do not get worse while recording");
                 check (diag1.bridge.underruns == diag0.bridge.underruns && diag1.bridge.droppedBlocks == diag0.bridge.droppedBlocks,
                        "no underruns or dropped blocks on the cable while recording");
                 check (std::abs (latencyB - latencyA) < 1.0, "the latency does not change while recording");

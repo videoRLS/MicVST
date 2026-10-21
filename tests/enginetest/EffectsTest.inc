@@ -496,6 +496,7 @@ namespace fxtest
             juce::String err;
             std::pair<double, int64_t> off0, on0, quiet, offAgain, playback, after;
             double cableDuring = -999.0;
+            float playbackJump = 0.0f;
             bool recorded = false, idle = false;
             int monitorHiccups = 0;
             {
@@ -520,7 +521,7 @@ namespace fxtest
                 check (e.startTestRecording().isEmpty(), "test recording starts (headphones VSpeakers)");
                 for (int k = 0; k < 120 && e.getTestState() == AudioEngine::TestState::recording; ++k) pump (0.1);
                 recorded = e.getTestState() == AudioEngine::TestState::playing;
-                pres.speakerPeak = 0.0f; pres.speakerSamples = 0;
+                pres.speakerPeak = 0.0f; pres.speakerSamples = 0; pres.speakerJump = 0.0f;
                 juce::String perSecond;
                 float overall = 0.0f;
                 for (int k = 0; k < 130 && e.getTestState() == AudioEngine::TestState::playing; ++k)
@@ -535,6 +536,7 @@ namespace fxtest
                 }
                 overall = std::max (overall, pres.speakerPeak.load());
                 playback = { 20.0 * std::log10 (std::max (1.0e-9, (double) overall)), pres.speakerSamples.load() };
+                playbackJump = pres.speakerJump.load();
                 pr ("    headphone peak per second during the playback: " + perSecond);
                 idle = e.getTestState() == AudioEngine::TestState::idle;
                 const int64_t cableNow = vdev::recorder().available.load();
@@ -566,6 +568,14 @@ namespace fxtest
             check (playback.second > (int64_t) (5.0 * 48000.0) && (std::abs (playback.first - (expectDb - 12.0)) < 0.6 || (monitorHiccups > 0 && std::abs (playback.first - (expectDb - 12.0)) < 2.0)),
                    "test recording: heard on the headphones at the headphone volume (-12 dB)");
             check (std::abs (cableDuring - expectDb) < 0.5, "the cable keeps its audio while the test recording plays");
+            {
+                // a sine of amplitude A changes by at most A (2 pi f / fs)^2 between samples; the playback's
+                // start and end are faded (10 ms), so no sample may jump more than 3x that (a cut: ~60x)
+                const double a = std::pow (10.0, (expectDb - 12.0) / 20.0);
+                const double limit = 3.0 * a * std::pow (juce::MathConstants<double>::twoPi * 997.0 / 48000.0, 2.0);
+                pr ("test recording playback: largest sample jump " + juce::String (playbackJump, 6) + " (smooth sine: " + juce::String (limit / 3.0, 6) + ")");
+                check (playbackJump < limit || monitorHiccups > 0, "test recording playback starts and ends without a click (10 ms fades)");
+            }
             check (after.second == 0, "after the test recording the headphone device is closed again (monitoring off)");
         }
 

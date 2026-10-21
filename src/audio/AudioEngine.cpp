@@ -675,6 +675,20 @@ void AudioEngine::processQueuedInput() noexcept
                 if (n > 0) juce::FloatVectorOperations::copy (d, testBuffer.getReadPointer (c, at), n);
                 if (n < bs) juce::FloatVectorOperations::clear (d + n, bs - n);
             }
+            // 10 ms raised-cosine fade in at the start and out at the end of the recording: a voice
+            // cut off mid-wave is a click (and the headphone resampler's overshoot)
+            const int fadeLen = juce::jmax (1, (int) (0.01 * sr));
+            if (n > 0 && (at < fadeLen || total - (at + n) < fadeLen))
+                for (int i = 0; i < n; ++i)
+                {
+                    const int pos = at + i;
+                    const double gIn  = pos < fadeLen ? 0.5 - 0.5 * std::cos (juce::MathConstants<double>::pi * (pos + 0.5) / fadeLen) : 1.0;
+                    const int left = total - 1 - pos;
+                    const double gOut = left < fadeLen ? 0.5 - 0.5 * std::cos (juce::MathConstants<double>::pi * (left + 0.5) / fadeLen) : 1.0;
+                    const float g = (float) (gIn * gOut);
+                    rawBlock.getWritePointer (0)[i] *= g;
+                    rawBlock.getWritePointer (1)[i] *= g;
+                }
             testPos.store (at + n, std::memory_order_release);
             const float* rec[] = { rawBlock.getReadPointer (0), rawBlock.getReadPointer (1) };
             monitor.push (rec, bs, captureTime, pushTime);

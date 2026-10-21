@@ -170,6 +170,7 @@ namespace vdev
         std::atomic<bool> micOpenFails { false }, cableOpenFails { false };   // listed, but open() fails (held exclusively by another program)
         std::atomic<int>  openAttempts { 0 };                                  // open() calls of VMic / VCable
         std::atomic<float> speakerPeak { 0.0f };
+        std::atomic<float> speakerJump { 0.0f };   // largest |x[n+1] - 2 x[n] + x[n-1]| (clicks)
         std::atomic<int64_t> speakerSamples { 0 };
     };
     inline Presence& presence() { static Presence p; return p; }
@@ -349,6 +350,7 @@ namespace vdev
         {
             const double period = block / sampleRate;
             std::vector<float> l ((size_t) block), rr ((size_t) block);
+            float p1 = 0.0f, p2 = 0.0f;   // the last two samples of the previous block
             double next = now();
             while (! threadShouldExit())
             {
@@ -356,8 +358,16 @@ namespace vdev
                 sleepUntil (next);
                 float* outs[] = { l.data(), rr.data() };
                 callBack (nullptr, 0, outs, 2);
-                float pk = 0; for (auto v : l) pk = std::max (pk, std::abs (v));
+                float pk = 0, jump = 0;
+                for (int i = 0; i < block; ++i)
+                {
+                    const float v = l[(size_t) i];
+                    pk = std::max (pk, std::abs (v));
+                    jump = std::max (jump, std::abs (v - 2.0f * p1 + p2));
+                    p2 = p1; p1 = v;
+                }
                 if (pk > presence().speakerPeak.load()) presence().speakerPeak = pk;
+                if (jump > presence().speakerJump.load()) presence().speakerJump = jump;
                 if (pk > 1.0e-4f) presence().speakerSamples += block;
             }
         }

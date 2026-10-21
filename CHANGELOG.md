@@ -17,6 +17,8 @@ project follows [Semantic Versioning](https://semver.org/).
   audio) converts and writes; the WAV
   header is rewritten every second (a crash keeps everything up to the last second); a full disk
   or a write error stops the recording with a message. Settings saved in config.xml.
+- Deneme kaydı: the playback on the headphones fades in and out (10 ms); before, it started and
+  ended with a cut - a click (measured: one sample jumped by the full amplitude of the voice).
 - The developer signature is no longer shown (main window footer, Ayarlar > Hakkında).
 - İşlem önceliği (process priority) in the window: Normal (default), Normalin Üstünde, Yüksek.
   Applied at once, read back from Windows, saved; the audio threads stay MMCSS in every case.
