@@ -53,6 +53,7 @@ private:
     DevicePanel soundPanel;
     RecordingPanel recordingPanel;
     CuePanel cuePanel;
+    juce::Label cueHeading;
     std::unique_ptr<HotkeyDialog> hotkeys;
     juce::Label noHotkeys;
     juce::Label languageLabel, themeLabel;

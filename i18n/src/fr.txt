@@ -4,668 +4,676 @@
 (non connecté)
 @@2
 (code d'erreur
-@@3
-(automatique)
 @@4
-(crête
+(automatique)
 @@5
-(appliquée, relue depuis Windows)
+(crête
 @@6
-(chaîne changée)
+(appliquée, relue depuis Windows)
 @@7
-(cache=
+(chaîne changée)
 @@8
-- chaîne trop lourde
+(cache=
 @@9
-Hz, tampon
+- chaîne trop lourde
 @@10
- bits flottant
+Hz, tampon
 @@11
- bits de conteneur
+ bits flottant
 @@12
-blocs ont duré plus que le temps réel (charge des plug-ins moy.
+ bits de conteneur
 @@13
-bloc(s) concerné(s), ces échantillons ont été coupés. Si le problème persiste, retirez le dernier plug-in ajouté puis ajoutez-le de nouveau.
+blocs ont duré plus que le temps réel (charge des plug-ins moy.
 @@14
-n'a fourni aucun son pendant 3 s - réouverture
+bloc(s) concerné(s), ces échantillons ont été coupés. Si le problème persiste, retirez le dernier plug-in ajouté puis ajoutez-le de nouveau.
 @@15
-dB/oct
+n'a fourni aucun son pendant 3 s - réouverture
 @@16
-fichier(s) à analyser
+dB/oct
 @@17
-fichier=
+fichier(s) à analyser
 @@18
-plug-in(s) ignoré(s) - survolez pour les détails
+fichier=
 @@19
-plug-ins récupérés
+plug-in(s) ignoré(s) - survolez pour les détails
 @@20
-bloc(s) d'entrée abandonné(s) (la sortie s'était arrêtée)
+plug-ins récupérés
 @@21
- canaux
+bloc(s) d'entrée abandonné(s) (la sortie s'était arrêtée)
 @@22
-caractères.
+ canaux
 @@23
-fois (avec un court fondu). Marge de sécurité maintenant
+caractères.
 @@24
-fois, avec un court fondu). À la charge actuelle, la chaîne demande plus de temps processeur que le temps réel.
+fois (avec un court fondu). Marge de sécurité maintenant
 @@25
-bloc(s) du micro abandonné(s) (le traitement des plug-ins s'est arrêté plus d'une seconde)
+fois, avec un court fondu). À la charge actuelle, la chaîne demande plus de temps processeur que le temps réel.
 @@26
-ms sautées (
+bloc(s) du micro abandonné(s) (le traitement des plug-ins s'est arrêté plus d'une seconde)
 @@27
-ms)
+ms sautées (
 @@28
-ms de retard sur le temps réel - son du micro :
+ms)
 @@29
-.
+ms de retard sur le temps réel - son du micro :
 @@30
-| canaux
+.
 @@31
-| sortie
+| canaux
 @@32
- actuellement) ; l'enregistrement sera en 
+| sortie
 @@33
-échantillons (
+ actuellement) ; l'enregistrement sera en 
 @@34
-→
+échantillons (
 @@35
-Écraser "
+→
 @@36
-" : supprimer ce préréglage ? (La chaîne actuelle ne change pas.)
+Écraser "
 @@37
-" n'a pas pu être appliquée : Windows n'a pas autorisé ce changement
+" : supprimer ce préréglage ? (La chaîne actuelle ne change pas.)
 @@38
-" n'a pas pu être chargé. Détails dans le fichier journal (%APPDATA%\MicVST\log.txt).
+" n'a pas pu être appliquée : Windows n'a pas autorisé ce changement
 @@39
-" existe déjà. L'écraser ?
+" n'a pas pu être chargé. Détails dans le fichier journal (%APPDATA%\MicVST\log.txt).
 @@40
-" : retirer de la chaîne ?
+" existe déjà. L'écraser ?
 @@41
-"
+" : retirer de la chaîne ?
 @@42
-« S'écouter » et « Essai d'enregistrement » jouent ici (casque recommandé). Le périphérique n'est utilisé que pendant l'un des deux ; les autres programmes peuvent continuer à l'utiliser. Le curseur à droite règle le volume d'écoute (il n'affecte pas le câble).
+"
 @@43
-' ouvert (tentative
+« S'écouter » et « Essai d'enregistrement » jouent ici (casque recommandé). Le périphérique n'est utilisé que pendant l'un des deux ; les autres programmes peuvent continuer à l'utiliser. Le curseur à droite règle le volume d'écoute (il n'affecte pas le câble).
 @@44
-' contient plusieurs plug-ins ; l'ancien fichier de réglages n'a pas enregistré lequel était utilisé - le premier a été chargé. Ajoutez une fois de nouveau le bon plug-in.
+' ouvert (tentative
 @@45
-' ne s'est pas ouvert en mode faible latence (
+' contient plusieurs plug-ins ; l'ancien fichier de réglages n'a pas enregistré lequel était utilisé - le premier a été chargé. Ajoutez une fois de nouveau le bon plug-in.
 @@46
-' est dans la liste mais ne peut pas être ouvert (un autre programme l'utilise peut-être en exclusivité) - tentative
+' ne s'est pas ouvert en mode faible latence (
 @@47
-(inconnu)
+' est dans la liste mais ne peut pas être ouvert (un autre programme l'utilise peut-être en exclusivité) - tentative
 @@48
-(modifié) :
+(inconnu)
 @@49
-(aucun dossier supplémentaire)
+(modifié) :
 @@50
-(aucun pour l'instant - ajoutez-en avec « Enregistrer »)
+(aucun dossier supplémentaire)
 @@51
-(aucun choix)
+(aucun pour l'instant - ajoutez-en avec « Enregistrer »)
 @@52
-(nouveau) :
+(aucun choix)
 @@53
-(aucun)
+(nouveau) :
 @@54
-(forcé) :
+(aucun)
 @@55
-) - nouvel essai en mode partagé
+(forcé) :
 @@56
-+ Plug-in
+) - nouvel essai en mode partagé
 @@57
-, sans accès Internet)
++ Plug-in
 @@58
-, fréquence de traitement 
+, sans accès Internet)
 @@59
-, en attente du processeur le reste du temps
+, fréquence de traitement 
 @@60
-, échantillons perdus : 
+, en attente du processeur le reste du temps
 @@61
-, crête
+, échantillons perdus : 
 @@62
-, limitation des minuteurs désactivée
+, crête
 @@63
- ; nouvel essai automatique (au plus toutes les 10 s)
+, limitation des minuteurs désactivée
 @@64
-)
+ ; nouvel essai automatique (au plus toutes les 10 s)
 @@65
-. Priorité actuelle :
+)
 @@66
-Atténue la zone 0,8-1,3 kHz : un médium nasillard et dur s'adoucit.
+. Priorité actuelle :
 @@67
-Parlez 10 secondes ; MicVST enregistre et joue aussitôt votre voix traitée sur la sortie « Casque ». Pendant ce temps, le câble continue d'envoyer la voix en direct. Cliquez pour arrêter.
+Atténue la zone 0,8-1,3 kHz : un médium nasillard et dur s'adoucit.
 @@68
-12 dB/oct
+Parlez 10 secondes ; MicVST enregistre et joue aussitôt votre voix traitée sur la sortie « Casque ». Pendant ce temps, le câble continue d'envoyer la voix en direct. Cliquez pour arrêter.
 @@69
-Renforce la zone 120-250 Hz avec une courbe large : un son plus plein et plus rond. Trop rend le son étouffé.
+12 dB/oct
 @@70
-24 bits : 144 dB de dynamique, s'ouvre dans tous les logiciels (recommandé). 16 bits : qualité CD, arrondi avec dither. 32 bits flottant : le son interne de MicVST à l'identique, jamais écrêté.
+Renforce la zone 120-250 Hz avec une courbe large : un son plus plein et plus rond. Trop rend le son étouffé.
 @@71
-24 dB/oct
+24 bits : 144 dB de dynamique, s'ouvre dans tous les logiciels (recommandé). 16 bits : qualité CD, arrondi avec dither. 32 bits flottant : le son interne de MicVST à l'identique, jamais écrêté.
 @@72
-Renforce la zone 3-5 kHz : meilleure intelligibilité. Trop rend le son dur.
+24 dB/oct
 @@73
-Atténue la zone 300-500 Hz : moins de son boueux et « en boîte ».
+Renforce la zone 3-5 kHz : meilleure intelligibilité. Trop rend le son dur.
 @@74
-44,1 kHz est le standard musique/CD, 48 kHz celui de la vidéo et de la diffusion. Les fréquences plus élevées ne sont proposées que si le micro fonctionne à cette fréquence : suréchantillonner un son n'ajoute aucune qualité.
+Atténue la zone 300-500 Hz : moins de son boueux et « en boîte ».
 @@75
- ; taux d'exécution du thread
+44,1 kHz est le standard musique/CD, 48 kHz celui de la vidéo et de la diffusion. Les fréquences plus élevées ne sont proposées que si le micro fonctionne à cette fréquence : suréchantillonner un son n'ajoute aucune qualité.
 @@76
- ; le son a attendu au plus
+ ; taux d'exécution du thread
 @@77
-ASMR / Chuchotement
+ ; le son a attendu au plus
 @@78
-Nom
+ASMR / Chuchotement
 @@79
-Le nom peut comporter au plus
+Nom
 @@80
-Détection
-@@81
-Coupe-bas de détection
+Le nom peut comporter au plus
 @@82
-Coupe-bas (Low-Cut)
+Détection
 @@83
-Plateau grave
+Coupe-bas de détection
 @@84
-Améthyste
+Coupe-bas (Low-Cut)
 @@85
-Instantané (400 ms)
+Plateau grave
 @@86
-Réduction actuelle :
+Améthyste
 @@87
-Plage (LRA)
+Instantané (400 ms)
 @@88
-Langue de l'interface. Par défaut : Türkçe (turc).
+Réduction actuelle :
 @@89
-Temps d'attaque
+Plage (LRA)
 @@90
-Ignorer
+Langue de l'interface. Par défaut : Türkçe (turc).
 @@91
-Réessayer les plug-ins ignorés
+Temps d'attaque
 @@92
-Préréglage introuvable.
+Ignorer
 @@93
-Impossible de charger le préréglage
+Réessayer les plug-ins ignorés
 @@94
-Paramètres
+Préréglage introuvable.
 @@95
-Enregistrer le préréglage
+Impossible de charger le préréglage
 @@96
-Supprimer le préréglage
+Paramètres
 @@97
-Clair
+Enregistrer le préréglage
 @@98
-Réduction
+Supprimer le préréglage
 @@99
-Activé
+Clair
 @@100
-Temps d'ouverture
-@@101
-Bande
+Réduction
 @@102
-Bande 1 Q
+Activé
 @@103
-Bande 1 fréquence
-@@104
-Bande 1 gain
+Temps d'ouverture
 @@105
-Bande 1 type
+Bande
 @@106
-Bande 2 Q
+Bande 1 Q
 @@107
-Bande 2 fréquence
+Bande 1 fréquence
 @@108
-Bande 2 gain
+Bande 1 gain
 @@109
-Bande 2 type
+Bande 1 type
 @@110
-Bande 3 Q
+Bande 2 Q
 @@111
-Bande 3 fréquence
+Bande 2 fréquence
 @@112
-Bande 3 gain
+Bande 2 gain
 @@113
-Bande 3 type
+Bande 2 type
 @@114
-Bande 4 Q
+Bande 3 Q
 @@115
-Bande 4 fréquence
+Bande 3 fréquence
 @@116
-Bande 4 gain
+Bande 3 gain
 @@117
-Bande 4 type
+Bande 3 type
 @@118
-Réverbération de pièce simple. Pour la voix, un faible mélange (5-15 %) est recommandé.
+Bande 4 Q
 @@119
-Certains plug-ins sont introuvables
+Bande 4 fréquence
 @@120
-Autre niveau (modifié de l'extérieur)
+Bande 4 gain
 @@121
-Ajoutez des plug-ins VST3 situés ailleurs, analysez à nouveau tous les plug-ins ou réinitialisez le programme.
+Bande 4 type
 @@122
-Maintien
+Réverbération de pièce simple. Pour la voix, un faible mélange (5-15 %) est recommandé.
 @@123
-Mon préréglage
+Certains plug-ins sont introuvables
 @@124
-Élément interne inconnu ignoré :
+Autre niveau (modifié de l'extérieur)
 @@125
-Saisissez un nom.
+Ajoutez des plug-ins VST3 situés ailleurs, analysez à nouveau tous les plug-ins ou réinitialisez le programme.
 @@126
-Format
+Maintien
 @@127
+Mon préréglage
+@@131
+Élément interne inconnu ignoré :
+@@132
+Saisissez un nom.
+@@133
+Format
+@@134
 Ce nom est celui d'un préréglage d'usine ; choisissez un autre nom.
-@@128
+@@135
 Un préréglage portant ce nom existe déjà.
-@@129
+@@136
 Ces plug-ins du préréglage sont absents de cet ordinateur ou n'ont pas pu être chargés ; il a été chargé sans eux :
 
-@@130
-Impossible de démarrer l'enregistrement dans ce format : 
-@@131
-Ce fichier n'est pas un préréglage MicVST : 
-@@132
-Remet tous les réglages de cet effet à leurs valeurs initiales
-@@133
-Impossible d'écrire dans ce dossier (pas d'autorisation ou lecture seule) : 
-@@134
-Ce raccourci est déjà utilisé par l'autre action. Choisissez une autre touche.
-@@135
-Cette touche est indisponible : un autre programme l'utilise peut-être. Choisissez une autre touche.
-@@136
-Sous quel nom enregistrer cette chaîne (tous les effets et plug-ins, avec leurs réglages) ?
 @@137
-Choisissez ici « CABLE Input » ; dans des programmes comme Discord ou OBS, choisissez « CABLE Output » comme microphone.
+Impossible de démarrer l'enregistrement dans ce format : 
 @@138
-Temps de relâchement
+Ce fichier n'est pas un préréglage MicVST : 
 @@139
-Chorus
+Remet tous les réglages de cet effet à leurs valeurs initiales
 @@140
-Chorus / Élargisseur stéréo
+Impossible d'écrire dans ce dossier (pas d'autorisation ou lecture seule) : 
 @@141
-Chorus : une voix doublée qui ondule doucement. Élargisseur : étale une voix mono en stéréo ; quand les deux canaux sont additionnés (mono), le son ne change pas.
+Ce raccourci est déjà utilisé par l'autre action. Choisissez une autre touche.
 @@142
-Périphérique introuvable :
+Cette touche est indisponible : un autre programme l'utilise peut-être. Choisissez une autre touche.
 @@143
-Périphérique rouvert :
+Sous quel nom enregistrer cette chaîne (tous les effets et plug-ins, avec leurs réglages) ?
 @@144
-Périphérique reconnecté, ouverture :
+Choisissez ici « CABLE Input » ; dans des programmes comme Discord ou OBS, choisissez « CABLE Output » comme microphone.
 @@145
-Suppression du décalage DC
+Temps de relâchement
 @@146
-Intégré
+Chorus
 @@147
-Intégré - Dynamique
+Chorus / Élargisseur stéréo
 @@148
-Intégré - Couleur et espace
+Chorus : une voix doublée qui ondule doucement. Élargisseur : étale une voix mono en stéréo ; quand les deux canaux sont additionnés (mono), le son ne change pas.
 @@149
-Intégré - Niveau et protection
+Périphérique introuvable :
 @@150
-Intégré - Nettoyage
+Périphérique rouvert :
 @@151
-Intégré - Timbre et EQ
+Périphérique reconnecté, ouverture :
 @@152
-Intégré - Temps et canaux
+Suppression du décalage DC
 @@153
-Intégré - Mesure
+Intégré
 @@154
-Étroitesse (Q)
+Intégré - Dynamique
 @@155
-De-esser
+Intégré - Couleur et espace
 @@156
-Essai d'enregistrement
+Intégré - Niveau et protection
 @@157
-Lecture de l'essai d'enregistrement : 
+Intégré - Nettoyage
 @@158
-Surveillance :
+Intégré - Timbre et EQ
 @@159
-Balance (- gauche / + droite)
+Intégré - Temps et canaux
 @@160
-Pro équilibré
+Intégré - Mesure
 @@161
-Profond et chaud
+Étroitesse (Q)
 @@162
-Modifier...
+De-esser
 @@163
-Langue
+Essai d'enregistrement
 @@164
-Langue :
+Lecture de l'essai d'enregistrement : 
 @@165
-Disque plein (moins de 30 Mo libres) : enregistrement arrêté.
+Surveillance :
 @@166
-Le nom du fichier est la date et l'heure (MicVST_2026-10-21_21-58-03.wav) ; un enregistrement existant n'est jamais écrasé.
+Balance (- gauche / + droite)
 @@167
-Le fichier n'a pas pu être vérifié.
+Pro équilibré
 @@168
-Fichier vérifié : la partie enregistrée est complète.
+Profond et chaud
 @@169
-Impossible de lire le fichier :
+Modifier...
 @@170
-Impossible de créer le fichier : 
+Langue
 @@171
-Impossible d'écrire le fichier :
-@@172
-Fichier : 
+Langue :
 @@173
-Importer depuis un fichier...
+Disque plein (moins de 30 Mo libres) : enregistrement arrêté.
 @@174
-Exporter vers un fichier (pour partager)...
+Le nom du fichier est la date et l'heure (MicVST_2026-10-21_21-58-03.wav) ; un enregistrement existant n'est jamais écrasé.
 @@175
-Arrêté - périphérique non connecté
+Le fichier n'a pas pu être vérifié.
 @@176
-Quatre bandes, chacune avec type, fréquence, gain et Q. Une bande à 0 dB de gain ne change pas le son.
+Fichier vérifié : la partie enregistrée est complète.
 @@177
-Rechercher des plug-ins...
+Impossible de lire le fichier :
 @@178
-Plug-in introuvable :
+Impossible de créer le fichier : 
 @@179
-Thread des plug-ins :
+Impossible d'écrire le fichier :
 @@180
-Traitement des plug-ins bloqué :
+Fichier : 
 @@181
-Impossible de charger le plug-in
+Importer depuis un fichier...
 @@182
-Impossible de charger le plug-in :
+Exporter vers un fichier (pour partager)...
 @@183
-La chaîne de plug-ins a produit un son inutilisable (NaN, infini, valeur absurde ou erreur) :
+Arrêté - périphérique non connecté
 @@184
-Cache des plug-ins absent ou endommagé -> analyse complète
-@@185
-Son invalide d'un plug-in (coupé) :
+Quatre bandes, chacune avec type, fréquence, gain et Q. Une bande à 0 dB de gain ne change pas le son.
 @@186
-Plug-ins
+Rechercher des plug-ins...
 @@187
-Analyse des plug-ins...
+Plug-in introuvable :
 @@188
-Contourner temporairement le plug-in (le son le saute)
+Thread des plug-ins :
 @@189
-Retirer le plug-in
+Traitement des plug-ins bloqué :
 @@190
-Retirer le plug-in de la chaîne
+Impossible de charger le plug-in
 @@191
-Réduction maximale
+Impossible de charger le plug-in :
 @@192
-Voix d'homme -
+La chaîne de plug-ins a produit un son inutilisable (NaN, infini, valeur absurde ou erreur) :
 @@193
-Préréglages voix d'homme
+Cache des plug-ins absent ou endommagé -> analyse complète
 @@194
-Actif
+Son invalide d'un plug-in (coupé) :
 @@195
-Oui
+Plug-ins
 @@196
-Pente
+Analyse des plug-ins...
 @@197
-Seuil
+Contourner temporairement le plug-in (le son le saute)
 @@198
-FLAC est sans perte à tous les niveaux ; seuls la taille du fichier et le temps processeur changent.
+Retirer le plug-in
 @@199
-FLAC est sans perte : décodé, il est identique au WAV bit pour bit.
+Retirer le plug-in de la chaîne
 @@200
-Souris 4 (précédent)
+Réduction maximale
 @@201
-Souris 5 (suivant)
+Voix d'homme -
 @@202
-Impossible d'activer le raccourci souris. Réessayez ou choisissez une touche du clavier.
+Préréglages voix d'homme
 @@203
-Inversion de phase, un canal sur les deux, inversion des canaux, somme mono et balance gauche-droite.
+Actif
 @@204
-Dialogue de film
+Oui
 @@205
-Fréquence
+Pente
 @@206
-Nuit (par défaut)
+Seuil
 @@207
-Minuit (noir)
+FLAC est sans perte à tous les niveaux ; seuls la taille du fichier et le temps processeur changent.
 @@208
-Retard
+FLAC est sans perte : décodé, il est identique au WAV bit pour bit.
 @@209
-Delay / Écho
+Souris 4 (précédent)
 @@210
-Corrections de latence :
+Souris 5 (suivant)
 @@211
-Réducteur nasal
+Impossible d'activer le raccourci souris. Réessayez ou choisissez une touche du clavier.
 @@212
-Largeur
+Inversion de phase, un canal sur les deux, inversion des canaux, somme mono et balance gauche-droite.
 @@213
-Largeur (Q)
+Dialogue de film
 @@214
-Annuler
+Fréquence
 @@215
-Réinjection
+Nuit (par défaut)
 @@216
-Crête vraie
+Minuit (noir)
 @@217
-Blocs de plug-in en retard (rattrapés sans coupure) :
+Retard
 @@218
-Entrée
+Delay / Écho
 @@219
-Entrée (microphone) =
+Corrections de latence :
 @@220
-Entrée démarrée :
+Réducteur nasal
 @@221
-Impossible d'ouvrir le périphérique d'entrée !
+Largeur
 @@222
-Impossible d'ouvrir le périphérique d'entrée : '
+Largeur (Q)
 @@223
-Impossible de démarrer le périphérique d'entrée !
+Annuler
 @@224
-Erreur du périphérique d'entrée :
+Réinjection
 @@225
-Gain d'entrée
+Crête vraie
 @@226
-Les périphériques d'entrée et de sortie n'ont pas de fréquence d'échantillonnage commune !
+Blocs de plug-in en retard (rattrapés sans coupure) :
 @@227
-Relative (par rapport à la voix)
+Entrée
 @@228
-Apparence et démarrage
+Entrée (microphone) =
 @@229
-Corps / Chaleur
+Entrée démarrée :
 @@230
-Coucher de soleil
+Impossible d'ouvrir le périphérique d'entrée !
 @@231
-Noise gate (porte de bruit)
+Impossible d'ouvrir le périphérique d'entrée : '
 @@232
-Marge de sécurité
+Impossible de démarrer le périphérique d'entrée !
 @@233
-Présentateur du journal
+Erreur du périphérique d'entrée :
 @@234
-Ajoute de légères harmoniques (suréchantillonnage 4x, anti-repliement). Le niveau est compensé automatiquement.
+Gain d'entrée
 @@235
-À propos
+Les périphériques d'entrée et de sortie n'ont pas de fréquence d'échantillonnage commune !
 @@236
-Brut
+Relative (par rapport à la voix)
 @@237
-Brut (avant / après)
+Apparence et démarrage
 @@238
-Brut : activé (chaîne contournée)
+Corps / Chaleur
 @@239
-Brut : désactivé (son traité)
+Coucher de soleil
 @@240
-Nombre d'harmoniques
+Noise gate (porte de bruit)
 @@241
-Air
+Marge de sécurité
 @@242
-Non
+Présentateur du journal
 @@243
-Préréglage
+Ajoute de légères harmoniques (suréchantillonnage 4x, anti-repliement). Le niveau est compensé automatiquement.
 @@244
-Fichier de préréglage illisible, ignoré :
+À propos
 @@245
-Choisir un fichier de préréglage
+Brut
 @@246
-Préréglage exporté vers : 
+Brut (avant / après)
 @@247
-Préréglage importé : 
+Brut : activé (chaîne contournée)
 @@248
-Choisir un préréglage
+Brut : désactivé (son traité)
 @@249
-Préréglage chargé :
+Nombre d'harmoniques
 @@250
-Préréglages : toute la chaîne change en un clic. « Préréglages voix d'homme » et « Préréglages voix de femme » n'utilisent que les effets intégrés (ils fonctionnent pour tout le monde) ; « Mes préréglages » sont les chaînes que vous avez enregistrées (avec les plug-ins VST3 et leurs réglages). Entre préréglages composés des mêmes éléments, les réglages glissent en douceur ; une chaîne différente change avec un court fondu (quelques ms). * : la chaîne a été modifiée après son chargement.
+Air
 @@251
-Exporter le préréglage vers un fichier
+Non
 @@252
-Maintient chaque crête sous le plafond (crête vraie, anticipation de 3 ms, même méthode que le limiteur du Gain automatique). Placez-le en fin de chaîne.
+Préréglage
 @@253
-Vitesse (chorus uniquement)
+Fichier de préréglage illisible, ignoré :
 @@254
-Guide d'installation rapide
+Choisir un fichier de préréglage
 @@255
-Sonie ITU-R BS.1770 / EBU R128 : instantanée (400 ms), court terme (3 s), intégrée et crête vraie. Ne modifie pas le son.
+Préréglage exporté vers : 
 @@256
-Câble
+Préréglage importé : 
 @@257
-Enregistre dans un fichier ce qui part vers le câble (ce qu'entend votre interlocuteur). Cliquez pour démarrer, recliquez pour arrêter.
+Choisir un préréglage
 @@258
-Voix de femme -
+Préréglage chargé :
 @@259
-Préréglages voix de femme
+Préréglages : toute la chaîne change en un clic. « Préréglages voix d'homme » et « Préréglages voix de femme » n'utilisent que les effets intégrés (ils fonctionnent pour tout le monde) ; « Mes préréglages » sont les chaînes que vous avez enregistrées (avec les plug-ins VST3 et leurs réglages). Entre préréglages composés des mêmes éléments, les réglages glissent en douceur ; une chaîne différente change avec un court fondu (quelques ms). * : la chaîne a été modifiée après son chargement.
 @@260
-Retirer
+Exporter le préréglage vers un fichier
 @@261
-Qualité
+Maintient chaque crête sous le plafond (crête vraie, anticipation de 3 ms, même méthode que le limiteur du Gain automatique). Placez-le en fin de chaîne.
 @@262
-Canal
+Vitesse (chorus uniquement)
 @@263
-Outils de canal (Phase / Canal / Balance)
+Guide d'installation rapide
 @@264
-Inverser les canaux
+Sonie ITU-R BS.1770 / EBU R128 : instantanée (400 ms), court terme (3 s), intégrée et crête vraie. Ne modifie pas le son.
 @@265
-Désactivé
+Câble
 @@266
-Temps de fermeture
+Enregistre dans un fichier ce qui part vers le câble (ce qu'entend votre interlocuteur). Cliquez pour démarrer, recliquez pour arrêter.
 @@267
-Porte : ouverte
+Voix de femme -
 @@268
-Porte : atténue de 
+Préréglages voix de femme
 @@269
-Mélange
+Retirer
 @@270
-Mélange (chorus uniquement)
+Qualité
 @@271
-Enregistré : 
+Canal
 @@272
-Impossible de vérifier le fichier enregistré :
+Outils de canal (Phase / Canal / Balance)
 @@273
-Enregistré : le son traité envoyé au câble (ce qu'entend votre interlocuteur). Fichier : 
+Inverser les canaux
 @@274
-Enregistrement... 
+Désactivé
 @@275
-Enregistrement : 
-@@276
-Enregistrer
+Temps de fermeture
 @@277
-Démarrer l'enregistrement
+Porte : ouverte
 @@278
-Arrêter l'enregistrement
+Porte : atténue de 
 @@279
-Échantillons perdus : 
+Mélange
 @@280
-Enregistrer
+Mélange (chorus uniquement)
+@@281
+Enregistré : 
 @@282
-Enregistrement démarré : 
+Impossible de vérifier le fichier enregistré :
 @@283
-Impossible de démarrer l'enregistrement : 
+Enregistré : le son traité envoyé au câble (ce qu'entend votre interlocuteur). Fichier : 
 @@284
-Enregistrement terminé et sauvegardé.
+Enregistrement... 
 @@285
-Enregistrement terminé : 
+Enregistrement : 
 @@286
-Impossible d'ouvrir le fichier d'enregistrement (délai dépassé) : 
+Enregistrer
 @@287
-Impossible d'écrire dans le fichier (disque plein ou retiré ?) : 
+Démarrer l'enregistrement
 @@288
-Impossible de créer le dossier d'enregistrement : 
+Arrêter l'enregistrement
 @@289
-Choisissez le dossier d'enregistrement
+Échantillons perdus : 
 @@290
-Plus de place sur le disque du dossier (moins de 100 Mo) : 
+Enregistrer
 @@291
-Réglages verrouillés pendant l'enregistrement ; les changements s'appliquent au suivant.
+Enregistrement
+    - Le bouton « Enregistrer » enregistre dans un fichier ce qui part vers le câble (ce qu'entend
+      votre interlocuteur) ; un nouveau clic l'arrête : le fichier est fermé et vérifié. Le menu de
+      l'icône près de l'horloge peut aussi le démarrer et l'arrêter.
+    - « Réglages > Enregistrer » : format (WAV, FLAC, MP3), qualité, fréquence, canaux et
+      dossier. Par défaut : WAV 24 bits, 48 kHz, stéréo ; Documents\MicVST Kayıtları.
+    - Le nom du fichier est la date et l'heure ; un enregistrement existant n'est jamais écrasé.
 @@292
-Un enregistrement est déjà en cours
+Enregistrement démarré : 
 @@293
-Gain
+Impossible de démarrer l'enregistrement : 
 @@294
-Gain
+Enregistrement terminé et sauvegardé.
 @@295
-Gain : de -30 dB à +12 dB par pas de 0,1 dB (vous pouvez aussi saisir la valeur). Un double-clic revient à 0 dB. Pour éviter l'écrêtage, placez le Gain avant le limiteur ; la ligne de crête de l'indicateur de sortie devient rouge à 0 dB.
+Enregistrement terminé : 
 @@296
-Mes préréglages
+Impossible d'ouvrir le fichier d'enregistrement (délai dépassé) : 
 @@297
-S'écouter
+Impossible d'écrire dans le fichier (disque plein ou retiré ?) : 
 @@298
-Couper
+Impossible de créer le dossier d'enregistrement : 
 @@299
-Dossier
+Choisissez le dossier d'enregistrement
 @@300
-Ajouter un dossier...
+Plus de place sur le disque du dossier (moins de 100 Mo) : 
 @@301
-Impossible de créer le dossier :
+Réglages verrouillés pendant l'enregistrement ; les changements s'appliquent au suivant.
 @@302
-Ouvrir le dossier
+Un enregistrement est déjà en cours
 @@303
-Compresseur
+Gain
 @@304
-Quand vous ne parlez pas (le son est sous le seuil), il baisse le son de la valeur « Atténuation » : bruit de la pièce, ventilateur, clavier. Il anticipe de 3 ms : le début des mots n'est pas coupé. Réglez le seuil un peu au-dessus du bruit de la pièce et sous votre voix ; un seuil trop haut coupe les syllabes douces.
+Gain
 @@305
-Copier
+Gain : de -30 dB à +12 dB par pas de 0,1 dB (vous pouvez aussi saisir la valeur). Un double-clic revient à 0 dB. Pour éviter l'écrêtage, placez le Gain avant le limiteur ; la ligne de crête de l'indicateur de sortie devient rouge à 0 dB.
 @@306
-Clarté cristalline
-@@307
-Casque
+Mes préréglages
 @@308
-Impossible d'ouvrir la sortie casque : 
+S'écouter
 @@309
-Sortie casque ouverte : 
+Couper
 @@310
-Aide
+Dossier
 @@311
-Configuration : entrée
+Ajouter un dossier...
 @@312
-Pont :
-@@313
-Pont : latence ramenée à la cible (total
+Impossible de créer le dossier :
 @@314
-Pont : son interrompu en sortie,
+Ouvrir le dossier
 @@315
-Cendre
+Compresseur
 @@316
-Court terme (3 s)
+Quand vous ne parlez pas (le son est sous le seuil), il baisse le son de la valeur « Atténuation » : bruit de la pièce, ventilateur, clavier. Il anticipe de 3 ms : le début des mots n'est pas coupé. Réglez le seuil un peu au-dessus du bruit de la pièce et sous votre voix ; un seuil trop haut coupe les syllabes douces.
 @@317
-Un raccourci peut être une touche du clavier (aussi avec Ctrl / Alt / Maj), le bouton central de la souris, les boutons latéraux (4 / 5) ou la molette avec Ctrl / Alt / Maj. Les raccourcis fonctionnent aussi quand MicVST est en arrière-plan ; tant que MicVST est ouvert, la touche ou le bouton d'un raccourci actif ne parvient pas aux autres programmes - si besoin, choisissez-en un autre ou désactivez-le.
+Copier
 @@318
-Raccourcis
+Clarté cristalline
 @@319
-Les raccourcis fonctionnent aussi quand MicVST est en arrière-plan. Tant que MicVST tourne, la touche d'un raccourci actif n'atteint plus les autres programmes - si besoin, choisissez une autre touche ou désactivez-le.
+Casque
 @@320
-Atténuation
+Impossible d'ouvrir la sortie casque : 
 @@321
-LAME 4.0. CBR : débit constant, lisible partout. VBR : débit variable, fichier plus petit à qualité égale.
+Sortie casque ouverte : 
 @@322
-Mesureur LUFS
+Aide
 @@323
-MMCSS 'Pro Audio' (un cran sous les threads des périphériques)
+Configuration : entrée
 @@324
-MMCSS indisponible - priorité critique
+Pont :
 @@325
-Impossible de finaliser le fichier MP3 (disque plein ?)
+Pont : latence ramenée à la cible (total
 @@326
-Impossible de démarrer l'encodeur MP3
+Pont : son interrompu en sortie,
 @@327
-L'encodeur MP3 n'a pas accepté ce réglage : 
+Cendre
 @@328
-Mégaphone
+Court terme (3 s)
 @@329
-Centre
+Un raccourci peut être une touche du clavier (aussi avec Ctrl / Alt / Maj), le bouton central de la souris, les boutons latéraux (4 / 5) ou la molette avec Ctrl / Alt / Maj. Les raccourcis fonctionnent aussi quand MicVST est en arrière-plan ; tant que MicVST est ouvert, la touche ou le bouton d'un raccourci actif ne parvient pas aux autres programmes - si besoin, choisissez-en un autre ou désactivez-le.
 @@330
-MicVST - Paramètres
+Raccourcis
 @@331
-MicVST - Mode d'emploi
+Les raccourcis fonctionnent aussi quand MicVST est en arrière-plan. Tant que MicVST tourne, la touche d'un raccourci actif n'atteint plus les autres programmes - si besoin, choisissez une autre touche ou désactivez-le.
 @@332
-MicVST continue de fonctionner en arrière-plan. Clic droit sur l'icône pour les options.
+Atténuation
 @@333
-Journal MicVST - démarrage :
+LAME 4.0. CBR : débit constant, lisible partout. VBR : débit variable, fichier plus petit à qualité égale.
 @@334
+Mesureur LUFS
+@@335
+MMCSS 'Pro Audio' (un cran sous les threads des périphériques)
+@@336
+MMCSS indisponible - priorité critique
+@@337
+Impossible de finaliser le fichier MP3 (disque plein ?)
+@@338
+Impossible de démarrer l'encodeur MP3
+@@339
+L'encodeur MP3 n'a pas accepté ce réglage : 
+@@340
+Mégaphone
+@@341
+Centre
+@@342
+MicVST - Paramètres
+@@343
+MicVST - Mode d'emploi
+@@344
+MicVST continue de fonctionner en arrière-plan. Clic droit sur l'icône pour les options.
+@@345
+Journal MicVST - démarrage :
+@@346
 Comment utiliser MicVST
 
 1)  Installez un câble audio virtuel
@@ -720,190 +728,190 @@ Comment utiliser MicVST
 Confidentialité
     MicVST ne se connecte jamais à Internet : pas de recherche de mises à jour, pas de
     collecte de données, pas de connexion web.
-@@335
-MicVST fonctionne entièrement hors ligne (il ne se connecte jamais à Internet)
-@@336
-Priorité du processus MicVST dans Windows. Les threads audio (microphone, chaîne de plug-ins, câble) tournent toujours avec la priorité audio temps réel de Windows (MMCSS), quel que soit le choix. Ce réglage fait passer les autres threads de MicVST (fenêtre, indicateurs, changements de périphérique, fenêtres de plug-ins, travail en arrière-plan de certains plug-ins) avant les autres programmes. Normale est recommandée ; si la fenêtre de MicVST ou celle d'un plug-in saccade pendant un jeu lourd ou un traitement vidéo, essayez Supérieure à la normale.
-@@337
-Quitter MicVST
-@@338
-Réinitialiser MicVST
-@@339
-Microphone
-@@340
-Aucun microphone trouvé -> entrée 'aucune'
-@@341
-Pertes du pilote du microphone :
-@@342
-Le microphone ne fonctionne pas
-@@343
-Ajoute (+) la rondeur grave d'une voix proche du micro, ou en réduit l'excès (-).
-@@344
-Son tenu en réserve entre le microphone et le câble. Évite les craquements lors de pointes de charge (jeu lourd, traitement vidéo). « Automatique » commence à 10 ms et augmente seul si le son se coupe. Valeur plus grande : plus robuste, un peu plus de latence.
-@@345
-La fréquence d'échantillonnage du micro a changé : l'enregistrement s'arrête ici.
-@@346
-Choisissez votre microphone ici.
-@@347
-Quantité
 @@348
-Quantité (profondeur / largeur)
+MicVST fonctionne entièrement hors ligne (il ne se connecte jamais à Internet)
 @@349
-Mode
+Priorité du processus MicVST dans Windows. Les threads audio (microphone, chaîne de plug-ins, câble) tournent toujours avec la priorité audio temps réel de Windows (MMCSS), quel que soit le choix. Ce réglage fait passer les autres threads de MicVST (fenêtre, indicateurs, changements de périphérique, fenêtres de plug-ins, travail en arrière-plan de certains plug-ins) avant les autres programmes. Normale est recommandée ; si la fenêtre de MicVST ou celle d'un plug-in saccade pendant un jeu lourd ou un traitement vidéo, essayez Supérieure à la normale.
 @@350
-Mono (suffisant pour la voix, moitié moins lourd)
+Quitter MicVST
 @@351
-Mono (gauche + droite)
+Réinitialiser MicVST
 @@352
-Mono : la moyenne des deux canaux. Avec un micro mono, le son est conservé à l'identique.
-@@353
-Absolue (dBFS)
+Microphone
 @@354
-Présence
+Aucun microphone trouvé -> entrée 'aucune'
 @@355
-Normale
+Pertes du pilote du microphone :
 @@356
-Supérieure à la normale
+Le microphone ne fonctionne pas
 @@357
-Réverbération de pièce
+Ajoute (+) la rondeur grave d'une voix proche du micro, ou en réduit l'excès (-).
 @@358
-Taille de la pièce
+Son tenu en réserve entre le microphone et le câble. Évite les craquements lors de pointes de charge (jeu lourd, traitement vidéo). « Automatique » commence à 10 ms et augmente seul si le son se coupe. Valeur plus grande : plus robuste, un peu plus de latence.
 @@359
-Océan
+La fréquence d'échantillonnage du micro a changé : l'enregistrement s'arrête ici.
 @@360
-Taux
+Choisissez votre microphone ici.
 @@361
-Forêt
+Quantité
 @@362
-Bouton central de la souris
+Quantité (profondeur / largeur)
 @@363
-Automatique (par défaut)
+Mode
 @@364
-Automatique (recommandé)
+Mono (suffisant pour la voix, moitié moins lourd)
 @@365
-Gain automatique
+Mono (gauche + droite)
 @@366
-Gain automatique (Auto Gain)
+Mono : la moyenne des deux canaux. Avec un micro mono, le son est conservé à l'identique.
 @@367
+Absolue (dBFS)
+@@368
+Présence
+@@369
+Normale
+@@370
+Supérieure à la normale
+@@371
+Réverbération de pièce
+@@372
+Taille de la pièce
+@@373
+Océan
+@@374
+Taux
+@@375
+Forêt
+@@376
+Bouton central de la souris
+@@377
+Automatique (par défaut)
+@@378
+Automatique (recommandé)
+@@379
+Gain automatique
+@@380
+Gain automatique (Auto Gain)
+@@381
 Gain automatique : analyse votre voix en direct et amène la crête à environ -20 dBFS en parole normale et à environ -15 dBFS en criant. Le gain change lentement, seulement autant que nécessaire, entre 0 et +6 dB selon votre voix (il ne baisse jamais le son) : il préserve largement les variations naturelles des syllabes et des phrases, et suit en quelques secondes quand votre voix change durablement ; les clics brefs, les plosives « p » et les chocs ne font pas baisser le gain. Aucune crête ne dépasse -10 dBFS (limiteur doux avec anticipation de 3 ms). Dans le silence, il garde exactement le dernier gain ; pas de noise gate, le son n'est jamais coupé. Sa place dans la chaîne se change par glisser-déposer. Une fois désactivé, le gain revient en douceur à 0 dB.
 Affichage : gain appliqué (crête d'entrée -> crête de sortie, dBFS). Blanc : voix détectée, gris : gain maintenu ou désactivé.
-@@368
-Jeu / Streaming
-@@369
-EQ paramétrique
-@@370
-Thème de couleurs de la fenêtre. Par défaut : Nuit.
-@@371
-Ping-pong (droite-gauche)
-@@372
-Podcast / Discussion
-@@373
-Réinitialiser le programme (toutes les données sont supprimées)...
-@@374
-Radio
-@@375
-Animateur radio
-@@376
-Dérive d'horloge micro/câble :
-@@377
-Aucun câble virtuel trouvé -> sortie 'aucune'
-@@378
-Aucun câble audio virtuel trouvé - installez VB-Cable (vb-audio.com/Cable) et redémarrez MicVST
-@@379
-Inverser la phase du canal droit
-@@380
-Canal droit sur les deux
-@@381
-Atténue les sons « s », « ch » et « tch » durs au-dessus de la fréquence choisie, uniquement au moment où ils surviennent. En détection relative, le seuil est le niveau des aigus par rapport à l'ensemble de la voix (-15 dB : atténue quand les aigus s'approchent à 15 dB de l'ensemble de la voix ; indépendant du niveau du micro). Atténue au plus de la valeur « Réduction ».
 @@382
-Son
+Jeu / Streaming
 @@383
-Retard audio (synchro)
+EQ paramétrique
 @@384
-Son rétabli
+Thème de couleurs de la fenêtre. Par défaut : Nuit.
 @@385
-Format audio : flux MicVST et traitement interne en virgule flottante 32 bits ; format du périphérique Windows : entrée 
+Ping-pong (droite-gauche)
 @@386
-Taille des blocs audio. Valeur plus petite : moins de latence mais plus de charge processeur. « Automatique » utilise la valeur propre du périphérique.
+Podcast / Discussion
 @@387
-Impossible d'ouvrir le périphérique audio
+Réinitialiser le programme (toutes les données sont supprimées)...
 @@388
-Impossible d'ouvrir le périphérique audio - un autre programme l'utilise peut-être en exclusivité
+Radio
 @@389
-Son coupé : le câble reçoit du silence. Cliquez pour rétablir le son.
+Animateur radio
 @@390
-Son coupé (muet)
+Dérive d'horloge micro/câble :
 @@391
-Le son ne fonctionne pas : le micro et le câble doivent d'abord être actifs
+Aucun câble virtuel trouvé -> sortie 'aucune'
 @@392
-Son, casque, raccourcis, langue, thème, dossiers VST3
+Aucun câble audio virtuel trouvé - installez VB-Cable (vb-audio.com/Cable) et redémarrez MicVST
 @@393
-Son : arrêté (périphérique non connecté ?)
+Inverser la phase du canal droit
 @@394
-Son : en marche
+Canal droit sur les deux
 @@395
-Rétablir
+Atténue les sons « s », « ch » et « tch » durs au-dessus de la fréquence choisie, uniquement au moment où ils surviennent. En détection relative, le seuil est le niveau des aigus par rapport à l'ensemble de la voix (-15 dB : atténue quand les aigus s'approchent à 15 dB de l'ensemble de la voix ; indépendant du niveau du micro). Atténue au plus de la valeur « Réduction ».
 @@396
-Donne à la voix le son d'un téléphone, d'une vieille radio ou d'un mégaphone.
+Son
 @@397
-Coupe le son sans clic (avec un court fondu). Se commute aussi avec la case de sa ligne.
+Retard audio (synchro)
 @@398
-Coupe le son sans clic (fondu de 15 ms) ; un nouveau clic le rétablit.
+Son rétabli
 @@399
-Coupe le son sans clic (fondu de 15 ms) ; un nouveau clic rétablit le son.
+Format audio : flux MicVST et traitement interne en virgule flottante 32 bits ; format du périphérique Windows : entrée 
 @@400
-Retarde le son de la durée indiquée : pour l'aligner sur l'image (caméra, stream).
+Taille des blocs audio. Valeur plus petite : moins de latence mais plus de charge processeur. « Automatique » utilise la valeur propre du périphérique.
 @@401
-Affiche en direct la répartition fréquentielle du son. Ne modifie pas le son.
+Impossible d'ouvrir le périphérique audio
 @@402
-Baisse les passages forts au-dessus du seuil selon le taux : la voix paraît plus régulière et plus pleine. L'attaque règle la vitesse de réduction, le relâchement la vitesse de retour ; le gain de compensation rajoute le niveau retiré. Un mélange sous 100 % est une compression parallèle.
-@@403
-Voix off / Narrateur
+Impossible d'ouvrir le périphérique audio - un autre programme l'utilise peut-être en exclusivité
 @@404
-Voix off / Documentaire
+Son coupé : le câble reçoit du silence. Cliquez pour rétablir le son.
 @@405
-Livre audio
-@@406
-Muet
+Son coupé (muet)
 @@407
-Couper le son (Mute)
+Le son ne fonctionne pas : le micro et le câble doivent d'abord être actifs
 @@408
-Coupe sous la fréquence choisie : grondement, vibrations du bureau ou du pied et bas des plosives « p ». La base de la voix (~100-140 Hz pour une voix d'homme) est conservée ; au-dessus de 100 Hz n'est pas recommandé.
+Son, casque, raccourcis, langue, thème, dossiers VST3
 @@409
-Coupe au-dessus de la fréquence choisie : souffle et sifflement.
+Son : arrêté (périphérique non connecté ?)
 @@410
-Renforce au-dessus de la fréquence choisie avec une courbe en plateau : brillance et ouverture.
+Son : en marche
 @@411
-La fréquence choisie n'est pas disponible (le micro fonctionne à 
+Rétablir
 @@412
-Le périphérique choisi n'est pas connecté ; il sera ouvert une fois branché :
+Donne à la voix le son d'un téléphone, d'une vieille radio ou d'un mégaphone.
 @@413
-Supprimer
+Coupe le son sans clic (avec un court fondu). Se commute aussi avec la case de sa ligne.
 @@414
-Supprimer...
+Coupe le son sans clic (fondu de 15 ms) ; un nouveau clic le rétablit.
 @@415
-Suppression impossible.
+Coupe le son sans clic (fondu de 15 ms) ; un nouveau clic rétablit le son.
 @@416
-Voix de cinéma
+Retarde le son de la durée indiquée : pour l'aligner sur l'image (caméra, stream).
 @@417
-Supprime un décalage constant (DC) du signal sous 5 Hz. Aucun réglage ; ne change rien d'audible.
+Affiche en direct la répartition fréquentielle du son. Ne modifie pas le son.
 @@418
-Inverser la phase du canal gauche
+Baisse les passages forts au-dessus du seuil selon le taux : la voix paraît plus régulière et plus pleine. L'attaque règle la vitesse de réduction, le relâchement la vitesse de retour ; le gain de compensation rajoute le niveau retiré. Un mélange sous 100 % est une compression parallèle.
 @@419
-Canal gauche sur les deux
+Voix off / Narrateur
 @@420
-Analyseur de spectre
+Voix off / Documentaire
 @@421
-Stéréo
+Livre audio
 @@422
-Stéréo (inchangé)
-@@423
-Élargisseur stéréo
-@@424
 Muet
+@@423
+Couper le son (Mute)
+@@424
+Coupe sous la fréquence choisie : grondement, vibrations du bureau ou du pied et bas des plosives « p ». La base de la voix (~100-140 Hz pour une voix d'homme) est conservée ; au-dessus de 100 Hz n'est pas recommandé.
 @@425
-Couper / rétablir le son
+Coupe au-dessus de la fréquence choisie : souffle et sifflement.
 @@426
+Renforce au-dessus de la fréquence choisie avec une courbe en plateau : brillance et ouverture.
+@@427
+La fréquence choisie n'est pas disponible (le micro fonctionne à 
+@@428
+Le périphérique choisi n'est pas connecté ; il sera ouvert une fois branché :
+@@429
+Supprimer
+@@430
+Supprimer...
+@@431
+Suppression impossible.
+@@432
+Voix de cinéma
+@@433
+Supprime un décalage constant (DC) du signal sous 5 Hz. Aucun réglage ; ne change rien d'audible.
+@@434
+Inverser la phase du canal gauche
+@@435
+Canal gauche sur les deux
+@@436
+Analyseur de spectre
+@@437
+Stéréo
+@@438
+Stéréo (inchangé)
+@@439
+Élargisseur stéréo
+@@440
+Muet
+@@441
+Couper / rétablir le son
+@@443
 Muet, raccourcis, s'écouter
     - « Muet » coupe le son sans clic ; F9 (modifiable) coupe aussi le son quand MicVST
       est en arrière-plan. Changez le raccourci (clavier ou bouton de souris) ou désactivez-le dans « Paramètres > Raccourcis » ; le menu
@@ -914,279 +922,313 @@ Muet, raccourcis, s'écouter
       10 secondes et les rejoue aussitôt dans le casque.
     - « Intégré - Dynamique » : Compresseur et Noise gate. Les préréglages les utilisent avec
       mesure ; le menu « Enregistrer » permet d'exporter un préréglage dans un fichier.
-@@427
-Amortissement
-@@428
-Durée
-@@429
-Durée : 
-@@430
-Saturation (Drive)
-@@431
-Saturation chaude (lampe / bande)
-@@432
-Chaud et plein
-@@433
-Réinitialiser
-@@434
-Réinitialisation : toutes les données supprimées, fermeture du programme
-@@435
-Compression
-@@436
-OK
-@@437
-Tampon
-@@438
-Analyse
-@@439
-Analyse ignorée (
-@@440
-Analyse :
-@@441
-Analyse : exclusion levée (fichier modifié ou supprimé) :
-@@442
-Plafond (dBTP)
-@@443
-Incline tout le timbre avec un seul curseur : à gauche chaud (plus de graves, moins d'aigus), à droite brillant.
 @@444
-Molette vers le bas
+Amortissement
 @@445
-Molette vers le haut
+Durée
 @@446
-Écho répété. La réinjection fixe le nombre de répétitions, le Ton leur brillance.
+Durée : 
 @@447
-Gain de compensation
+Saturation (Drive)
 @@448
-Téléphone
+Saturation chaude (lampe / bande)
 @@449
-Téléphone / Radio / Mégaphone
+Chaud et plein
 @@450
-Thème
+Réinitialiser
 @@451
-Thème :
+Réinitialisation : toutes les données supprimées, fermeture du programme
 @@452
-Cloche (Bell)
+Compression
 @@453
-Tilt EQ (équilibre tonal)
+OK
 @@454
-Ton (- chaud / + brillant)
+Tampon
 @@455
-Ton (brillance des répétitions)
+Analyse
 @@456
-Réunion / Cours
+Analyse ignorée (
 @@457
-Touche / bouton de souris...
+Analyse :
 @@458
-Tous les réglages, la liste des plug-ins et la chaîne de plug-ins seront supprimés, puis MicVST se fermera. À la prochaine ouverture, la configuration initiale aura lieu. Continuer ?
+Analyse : exclusion levée (fichier modifié ou supprimé) :
 @@459
-Analyser à nouveau tous les plug-ins
+Plafond (dBTP)
 @@460
-Toute la voix (large bande)
+Incline tout le timbre avec un seul curseur : à gauche chaud (plus de graves, moins d'aigus), à droite brillant.
 @@461
-Intégrée
+Molette vers le bas
 @@462
-Remet à zéro la mesure intégrée, les maxima et la crête vraie
+Molette vers le haut
 @@463
-Tout sélectionner
+Écho répété. La réinjection fixe le nombre de répétitions, le Ton leur brillance.
 @@464
-Lampe
+Gain de compensation
 @@465
-Type
+Téléphone
 @@466
-Cliquez, puis appuyez sur la nouvelle touche ou le bouton de souris (aussi avec Ctrl / Alt / Maj) ; Échap ou un second clic annule
+Téléphone / Radio / Mégaphone
 @@467
-Cliquez pour arrêter et fermer le fichier.
+Thème
 @@468
-Avertissement : '
+Thème :
 @@469
-Anti-ronflement (50/60 Hz)
+Cloche (Bell)
 @@470
-Dossiers VST3
+Tilt EQ (équilibre tonal)
 @@471
-Dossiers VST3 et analyse...
+Ton (- chaud / + brillant)
 @@472
-Choisir un dossier VST3
+Ton (brillance des répétitions)
 @@473
-Par défaut
+Réunion / Cours
 @@474
-Valeurs par défaut
+Touche / bouton de souris...
 @@475
-WAV : sans perte, s'ouvre partout (recommandé). FLAC : sans perte, environ moitié moins lourd. MP3 : avec perte, le plus petit fichier ; pour partager.
+Tous les réglages, la liste des plug-ins et la chaîne de plug-ins seront supprimés, puis MicVST se fermera. À la prochaine ouverture, la configuration initiale aura lieu. Continuer ?
 @@476
-Lance MicVST au démarrage de Windows sous forme d'icône, sans fenêtre
+Analyser à nouveau tous les plug-ins
 @@477
-Démarrer avec Windows
+Toute la voix (large bande)
 @@478
-Par défaut de Windows
+Intégrée
 @@479
-Proximité
+Remet à zéro la mesure intégrée, les maxima et la crête vraie
 @@480
-Aigus seulement (séparé)
+Tout sélectionner
 @@481
-Coller
+Lampe
 @@482
-Nouveau nom :
+Type
 @@483
-Enregistrer comme nouveau préréglage...
+Cliquez, puis appuyez sur la nouvelle touche ou le bouton de souris (aussi avec Ctrl / Alt / Maj) ; Échap ou un second clic annule
 @@484
-Renommer
+Cliquez pour arrêter et fermer le fichier.
 @@485
-Renommer...
+Avertissement : '
 @@486
-Rétablir
+Anti-ronflement (50/60 Hz)
 @@487
-Coude doux
+Dossiers VST3
 @@488
-Doux et velouté
+Dossiers VST3 et analyse...
 @@489
-Haute
+Choisir un dossier VST3
 @@490
-Coupe-haut (High-Cut)
-@@491
-Contraste élevé
+Par défaut
 @@492
-Plateau aigu
+Valeurs par défaut
 @@493
-La chaîne n'a pas suivi, son sauté :
+WAV : sans perte, s'ouvre partout (recommandé). FLAC : sans perte, environ moitié moins lourd. MP3 : avec perte, le plus petit fichier ; pour partager.
 @@494
-Enregistrez la chaîne comme préréglage personnel ; renommez, supprimez ou revenez à la chaîne précédente
+Lance MicVST au démarrage de Windows sous forme d'icône, sans fenêtre
 @@495
-La restauration de la chaîne attend l'analyse des plug-ins
+Démarrer avec Windows
 @@496
-ignoré
+Par défaut de Windows
 @@497
-un autre niveau
+Proximité
 @@498
-inconnu
+Aigus seulement (séparé)
 @@499
-non pris en charge
+Coller
 @@500
-min
+Nouveau nom :
 @@501
-fichier NON vérifié
+Enregistrer comme nouveau préréglage...
 @@502
-fichier vérifié
+Renommer
 @@503
-converti
+Renommer...
 @@504
-plus rapide
+Rétablir
 @@505
-meilleur
+Coude doux
 @@506
-fichier le plus petit
+Doux et velouté
 @@507
-latence
+Haute
 @@508
-le périphérique d'entrée
+Coupe-haut (High-Cut)
 @@509
-marge de sécurité
+Contraste élevé
 @@510
-erreur
+Plateau aigu
 @@511
-câble
+La chaîne n'a pas suivi, son sauté :
 @@512
-virgule flottante
+Enregistrez la chaîne comme préréglage personnel ; renommez, supprimez ou revenez à la chaîne précédente
 @@513
-coupures
+La restauration de la chaîne attend l'analyse des plug-ins
 @@514
-micro
-@@515
-comme le micro
+ignoré
 @@516
-mono
-@@517
-60 dernières s (court terme)
+un autre niveau
 @@518
-stéréo
+inconnu
 @@519
-ok
+non pris en charge
 @@520
-échec de l'analyse
+min
 @@521
-par défaut
+fichier NON vérifié
 @@522
-ne répond pas
+fichier vérifié
 @@523
-Lecture... 
+converti
 @@524
-En marche
+plus rapide
 @@525
-Nettoyeur de boue
+meilleur
 @@526
-Sortie
+fichier le plus petit
 @@527
-Sortie (câble) =
+latence
 @@528
-Limiteur de sortie
+le périphérique d'entrée
 @@529
-Sortie démarrée :
+marge de sécurité
 @@530
-Impossible d'ouvrir le périphérique de sortie (taille de tampon incompatible)
+erreur
 @@531
-Impossible d'ouvrir le périphérique de sortie !
-@@532
-Impossible d'ouvrir le périphérique de sortie : '
+câble
 @@533
-Impossible de démarrer le périphérique de sortie !
+virgule flottante
 @@534
-Erreur du périphérique de sortie :
+coupures
 @@535
-Son interrompu en sortie :
+micro
 @@536
-Durée mesurée
+comme le micro
 @@537
-Avant / après : le câble reçoit un instant le micro brut, sans la chaîne (avec le même retard). Un nouveau clic revient à la voix traitée.
+mono
 @@538
-Chaîne précédente
+60 dernières s (court terme)
 @@539
-Fréquence d'échantillonnage
+stéréo
 @@540
-Écraser
+ok
 @@541
-Écraser (choisissez un de vos préréglages)
+échec de l'analyse
 @@542
-planté (
+par défaut
 @@543
-le périphérique de sortie
+ne répond pas
 @@544
-recommandé
+Lecture... 
 @@545
-Annuler
+En marche
 @@546
-Priorité du processus
+Nettoyeur de boue
 @@547
-Priorité du processus "
+Sortie
 @@548
-Priorité du processus :
+Sortie (câble) =
 @@549
-Processus : limitation d'énergie désactivée
+Limiteur de sortie
 @@550
-Processeur
+Sortie démarrée :
 @@551
-Traitement :
+Impossible d'ouvrir le périphérique de sortie (taille de tampon incompatible)
 @@552
-Traitement : la chaîne de plug-ins a pris plus de
+Impossible d'ouvrir le périphérique de sortie !
 @@553
-Traitement : file d'entrée pleine -
+Impossible d'ouvrir le périphérique de sortie : '
 @@554
-Traitement : rien n'a été traité pendant 3 s alors que le microphone fournit du son - un plug-in est peut-être bloqué
+Impossible de démarrer le périphérique de sortie !
 @@555
-Écoutez votre voix traitée en direct sur la sortie « Casque ». Utilisez un casque, pas des haut-parleurs : le son des haut-parleurs repris par le micro provoque écho et sifflement.
+Erreur du périphérique de sortie :
 @@556
-Chant / Voix
+Son interrompu en sortie :
 @@557
-Secteur
+Durée mesurée
 @@558
-Supprime le ronflement du secteur (50 Hz et multiples ; 60 Hz au choix) avec des encoches très étroites.
+Avant / après : le câble reçoit un instant le micro brut, sans la chaîne (avec le même retard). Un nouveau clic revient à la voix traitée.
 @@559
-Ignorer le plug-in en cours d'analyse
+Chaîne précédente
 @@560
+Fréquence d'échantillonnage
+@@561
+Écraser
+@@562
+Écraser (choisissez un de vos préréglages)
+@@563
+planté (
+@@564
+le périphérique de sortie
+@@565
+recommandé
+@@566
+Annuler
+@@567
+Priorité du processus
+@@568
+Priorité du processus "
+@@569
+Priorité du processus :
+@@570
+Processus : limitation d'énergie désactivée
+@@571
+Processeur
+@@572
+Traitement :
+@@573
+Traitement : la chaîne de plug-ins a pris plus de
+@@574
+Traitement : file d'entrée pleine -
+@@575
+Traitement : rien n'a été traité pendant 3 s alors que le microphone fournit du son - un plug-in est peut-être bloqué
+@@576
+Écoutez votre voix traitée en direct sur la sortie « Casque ». Utilisez un casque, pas des haut-parleurs : le son des haut-parleurs repris par le micro provoque écho et sifflement.
+@@577
+Chant / Voix
+@@578
+Secteur
+@@579
+Supprime le ronflement du secteur (50 Hz et multiples ; 60 Hz au choix) avec des encoches très étroites.
+@@580
+Ignorer le plug-in en cours d'analyse
+@@581
 —
-@@281
-Enregistrement
-    - Le bouton « Enregistrer » enregistre dans un fichier ce qui part vers le câble (ce qu'entend
-      votre interlocuteur) ; un nouveau clic l'arrête : le fichier est fermé et vérifié. Le menu de
-      l'icône près de l'horloge peut aussi le démarrer et l'arrêter.
-    - « Réglages > Enregistrer » : format (WAV, FLAC, MP3), qualité, fréquence, canaux et
-      dossier. Par défaut : WAV 24 bits, 48 kHz, stéréo ; Documents\MicVST Kayıtları.
-    - Le nom du fichier est la date et l'heure ; un enregistrement existant n'est jamais écrasé.
+@@3
+ (illisible ou plus de 10 secondes)
+@@81
+Sons Ahşap d'ouverture et de fermeture, volume 80 %
+@@101
+Son marche/arrêt
+@@104
+À l'activation
+@@128
+Le son de notification n'a pas pu être joué (pas de sortie audio dans Windows, ou occupée)
+@@129
+Son de notification non joué : la sortie par défaut de Windows est le câble virtuel (votre interlocuteur l'entendrait)
+@@130
+Sons de notification
+@@172
+Écouter
+@@185
+Vos sons
+@@276
+À la coupure
+@@307
+Pour ajouter vos propres sons, placez les fichiers dans le dossier des sons (WAV, FLAC, MP3, AIFF, OGG ; 10 secondes max.) : ils apparaissent d'eux-mêmes dans les listes. Dossier : 
+@@313
+Fichiers inutilisables dans le dossier : 
+@@347
+Sons de MicVST
+@@353
+Jouer un son quand le micro est activé ou coupé
+@@403
+Volume
+@@406
+Ouvrir le dossier des sons
+@@442
+Bouton muet, raccourci et menu de l'icône : un son bref quand le micro est activé ou coupé. Il ne sort que dans votre casque / vos haut-parleurs ; il ne va pas dans le câble, votre interlocuteur ne l'entend pas.
+@@491
+Revenir aux valeurs par défaut
+@@515
+activation
+@@517
+son : 
+@@532
+coupure

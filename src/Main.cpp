@@ -253,6 +253,15 @@ public:
         tray->setAutostart   = [] (bool on) { AutostartRegistry::setEnabled (on); };
         tray->isMuted        = [this] { return engine != nullptr && engine->isMuted(); };
         tray->toggleMute     = [this] { if (engine != nullptr) engine->setMuted (! engine->isMuted()); };
+        tray->isCueOn        = [this] { return engine != nullptr && engine->getCues().getSettings().enabled; };
+        tray->toggleCue      = [this]
+        {
+            if (engine == nullptr) return;
+            auto s = engine->getCues().getSettings();
+            s.enabled = ! s.enabled;
+            engine->getCues().setSettings (s);
+            engine->requestPersist();
+        };
         tray->isRecording    = [this] { return engine != nullptr && engine->isRecording(); };
         tray->toggleRecording = [this]
         {

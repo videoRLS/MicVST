@@ -8,8 +8,8 @@ using micvst::tr;
 namespace
 {
     constexpr int navW = 172, pad = 18, headH = 26, sectionGap = 22;
-    const char* const sectionNames[] = { TRK ("Ses"), TRK ("Kayıt"), TRK ("Kısayollar"), TRK ("Bildirim sesleri"), TRK ("Görünüm ve başlangıç"), TRK ("Eklentiler"), TRK ("Hakkında") };
-    constexpr int numSections = 7;
+    const char* const sectionNames[] = { TRK ("Ses"), TRK ("Kayıt"), TRK ("Kısayollar"), TRK ("Görünüm ve başlangıç"), TRK ("Eklentiler"), TRK ("Hakkında") };
+    constexpr int numSections = 6;
 }
 
 juce::String SettingsComponent::windowTitle() { return tr ("MicVST - Ayarlar"); }
@@ -45,6 +45,10 @@ SettingsComponent::SettingsComponent (AudioEngine& e, GlobalHotkeys* keys, Callb
     page.addAndMakeVisible (soundPanel);
     page.addAndMakeVisible (recordingPanel);
     page.addAndMakeVisible (cuePanel);
+    cueHeading.setText (tr ("Bildirim sesleri"), juce::dontSendNotification);
+    cueHeading.setFont (juce::Font (juce::FontOptions (15.0f, juce::Font::bold)));
+    cueHeading.setColour (juce::Label::textColourId, micvst::theme::text);
+    page.addAndMakeVisible (cueHeading);
 
     if (keys != nullptr && GlobalHotkeys::supported() && cb.setHotkey)
     {
@@ -249,13 +253,15 @@ void SettingsComponent::resized()
     if (hotkeys != nullptr) line (*hotkeys, hotkeys->preferredHeight (w));
     else                    line (noHotkeys, 48);
 
-    heading (3);
     {
+        // Sustur's sound, right under its shortcut keys (same job: the microphone on / off)
+        cueHeading.setBounds (pad, y + 4, w, 22);
+        y += 30;
         cuePanel.setSize (w, 10);
         line (cuePanel, cuePanel.preferredHeight (w));
     }
 
-    heading (4);
+    heading (3);
     {
         const int lw = juce::jmax (90, juce::roundToInt (juce::jmax (juce::GlyphArrangement::getStringWidth (languageLabel.getFont(), languageLabel.getText()),
                                                                      juce::GlyphArrangement::getStringWidth (themeLabel.getFont(), themeLabel.getText()))) + 16);
@@ -268,7 +274,7 @@ void SettingsComponent::resized()
         line (autostartToggle, 26);
     }
 
-    heading (5);
+    heading (4);
     {
         const int bw = juce::roundToInt (juce::GlyphArrangement::getStringWidth (juce::Font (juce::FontOptions (15.0f)), foldersBtn.getButtonText())) + 30;
         foldersBtn.setBounds (pad, y, juce::jmin (w, bw), 32);
@@ -276,7 +282,7 @@ void SettingsComponent::resized()
         line (foldersHint, 48);
     }
 
-    heading (6);
+    heading (5);
     aboutLine.setJustificationType (juce::Justification::topLeft);
     line (aboutLine, 36);
     {

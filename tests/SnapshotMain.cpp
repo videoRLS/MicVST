@@ -277,7 +277,7 @@ int main (int argc, char** argv)
             pump (200);
             // a change in a section never throws the view to another section: relayout (window
             // resized, a row appearing) and rebuild (theme / language) keep the section in view
-            for (int sec = 0; sec < 7; ++sec)
+            for (int sec = 0; sec < 6; ++sec)
             {
                 settings.setViewState ({ sec, 0 });
                 const auto before = settings.getViewState();

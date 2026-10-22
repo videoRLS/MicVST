@@ -56,6 +56,8 @@ void TrayIcon::mouseDown (const juce::MouseEvent& e)
         juce::PopupMenu m;
         if (toggleMute)
             m.addItem (3, tr ("Sustur"), true, isMuted && isMuted());
+        if (toggleCue)
+            m.addItem (5, tr ("Açma/kapama sesi"), true, isCueOn && isCueOn());
         if (toggleRecording)
             m.addItem (4, isRecording && isRecording() ? tr ("Kaydı durdur") : tr ("Kaydı başlat"));
         if (addPresetMenus)
@@ -75,6 +77,7 @@ void TrayIcon::mouseDown (const juce::MouseEvent& e)
             else if (result == 2 && onQuit)                        onQuit();
             else if (result == 3 && toggleMute)                    toggleMute();
             else if (result == 4 && toggleRecording)               toggleRecording();
+            else if (result == 5 && toggleCue)                     toggleCue();
             else if (result > presetOffset && loadPreset)          loadPreset (result - presetOffset);
         });
     }

@@ -17,6 +17,14 @@ project follows [Semantic Versioning](https://semver.org/).
   audio) converts and writes; the WAV
   header is rewritten every second (a crash keeps everything up to the last second); a full disk
   or a write error stops the recording with a message. Settings saved in config.xml.
+- Bildirim sesleri: a short sound when the microphone is muted / unmuted (Sustur: the button,
+  the shortcut keys, the tray) - played in the same call as the mute itself, once per change,
+  only on Windows' default output (never into the cable; if the default output is the cable,
+  nothing plays). Default Ahşap (açılma / kapanma); 16 built-in sounds (Ahşap, Kadife, Damla, Tok,
+  Kristal, Esinti, Yankı, Kıvılcım) and the user's own files in %APPDATA%\MicVST\Sesler (WAV,
+  FLAC, MP3, AIFF, OGG, up to 10 s - listed by themselves). Ayarlar > Kısayollar: on / off, the
+  unmute and the mute sound chosen separately with a listen button, volume, back to the default;
+  the tray menu switches the sounds on and off. Saved in config.xml (cueSounds).
 - Deneme kaydı: the playback on the headphones fades in and out (10 ms); before, it started and
   ended with a cut - a click (measured: one sample jumped by the full amplitude of the voice).
 - The developer signature is no longer shown (main window footer, Ayarlar > Hakkında).

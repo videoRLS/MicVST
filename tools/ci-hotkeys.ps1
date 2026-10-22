@@ -80,7 +80,10 @@ Write-Config "" "1:0:0:2"
 $p = Start-App
 W ("MicVST.exe --tray running: " + (-not $p.HasExited))
 $l = After { [Inp]::Key($VK_F9) };         Check (Has $l $muteOn) "F9 mutes (log: $($l -join ' | '))"
+Check (Has $l 'bildirim sesi: Ah\S*ap - kapanma') "mute plays the default cue 'Ahsap - kapanma'"
 $l = After { [Inp]::Key($VK_F9) };         Check (Has $l $muteOff) "F9 again unmutes"
+# Bildirim sesleri (default Ahsap): the real exe plays the cue in the same call as the mute; the log line names it
+Check (Has $l 'bildirim sesi: Ah\S*ap - a\S*lma') "unmute plays the default cue 'Ahsap - acilma' (log: $($l -join ' | '))"
 $l = After { [Inp]::XButton(1) };          Check (Has $l $rawOn) "mouse 4 switches Ham ses on (log: $($l -join ' | '))"
 $l = After { [Inp]::XButton(1) };          Check (Has $l $rawOff) "mouse 4 again switches it off"
 $l = After { [Inp]::XButton(2) };          Check (-not (Has $l $any)) "mouse 5 (not bound) does nothing"
