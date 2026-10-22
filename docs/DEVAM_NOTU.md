@@ -6,6 +6,7 @@
 
 Kullanıcıyla **Türkçe**, kısa konuş. Kullanıcı istemedikçe rapor/doküman yazma; iş verildiğinde testleri
 sağlam yap, sonunda exe + SHA-256 + bir iki satır ver. (1.2.2 için istenen rapor: `docs/TEST_RAPORU_1.2.2.md`.)
+Kullanıcı kapsamlı Windows 11 testini isterse görev tanımı hazır: **`docs/TEST_PROMPTU_WIN11.md`**.
 
 ## Depo ve dallar
 
