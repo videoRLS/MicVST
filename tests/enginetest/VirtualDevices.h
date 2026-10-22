@@ -109,6 +109,9 @@ namespace vdev
         double micDriftPpm = 0.0;          // mic clock = nominal * (1 + ppm)
         juce::Array<int> bufferSizes { 128, 256, 480, 512, 960, 1024, 2048 };
         int    defaultBuffer = 480;
+        // Windows marks the first packet after IAudioClient::Start with DATA_DISCONTINUITY (measured on a
+        // HyperX QuadCast 2 S and VB-Cable: always packet 0, never later). 1 = the virtual microphone does the same.
+        int    startDiscontinuity = 0;
         std::function<float (int channel, int64_t sample)> signal =
             [] (int, int64_t n) { return (float) (0.5 * std::sin (juce::MathConstants<double>::twoPi * 997.0 / 48000.0 * (double) n)); };
     };
@@ -292,6 +295,7 @@ namespace vdev
             recorder().micPeriodSeconds = period;
             int64_t nextArrival = 0;
             bool previousLost = false;
+            if (cfg.startDiscontinuity > 0) stats().captureXruns += cfg.startDiscontinuity;   // flag on the first packet (before the first callback)
             std::deque<int64_t> wasapi, reservoir;
             const int nch = cfg.micChannels;
             std::vector<std::vector<float>> data ((size_t) nch, std::vector<float> ((size_t) block));

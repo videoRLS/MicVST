@@ -53,6 +53,7 @@ namespace
    #endif
 
     void pr (const juce::String& s) { std::printf ("%s\n", s.toRawUTF8()); std::fflush (stdout); }
+    int startXrunFailures = 0;   // startxrun mode
     bool envSet (const char* name) { return juce::SystemStats::getEnvironmentVariable (name, {}).isNotEmpty(); }
 
     double threadCpuMs()
@@ -2809,6 +2810,38 @@ int main (int argc, char** argv)
             pr ("| " + m.second + " | " + juce::String (clicks) + " | " + juce::String (1000.0 * longest / fs, 1) + " |");
         }
     }
+    else if (mode == "startxrun")
+    {
+        // "kesinti" in the status line: Windows flags the first captured packet after every stream
+        // start as a discontinuity. That is not a dropout and must not count; a later one must.
+        sineConfig (997.0, 0.5, 48000);
+        vdev::config().startDiscontinuity = 1;
+        int bad = 0;
+        auto check = [&bad] (const juce::String& what, int got, int want)
+        {
+            pr ("| " + what + " | " + juce::String (got) + " | " + juce::String (want) + " | " + (got == want ? "OK" : "FAIL") + " |");
+            if (got != want) ++bad;
+        };
+        pr ("| Step | mic xruns shown | expected | |");
+        pr ("|---|---:|---:|---|");
+        {
+            EngineRun run (480, 14.0);
+            auto& e = *run.engine;
+            pump (2.0);
+            check ("2 s after the start (device flagged its first packet)", e.getDiagnostics().inputDeviceXruns, 0);
+            vdev::stats().captureXruns += 1;   // the driver reports a real discontinuity mid-stream
+            pump (0.5);
+            check ("after one discontinuity mid-stream", e.getDiagnostics().inputDeviceXruns, 1);
+            e.setDeviceConfig ("VMic", "VCable", 48000.0, 960);   // the microphone restarts (flags its first packet again)
+            raiseEngineThreads();
+            pump (2.0);
+            check ("2 s after a device restart", e.getDiagnostics().inputDeviceXruns, 0);
+            pr ("  " + diagLine (e));
+        }
+        vdev::config().startDiscontinuity = 0;
+        pr (bad == 0 ? "startxrun: PASS" : "startxrun: FAIL (" + juce::String (bad) + ")");
+        startXrunFailures = bad;
+    }
     else if (mode == "clickpos")
     {
         sineConfig (997.0, 0.5, 48000);
@@ -2828,5 +2861,5 @@ int main (int argc, char** argv)
    #endif
 
     juce::Logger::setCurrentLogger (nullptr);
-    return fxtest::failures + rectest::failures + cuetest::failures > 0 ? 1 : 0;
+    return fxtest::failures + rectest::failures + cuetest::failures + startXrunFailures > 0 ? 1 : 0;
 }
