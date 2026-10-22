@@ -4,8 +4,8 @@
 > Kod değiştirme, commit/push yapma, CI tetikleme, test başlatma yok. Notu okuduktan sonra kullanıcıya
 > kısaca (Türkçe) ne anladığını söyle ve **kullanıcının talimatını bekle**. Kullanıcı ne derse onu yap.
 
-Kullanıcıyla **Türkçe**, kısa konuş. **Rapor/doküman yazma** (kullanıcı okumuyor); iş verildiğinde testleri
-sağlam yap, sonunda exe + SHA-256 + bir iki satır ver.
+Kullanıcıyla **Türkçe**, kısa konuş. Kullanıcı istemedikçe rapor/doküman yazma; iş verildiğinde testleri
+sağlam yap, sonunda exe + SHA-256 + bir iki satır ver. (1.2.2 için istenen rapor: `docs/TEST_RAPORU_1.2.2.md`.)
 
 ## Depo ve dallar
 
@@ -64,77 +64,35 @@ Test altyapısı (yeni):
   long, chaos, ...), `engine/integrity.txt` (dump analizleri), `runtime/runtime-check.md`, `unit-tests.txt`,
   `metrics.json` (exe SHA), `ui/*.png` (arayüz görüntüleri).
 
-## Durum: testler durduruldu (kullanıcı kararı, 20.10 22:30)
+## Durum (22.10.2026 sabah)
 
-Kullanıcı, yarım kalan test işlerini durdurdu (çalışan CI turları iptal edildi). Bundan sonraki iş: bu dalın
-şimdiki hâlinin (öncelik seçeneği, mono düzeltmesi, canlı gecikme, Türkçe sürüm bilgisi, gece teması,
-sıra doğrulaması) **üstüne dahili efektleri eklemek**. Tam testler (normal commit + `[uzun]`) efektler
-bittikten sonra hep birlikte koşulacak; teslim ondan sonra (exe + SHA-256, rapor yok).
+Teslim edilen son exe: `ecee2b6`'nin Windows CI derlemesi, SHA-256
+`9ecabac2cc851245251ac059ecfb06e029816a9b2f5e9e4bcae1cc5a77b100d0`. Sonraki commit'ler yalnızca test ve belge.
+Tam rapor: `docs/TEST_RAPORU_1.2.2.md`.
 
-Durdurulmadan önce bilinenler:
-- Gerçek MicVST.exe ile öncelik kontrolü geçti (5e455f9): Normal / AboveNormal / High doğru, yeniden açılışta korunuyor.
-- Sıra doğrulaması (yerel, b54f39f): ZL Equalizer 2 -> Fire zincirinde kablo = çevrimdışı zincir (artık medyan
-  -80 dB, 0 bulgu); ters sıra negatif kontrolü 510 bulgu.
-- Linux'ta vst3suite 73/77 geçti; kalan 4 hata test toleransıydı, düzeltildi, Windows'ta henüz koşmadı.
-- `7b12d32` tam turu iptal edildi (sonucu yok). Windows'ta `vst3suite` / `priority` / `monochain` henüz hiç tam koşmadı.
+Bu oturumda eklenenler (önceki maddelere ek):
+- **24 dahili efekt** ve **hazır ayarlar** (CHANGELOG'da) – tamamlandı.
+- **Kayıt** (`src/audio/Recorder.{h,cpp}`, `Resampler.h`, `src/ui/RecordingPanel.*`): WAV 16/24/32 PCM + 32 float
+  (BWF, 4 GB üstü RF64), FLAC 16/24 + sıkıştırma 0–8, MP3 LAME 4.0 (`third_party/lame-4.0`, LGPL; kaynak
+  `[kaynak]` CI işiyle SHA-256 denetlenerek alındı) CBR 128–320 / VBR V0/V2/V4; 44,1/48 kHz (mikrofon daha
+  hızlıysa 88,2–192); stereo/mono; klasör seçimi; ana pencerede "● Kayıt" + süre, tepside başlat/durdur,
+  Ayarlar > Kayıt. Ses iş parçacığı yalnızca kilitsiz tampona (30 s) kopyalar; yazıcı iş parçacığı normalin
+  üstü öncelikte. config.xml: `recordFormat` ("wav:24|48000|2"), `recordFolder`.
+- İmza ("Relios tarafından geliştirilmiştir.") kaldırıldı.
+- Deneme kaydı çalınırken baş/son tıkı düzeltildi (10 ms geçiş); kulaklık düzeyi hatası düzeltildi.
+- Fare kısayolları, ses biçimi günlük satırı, masaüstü yardımcıları (`tools/masaustu/*.vbs`).
 
-## Sıradaki iş: dahili efektler (kullanıcı listeyi onayladı)
+Testler: birim `Recorder` (her biçim/derinlik/hız, dither, taşma, çökme, 20 dk, RF64), motor `record` modu,
+`tools/ci-recordings.ps1` (ffmpeg + Windows açıyor mu). CI işaretleri: `[birim]` = yalnızca derleme + birim
+testleri (~45 dk, `ci-sonuclari/<dal>-birim`), `[kaynak]` = üçüncü taraf kaynak indirme, `[vst3tani]`,
+`[vst3uzun]`. Linux konteyner 2 çekirdekli ve gürültülü: motor testlerinde "makine takılması" olur.
 
-Hepsi eklenti listesinde **Dahili** başlığı altında, zincire eklenip taşınabilen, devre dışı bırakılabilen,
-ayarları config.xml'de saklanan ayrı elemanlar. De-esser ve Çıkış Limiteri gibi dinamik işlemciler kullanıcı
-onayıyla serbest; **gürültü kapısı ve kompresör hâlâ yok**. Varsayılan olarak hiçbiri zincire kendiliğinden girmez.
-
-Ton ve EQ:
-1. Low-Cut (Alçak Kesici): 60-100 Hz altı (12/24 dB/oktav), uğultu, titreşim, "p" alt ucu. Varsayılan 75 Hz,
-   24 dB/oktav (kullanıcının sesi: temel frekans 116-139 Hz, cümle sonlarında ~100 Hz; 100 Hz üstü önerilmez).
-2. High-Cut (Yüksek Kesici): 14-18 kHz üstü, cızırtı/tıslama.
-3. Gövde / Sıcaklık: 120-250 Hz yükseltme (tok ses).
-4. Çamur Temizleyici: 300-500 Hz kısma (boğukluk, "kutu sesi").
-5. Genizlik Azaltıcı: 0,8-1,3 kHz kısma (genizden gelen sert orta bölge).
-6. Netlik (Presence): 3-5 kHz yükseltme (anlaşılırlık).
-7. Hava (Air): 10-12 kHz üstü yükseltme (parlaklık).
-8. Yakınlık (Proximity): yakın mikrofon tokluğu ekle / fazlasını azalt.
-9. Tilt EQ (Ton Dengesi): tek kaydırıcı, sıcak <-> parlak.
-10. Parametrik EQ: birkaç bant (frekans, kazanç, Q).
-Temizlik:
-11. Uğultu Giderici (50 Hz): 50/100/150/200... Hz dar çentikler (60 Hz seçeneği).
-12. DC Kayması Giderici.
-Renk ve ortam:
-13. Sıcak Saturasyon (Tüp / Bant): hafif harmonik, aşırı örneklemeli.
-14. Telefon / Radyo / Megafon filtresi.
-15. Oda Yankısı (basit; juce::dsp::Reverb).
-16. Gecikme / Eko.
-17. Chorus / Stereo Genişletici.
-Seviye ve koruma:
-18. Çıkış Limiteri (true peak; Otomatik Kazanç'taki test edilmiş limiter kodu, ileri bakışlı, tavan ayarlı).
-19. Sessize Alma (Mute): tıksız susturma.
-20. Otomatik Kazanç (var), 21. Kazanç (var).
-Zaman ve kanal:
-22. Ses Gecikmesi (senkron): ms cinsinden gecikme, görüntüyle hizalama.
-23. Yardımcılar: faz çevirme, sol/sağ kanal seçimi, sağ-sol denge.
-24. Mono -> Stereo / Stereo -> Mono (var).
-Ölçüm:
-25. LUFS ölçer (ITU-R BS.1770, gerçek tepe).
-26. Spektrum Analizörü.
-(Ayrıca listede istenirse: De-esser - kullanıcı onayladı ama "kolay/emin" listesinde değil, orta zorluk.)
-
-Önerilen uygulama yolu:
-- `src/audio/BuiltInEffects.{h,cpp}`: her efekt bir `juce::AudioProcessor`, parametreleri
-  `AudioParameterFloat/Choice/Bool` (kimlikler sabit, Türkçe adlar `tr()` ile), durum = parametrelerin XML'i.
-  Kimlikler `builtin:lowcut`, `builtin:highcut`, `builtin:body`, ... (`PluginChain` ve `AudioEngine::restoreChain`
-  bir fabrika üzerinden kurar; eski config.xml'ler etkilenmez).
-- DSP: `juce_dsp` (IIR filtreler, Oversampling, Reverb, Chorus, DelayLine); parametre değişimleri yumuşatılarak
-  (katsayılar küçük bloklarda güncellenir) - tık yok. Gecikme ekleyenler (limiter ileri bakışı, senkron gecikmesi)
-  `setLatencySamples` ile bildirir (MicVST gösterilen gecikmeye ve düzenleme sessizliğine katar).
-- Arayüz: çift tıkla açılan basit ayar penceresi (`juce::GenericAudioProcessorEditor` gece temasıyla), satırda ad +
-  gecikme + devre dışı; ölçerler (LUFS, spektrum) kendi küçük pencerelerinde.
-- Testler: her efekt için birim testi (frekans cevabı/kazanç hedefleri, THD, gecikme, mono/stereo, durum gidiş-dönüş,
-  NaN/aşırı giriş, parametre değişiminde tık yok), motor testinde çalışırken ekle/taşı/kaldır, arayüz görüntüleri;
-  sonra tam tur + `[uzun]`.
+Açık konular: uygulama adı kararı (kullanıcı seçmedi); gerçek donanım testleri kullanıcıda.
 
 ## Kullanıcının kuralları / tercihleri
 
-- Çalışan özellikleri, arayüzü ve gereksinimleri gereksiz değiştirme. **Noise gate veya compressor ekleme.**
+- Çalışan özellikleri, arayüzü ve gereksinimleri gereksiz değiştirme. Otomatik Kazanç'ta noise gate /
+  kompresör yok (dahili efektlerde Kompresör ve Gürültü Kapısı kullanıcı onayıyla var).
   İnternet erişimi kapalı kalmalı (exe'de ağ kütüphanesi yok; CI bunu kontrol ediyor). Windows 11 yapısı korunmalı.
 - Testleri yüzeysel geçme; doğrulanmamış hiçbir şeyi başarılı gösterme. İstediğin kadar test/deneme yap.
 - Otomatik Kazanç (v9, kullanıcının seçimi): normal konuşma tepe ~-20 dBFS, bağırma ~-15 dBFS, kazanç

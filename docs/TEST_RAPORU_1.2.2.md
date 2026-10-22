@@ -26,8 +26,8 @@ WASAPI benzeri sanal mikrofon / kablo / kulaklıkla çalıştırır (`tests/engi
 
 ## Özet
 
-- **Kod:** `kararlilik/oncelik`, son kod commit'i `ecee2b6`. `main`'e dokunulmadı, PR/merge yok.
-- **Teslim edilen `MicVST.exe`:** `ecee2b6`'nin Windows CI derlemesi, SHA-256 `{{SHA}}`.
+- **Kod:** `kararlilik/oncelik`, son ürün kodu commit'i `ecee2b6` (sonrakiler yalnızca test ve belge). `main`'e dokunulmadı, PR/merge yok.
+- **Teslim edilen `MicVST.exe`:** `ecee2b6`'nin Windows CI derlemesi, SHA-256 `9ecabac2cc851245251ac059ecfb06e029816a9b2f5e9e4bcae1cc5a77b100d0` (9 006 080 bayt).
 
 | Alan | Durum | Ortam |
 |---|---|---|
@@ -105,7 +105,7 @@ bir konuşma sinyaline hiçbir şey katmayanlar konmadı.
 | Tampon taşması | kayıp sayılır; yazılan + kayıp = gönderilen |
 | Hatalar | ses yokken, klasör oluşturulamazken, ikinci başlatmada anlaşılır hata |
 | 12 kez başlat/durdur | 12 dosya, hepsi sağlam, adlar farklı |
-| 20 dk kayıt (30× hızda): WAV 24, FLAC 24, MP3 V0 | kayıp 0, doğrulandı |
+| 20 dk kayıt (10× gerçek zaman hızında): WAV 24, FLAC 24, MP3 V0 | kayıp 0, doğrulandı (L; W: {{WUNIT}}) |
 | 4 GB üstü (RF64) | W: 4,25 GB, L: 4,7 GB; geri okundu; ffmpeg 3072 s'yi birebir ve hatasız açtı (L) |
 | Ayarların kalıcılığı | config.xml'e yazılıp geri okununca aynı (birim + motor testi) |
 
@@ -118,16 +118,17 @@ ffmpeg 9.0.2 hepsini hatasız, beklenen örnek sayısıyla çözdü; Windows'un 
 
 **Motor testi `record` (W, L) – BAŞARILI** (gerçek motor, sanal aygıtlar, 997 Hz −20 dBFS, Kazanç −6 dB)
 
-| Ölçüm | W ({{WREC}}) | L |
+| Ölçüm | W (`ecee2b6`) | L |
 |---|---|---|
 | Kabloda tık, kayıt yok / var (başlat-durdur dahil) | 0 / 0 | 0 / 0 |
 | Kablo seviyesi kayıt yok / var | −26,00 / −26,00 dB | −26,00 / −26,00 dB |
+| Kablo THD+N (medyan) kayıt yok / var | −113,3 / −110,1 dB (kayıtsız dalgalanma: 90. yüzdelik −104,3 dB) | −100 … −117 dB, dalgalanma 8–10 dB |
 | Kabloda taşma/atlama | 0 | 0 |
 | Gösterilen gecikme yok / var | 55,4 / 55,4 ms | 55,4 / 55,5 ms |
 | Dosya içeriği (32 float) | seviye −26,000 dB, THD+N −149,3 dB, tık 0, boşluk 0 | aynı |
 | 30 başlat/durdur, 10 farklı biçimde | 30/30 doğrulandı, kabloda tık 0 | 30/30 |
-| İşlem CPU'su, kayıtsız → WAV kaydı | %1,30 → %2,08 çekirdek | %3,7 → %3,9 |
-| En ağır ayarlar (44,1'e dönüştürerek MP3 320 / FLAC 8) | %3,7 / %3,9 | %6,6 / %6,1 |
+| İşlem CPU'su, kayıtsız → WAV kaydı | %1,30 → %1,69 çekirdek | %3,7 → %3,9 |
+| En ağır ayarlar (44,1'e dönüştürerek MP3 320 / FLAC 8) | %2,9 / %2,3 | %6,6 / %6,1 |
 | Bellek, 30 kayıt sonrası | 30 → 35 MB (sızıntı yok) | 27 → 38 MB |
 
 Not (L): 2 çekirdekli konteynerde sanal aygıtlar zaman zaman gecikir ("makine takılması"). Bu
@@ -156,7 +157,7 @@ yavaşladığından 30× hızlı 20 dk testinde ve bellek ölçümünde beklenen
 - **Düzeltme:** çalmanın başına ve sonuna 10 ms yumuşak geçiş.
 - **Kanıt (L, sanal kulaklık yeni ölçüm: en büyük ani örnek sıçraması):** düzeltmesiz 0,0127 (sesin
   tam genliği = kesik), düzeltmeli 0,000214 (pürüzsüz sinüsün kendisi); son saniye −38,00 dB.
-  Test artık bunu denetliyor. W: {{WFX}}
+  Test artık bunu denetliyor. W (`ecee2b6`): her saniye −38,00 dB (son saniye dahil), en büyük sıçrama 0,000214 – BAŞARILI.
 
 ### 4.2 Kulaklık ses düzeyi hatası – Orta
 
@@ -178,6 +179,8 @@ yavaşladığından 30× hızlı 20 dk testinde ve bellek ölçümünde beklenen
 - Masaüstü yardımcıları testi: runner'ın `%TEMP%`'i kısa 8.3 yol (`RUNNER~1`), Windows uzun yolu
   bildiriyor → betik doğru çalıştığı hâlde 4 denetim başarısız görünüyordu. Uzun yolla düzeltildi; W: 0 hata.
 - 4 GB testi diskten hızlı veri basıyordu (75 MB/s); artık diskin aldığı hızda.
+- 20 dk kayıt testi 30× hızdaydı: FLAC bir Windows turunda geçti, sonrakinde CI makinesinin değişken
+  CPU'su yüzünden ses kaybetti. 10× hıza alındı (gerçek kullanım 1×; kodlayıcının kendi hızı ayrıca ölçülüyor).
 - Kayıt motor testinde kablo THD+N karşılaştırması sabit 3 dB yerine kablonun kayıtsız dalgalanmasıyla
   (90. yüzdelik + 1 dB) yapılıyor: kayıt olmadan da 8–10 dB dalgalanıyor.
 
