@@ -658,6 +658,15 @@ namespace suite
         if (pEditor != 0) { mEditor = m (pEditor); pr ("| plug-in window open | " + mEditor.text + " |"); }
         pr ("| defaults restored | " + mAgain.text + " |");
 
+        // A plug-in whose sound changes by itself (a modulated reverb or chorus: an LFO, random
+        // detune) cannot be compared with itself a few seconds later. Seen: "bypass off again" and
+        // "plug-in window open" - the same settings, one phase after the other - differ. Then the
+        // "same sound again" comparisons are not judged (reported as such); everything else is.
+        const double selfDiff = (pEditor != 0 && s == multitone) ? maxAbsDiff (mEditor.resp, mBypassOff.resp) : 0.0;
+        const bool timeVarying = selfDiff > 1.0;
+        if (timeVarying)
+            verdicts.info (c.label + ": its sound changes by itself (same settings, two phases one after the other differ by "
+                           + juce::String (selfDiff, 2) + " dB: modulation) - the 'same sound again' comparisons are NOT judged for it (ATLANDI)");
         // "the same sound": within 0.25 dB (noise suppression: 2 dB, and two residuals both below
         // -90 dBFS - inaudible, they fluctuate - count as the same)
         auto sameSound = [&c, lvl] (double a, double b)
@@ -726,11 +735,17 @@ namespace suite
             else dev = std::abs (mBypass.value);
             verdicts.check (dev <= (s == noise ? 0.5 : 0.1), c.label + ": bypassed = dry signal (deviation " + juce::String (dev, 3) + " dB)");
             const double back = s == multitone ? maxAbsDiff (mBypassOff.resp, mActive.resp) : std::abs (mBypassOff.value - mActive.value);
-            verdicts.check (s == multitone ? back <= 0.25 : sameSound (mBypassOff.value, mActive.value),
-                            c.label + ": bypass off = the active sound again (difference " + juce::String (back, 2) + " dB)");
             const double again = s == multitone ? maxAbsDiff (mAgain.resp, mDefault.resp) : std::abs (mAgain.value - mDefault.value);
-            verdicts.check (s == multitone ? again <= 0.25 : sameSound (mAgain.value, mDefault.value),
-                            c.label + ": defaults restored = the default sound again (difference " + juce::String (again, 2) + " dB)");
+            if (timeVarying)
+                verdicts.info (c.label + ": bypass off / defaults restored: differences " + juce::String (back, 2) + " / " + juce::String (again, 2)
+                               + " dB - not judged (its sound changes by itself)");
+            else
+            {
+                verdicts.check (s == multitone ? back <= 0.25 : sameSound (mBypassOff.value, mActive.value),
+                                c.label + ": bypass off = the active sound again (difference " + juce::String (back, 2) + " dB)");
+                verdicts.check (s == multitone ? again <= 0.25 : sameSound (mAgain.value, mDefault.value),
+                                c.label + ": defaults restored = the default sound again (difference " + juce::String (again, 2) + " dB)");
+            }
         }
         // continuity: dropouts / clicks
         {
@@ -818,11 +833,16 @@ namespace suite
                             c.label + ": saved and restored through config.xml: '" + restoredName + "', parameters identical " + juce::String (same) + "/"
                             + juce::String ((int) activeParams.size()) + ", state " + juce::String (saved.plugins.isEmpty() ? 0 : (int) saved.plugins[0].state.getSize()) + " bytes");
             const double diff = s == multitone ? maxAbsDiff (mRestored.resp, mActive.resp) : std::abs (mRestored.value - mActive.value);
-            verdicts.check (s == multitone ? diff <= 0.25 : sameSound (mRestored.value, mActive.value),
-                            c.label + ": the restored plug-in sounds like the saved one (difference " + juce::String (diff, 2) + " dB)");
+            if (timeVarying)   // the state itself is compared above (parameters identical)
+                verdicts.info (c.label + ": the restored plug-in vs. the saved one: difference " + juce::String (diff, 2) + " dB - not judged (its sound changes by itself)");
+            else
+                verdicts.check (s == multitone ? diff <= 0.25 : sameSound (mRestored.value, mActive.value),
+                                c.label + ": the restored plug-in sounds like the saved one (difference " + juce::String (diff, 2) + " dB)");
             const double lr = s == multitone ? maxAbsDiff (mMonoL.resp, mMonoR.resp) : std::abs (mMonoL.value - mMonoR.value);
             const double vsStereo = s == multitone ? maxAbsDiff (mMonoL.resp, mActive.resp) : std::abs (mMonoL.value - mActive.value);
-            verdicts.check (lr <= 0.1 && (s == multitone ? vsStereo <= 0.3 : (sameSound (mMonoL.value, mActive.value) || vsStereo <= 0.3)) && mMonoR.peak > -150.0,
+            // time-varying: only that the right channel carries the processed voice at a similar level
+            verdicts.check (timeVarying ? (mMonoR.peak > -150.0 && std::abs (mMonoL.peak - mMonoR.peak) <= 6.0)
+                                        : (lr <= 0.1 && (s == multitone ? vsStereo <= 0.3 : (sameSound (mMonoL.value, mActive.value) || vsStereo <= 0.3)) && mMonoR.peak > -150.0),
                             c.label + ": mono microphone: both cable channels carry the processed voice (L/R difference " + juce::String (lr, 2)
                             + " dB, vs. stereo " + juce::String (vsStereo, 2) + " dB)");
         }
