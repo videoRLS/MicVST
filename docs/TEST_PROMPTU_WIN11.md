@@ -5,7 +5,10 @@
 > 0. bölümdeki kurallara uyarak 9. bölümdeki sırayla çalış.
 >
 > **Kullanıcının amacı:** programı **yıllarca** güvenle kullanmak. Onun için en önemli iki şey **ses kalitesi**
-> ve **kararlılık**. **Zaman sınırı yok** ("istediği kadar vakit harcasın"): hız değil titizlik.
+> ve **kararlılık**.
+>
+> **TESLİM: en geç 23 Ekim 2026, 23:59 (İstanbul saati, UTC+3) – hedef 22:00.** Görev 22 Ekim akşamı
+> başlıyor; elinde yaklaşık 27 saat var. Zaman planı **bölüm 0.1**'de; ona uy.
 
 ---
 
@@ -31,13 +34,65 @@
    oturumunkileri değil). Bir "stop hook" commit edilmemiş değişiklik bırakmana izin vermez: ara işleri
    `[skip ci]` ile commit edip gönder.
 9. Önceki raporu bozma: yeni rapor ayrı dosya (`docs/TEST_RAPORU_WIN11_1.2.2.md`).
-10. **Zaman sınırı yok – kısaltma, örnekleme yapma.** "Birkaçını denedim" yok: 30 hazır ayarın hepsi, 26 efektin
-    hepsi, kaydın her biçim × bit × sıkıştırma × hız × kanal birleşimi (K22). Zamanlamaya bağlı ya da rastgele
-    testleri farklı tohumlarla ve farklı günlerde tekrarla: **tam tur en az 3 kez, `[uzun]` en az 2 kez.** Tek bir
-    başarısızlık bile "rastgele oldu" diye geçilmez; nedeni bulunur, açıklanır ya da düzeltilir.
+10. **Teslim tarihi var (bölüm 0.1), ama ucuz testlerde örnekleme yapma.** "Birkaçını denedim" yok: 30 hazır
+    ayarın hepsi, 26 efektin hepsi, kaydın her biçim × bit × sıkıştırma × hız × kanal birleşimi (K22). Zamanlamaya
+    bağlı ya da rastgele testleri farklı tohumlarla tekrarla: **tam tur 3 kez, `[uzun]` 2 kez** (0.1'deki plana
+    göre). Tek bir başarısızlık bile "rastgele oldu" diye geçilmez; nedeni bulunur, açıklanır ya da düzeltilir.
+    Süre yetmediği için yapılamayan her şey raporda **ATLANDI (süre)** olarak yazılır, asla BAŞARILI değil.
 11. **Uzun ömür (bölüm 5-R) zorunludur.** "Ömür boyu sorunsuz" garantisi verilemez ve verme; görevin, zamanla
     çıkabilecek her hata türünü bugünden aramak, bulunamayanları açıkça yazmak ve kullanıcıya bir bakım yolu
     (arşiv + kılavuz + sağlık kontrolü) bırakmak.
+
+## 0.1 Teslim tarihi ve zaman planı (İstanbul saati, UTC+3)
+
+**Kesin sınır: 23 Ekim 2026, 23:59.** Rapor, exe, SHA-256, arşiv ve kılavuz bu saatten önce kullanıcıda olacak;
+hedef **22:00** (yedek pay). Saati her zaman `mcp__claude_ai__current_time` ile ya da bilgisayarda `Get-Date` ile kontrol et.
+
+Bilinen süreler:
+
+| İş | Süre |
+|---|---|
+| Tam tur | ~2,5–3 sa |
+| `[uzun]` | ~6 sa (işler paralel; long, chaos, app ve vst3long 330 dk) |
+| `[birim]` | ~45 dk |
+| simweek 168 sa | 30 dk (bu yüzden 720 sa ≈ 2 sa) |
+
+CI iş akışlarında `concurrency` yok: koşular birbirini iptal etmez ve paralel çalışır. Kod değiştirmeden tur
+başlatmak için:
+- `gh workflow run kararlilik-test.yml --ref kararlilik/oncelik` (tam tur; ek olarak "baseline" işi orijinal v1.1.1'i derleyip `ci-sonuclari/baseline` dalına yazar, zararsız);
+- `gh workflow run kararlilik-uzun.yml --ref kararlilik/oncelik` (uzun).
+
+`[uzun]` içeren bir commit hem tam turu hem uzun koşuları başlatır.
+
+| Zaman | Ne yapılır |
+|---|---|
+| **22 Ekim, ilk 1 saat** | Bu dosyayı ve ilgili belgeleri oku. Bilgisayarda SHA, yedek ve envanter (7.0). **Hemen, kod değiştirmeden** iki CI turunu başlat: tam tur #1 ve `[uzun]` #1 (`gh workflow run`; ~02:00 ve ~04:00'te biter). Kullanıcıya planı 3–4 cümleyle söyle ve **bu gece ile yarın hangi saatlerde müsait olduğunu sor** (konuşma, dinleme, USB işleri için). |
+| **22 Ekim akşamı – ~23:30 (kullanıcı varken)** | Önce en önemlisi: **U2, U3 (kayıt kalitesi: bütün biçimler)**, sonra U6, U7, U8, U10, U13. Kullanıcı yatmadan önce **R4 uzun kullanım testini başlat** (izleme betiği + bilgisayarın uykuya geçmemesi; kullanıcıya sor). |
+| **Gece (~23:30 – 08:00)** | Konteynerde: R1 kod denetimi ve taşma testleri; K22, K14, R5, R6, R3 işi, R2 (720 sa), R9 arşiv + ağsız derleme işi, I6, `tools/analiz_kayit.py`. L'de derle ve koştur, ASan/UBSan. CI #1 sonuçlarını oku. Yeni testleri **en geç 07:00'de** `[uzun]` etiketli tek commit ile gönder: tam tur #2 (~10:00'da biter) ve `[uzun]` #2 (~13:00'te biter). Kullanıcı uyurken bekleme sırasında kendine 30–60 dk'lık hatırlatma kur (send_later); konteyner yeniden başlarsa iş kaybolmasın. |
+| **23 Ekim 09:00 – 16:00 (kullanıcı müsait oldukça)** | U4 (60 dk kayıt), U5, U9 (30 dk Discord), U11 (uyku/uyanma, DPI, tema), U12. R7'nin geri alınabilir kısımları (USB yuvası, varsayılan cihaz). CI #2 sonuçları. Bulunan hataların düzeltilmesi. |
+| **23 Ekim 16:00 – KOD DONDURMA** | Bu saatten sonra ürün kodu değişmez. Son kodla **tam tur #3**'ü başlat (~19:00'da biter). Ses yolunu değiştiren bir düzeltme 15:00'ten sonra yapıldıysa yeni `[uzun]` yetişmez: raporda uzun koşuların hangi exe ile yapıldığını ve aradaki farkı açıkça yaz. 16:00'dan sonra bulunan kritik hata düzeltilmez; ayrıntısıyla raporlanır ve son doğrulanmış exe teslim edilir. |
+| **23 Ekim ~18:00** | R4'ü durdur, verileri topla, analiz et. Kılavuzun taslağıyla **U15 sağlık kontrolü provası.** |
+| **23 Ekim 19:00 – 22:00** | Tam tur #3 sonuçları. Kılavuz, arşiv zip'i ve rapor. Exe, SHA, rapor, kılavuz ve arşivi kullanıcıya gönder. |
+
+**Bu teslimde kısalanlar (raporda ATLANDI (süre) / kısmi olarak yaz):**
+- R4: 72 sa – 7 gün yerine ~18–20 sa. Kullanıcı isterse teslimden sonra MicVST'yi açık bırakır; izleme betiği çalışmaya devam eder, log daha sonra analiz edilir.
+- "Farklı günlerde 3 tam tur" yerine 24 saat içinde 3 tam tur.
+- R7'nin geri alınamaz kısımları (VB-Cable yeniden kurulumu, eklenti kaldırma) yalnızca kullanıcı açıkça isterse yapılır.
+
+**Süre yetmezse öncelik sırası** (üstteki önce bitirilir):
+1. K + U3 (kayıt kalitesi);
+2. C (ses kalitesi ve bütünlük);
+3. P ve `[uzun]` (kararlılık);
+4. I (Sustur, kısayollar, bildirim sesleri);
+5. kalan U testleri ve R1;
+6. kalan R testleri;
+7. arşiv ve kılavuz;
+8. N (görünüm).
+
+Rapor hiçbir koşulda atlanmaz.
+
+**Kullanıcıya durum bildirimi:** başlangıçta, ~23:30, 09:00, 14:00, 19:00 ve teslimde; 2–3 cümle (ne bitti,
+ne sürüyor, bir sorun var mı, kullanıcıdan ne lazım).
 
 ---
 
@@ -247,9 +302,9 @@ Sonsuz yeniden bağlanma döngüsü (açılamayan cihaz) · config.xml'in boş y
 
 ### R. Uzun ömür – yıllarca kullanım (zorunlu)
 - **R1 Zaman sayaçlarının taşması (kod denetimi + test).** Windows'ta `juce::Time::getMillisecondCounter()` 32 bittir ve bilgisayar açık kaldıkça **49,7 günde bir başa döner**. Windows "Hızlı başlatma" açıkken kapat-aç çalışma süresini sıfırlamaz, yani bu kullanıcıda gerçekten olur. Kullanıldığı yerler (en az): `src/audio/AudioEngine.cpp` (cihaz yeniden açma beklemesi `(juce::int32) (nowMs - b.nextMs) >= 0`, denetim yeniden başlatma beklemesi `nowMs - lastRestartMs > backoffMs`, Deneme kaydı çalma sonu `playbackEndMs`), `src/audio/CueSounds.cpp` (`outputIsCable`, 2 s önbellek, `defaultCheckedAt == 0` işareti), `src/audio/Recorder.cpp` (yazıcı döngüsü: 1 s başlık yenileme, 5 s boş yer denetimi), `src/ui/PluginListView.cpp`, `src/audio/ScanCoordinator.cpp` (120 s zaman aşımı). İlk bakışta hepsi işaretsiz fark kullanıyor ve taşmaya dayanıklı görünüyor – **bunu kanıtla:** her ifadeyi tek tek incele ve sayacın `0xFFFFFF00`'den başlayıp başa döndüğü bir birim testi yaz (gerekirse saati en küçük değişiklikle enjekte edilebilir yap). Ayrıca tüm `src/` içinde 32 bitlik sayaçları tara: örnek/çerçeve sayan `int` 48 kHz'de **12,4 saatte**, 192 kHz'de **3,1 saatte** taşar. Sıra sayaçları (`AudioBridge::pushSeq`, `InputQueue::stampSeq`, `uint32_t`) taşınca karşılaştırmaların doğru kaldığını göster. Uzun süre biriken `float` zaman/konum/faz değerlerinde hassasiyet kaybını kontrol et (30 gün × 48 000 = 1,2·10¹¹ örnek: double'da tam, float'ta değil). Ölçüt: hiçbir taşma davranışı değiştirmez (testle kanıtlı) ya da en küçük değişiklikle düzeltilir.
-- **R2 Çok uzun simülasyon (S):** `MicVSTStress --day 720` (30 sanal gün; bir CI işine sığmazsa farklı tohumlarla 5 × 168 sa) ve Otomatik Kazanç 7 gün. Ölçüt: MicVST'ye bağlı tık 0, saat farkı öğrenmesi kararlı (sapma ≤ 2 ppm), bellek ve sayaçlar sınırlı.
+- **R2 Çok uzun simülasyon (S):** `MicVSTStress --day 720` (30 sanal gün; 168 sa CI'da 1786 s sürdü, 720 sa ≈ 2 sa – `ci-run-timed.ps1` zaman aşımını buna göre ayarla) ve Otomatik Kazanç 7 gün. Ölçüt: MicVST'ye bağlı tık 0, saat farkı öğrenmesi kararlı (sapma ≤ 2 ppm), bellek ve sayaçlar sınırlı.
 - **R3 Gerçek zamanlı çok saatlik kayıt (W, yeni `[uzun]` işi):** 330 dk gerçek zamanlı WAV 24 / 48 kHz / stereo kayıt. Bu kayıt ≈ 4 sa 8 dk'da **4 GB sınırını gerçek zamanda aşar ve RF64'e geçer.** Ölçüt: kayıp 0; başlık RF64; ffmpeg ve Python `soundfile` tam süreyi okur; içerik ≤ 0,5 LSB; dosya süresi ile örnek sayısı birebir; yazıcının belleği sabit; kabloda tık 0. FLAC 24 ve MP3 V0 ile 330 dk daha: uzunluk ve içerik doğruluğu.
-- **R4 Çok günlük gerçek kullanım (U):** bilgisayar açık, MicVST en az **72 saat** (mümkünse 7 gün) kesintisiz çalışır; gerçek mikrofon ve kablo, arada Discord ve normal kullanım olur. Her saat şunları toplayan bir PowerShell betiği yaz; kullanıcı Görev Zamanlayıcı ile çalıştırır:
+- **R4 Çok günlük gerçek kullanım (U):** bilgisayar açık, MicVST kesintisiz çalışır. Bu teslimde süre: 22 Ekim gecesinden 23 Ekim ~18:00'e kadar (≈ 18–20 sa). 72 sa ve üstü ATLANDI (süre); kullanıcı isterse teslimden sonra sürdürür (0.1). gerçek mikrofon ve kablo, arada Discord ve normal kullanım olur. Her saat şunları toplayan bir PowerShell betiği yaz; kullanıcı Görev Zamanlayıcı ile çalıştırır:
   - MicVST'nin özel belleği, tutamaç / GDI / USER nesne sayısı ve iş parçacığı sayısı;
   - işlemci süresi;
   - log.txt boyutu ve yeni satırları.
@@ -351,7 +406,7 @@ Kaynak sinyal biliniyorsa: kaynakla hizala (çapraz korelasyon), artığı 256 �
 - **U11 Windows 11:** uyku → uyanma: ≤ 5 s'de ses geri, günlük temiz; Windows açılışında başlat → tepside sessiz başlıyor; Odak/Oyun modu açıkken kısayollar çalışıyor; DPI %125/150/175'te arayüz düzgün; açık/koyu modda tepsi simgesi doğru.
 - **U12 Performans:** 10 dk normal kullanım (zinciri ile): Görev Yöneticisi CPU ve bellek; MicVST durum satırındaki "işlemci %" ve "kesinti 0". Kayıt açıkken CPU artışı ≤ %3 (bir çekirdeğin).
 - **U13 İşlem önceliği:** üç masaüstü kısayolu ve Ayarlar'daki seçim: Görev Yöneticisi > Ayrıntılar'da öncelik aynı.
-- **U14 Çok günlük kullanım:** R4 (72 saat – 7 gün) ve R7 (ortam değişiklikleri) burada yapılır.
+- **U14 Uzun kullanım:** R4 (bu teslimde ≈ 18–20 sa) ve R7 (ortam değişiklikleri; geri alınamaz kısımlar yalnızca kullanıcı isterse) burada yapılır.
 - **U15 Sağlık kontrolü provası:** teslim edilecek `docs/UZUN_OMUR_KILAVUZU.md` (bölüm 9) içindeki 10 dakikalık sağlık kontrolünü kullanıcıyla bir kez birlikte yap. Kullanıcının bunu tek başına, teknik bilgi gerekmeden yapabildiğini doğrula; anlaşılmayan adımı sadeleştir.
 
 ---
@@ -373,10 +428,10 @@ Kaynak sinyal biliniyorsa: kaynakla hizala (çapraz korelasyon), artığı 256 �
 2. Exe'yi al ve SHA'yı doğrula (bölüm 1).
 3. L'de derle; birim + ASan/UBSan + `cues`/`record`/`quality` hızlı kontrol.
 4. R1 kod denetimini yap (sayaç taşmaları), sonra eksik testleri yaz: K14 (disk dolu / çıkarma), K22 (tam birleşim taraması), P2 (60 dk kayıt), R1 (taşma testleri), R3 (330 dk gerçek zamanlı kayıt işi), R5 (saat değişimi), R6 (1000 aç-kapa), I6 (tepsi otomasyonu), 6.3 analiz betiği `tools/analiz_kayit.py`, R4 izleme betiği. Her biri önce yerelde, sonra `[skip ci]` ile commit.
-5. Normal commit → tam tur (W). Sonuçları sonuç dalından oku. **En az 3 tam tur**, farklı günlerde.
-6. `[uzun]` → uzun koşular (W, A, S) **en az 2 kez**; R2 (30 gün simülasyon), R3.
+5. Tam tur (W): **3 kez** – #1 hemen (kod değişmeden), #2 yeni testlerle, #3 kod dondurmadan sonra (0.1). Sonuçları sonuç dalından oku.
+6. `[uzun]` (W, A, S): **2 kez** – #1 hemen, #2 yeni testlerle (R2 30 gün simülasyon, R3, R6, R9 dahil).
 7. Kullanıcıyla U testleri (bölüm 7), R4 ve R7 dahil.
-8. Bulunanları düzelt, yeniden test et (bölüm 8). Ses yolunu etkileyen her düzeltmeden sonra 5. ve 6. adımları baştan yap.
+8. Bulunanları düzelt, yeniden test et (bölüm 8). Ses yolunu etkileyen her düzeltmeden sonra tam turu baştan yap; `[uzun]` ancak 23 Ekim 15:00'ten önce başlarsa yetişir. Kod dondurma: 23 Ekim 16:00 (0.1).
 9. **Uzun ömür kılavuzu** `docs/UZUN_OMUR_KILAVUZU.md`. Türkçe, kısa ve teknik olmayan bir dille, kullanıcının tek başına uygulayacağı biçimde yaz:
    - neyi, nereye yedeklemeli: exe ve SHA-256, `%APPDATA%\MicVST\config.xml`, `Sesler\`, kendi hazır ayarlar (`.micvstpreset` dışa aktarımı), arşiv paketi;
    - **10 dakikalık sağlık kontrolü** (Windows büyük güncellemesinden, ses sürücüsü, VB-Cable ya da eklenti güncellemesinden sonra ve ayda bir):
