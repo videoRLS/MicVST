@@ -45,6 +45,8 @@ WASAPI benzeri sanal mikrofon / kablo / kulaklıkla çalıştırır (`tests/engi
 | İnternetsiz çalışma (kapalı kutu) | BAŞARILI | W |
 | Uzun koşular (5,5 sa ×3, Win11 ARM 60 dk, 168 sa simülasyon, 24 sa Otomatik Kazanç) | BAŞARILI | W, A, S |
 | VST3 tarayıcı (gerçek eklentiler, 240 tarama) | BAŞARILI | W |
+| Bildirim sesleri (Sustur ile senkron, değişim başına bir kez, kabloya gitmez, kalıcı ayar) | BAŞARILI | W, L |
+| Bildirim sesinin kulağa ulaşma süresi (gerçek ses kartı) | ENGELLENDİ | – |
 | Win11 x64 istemci, uyku/uyanma, ticari eklentiler, dinleme testi | ENGELLENDİ | – |
 
 ## 1. Bu turda yapılan değişiklikler
@@ -184,6 +186,23 @@ yavaşladığından 30× hızlı 20 dk testinde ve bellek ölçümünde beklenen
   CPU'su yüzünden ses kaybetti. 10× hıza alındı (gerçek kullanım 1×; kodlayıcının kendi hızı ayrıca ölçülüyor).
 - Kayıt motor testinde kablo THD+N karşılaştırması sabit 3 dB yerine kablonun kayıtsız dalgalanmasıyla
   (90. yüzdelik + 1 dB) yapılıyor: kayıt olmadan da 8–10 dB dalgalanıyor.
+
+## 4.5 Bildirim sesleri (`62ff06b`, exe SHA-256 `d079483bcfffee393250d1ffba1ae871093266efa0250841d96288ac0424ae15`)
+
+Mikrofon açılınca / kapanınca kısa ses (varsayılan Ahşap). 16 ses exe'de gömülü (FLAC); kullanıcının
+`%APPDATA%\MicVST\Sesler` klasöründeki WAV/FLAC/MP3/AIFF/OGG dosyaları (en çok 10 s) kendiliğinden listelenir.
+Windows'un varsayılan çıkışında çalar (PlaySound, bellekten, eşzamansız); varsayılan çıkış kablonun kendisiyse çalmaz.
+
+| Test | Sonuç | Ortam |
+|---|---|---|
+| 16 dahili ses: yüklenir, 48 kHz stereo, başı/sonu sessiz (tık yok) | BAŞARILI | W, L |
+| Klasör: uygun dosyalar listelenir, bozuk / 10 s'den uzun atlanır, yeni dosya kodsuz görünür | BAŞARILI | W, L |
+| Ayarlar config.xml'e yazılıp geri okunur (yeniden başlatma) | BAŞARILI | W, L |
+| Motor: 40 aç/kapa → 40 ses, tekrar eden çağrıda ses yok, açılışta ses yok | BAŞARILI | W, L |
+| Susturma çağrısından sesin Windows'a verilmesine | en çok 0,046 ms (W), 0,011 ms (L) | W, L |
+| Kapalıyken sessiz; varsayılan çıkış kablo ise ses yok; kabloda tık 0 | BAŞARILI | W, L |
+| Gerçek MicVST.exe: F9 ve orta tuş → günlükte "bildirim sesi: Ahşap - kapanma / açılma" | BAŞARILI | W |
+| Sesin kulağa ulaşma süresi (ses kartı gerekir) | ENGELLENDİ | – |
 
 ## 5. Ses biçimi: 32 bit QuadCast girişi, 24 bit VB-Cable çıkışı, 48 kHz
 

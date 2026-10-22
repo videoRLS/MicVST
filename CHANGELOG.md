@@ -40,17 +40,17 @@ project follows [Semantic Versioning](https://semver.org/).
   Sıcak Saturasyon, Telefon/Radyo/Megafon, Oda Yankısı, Gecikme/Eko, Chorus/Stereo Genişletici,
   Çıkış Limiteri, Sessize Alma, Ses Gecikmesi, Kanal Araçları, LUFS Ölçer, Spektrum Analizörü.
   Settings windows (double-click), saved with the chain, every change glides (no clicks), latency
-  reported. No noise gate, no compressor.
+  reported. (Kompresör and Gürültü Kapısı followed later, see below: 26 built-in effects in all.)
 - Hazır ayarlar next to "+ Eklenti": folders "Erkek Sesi Ayarları" and "Kadın Sesi Ayarları" with
-  ten factory presets each (everyday, podcast, radio, narration, cinema, clarity, soft, warm,
+  factory presets (first ten each, now fifteen each - see below) (everyday, podcast, radio, narration, cinema, clarity, soft, warm,
   singing with a room, streaming), built-in effects only, for average adult Turkish voices; all
   twenty have the same elements, so switching glides, and the same loudness (within 0.15 LU);
   own presets of the whole chain with the VST3 states (save, overwrite, rename, delete), and
   "Önceki zincire dön".
-- Tema (bottom of the window): Gece (default, the colours so far), Gece Yarısı, Kül, Aydınlık, Okyanus,
+- Tema (now in Ayarlar > Görünüm ve başlangıç): Gece (default, the colours so far), Gece Yarısı, Kül, Aydınlık, Okyanus,
   Ametist, Orman, Gün Batımı, Yüksek Kontrast; switched at once, saved in config.xml; the native
   title bar follows (light for Aydınlık).
-- Dil (bottom of the window): Türkçe (default), English, 中文, हिन्दी, Español, Français, العربية,
+- Dil (now in Ayarlar > Görünüm ve başlangıç): Türkçe (default), English, 中文, हिन्दी, Español, Français, العربية,
   Português, Русский, Deutsch, 日本語 - every text of the window, menus, dialogs, effect and preset
   names, the how-to window and the log; numbers with the language's decimal mark. Translations in
   i18n/src/<language>.txt (tools/i18n_src.py, tools/i18n.py check / generate); a unit test checks
@@ -84,12 +84,12 @@ project follows [Semantic Versioning](https://semver.org/).
 - New main window (640x600): level card with the peak values and a one-line status, a big Sustur
   button (red while muted, shows its key), microphone and cable side by side, the preset row with
   "+ Eklenti", on/off switches in the chain rows, and a bottom bar (Ham ses, Kendini dinle, Deneme
-  kaydı, help, Ayarlar). Everything set once moved into the new "Ayarlar" window (sections: Ses,
-  Kısayollar, Görünüm ve başlangıç, Eklentiler, Hakkında).
+  kaydı, Kayıt, help, Ayarlar). Everything set once moved into the new "Ayarlar" window (sections: Ses,
+  Kayıt, Kısayollar (with Bildirim sesleri), Görünüm ve başlangıç, Eklentiler, Hakkında).
 - New app icon (microphone with the effect chain), tray icons for dark and light Windows; the tray
   icon shows a red dot while muted.
 - The how-to window wraps its paragraphs and list items to the window width (hanging indent),
-  right to left for Arabic. Its footer: version and "Relios tarafından geliştirilmiştir."
+  right to left for Arabic. Its footer: the version (the developer signature was removed later).
 
 ## [1.2.1] - Unreleased
 
@@ -145,6 +145,7 @@ not be tested: [docs/TEST_RAPORU_1.2.1.md](docs/TEST_RAPORU_1.2.1.md) (Turkish).
 
 ### Changed
 - Process priority class is now HIGH (was "above normal"); scan processes stay "below normal".
+  (1.2.2: a choice, Normal by default - see İşlem önceliği there.)
 - The plugin chain runs on its own thread (MMCSS "Pro Audio") behind a lock-free input queue; the
   microphone's capture thread only copies the audio (microseconds). In 1.2.0 the chain ran on the
   capture thread: whenever plugin blocks took longer than ~20 ms in total, Windows' capture buffer
