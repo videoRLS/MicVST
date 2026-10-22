@@ -1,0 +1,766 @@
+# K22 - every recording setting, 10 s each
+
+files 760, failed 0
+
+| processing Hz | setting | file Hz | ch | samples | header | content | result |
+|---:|---|---:|---:|---:|---|---|---|
+| 44100 | wav:16|44100|2 | 44100 | 2 | 441000 | ok | max 1.489 LSB, mean 0.0001, rms 0.500 | PASS |
+| 44100 | wav:16|44100|1 | 44100 | 1 | 441000 | ok | max 1.489 LSB, mean 0.0001, rms 0.500 | PASS |
+| 44100 | wav:16|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 44100 | wav:16|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 44100 | wav:24|44100|2 | 44100 | 2 | 441000 | ok | max 0.500 LSB, mean 0.0000, rms 0.297, not exact 0 | PASS |
+| 44100 | wav:24|44100|1 | 44100 | 1 | 441000 | ok | max 0.500 LSB, mean -0.0000, rms 0.299, not exact 0 | PASS |
+| 44100 | wav:24|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.6 dB | PASS |
+| 44100 | wav:24|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.7 dB | PASS |
+| 44100 | wav:32|44100|2 | 44100 | 2 | 441000 | ok | max 0.500 LSB, mean -0.0000, rms 0.030 | PASS |
+| 44100 | wav:32|44100|1 | 44100 | 1 | 441000 | ok | max 0.500 LSB, mean -0.0000, rms 0.005 | PASS |
+| 44100 | wav:32|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 149.0 dB | PASS |
+| 44100 | wav:32|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 146.8 dB | PASS |
+| 44100 | wav:32f|44100|2 | 44100 | 2 | 441000 | ok | max 0.000 LSB, mean 0.0000, rms 0.000 | PASS |
+| 44100 | wav:32f|44100|1 | 44100 | 1 | 441000 | ok | max 0.000 LSB, mean 0.0000, rms 0.000 | PASS |
+| 44100 | wav:32f|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 149.0 dB | PASS |
+| 44100 | wav:32f|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 146.8 dB | PASS |
+| 44100 | flac:16:0|44100|2 | 44100 | 2 | 441000 | ok | max 1.489 LSB, mean 0.0002, rms 0.500 | PASS |
+| 44100 | flac:16:0|44100|1 | 44100 | 1 | 441000 | ok | max 1.489 LSB, mean 0.0001, rms 0.500 | PASS |
+| 44100 | flac:16:0|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 44100 | flac:16:0|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 44100 | flac:16:1|44100|2 | 44100 | 2 | 441000 | ok | max 1.489 LSB, mean 0.0001, rms 0.500 | PASS |
+| 44100 | flac:16:1|44100|1 | 44100 | 1 | 441000 | ok | max 1.489 LSB, mean 0.0001, rms 0.500 | PASS |
+| 44100 | flac:16:1|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 44100 | flac:16:1|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 44100 | flac:16:2|44100|2 | 44100 | 2 | 441000 | ok | max 1.489 LSB, mean -0.0003, rms 0.500 | PASS |
+| 44100 | flac:16:2|44100|1 | 44100 | 1 | 441000 | ok | max 1.489 LSB, mean 0.0001, rms 0.500 | PASS |
+| 44100 | flac:16:2|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 44100 | flac:16:2|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 44100 | flac:16:3|44100|2 | 44100 | 2 | 441000 | ok | max 1.494 LSB, mean -0.0002, rms 0.500 | PASS |
+| 44100 | flac:16:3|44100|1 | 44100 | 1 | 441000 | ok | max 1.489 LSB, mean 0.0001, rms 0.500 | PASS |
+| 44100 | flac:16:3|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 44100 | flac:16:3|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 44100 | flac:16:4|44100|2 | 44100 | 2 | 441000 | ok | max 1.486 LSB, mean -0.0000, rms 0.500 | PASS |
+| 44100 | flac:16:4|44100|1 | 44100 | 1 | 441000 | ok | max 1.489 LSB, mean 0.0001, rms 0.500 | PASS |
+| 44100 | flac:16:4|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 44100 | flac:16:4|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 44100 | flac:16:5|44100|2 | 44100 | 2 | 441000 | ok | max 1.497 LSB, mean -0.0003, rms 0.500 | PASS |
+| 44100 | flac:16:5|44100|1 | 44100 | 1 | 441000 | ok | max 1.489 LSB, mean 0.0001, rms 0.500 | PASS |
+| 44100 | flac:16:5|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 44100 | flac:16:5|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 44100 | flac:16:6|44100|2 | 44100 | 2 | 441000 | ok | max 1.489 LSB, mean -0.0001, rms 0.500 | PASS |
+| 44100 | flac:16:6|44100|1 | 44100 | 1 | 441000 | ok | max 1.489 LSB, mean 0.0001, rms 0.500 | PASS |
+| 44100 | flac:16:6|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 44100 | flac:16:6|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 44100 | flac:16:7|44100|2 | 44100 | 2 | 441000 | ok | max 1.494 LSB, mean -0.0002, rms 0.500 | PASS |
+| 44100 | flac:16:7|44100|1 | 44100 | 1 | 441000 | ok | max 1.489 LSB, mean 0.0001, rms 0.500 | PASS |
+| 44100 | flac:16:7|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 44100 | flac:16:7|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 44100 | flac:16:8|44100|2 | 44100 | 2 | 441000 | ok | max 1.482 LSB, mean -0.0004, rms 0.500 | PASS |
+| 44100 | flac:16:8|44100|1 | 44100 | 1 | 441000 | ok | max 1.489 LSB, mean 0.0001, rms 0.500 | PASS |
+| 44100 | flac:16:8|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 44100 | flac:16:8|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 44100 | flac:24:0|44100|2 | 44100 | 2 | 441000 | ok | max 0.500 LSB, mean 0.0000, rms 0.297, not exact 0 | PASS |
+| 44100 | flac:24:0|44100|1 | 44100 | 1 | 441000 | ok | max 0.500 LSB, mean -0.0000, rms 0.299, not exact 0 | PASS |
+| 44100 | flac:24:0|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.6 dB | PASS |
+| 44100 | flac:24:0|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.7 dB | PASS |
+| 44100 | flac:24:1|44100|2 | 44100 | 2 | 441000 | ok | max 0.500 LSB, mean 0.0000, rms 0.297, not exact 0 | PASS |
+| 44100 | flac:24:1|44100|1 | 44100 | 1 | 441000 | ok | max 0.500 LSB, mean -0.0000, rms 0.299, not exact 0 | PASS |
+| 44100 | flac:24:1|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.6 dB | PASS |
+| 44100 | flac:24:1|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.7 dB | PASS |
+| 44100 | flac:24:2|44100|2 | 44100 | 2 | 441000 | ok | max 0.500 LSB, mean 0.0000, rms 0.297, not exact 0 | PASS |
+| 44100 | flac:24:2|44100|1 | 44100 | 1 | 441000 | ok | max 0.500 LSB, mean -0.0000, rms 0.299, not exact 0 | PASS |
+| 44100 | flac:24:2|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.6 dB | PASS |
+| 44100 | flac:24:2|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.7 dB | PASS |
+| 44100 | flac:24:3|44100|2 | 44100 | 2 | 441000 | ok | max 0.500 LSB, mean 0.0000, rms 0.297, not exact 0 | PASS |
+| 44100 | flac:24:3|44100|1 | 44100 | 1 | 441000 | ok | max 0.500 LSB, mean -0.0000, rms 0.299, not exact 0 | PASS |
+| 44100 | flac:24:3|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.6 dB | PASS |
+| 44100 | flac:24:3|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.7 dB | PASS |
+| 44100 | flac:24:4|44100|2 | 44100 | 2 | 441000 | ok | max 0.500 LSB, mean 0.0000, rms 0.297, not exact 0 | PASS |
+| 44100 | flac:24:4|44100|1 | 44100 | 1 | 441000 | ok | max 0.500 LSB, mean -0.0000, rms 0.299, not exact 0 | PASS |
+| 44100 | flac:24:4|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.6 dB | PASS |
+| 44100 | flac:24:4|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.7 dB | PASS |
+| 44100 | flac:24:5|44100|2 | 44100 | 2 | 441000 | ok | max 0.500 LSB, mean 0.0000, rms 0.297, not exact 0 | PASS |
+| 44100 | flac:24:5|44100|1 | 44100 | 1 | 441000 | ok | max 0.500 LSB, mean -0.0000, rms 0.299, not exact 0 | PASS |
+| 44100 | flac:24:5|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.6 dB | PASS |
+| 44100 | flac:24:5|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.7 dB | PASS |
+| 44100 | flac:24:6|44100|2 | 44100 | 2 | 441000 | ok | max 0.500 LSB, mean 0.0000, rms 0.297, not exact 0 | PASS |
+| 44100 | flac:24:6|44100|1 | 44100 | 1 | 441000 | ok | max 0.500 LSB, mean -0.0000, rms 0.299, not exact 0 | PASS |
+| 44100 | flac:24:6|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.6 dB | PASS |
+| 44100 | flac:24:6|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.7 dB | PASS |
+| 44100 | flac:24:7|44100|2 | 44100 | 2 | 441000 | ok | max 0.500 LSB, mean 0.0000, rms 0.297, not exact 0 | PASS |
+| 44100 | flac:24:7|44100|1 | 44100 | 1 | 441000 | ok | max 0.500 LSB, mean -0.0000, rms 0.299, not exact 0 | PASS |
+| 44100 | flac:24:7|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.6 dB | PASS |
+| 44100 | flac:24:7|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.7 dB | PASS |
+| 44100 | flac:24:8|44100|2 | 44100 | 2 | 441000 | ok | max 0.500 LSB, mean 0.0000, rms 0.297, not exact 0 | PASS |
+| 44100 | flac:24:8|44100|1 | 44100 | 1 | 441000 | ok | max 0.500 LSB, mean -0.0000, rms 0.299, not exact 0 | PASS |
+| 44100 | flac:24:8|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.6 dB | PASS |
+| 44100 | flac:24:8|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.7 dB | PASS |
+| 44100 | mp3:cbr128|44100|2 | 44100 | 2 | 441000 | ok | signal/error 26.0 dB | PASS |
+| 44100 | mp3:cbr128|44100|1 | 44100 | 1 | 441000 | ok | signal/error 26.0 dB | PASS |
+| 44100 | mp3:cbr128|48000|2 | 48000 | 2 | 480000 | ok | signal/error 26.0 dB | PASS |
+| 44100 | mp3:cbr128|48000|1 | 48000 | 1 | 480000 | ok | signal/error 26.0 dB | PASS |
+| 44100 | mp3:cbr160|44100|2 | 44100 | 2 | 441000 | ok | signal/error 26.0 dB | PASS |
+| 44100 | mp3:cbr160|44100|1 | 44100 | 1 | 441000 | ok | signal/error 26.0 dB | PASS |
+| 44100 | mp3:cbr160|48000|2 | 48000 | 2 | 480000 | ok | signal/error 26.0 dB | PASS |
+| 44100 | mp3:cbr160|48000|1 | 48000 | 1 | 480000 | ok | signal/error 26.0 dB | PASS |
+| 44100 | mp3:cbr192|44100|2 | 44100 | 2 | 441000 | ok | signal/error 30.5 dB | PASS |
+| 44100 | mp3:cbr192|44100|1 | 44100 | 1 | 441000 | ok | signal/error 30.5 dB | PASS |
+| 44100 | mp3:cbr192|48000|2 | 48000 | 2 | 480000 | ok | signal/error 30.4 dB | PASS |
+| 44100 | mp3:cbr192|48000|1 | 48000 | 1 | 480000 | ok | signal/error 30.4 dB | PASS |
+| 44100 | mp3:cbr224|44100|2 | 44100 | 2 | 441000 | ok | signal/error 34.0 dB | PASS |
+| 44100 | mp3:cbr224|44100|1 | 44100 | 1 | 441000 | ok | signal/error 34.0 dB | PASS |
+| 44100 | mp3:cbr224|48000|2 | 48000 | 2 | 480000 | ok | signal/error 34.0 dB | PASS |
+| 44100 | mp3:cbr224|48000|1 | 48000 | 1 | 480000 | ok | signal/error 34.0 dB | PASS |
+| 44100 | mp3:cbr256|44100|2 | 44100 | 2 | 441000 | ok | signal/error 74.8 dB | PASS |
+| 44100 | mp3:cbr256|44100|1 | 44100 | 1 | 441000 | ok | signal/error 78.4 dB | PASS |
+| 44100 | mp3:cbr256|48000|2 | 48000 | 2 | 480000 | ok | signal/error 72.1 dB | PASS |
+| 44100 | mp3:cbr256|48000|1 | 48000 | 1 | 480000 | ok | signal/error 77.7 dB | PASS |
+| 44100 | mp3:cbr320|44100|2 | 44100 | 2 | 441000 | ok | signal/error 75.3 dB | PASS |
+| 44100 | mp3:cbr320|44100|1 | 44100 | 1 | 441000 | ok | signal/error 77.4 dB | PASS |
+| 44100 | mp3:cbr320|48000|2 | 48000 | 2 | 480000 | ok | signal/error 71.8 dB | PASS |
+| 44100 | mp3:cbr320|48000|1 | 48000 | 1 | 480000 | ok | signal/error 77.5 dB | PASS |
+| 44100 | mp3:v0|44100|2 | 44100 | 2 | 441000 | ok | signal/error 67.6 dB | PASS |
+| 44100 | mp3:v0|44100|1 | 44100 | 1 | 441000 | ok | signal/error 41.6 dB | PASS |
+| 44100 | mp3:v0|48000|2 | 48000 | 2 | 480000 | ok | signal/error 67.4 dB | PASS |
+| 44100 | mp3:v0|48000|1 | 48000 | 1 | 480000 | ok | signal/error 46.0 dB | PASS |
+| 44100 | mp3:v2|44100|2 | 44100 | 2 | 441000 | ok | signal/error 44.5 dB | PASS |
+| 44100 | mp3:v2|44100|1 | 44100 | 1 | 441000 | ok | signal/error 36.3 dB | PASS |
+| 44100 | mp3:v2|48000|2 | 48000 | 2 | 480000 | ok | signal/error 52.1 dB | PASS |
+| 44100 | mp3:v2|48000|1 | 48000 | 1 | 480000 | ok | signal/error 40.3 dB | PASS |
+| 44100 | mp3:v4|44100|2 | 44100 | 2 | 441000 | ok | signal/error 41.5 dB | PASS |
+| 44100 | mp3:v4|44100|1 | 44100 | 1 | 441000 | ok | signal/error 33.8 dB | PASS |
+| 44100 | mp3:v4|48000|2 | 48000 | 2 | 480000 | ok | signal/error 44.1 dB | PASS |
+| 44100 | mp3:v4|48000|1 | 48000 | 1 | 480000 | ok | signal/error 38.4 dB | PASS |
+| 48000 | wav:16|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 48000 | wav:16|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 48000 | wav:16|48000|2 | 48000 | 2 | 480000 | ok | max 1.480 LSB, mean -0.0004, rms 0.499 | PASS |
+| 48000 | wav:16|48000|1 | 48000 | 1 | 480000 | ok | max 1.485 LSB, mean 0.0003, rms 0.500 | PASS |
+| 48000 | wav:24|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.6 dB | PASS |
+| 48000 | wav:24|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.7 dB | PASS |
+| 48000 | wav:24|48000|2 | 48000 | 2 | 480000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 48000 | wav:24|48000|1 | 48000 | 1 | 480000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 48000 | wav:32|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 149.4 dB | PASS |
+| 48000 | wav:32|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 147.1 dB | PASS |
+| 48000 | wav:32|48000|2 | 48000 | 2 | 480000 | ok | max 0.500 LSB, mean 0.0000, rms 0.030 | PASS |
+| 48000 | wav:32|48000|1 | 48000 | 1 | 480000 | ok | max 0.500 LSB, mean -0.0000, rms 0.005 | PASS |
+| 48000 | wav:32f|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 149.4 dB | PASS |
+| 48000 | wav:32f|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 147.1 dB | PASS |
+| 48000 | wav:32f|48000|2 | 48000 | 2 | 480000 | ok | max 0.000 LSB, mean 0.0000, rms 0.000 | PASS |
+| 48000 | wav:32f|48000|1 | 48000 | 1 | 480000 | ok | max 0.000 LSB, mean 0.0000, rms 0.000 | PASS |
+| 48000 | flac:16:0|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 48000 | flac:16:0|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 48000 | flac:16:0|48000|2 | 48000 | 2 | 480000 | ok | max 1.485 LSB, mean -0.0003, rms 0.500 | PASS |
+| 48000 | flac:16:0|48000|1 | 48000 | 1 | 480000 | ok | max 1.485 LSB, mean 0.0003, rms 0.500 | PASS |
+| 48000 | flac:16:1|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 48000 | flac:16:1|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 48000 | flac:16:1|48000|2 | 48000 | 2 | 480000 | ok | max 1.486 LSB, mean -0.0000, rms 0.499 | PASS |
+| 48000 | flac:16:1|48000|1 | 48000 | 1 | 480000 | ok | max 1.485 LSB, mean 0.0003, rms 0.500 | PASS |
+| 48000 | flac:16:2|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 48000 | flac:16:2|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 48000 | flac:16:2|48000|2 | 48000 | 2 | 480000 | ok | max 1.489 LSB, mean -0.0002, rms 0.500 | PASS |
+| 48000 | flac:16:2|48000|1 | 48000 | 1 | 480000 | ok | max 1.485 LSB, mean 0.0003, rms 0.500 | PASS |
+| 48000 | flac:16:3|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 48000 | flac:16:3|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 48000 | flac:16:3|48000|2 | 48000 | 2 | 480000 | ok | max 1.487 LSB, mean -0.0001, rms 0.500 | PASS |
+| 48000 | flac:16:3|48000|1 | 48000 | 1 | 480000 | ok | max 1.485 LSB, mean 0.0003, rms 0.500 | PASS |
+| 48000 | flac:16:4|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 48000 | flac:16:4|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 48000 | flac:16:4|48000|2 | 48000 | 2 | 480000 | ok | max 1.481 LSB, mean -0.0004, rms 0.500 | PASS |
+| 48000 | flac:16:4|48000|1 | 48000 | 1 | 480000 | ok | max 1.485 LSB, mean 0.0003, rms 0.500 | PASS |
+| 48000 | flac:16:5|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 48000 | flac:16:5|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 48000 | flac:16:5|48000|2 | 48000 | 2 | 480000 | ok | max 1.488 LSB, mean -0.0004, rms 0.500 | PASS |
+| 48000 | flac:16:5|48000|1 | 48000 | 1 | 480000 | ok | max 1.485 LSB, mean 0.0003, rms 0.500 | PASS |
+| 48000 | flac:16:6|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 48000 | flac:16:6|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 48000 | flac:16:6|48000|2 | 48000 | 2 | 480000 | ok | max 1.490 LSB, mean -0.0005, rms 0.500 | PASS |
+| 48000 | flac:16:6|48000|1 | 48000 | 1 | 480000 | ok | max 1.485 LSB, mean 0.0003, rms 0.500 | PASS |
+| 48000 | flac:16:7|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 48000 | flac:16:7|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 48000 | flac:16:7|48000|2 | 48000 | 2 | 480000 | ok | max 1.494 LSB, mean -0.0006, rms 0.500 | PASS |
+| 48000 | flac:16:7|48000|1 | 48000 | 1 | 480000 | ok | max 1.485 LSB, mean 0.0003, rms 0.500 | PASS |
+| 48000 | flac:16:8|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 48000 | flac:16:8|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 48000 | flac:16:8|48000|2 | 48000 | 2 | 480000 | ok | max 1.493 LSB, mean -0.0003, rms 0.500 | PASS |
+| 48000 | flac:16:8|48000|1 | 48000 | 1 | 480000 | ok | max 1.485 LSB, mean 0.0003, rms 0.500 | PASS |
+| 48000 | flac:24:0|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.6 dB | PASS |
+| 48000 | flac:24:0|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.7 dB | PASS |
+| 48000 | flac:24:0|48000|2 | 48000 | 2 | 480000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 48000 | flac:24:0|48000|1 | 48000 | 1 | 480000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 48000 | flac:24:1|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.6 dB | PASS |
+| 48000 | flac:24:1|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.7 dB | PASS |
+| 48000 | flac:24:1|48000|2 | 48000 | 2 | 480000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 48000 | flac:24:1|48000|1 | 48000 | 1 | 480000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 48000 | flac:24:2|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.6 dB | PASS |
+| 48000 | flac:24:2|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.7 dB | PASS |
+| 48000 | flac:24:2|48000|2 | 48000 | 2 | 480000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 48000 | flac:24:2|48000|1 | 48000 | 1 | 480000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 48000 | flac:24:3|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.6 dB | PASS |
+| 48000 | flac:24:3|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.7 dB | PASS |
+| 48000 | flac:24:3|48000|2 | 48000 | 2 | 480000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 48000 | flac:24:3|48000|1 | 48000 | 1 | 480000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 48000 | flac:24:4|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.6 dB | PASS |
+| 48000 | flac:24:4|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.7 dB | PASS |
+| 48000 | flac:24:4|48000|2 | 48000 | 2 | 480000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 48000 | flac:24:4|48000|1 | 48000 | 1 | 480000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 48000 | flac:24:5|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.6 dB | PASS |
+| 48000 | flac:24:5|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.7 dB | PASS |
+| 48000 | flac:24:5|48000|2 | 48000 | 2 | 480000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 48000 | flac:24:5|48000|1 | 48000 | 1 | 480000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 48000 | flac:24:6|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.6 dB | PASS |
+| 48000 | flac:24:6|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.7 dB | PASS |
+| 48000 | flac:24:6|48000|2 | 48000 | 2 | 480000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 48000 | flac:24:6|48000|1 | 48000 | 1 | 480000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 48000 | flac:24:7|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.6 dB | PASS |
+| 48000 | flac:24:7|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.7 dB | PASS |
+| 48000 | flac:24:7|48000|2 | 48000 | 2 | 480000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 48000 | flac:24:7|48000|1 | 48000 | 1 | 480000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 48000 | flac:24:8|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.6 dB | PASS |
+| 48000 | flac:24:8|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.7 dB | PASS |
+| 48000 | flac:24:8|48000|2 | 48000 | 2 | 480000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 48000 | flac:24:8|48000|1 | 48000 | 1 | 480000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 48000 | mp3:cbr128|44100|2 | 44100 | 2 | 441000 | ok | signal/error 26.0 dB | PASS |
+| 48000 | mp3:cbr128|44100|1 | 44100 | 1 | 441000 | ok | signal/error 26.0 dB | PASS |
+| 48000 | mp3:cbr128|48000|2 | 48000 | 2 | 480000 | ok | signal/error 26.0 dB | PASS |
+| 48000 | mp3:cbr128|48000|1 | 48000 | 1 | 480000 | ok | signal/error 26.0 dB | PASS |
+| 48000 | mp3:cbr160|44100|2 | 44100 | 2 | 441000 | ok | signal/error 26.0 dB | PASS |
+| 48000 | mp3:cbr160|44100|1 | 44100 | 1 | 441000 | ok | signal/error 26.0 dB | PASS |
+| 48000 | mp3:cbr160|48000|2 | 48000 | 2 | 480000 | ok | signal/error 26.0 dB | PASS |
+| 48000 | mp3:cbr160|48000|1 | 48000 | 1 | 480000 | ok | signal/error 26.0 dB | PASS |
+| 48000 | mp3:cbr192|44100|2 | 44100 | 2 | 441000 | ok | signal/error 30.5 dB | PASS |
+| 48000 | mp3:cbr192|44100|1 | 44100 | 1 | 441000 | ok | signal/error 30.5 dB | PASS |
+| 48000 | mp3:cbr192|48000|2 | 48000 | 2 | 480000 | ok | signal/error 30.4 dB | PASS |
+| 48000 | mp3:cbr192|48000|1 | 48000 | 1 | 480000 | ok | signal/error 30.4 dB | PASS |
+| 48000 | mp3:cbr224|44100|2 | 44100 | 2 | 441000 | ok | signal/error 34.0 dB | PASS |
+| 48000 | mp3:cbr224|44100|1 | 44100 | 1 | 441000 | ok | signal/error 34.0 dB | PASS |
+| 48000 | mp3:cbr224|48000|2 | 48000 | 2 | 480000 | ok | signal/error 34.0 dB | PASS |
+| 48000 | mp3:cbr224|48000|1 | 48000 | 1 | 480000 | ok | signal/error 34.0 dB | PASS |
+| 48000 | mp3:cbr256|44100|2 | 44100 | 2 | 441000 | ok | signal/error 74.8 dB | PASS |
+| 48000 | mp3:cbr256|44100|1 | 44100 | 1 | 441000 | ok | signal/error 78.4 dB | PASS |
+| 48000 | mp3:cbr256|48000|2 | 48000 | 2 | 480000 | ok | signal/error 72.0 dB | PASS |
+| 48000 | mp3:cbr256|48000|1 | 48000 | 1 | 480000 | ok | signal/error 77.7 dB | PASS |
+| 48000 | mp3:cbr320|44100|2 | 44100 | 2 | 441000 | ok | signal/error 75.3 dB | PASS |
+| 48000 | mp3:cbr320|44100|1 | 44100 | 1 | 441000 | ok | signal/error 77.5 dB | PASS |
+| 48000 | mp3:cbr320|48000|2 | 48000 | 2 | 480000 | ok | signal/error 71.8 dB | PASS |
+| 48000 | mp3:cbr320|48000|1 | 48000 | 1 | 480000 | ok | signal/error 77.6 dB | PASS |
+| 48000 | mp3:v0|44100|2 | 44100 | 2 | 441000 | ok | signal/error 67.6 dB | PASS |
+| 48000 | mp3:v0|44100|1 | 44100 | 1 | 441000 | ok | signal/error 41.6 dB | PASS |
+| 48000 | mp3:v0|48000|2 | 48000 | 2 | 480000 | ok | signal/error 67.4 dB | PASS |
+| 48000 | mp3:v0|48000|1 | 48000 | 1 | 480000 | ok | signal/error 46.0 dB | PASS |
+| 48000 | mp3:v2|44100|2 | 44100 | 2 | 441000 | ok | signal/error 44.6 dB | PASS |
+| 48000 | mp3:v2|44100|1 | 44100 | 1 | 441000 | ok | signal/error 36.3 dB | PASS |
+| 48000 | mp3:v2|48000|2 | 48000 | 2 | 480000 | ok | signal/error 52.1 dB | PASS |
+| 48000 | mp3:v2|48000|1 | 48000 | 1 | 480000 | ok | signal/error 40.3 dB | PASS |
+| 48000 | mp3:v4|44100|2 | 44100 | 2 | 441000 | ok | signal/error 41.5 dB | PASS |
+| 48000 | mp3:v4|44100|1 | 44100 | 1 | 441000 | ok | signal/error 33.8 dB | PASS |
+| 48000 | mp3:v4|48000|2 | 48000 | 2 | 480000 | ok | signal/error 44.1 dB | PASS |
+| 48000 | mp3:v4|48000|1 | 48000 | 1 | 480000 | ok | signal/error 38.4 dB | PASS |
+| 96000 | wav:16|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | wav:16|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | wav:16|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | wav:16|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | wav:16|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | wav:16|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | wav:16|96000|2 | 96000 | 2 | 960000 | ok | max 1.490 LSB, mean -0.0003, rms 0.500 | PASS |
+| 96000 | wav:16|96000|1 | 96000 | 1 | 960000 | ok | max 1.492 LSB, mean -0.0004, rms 0.500 | PASS |
+| 96000 | wav:24|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.7 dB | PASS |
+| 96000 | wav:24|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.8 dB | PASS |
+| 96000 | wav:24|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.7 dB | PASS |
+| 96000 | wav:24|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.7 dB | PASS |
+| 96000 | wav:24|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 136.6 dB | PASS |
+| 96000 | wav:24|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 133.7 dB | PASS |
+| 96000 | wav:24|96000|2 | 96000 | 2 | 960000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 96000 | wav:24|96000|1 | 96000 | 1 | 960000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 96000 | wav:32|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 150.7 dB | PASS |
+| 96000 | wav:32|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 148.9 dB | PASS |
+| 96000 | wav:32|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 152.2 dB | PASS |
+| 96000 | wav:32|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 149.2 dB | PASS |
+| 96000 | wav:32|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 149.4 dB | PASS |
+| 96000 | wav:32|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 147.2 dB | PASS |
+| 96000 | wav:32|96000|2 | 96000 | 2 | 960000 | ok | max 0.500 LSB, mean -0.0000, rms 0.030 | PASS |
+| 96000 | wav:32|96000|1 | 96000 | 1 | 960000 | ok | max 0.500 LSB, mean 0.0000, rms 0.005 | PASS |
+| 96000 | wav:32f|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 150.7 dB | PASS |
+| 96000 | wav:32f|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 148.9 dB | PASS |
+| 96000 | wav:32f|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 152.2 dB | PASS |
+| 96000 | wav:32f|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 149.2 dB | PASS |
+| 96000 | wav:32f|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 149.4 dB | PASS |
+| 96000 | wav:32f|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 147.2 dB | PASS |
+| 96000 | wav:32f|96000|2 | 96000 | 2 | 960000 | ok | max 0.000 LSB, mean 0.0000, rms 0.000 | PASS |
+| 96000 | wav:32f|96000|1 | 96000 | 1 | 960000 | ok | max 0.000 LSB, mean 0.0000, rms 0.000 | PASS |
+| 96000 | flac:16:0|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:0|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:0|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:0|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:0|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:0|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:0|96000|2 | 96000 | 2 | 960000 | ok | max 1.492 LSB, mean 0.0000, rms 0.500 | PASS |
+| 96000 | flac:16:0|96000|1 | 96000 | 1 | 960000 | ok | max 1.492 LSB, mean -0.0004, rms 0.500 | PASS |
+| 96000 | flac:16:1|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:1|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:1|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:1|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:1|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:1|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:1|96000|2 | 96000 | 2 | 960000 | ok | max 1.487 LSB, mean 0.0001, rms 0.500 | PASS |
+| 96000 | flac:16:1|96000|1 | 96000 | 1 | 960000 | ok | max 1.492 LSB, mean -0.0004, rms 0.500 | PASS |
+| 96000 | flac:16:2|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:2|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:2|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:2|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:2|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:2|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:2|96000|2 | 96000 | 2 | 960000 | ok | max 1.490 LSB, mean -0.0003, rms 0.500 | PASS |
+| 96000 | flac:16:2|96000|1 | 96000 | 1 | 960000 | ok | max 1.492 LSB, mean -0.0004, rms 0.500 | PASS |
+| 96000 | flac:16:3|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:3|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:3|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:3|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:3|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:3|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:3|96000|2 | 96000 | 2 | 960000 | ok | max 1.481 LSB, mean 0.0000, rms 0.500 | PASS |
+| 96000 | flac:16:3|96000|1 | 96000 | 1 | 960000 | ok | max 1.492 LSB, mean -0.0004, rms 0.500 | PASS |
+| 96000 | flac:16:4|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:4|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:4|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:4|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:4|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:4|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:4|96000|2 | 96000 | 2 | 960000 | ok | max 1.496 LSB, mean 0.0001, rms 0.500 | PASS |
+| 96000 | flac:16:4|96000|1 | 96000 | 1 | 960000 | ok | max 1.492 LSB, mean -0.0004, rms 0.500 | PASS |
+| 96000 | flac:16:5|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:5|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:5|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:5|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:5|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:5|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:5|96000|2 | 96000 | 2 | 960000 | ok | max 1.488 LSB, mean -0.0000, rms 0.500 | PASS |
+| 96000 | flac:16:5|96000|1 | 96000 | 1 | 960000 | ok | max 1.492 LSB, mean -0.0004, rms 0.500 | PASS |
+| 96000 | flac:16:6|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:6|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:6|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:6|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:6|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:6|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:6|96000|2 | 96000 | 2 | 960000 | ok | max 1.495 LSB, mean 0.0000, rms 0.500 | PASS |
+| 96000 | flac:16:6|96000|1 | 96000 | 1 | 960000 | ok | max 1.492 LSB, mean -0.0004, rms 0.500 | PASS |
+| 96000 | flac:16:7|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:7|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:7|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:7|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:7|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:7|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:7|96000|2 | 96000 | 2 | 960000 | ok | max 1.490 LSB, mean -0.0005, rms 0.500 | PASS |
+| 96000 | flac:16:7|96000|1 | 96000 | 1 | 960000 | ok | max 1.492 LSB, mean -0.0004, rms 0.500 | PASS |
+| 96000 | flac:16:8|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:8|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:8|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:8|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:8|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 84.2 dB | PASS |
+| 96000 | flac:16:8|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 81.2 dB | PASS |
+| 96000 | flac:16:8|96000|2 | 96000 | 2 | 960000 | ok | max 1.492 LSB, mean -0.0003, rms 0.500 | PASS |
+| 96000 | flac:16:8|96000|1 | 96000 | 1 | 960000 | ok | max 1.492 LSB, mean -0.0004, rms 0.500 | PASS |
+| 96000 | flac:24:0|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.7 dB | PASS |
+| 96000 | flac:24:0|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.8 dB | PASS |
+| 96000 | flac:24:0|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.7 dB | PASS |
+| 96000 | flac:24:0|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.7 dB | PASS |
+| 96000 | flac:24:0|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 136.6 dB | PASS |
+| 96000 | flac:24:0|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 133.7 dB | PASS |
+| 96000 | flac:24:0|96000|2 | 96000 | 2 | 960000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 96000 | flac:24:0|96000|1 | 96000 | 1 | 960000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 96000 | flac:24:1|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.7 dB | PASS |
+| 96000 | flac:24:1|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.8 dB | PASS |
+| 96000 | flac:24:1|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.7 dB | PASS |
+| 96000 | flac:24:1|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.7 dB | PASS |
+| 96000 | flac:24:1|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 136.6 dB | PASS |
+| 96000 | flac:24:1|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 133.7 dB | PASS |
+| 96000 | flac:24:1|96000|2 | 96000 | 2 | 960000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 96000 | flac:24:1|96000|1 | 96000 | 1 | 960000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 96000 | flac:24:2|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.7 dB | PASS |
+| 96000 | flac:24:2|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.8 dB | PASS |
+| 96000 | flac:24:2|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.7 dB | PASS |
+| 96000 | flac:24:2|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.7 dB | PASS |
+| 96000 | flac:24:2|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 136.6 dB | PASS |
+| 96000 | flac:24:2|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 133.7 dB | PASS |
+| 96000 | flac:24:2|96000|2 | 96000 | 2 | 960000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 96000 | flac:24:2|96000|1 | 96000 | 1 | 960000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 96000 | flac:24:3|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.7 dB | PASS |
+| 96000 | flac:24:3|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.8 dB | PASS |
+| 96000 | flac:24:3|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.7 dB | PASS |
+| 96000 | flac:24:3|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.7 dB | PASS |
+| 96000 | flac:24:3|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 136.6 dB | PASS |
+| 96000 | flac:24:3|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 133.7 dB | PASS |
+| 96000 | flac:24:3|96000|2 | 96000 | 2 | 960000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 96000 | flac:24:3|96000|1 | 96000 | 1 | 960000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 96000 | flac:24:4|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.7 dB | PASS |
+| 96000 | flac:24:4|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.8 dB | PASS |
+| 96000 | flac:24:4|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.7 dB | PASS |
+| 96000 | flac:24:4|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.7 dB | PASS |
+| 96000 | flac:24:4|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 136.6 dB | PASS |
+| 96000 | flac:24:4|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 133.7 dB | PASS |
+| 96000 | flac:24:4|96000|2 | 96000 | 2 | 960000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 96000 | flac:24:4|96000|1 | 96000 | 1 | 960000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 96000 | flac:24:5|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.7 dB | PASS |
+| 96000 | flac:24:5|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.8 dB | PASS |
+| 96000 | flac:24:5|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.7 dB | PASS |
+| 96000 | flac:24:5|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.7 dB | PASS |
+| 96000 | flac:24:5|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 136.6 dB | PASS |
+| 96000 | flac:24:5|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 133.7 dB | PASS |
+| 96000 | flac:24:5|96000|2 | 96000 | 2 | 960000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 96000 | flac:24:5|96000|1 | 96000 | 1 | 960000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 96000 | flac:24:6|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.7 dB | PASS |
+| 96000 | flac:24:6|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.8 dB | PASS |
+| 96000 | flac:24:6|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.7 dB | PASS |
+| 96000 | flac:24:6|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.7 dB | PASS |
+| 96000 | flac:24:6|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 136.6 dB | PASS |
+| 96000 | flac:24:6|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 133.7 dB | PASS |
+| 96000 | flac:24:6|96000|2 | 96000 | 2 | 960000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 96000 | flac:24:6|96000|1 | 96000 | 1 | 960000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 96000 | flac:24:7|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.7 dB | PASS |
+| 96000 | flac:24:7|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.8 dB | PASS |
+| 96000 | flac:24:7|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.7 dB | PASS |
+| 96000 | flac:24:7|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.7 dB | PASS |
+| 96000 | flac:24:7|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 136.6 dB | PASS |
+| 96000 | flac:24:7|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 133.7 dB | PASS |
+| 96000 | flac:24:7|96000|2 | 96000 | 2 | 960000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 96000 | flac:24:7|96000|1 | 96000 | 1 | 960000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 96000 | flac:24:8|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.7 dB | PASS |
+| 96000 | flac:24:8|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.8 dB | PASS |
+| 96000 | flac:24:8|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.7 dB | PASS |
+| 96000 | flac:24:8|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.7 dB | PASS |
+| 96000 | flac:24:8|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 136.6 dB | PASS |
+| 96000 | flac:24:8|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 133.7 dB | PASS |
+| 96000 | flac:24:8|96000|2 | 96000 | 2 | 960000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 96000 | flac:24:8|96000|1 | 96000 | 1 | 960000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 96000 | mp3:cbr128|44100|2 | 44100 | 2 | 441000 | ok | signal/error 26.0 dB | PASS |
+| 96000 | mp3:cbr128|44100|1 | 44100 | 1 | 441000 | ok | signal/error 26.0 dB | PASS |
+| 96000 | mp3:cbr128|48000|2 | 48000 | 2 | 480000 | ok | signal/error 26.0 dB | PASS |
+| 96000 | mp3:cbr128|48000|1 | 48000 | 1 | 480000 | ok | signal/error 26.0 dB | PASS |
+| 96000 | mp3:cbr160|44100|2 | 44100 | 2 | 441000 | ok | signal/error 26.0 dB | PASS |
+| 96000 | mp3:cbr160|44100|1 | 44100 | 1 | 441000 | ok | signal/error 26.0 dB | PASS |
+| 96000 | mp3:cbr160|48000|2 | 48000 | 2 | 480000 | ok | signal/error 26.0 dB | PASS |
+| 96000 | mp3:cbr160|48000|1 | 48000 | 1 | 480000 | ok | signal/error 26.0 dB | PASS |
+| 96000 | mp3:cbr192|44100|2 | 44100 | 2 | 441000 | ok | signal/error 30.5 dB | PASS |
+| 96000 | mp3:cbr192|44100|1 | 44100 | 1 | 441000 | ok | signal/error 30.5 dB | PASS |
+| 96000 | mp3:cbr192|48000|2 | 48000 | 2 | 480000 | ok | signal/error 30.4 dB | PASS |
+| 96000 | mp3:cbr192|48000|1 | 48000 | 1 | 480000 | ok | signal/error 30.4 dB | PASS |
+| 96000 | mp3:cbr224|44100|2 | 44100 | 2 | 441000 | ok | signal/error 34.0 dB | PASS |
+| 96000 | mp3:cbr224|44100|1 | 44100 | 1 | 441000 | ok | signal/error 34.0 dB | PASS |
+| 96000 | mp3:cbr224|48000|2 | 48000 | 2 | 480000 | ok | signal/error 33.9 dB | PASS |
+| 96000 | mp3:cbr224|48000|1 | 48000 | 1 | 480000 | ok | signal/error 34.0 dB | PASS |
+| 96000 | mp3:cbr256|44100|2 | 44100 | 2 | 441000 | ok | signal/error 74.9 dB | PASS |
+| 96000 | mp3:cbr256|44100|1 | 44100 | 1 | 441000 | ok | signal/error 78.4 dB | PASS |
+| 96000 | mp3:cbr256|48000|2 | 48000 | 2 | 480000 | ok | signal/error 72.0 dB | PASS |
+| 96000 | mp3:cbr256|48000|1 | 48000 | 1 | 480000 | ok | signal/error 77.7 dB | PASS |
+| 96000 | mp3:cbr320|44100|2 | 44100 | 2 | 441000 | ok | signal/error 75.2 dB | PASS |
+| 96000 | mp3:cbr320|44100|1 | 44100 | 1 | 441000 | ok | signal/error 77.4 dB | PASS |
+| 96000 | mp3:cbr320|48000|2 | 48000 | 2 | 480000 | ok | signal/error 71.8 dB | PASS |
+| 96000 | mp3:cbr320|48000|1 | 48000 | 1 | 480000 | ok | signal/error 77.6 dB | PASS |
+| 96000 | mp3:v0|44100|2 | 44100 | 2 | 441000 | ok | signal/error 67.6 dB | PASS |
+| 96000 | mp3:v0|44100|1 | 44100 | 1 | 441000 | ok | signal/error 41.6 dB | PASS |
+| 96000 | mp3:v0|48000|2 | 48000 | 2 | 480000 | ok | signal/error 67.4 dB | PASS |
+| 96000 | mp3:v0|48000|1 | 48000 | 1 | 480000 | ok | signal/error 46.0 dB | PASS |
+| 96000 | mp3:v2|44100|2 | 44100 | 2 | 441000 | ok | signal/error 44.5 dB | PASS |
+| 96000 | mp3:v2|44100|1 | 44100 | 1 | 441000 | ok | signal/error 36.3 dB | PASS |
+| 96000 | mp3:v2|48000|2 | 48000 | 2 | 480000 | ok | signal/error 52.1 dB | PASS |
+| 96000 | mp3:v2|48000|1 | 48000 | 1 | 480000 | ok | signal/error 40.3 dB | PASS |
+| 96000 | mp3:v4|44100|2 | 44100 | 2 | 441000 | ok | signal/error 41.5 dB | PASS |
+| 96000 | mp3:v4|44100|1 | 44100 | 1 | 441000 | ok | signal/error 33.8 dB | PASS |
+| 96000 | mp3:v4|48000|2 | 48000 | 2 | 480000 | ok | signal/error 44.1 dB | PASS |
+| 96000 | mp3:v4|48000|1 | 48000 | 1 | 480000 | ok | signal/error 38.4 dB | PASS |
+| 192000 | wav:16|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | wav:16|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | wav:16|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | wav:16|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | wav:16|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | wav:16|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | wav:16|96000|2 | 96000 | 2 | 960000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | wav:16|96000|1 | 96000 | 1 | 960000 | ok | converted, signal/error 81.1 dB | PASS |
+| 192000 | wav:16|176400|2 | 176400 | 2 | 1764000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | wav:16|176400|1 | 176400 | 1 | 1764000 | ok | converted, signal/error 81.1 dB | PASS |
+| 192000 | wav:16|192000|2 | 192000 | 2 | 1920000 | ok | max 1.491 LSB, mean -0.0002, rms 0.500 | PASS |
+| 192000 | wav:16|192000|1 | 192000 | 1 | 1920000 | ok | max 1.492 LSB, mean -0.0000, rms 0.500 | PASS |
+| 192000 | wav:24|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | wav:24|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | wav:24|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | wav:24|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | wav:24|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | wav:24|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | wav:24|96000|2 | 96000 | 2 | 960000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | wav:24|96000|1 | 96000 | 1 | 960000 | ok | converted, signal/error 133.7 dB | PASS |
+| 192000 | wav:24|176400|2 | 176400 | 2 | 1764000 | ok | converted, signal/error 136.6 dB | PASS |
+| 192000 | wav:24|176400|1 | 176400 | 1 | 1764000 | ok | converted, signal/error 133.7 dB | PASS |
+| 192000 | wav:24|192000|2 | 192000 | 2 | 1920000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 192000 | wav:24|192000|1 | 192000 | 1 | 1920000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 192000 | wav:32|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 151.2 dB | PASS |
+| 192000 | wav:32|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 149.9 dB | PASS |
+| 192000 | wav:32|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 152.1 dB | PASS |
+| 192000 | wav:32|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 150.1 dB | PASS |
+| 192000 | wav:32|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 150.7 dB | PASS |
+| 192000 | wav:32|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 148.9 dB | PASS |
+| 192000 | wav:32|96000|2 | 96000 | 2 | 960000 | ok | converted, signal/error 150.9 dB | PASS |
+| 192000 | wav:32|96000|1 | 96000 | 1 | 960000 | ok | converted, signal/error 148.5 dB | PASS |
+| 192000 | wav:32|176400|2 | 176400 | 2 | 1764000 | ok | converted, signal/error 149.4 dB | PASS |
+| 192000 | wav:32|176400|1 | 176400 | 1 | 1764000 | ok | converted, signal/error 147.1 dB | PASS |
+| 192000 | wav:32|192000|2 | 192000 | 2 | 1920000 | ok | max 0.500 LSB, mean -0.0000, rms 0.030 | PASS |
+| 192000 | wav:32|192000|1 | 192000 | 1 | 1920000 | ok | max 0.500 LSB, mean -0.0000, rms 0.005 | PASS |
+| 192000 | wav:32f|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 151.2 dB | PASS |
+| 192000 | wav:32f|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 149.9 dB | PASS |
+| 192000 | wav:32f|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 152.1 dB | PASS |
+| 192000 | wav:32f|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 150.1 dB | PASS |
+| 192000 | wav:32f|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 150.7 dB | PASS |
+| 192000 | wav:32f|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 148.9 dB | PASS |
+| 192000 | wav:32f|96000|2 | 96000 | 2 | 960000 | ok | converted, signal/error 150.9 dB | PASS |
+| 192000 | wav:32f|96000|1 | 96000 | 1 | 960000 | ok | converted, signal/error 148.5 dB | PASS |
+| 192000 | wav:32f|176400|2 | 176400 | 2 | 1764000 | ok | converted, signal/error 149.4 dB | PASS |
+| 192000 | wav:32f|176400|1 | 176400 | 1 | 1764000 | ok | converted, signal/error 147.1 dB | PASS |
+| 192000 | wav:32f|192000|2 | 192000 | 2 | 1920000 | ok | max 0.000 LSB, mean 0.0000, rms 0.000 | PASS |
+| 192000 | wav:32f|192000|1 | 192000 | 1 | 1920000 | ok | max 0.000 LSB, mean 0.0000, rms 0.000 | PASS |
+| 192000 | flac:16:0|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:0|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:0|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:0|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:0|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:0|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:0|96000|2 | 96000 | 2 | 960000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:0|96000|1 | 96000 | 1 | 960000 | ok | converted, signal/error 81.1 dB | PASS |
+| 192000 | flac:16:0|176400|2 | 176400 | 2 | 1764000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:0|176400|1 | 176400 | 1 | 1764000 | ok | converted, signal/error 81.1 dB | PASS |
+| 192000 | flac:16:0|192000|2 | 192000 | 2 | 1920000 | ok | max 1.493 LSB, mean 0.0001, rms 0.500 | PASS |
+| 192000 | flac:16:0|192000|1 | 192000 | 1 | 1920000 | ok | max 1.492 LSB, mean -0.0000, rms 0.500 | PASS |
+| 192000 | flac:16:1|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:1|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:1|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:1|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:1|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:1|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:1|96000|2 | 96000 | 2 | 960000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:1|96000|1 | 96000 | 1 | 960000 | ok | converted, signal/error 81.1 dB | PASS |
+| 192000 | flac:16:1|176400|2 | 176400 | 2 | 1764000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:1|176400|1 | 176400 | 1 | 1764000 | ok | converted, signal/error 81.1 dB | PASS |
+| 192000 | flac:16:1|192000|2 | 192000 | 2 | 1920000 | ok | max 1.494 LSB, mean -0.0001, rms 0.500 | PASS |
+| 192000 | flac:16:1|192000|1 | 192000 | 1 | 1920000 | ok | max 1.492 LSB, mean -0.0000, rms 0.500 | PASS |
+| 192000 | flac:16:2|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:2|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:2|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:2|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:2|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:2|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:2|96000|2 | 96000 | 2 | 960000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:2|96000|1 | 96000 | 1 | 960000 | ok | converted, signal/error 81.1 dB | PASS |
+| 192000 | flac:16:2|176400|2 | 176400 | 2 | 1764000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:2|176400|1 | 176400 | 1 | 1764000 | ok | converted, signal/error 81.1 dB | PASS |
+| 192000 | flac:16:2|192000|2 | 192000 | 2 | 1920000 | ok | max 1.494 LSB, mean 0.0001, rms 0.500 | PASS |
+| 192000 | flac:16:2|192000|1 | 192000 | 1 | 1920000 | ok | max 1.492 LSB, mean -0.0000, rms 0.500 | PASS |
+| 192000 | flac:16:3|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:3|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:3|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:3|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:3|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:3|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:3|96000|2 | 96000 | 2 | 960000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:3|96000|1 | 96000 | 1 | 960000 | ok | converted, signal/error 81.1 dB | PASS |
+| 192000 | flac:16:3|176400|2 | 176400 | 2 | 1764000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:3|176400|1 | 176400 | 1 | 1764000 | ok | converted, signal/error 81.1 dB | PASS |
+| 192000 | flac:16:3|192000|2 | 192000 | 2 | 1920000 | ok | max 1.494 LSB, mean -0.0000, rms 0.500 | PASS |
+| 192000 | flac:16:3|192000|1 | 192000 | 1 | 1920000 | ok | max 1.492 LSB, mean -0.0000, rms 0.500 | PASS |
+| 192000 | flac:16:4|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:4|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:4|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:4|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:4|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:4|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:4|96000|2 | 96000 | 2 | 960000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:4|96000|1 | 96000 | 1 | 960000 | ok | converted, signal/error 81.1 dB | PASS |
+| 192000 | flac:16:4|176400|2 | 176400 | 2 | 1764000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:4|176400|1 | 176400 | 1 | 1764000 | ok | converted, signal/error 81.1 dB | PASS |
+| 192000 | flac:16:4|192000|2 | 192000 | 2 | 1920000 | ok | max 1.494 LSB, mean -0.0001, rms 0.500 | PASS |
+| 192000 | flac:16:4|192000|1 | 192000 | 1 | 1920000 | ok | max 1.492 LSB, mean -0.0000, rms 0.500 | PASS |
+| 192000 | flac:16:5|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:5|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:5|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:5|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:5|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:5|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:5|96000|2 | 96000 | 2 | 960000 | ok | converted, signal/error 84.1 dB | PASS |
+| 192000 | flac:16:5|96000|1 | 96000 | 1 | 960000 | ok | converted, signal/error 81.1 dB | PASS |
+| 192000 | flac:16:5|176400|2 | 176400 | 2 | 1764000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:5|176400|1 | 176400 | 1 | 1764000 | ok | converted, signal/error 81.1 dB | PASS |
+| 192000 | flac:16:5|192000|2 | 192000 | 2 | 1920000 | ok | max 1.494 LSB, mean -0.0003, rms 0.500 | PASS |
+| 192000 | flac:16:5|192000|1 | 192000 | 1 | 1920000 | ok | max 1.492 LSB, mean -0.0000, rms 0.500 | PASS |
+| 192000 | flac:16:6|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:6|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:6|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:6|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:6|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:6|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:6|96000|2 | 96000 | 2 | 960000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:6|96000|1 | 96000 | 1 | 960000 | ok | converted, signal/error 81.1 dB | PASS |
+| 192000 | flac:16:6|176400|2 | 176400 | 2 | 1764000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:6|176400|1 | 176400 | 1 | 1764000 | ok | converted, signal/error 81.1 dB | PASS |
+| 192000 | flac:16:6|192000|2 | 192000 | 2 | 1920000 | ok | max 1.490 LSB, mean -0.0001, rms 0.500 | PASS |
+| 192000 | flac:16:6|192000|1 | 192000 | 1 | 1920000 | ok | max 1.492 LSB, mean -0.0000, rms 0.500 | PASS |
+| 192000 | flac:16:7|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:7|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:7|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:7|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:7|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:7|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:7|96000|2 | 96000 | 2 | 960000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:7|96000|1 | 96000 | 1 | 960000 | ok | converted, signal/error 81.1 dB | PASS |
+| 192000 | flac:16:7|176400|2 | 176400 | 2 | 1764000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:7|176400|1 | 176400 | 1 | 1764000 | ok | converted, signal/error 81.1 dB | PASS |
+| 192000 | flac:16:7|192000|2 | 192000 | 2 | 1920000 | ok | max 1.489 LSB, mean -0.0001, rms 0.500 | PASS |
+| 192000 | flac:16:7|192000|1 | 192000 | 1 | 1920000 | ok | max 1.492 LSB, mean -0.0000, rms 0.500 | PASS |
+| 192000 | flac:16:8|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:8|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:8|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:8|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:8|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:8|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 81.2 dB | PASS |
+| 192000 | flac:16:8|96000|2 | 96000 | 2 | 960000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:8|96000|1 | 96000 | 1 | 960000 | ok | converted, signal/error 81.1 dB | PASS |
+| 192000 | flac:16:8|176400|2 | 176400 | 2 | 1764000 | ok | converted, signal/error 84.2 dB | PASS |
+| 192000 | flac:16:8|176400|1 | 176400 | 1 | 1764000 | ok | converted, signal/error 81.1 dB | PASS |
+| 192000 | flac:16:8|192000|2 | 192000 | 2 | 1920000 | ok | max 1.497 LSB, mean -0.0002, rms 0.500 | PASS |
+| 192000 | flac:16:8|192000|1 | 192000 | 1 | 1920000 | ok | max 1.492 LSB, mean -0.0000, rms 0.500 | PASS |
+| 192000 | flac:24:0|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:0|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:0|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:0|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:0|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:0|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:0|96000|2 | 96000 | 2 | 960000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:0|96000|1 | 96000 | 1 | 960000 | ok | converted, signal/error 133.7 dB | PASS |
+| 192000 | flac:24:0|176400|2 | 176400 | 2 | 1764000 | ok | converted, signal/error 136.6 dB | PASS |
+| 192000 | flac:24:0|176400|1 | 176400 | 1 | 1764000 | ok | converted, signal/error 133.7 dB | PASS |
+| 192000 | flac:24:0|192000|2 | 192000 | 2 | 1920000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 192000 | flac:24:0|192000|1 | 192000 | 1 | 1920000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 192000 | flac:24:1|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:1|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:1|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:1|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:1|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:1|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:1|96000|2 | 96000 | 2 | 960000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:1|96000|1 | 96000 | 1 | 960000 | ok | converted, signal/error 133.7 dB | PASS |
+| 192000 | flac:24:1|176400|2 | 176400 | 2 | 1764000 | ok | converted, signal/error 136.6 dB | PASS |
+| 192000 | flac:24:1|176400|1 | 176400 | 1 | 1764000 | ok | converted, signal/error 133.7 dB | PASS |
+| 192000 | flac:24:1|192000|2 | 192000 | 2 | 1920000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 192000 | flac:24:1|192000|1 | 192000 | 1 | 1920000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 192000 | flac:24:2|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:2|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:2|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:2|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:2|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:2|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:2|96000|2 | 96000 | 2 | 960000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:2|96000|1 | 96000 | 1 | 960000 | ok | converted, signal/error 133.7 dB | PASS |
+| 192000 | flac:24:2|176400|2 | 176400 | 2 | 1764000 | ok | converted, signal/error 136.6 dB | PASS |
+| 192000 | flac:24:2|176400|1 | 176400 | 1 | 1764000 | ok | converted, signal/error 133.7 dB | PASS |
+| 192000 | flac:24:2|192000|2 | 192000 | 2 | 1920000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 192000 | flac:24:2|192000|1 | 192000 | 1 | 1920000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 192000 | flac:24:3|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:3|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:3|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:3|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:3|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:3|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:3|96000|2 | 96000 | 2 | 960000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:3|96000|1 | 96000 | 1 | 960000 | ok | converted, signal/error 133.7 dB | PASS |
+| 192000 | flac:24:3|176400|2 | 176400 | 2 | 1764000 | ok | converted, signal/error 136.6 dB | PASS |
+| 192000 | flac:24:3|176400|1 | 176400 | 1 | 1764000 | ok | converted, signal/error 133.7 dB | PASS |
+| 192000 | flac:24:3|192000|2 | 192000 | 2 | 1920000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 192000 | flac:24:3|192000|1 | 192000 | 1 | 1920000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 192000 | flac:24:4|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:4|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:4|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:4|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:4|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:4|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:4|96000|2 | 96000 | 2 | 960000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:4|96000|1 | 96000 | 1 | 960000 | ok | converted, signal/error 133.7 dB | PASS |
+| 192000 | flac:24:4|176400|2 | 176400 | 2 | 1764000 | ok | converted, signal/error 136.6 dB | PASS |
+| 192000 | flac:24:4|176400|1 | 176400 | 1 | 1764000 | ok | converted, signal/error 133.7 dB | PASS |
+| 192000 | flac:24:4|192000|2 | 192000 | 2 | 1920000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 192000 | flac:24:4|192000|1 | 192000 | 1 | 1920000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 192000 | flac:24:5|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:5|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:5|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:5|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:5|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:5|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:5|96000|2 | 96000 | 2 | 960000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:5|96000|1 | 96000 | 1 | 960000 | ok | converted, signal/error 133.7 dB | PASS |
+| 192000 | flac:24:5|176400|2 | 176400 | 2 | 1764000 | ok | converted, signal/error 136.6 dB | PASS |
+| 192000 | flac:24:5|176400|1 | 176400 | 1 | 1764000 | ok | converted, signal/error 133.7 dB | PASS |
+| 192000 | flac:24:5|192000|2 | 192000 | 2 | 1920000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 192000 | flac:24:5|192000|1 | 192000 | 1 | 1920000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 192000 | flac:24:6|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:6|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:6|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:6|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:6|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:6|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:6|96000|2 | 96000 | 2 | 960000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:6|96000|1 | 96000 | 1 | 960000 | ok | converted, signal/error 133.7 dB | PASS |
+| 192000 | flac:24:6|176400|2 | 176400 | 2 | 1764000 | ok | converted, signal/error 136.6 dB | PASS |
+| 192000 | flac:24:6|176400|1 | 176400 | 1 | 1764000 | ok | converted, signal/error 133.7 dB | PASS |
+| 192000 | flac:24:6|192000|2 | 192000 | 2 | 1920000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 192000 | flac:24:6|192000|1 | 192000 | 1 | 1920000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 192000 | flac:24:7|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:7|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:7|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:7|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:7|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:7|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:7|96000|2 | 96000 | 2 | 960000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:7|96000|1 | 96000 | 1 | 960000 | ok | converted, signal/error 133.7 dB | PASS |
+| 192000 | flac:24:7|176400|2 | 176400 | 2 | 1764000 | ok | converted, signal/error 136.6 dB | PASS |
+| 192000 | flac:24:7|176400|1 | 176400 | 1 | 1764000 | ok | converted, signal/error 133.7 dB | PASS |
+| 192000 | flac:24:7|192000|2 | 192000 | 2 | 1920000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 192000 | flac:24:7|192000|1 | 192000 | 1 | 1920000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 192000 | flac:24:8|44100|2 | 44100 | 2 | 441000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:8|44100|1 | 44100 | 1 | 441000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:8|48000|2 | 48000 | 2 | 480000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:8|48000|1 | 48000 | 1 | 480000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:8|88200|2 | 88200 | 2 | 882000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:8|88200|1 | 88200 | 1 | 882000 | ok | converted, signal/error 133.8 dB | PASS |
+| 192000 | flac:24:8|96000|2 | 96000 | 2 | 960000 | ok | converted, signal/error 136.7 dB | PASS |
+| 192000 | flac:24:8|96000|1 | 96000 | 1 | 960000 | ok | converted, signal/error 133.7 dB | PASS |
+| 192000 | flac:24:8|176400|2 | 176400 | 2 | 1764000 | ok | converted, signal/error 136.6 dB | PASS |
+| 192000 | flac:24:8|176400|1 | 176400 | 1 | 1764000 | ok | converted, signal/error 133.7 dB | PASS |
+| 192000 | flac:24:8|192000|2 | 192000 | 2 | 1920000 | ok | max 0.500 LSB, mean -0.0000, rms 0.297, not exact 0 | PASS |
+| 192000 | flac:24:8|192000|1 | 192000 | 1 | 1920000 | ok | max 0.500 LSB, mean 0.0000, rms 0.298, not exact 0 | PASS |
+| 192000 | mp3:cbr128|44100|2 | 44100 | 2 | 441000 | ok | signal/error 26.0 dB | PASS |
+| 192000 | mp3:cbr128|44100|1 | 44100 | 1 | 441000 | ok | signal/error 26.0 dB | PASS |
+| 192000 | mp3:cbr128|48000|2 | 48000 | 2 | 480000 | ok | signal/error 26.0 dB | PASS |
+| 192000 | mp3:cbr128|48000|1 | 48000 | 1 | 480000 | ok | signal/error 26.0 dB | PASS |
+| 192000 | mp3:cbr160|44100|2 | 44100 | 2 | 441000 | ok | signal/error 26.0 dB | PASS |
+| 192000 | mp3:cbr160|44100|1 | 44100 | 1 | 441000 | ok | signal/error 26.0 dB | PASS |
+| 192000 | mp3:cbr160|48000|2 | 48000 | 2 | 480000 | ok | signal/error 26.0 dB | PASS |
+| 192000 | mp3:cbr160|48000|1 | 48000 | 1 | 480000 | ok | signal/error 26.0 dB | PASS |
+| 192000 | mp3:cbr192|44100|2 | 44100 | 2 | 441000 | ok | signal/error 30.5 dB | PASS |
+| 192000 | mp3:cbr192|44100|1 | 44100 | 1 | 441000 | ok | signal/error 30.5 dB | PASS |
+| 192000 | mp3:cbr192|48000|2 | 48000 | 2 | 480000 | ok | signal/error 30.4 dB | PASS |
+| 192000 | mp3:cbr192|48000|1 | 48000 | 1 | 480000 | ok | signal/error 30.4 dB | PASS |
+| 192000 | mp3:cbr224|44100|2 | 44100 | 2 | 441000 | ok | signal/error 34.0 dB | PASS |
+| 192000 | mp3:cbr224|44100|1 | 44100 | 1 | 441000 | ok | signal/error 34.0 dB | PASS |
+| 192000 | mp3:cbr224|48000|2 | 48000 | 2 | 480000 | ok | signal/error 34.0 dB | PASS |
+| 192000 | mp3:cbr224|48000|1 | 48000 | 1 | 480000 | ok | signal/error 34.0 dB | PASS |
+| 192000 | mp3:cbr256|44100|2 | 44100 | 2 | 441000 | ok | signal/error 74.8 dB | PASS |
+| 192000 | mp3:cbr256|44100|1 | 44100 | 1 | 441000 | ok | signal/error 78.3 dB | PASS |
+| 192000 | mp3:cbr256|48000|2 | 48000 | 2 | 480000 | ok | signal/error 72.0 dB | PASS |
+| 192000 | mp3:cbr256|48000|1 | 48000 | 1 | 480000 | ok | signal/error 77.7 dB | PASS |
+| 192000 | mp3:cbr320|44100|2 | 44100 | 2 | 441000 | ok | signal/error 75.2 dB | PASS |
+| 192000 | mp3:cbr320|44100|1 | 44100 | 1 | 441000 | ok | signal/error 77.4 dB | PASS |
+| 192000 | mp3:cbr320|48000|2 | 48000 | 2 | 480000 | ok | signal/error 71.8 dB | PASS |
+| 192000 | mp3:cbr320|48000|1 | 48000 | 1 | 480000 | ok | signal/error 77.6 dB | PASS |
+| 192000 | mp3:v0|44100|2 | 44100 | 2 | 441000 | ok | signal/error 67.6 dB | PASS |
+| 192000 | mp3:v0|44100|1 | 44100 | 1 | 441000 | ok | signal/error 41.6 dB | PASS |
+| 192000 | mp3:v0|48000|2 | 48000 | 2 | 480000 | ok | signal/error 67.4 dB | PASS |
+| 192000 | mp3:v0|48000|1 | 48000 | 1 | 480000 | ok | signal/error 46.0 dB | PASS |
+| 192000 | mp3:v2|44100|2 | 44100 | 2 | 441000 | ok | signal/error 44.5 dB | PASS |
+| 192000 | mp3:v2|44100|1 | 44100 | 1 | 441000 | ok | signal/error 36.3 dB | PASS |
+| 192000 | mp3:v2|48000|2 | 48000 | 2 | 480000 | ok | signal/error 52.1 dB | PASS |
+| 192000 | mp3:v2|48000|1 | 48000 | 1 | 480000 | ok | signal/error 40.3 dB | PASS |
+| 192000 | mp3:v4|44100|2 | 44100 | 2 | 441000 | ok | signal/error 41.5 dB | PASS |
+| 192000 | mp3:v4|44100|1 | 44100 | 1 | 441000 | ok | signal/error 33.8 dB | PASS |
+| 192000 | mp3:v4|48000|2 | 48000 | 2 | 480000 | ok | signal/error 44.1 dB | PASS |
+| 192000 | mp3:v4|48000|1 | 48000 | 1 | 480000 | ok | signal/error 38.4 dB | PASS |

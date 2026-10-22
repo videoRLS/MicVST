@@ -1,0 +1,14 @@
+# C7 rtprobe (Linux konteyner, build-probe: MICVST_RT_PROBE=1), 23 Ekim ~00:50. Not: "LSP VST3" satırı burada boş zincirle koştu (LSP paketi konteynerde yok) -> o satır ATLANDI.
+# MicVST engine test (1.2.2) - rtprobe
+## Realtime probe: calls inside the audio sections (20 s each, buffer 480)
+| Scenario | malloc/new | free/delete | realloc | mutex lock (blocking) | mutex trylock | condition wait | sleep | sched_yield | locks that waited |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| empty chain | 0 | 0 | 0 | 0 | 2000 | 0 | 0 | 0 | 0 (max 0 us) |
+| gain + delay 240 + load 30 % | 0 | 0 | 0 | 6003 | 2001 | 0 | 0 | 0 | 0 (max 0 us) |
+| edits during playback (bypass, add, remove, move) | 0 | 0 | 0 | 1841 | 1529 | 0 | 0 | 0 | 0 (max 0 us) |
+| KazanÃ§: slider moved during playback (400 values) | 0 | 0 | 0 | 2005 | 2005 | 0 | 0 | 0 | 0 (max 0 us) |
+| KayÄ±t WAV 24 / FLAC 24 / MP3 V0 started and stopped during playback | 0 | 0 | 0 | 0 | 1984 | 0 | 0 | 0 | 0 (max 0 us) |
+| Sustur and Ham ses toggled during playback (200 times each) | 0 | 0 | 0 | 2005 | 2005 | 0 | 0 | 0 | 0 (max 0 us) |
+| safety buffer changes (refill, trim) | 0 | 0 | 0 | 0 | 2000 | 0 | 0 | 0 | 0 (max 0 us) |
+| LSP VST3: compressor, EQ x8, limiter, gate | 0 | 0 | 0 | 0 | 2000 | 0 | 0 | 0 | 0 (max 0 us) |
+EXIT 0
