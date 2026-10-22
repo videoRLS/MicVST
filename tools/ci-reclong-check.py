@@ -136,6 +136,16 @@ try:
 except Exception as e:  # noqa: BLE001
     check(False, f"ffmpeg: {type(e).__name__}: {e}")
 
+# --- R8: the container against its standard, two readers (tools/r8_standart.py) ---
+try:
+    sys.path.insert(0, __import__("os").path.dirname(__import__("os").path.abspath(__file__)))
+    import r8_standart
+    out("")
+    out("## R8 - standard and readers")
+    r8_standart.run(path, frames, check, out)
+except Exception as e:  # noqa: BLE001
+    check(False, f"R8: {type(e).__name__}: {e}")
+
 out("")
 out("result: " + ("all passed" if not failures else "FAILED: " + "; ".join(failures)))
 open(report_path, "w", encoding="utf-8").write("\n".join(lines) + "\n")
