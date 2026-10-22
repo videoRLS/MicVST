@@ -61,6 +61,9 @@
 
 ### 1.2 Derleme (Linux konteynerinde, hızlı yerel testler için)
 
+Depoyu al: `git clone https://github.com/videoRLS/MicVST.git && cd MicVST && git checkout kararlilik/oncelik`.
+Yeni bir makinede eksikse paketler: `apt-get install -y cmake ninja-build g++ pkg-config libfreetype-dev libfontconfig1-dev libx11-dev libxext-dev ffmpeg flac fonts-noto-core fonts-noto-cjk` ve `pip install --break-system-packages numpy scipy`. JUCE 9.0.4 ilk yapılandırmada GitHub'dan otomatik indirilir (FetchContent); LAME depoda hazırdır.
+
 ```
 cmake -S . -B build-linux -G Ninja -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_CXX_FLAGS="-DJUCE_ALSA=0 -DJUCE_JACK=0 -DJUCE_USE_XINERAMA=0 -DJUCE_USE_XRANDR=0 -DJUCE_USE_XCURSOR=0 -DJUCE_USE_XINPUT=0 -DJUCE_USE_CURL=0 -DJUCE_WEB_BROWSER=0"
