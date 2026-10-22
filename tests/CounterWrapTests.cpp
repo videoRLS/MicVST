@@ -78,10 +78,10 @@ public:
             // Recorder (1 s, 5 s), Bildirim sesi (2 s), plug-in scan time-out (120 s): elapsed = now - then
             int wrong = 0;
             for (juce::uint32 interval : { 400u, 1000u, 2000u, 5000u, 10000u, 60000u, 120000u })
-                for (juce::uint32 then = 0u - 3u * interval; then != 3u * interval; then += 97u)
+                for (juce::uint32 k = 0; k * 97u < 6u * interval; ++k)   // 'then' from 3 intervals before the wrap to 3 after
                     for (juce::uint32 dt : { 0u, interval - 1u, interval, interval + 1u, 2u * interval })
                     {
-                        const juce::uint32 now = then + dt;
+                        const juce::uint32 then = 0u - 3u * interval + k * 97u, now = then + dt;
                         if ((now - then >= interval) != (dt >= interval)) ++wrong;
                     }
             expectEquals (wrong, 0);
