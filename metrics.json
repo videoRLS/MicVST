@@ -1,0 +1,12 @@
+{
+  "juce_version": "8.0.13",
+  "juce_patch_markers": 0,
+  "configure_seconds": 146.5,
+  "build_seconds": 441.3,
+  "build_ok": true,
+  "warnings_micvst": 0,
+  "warnings_juce": 0,
+  "errors": 0,
+  "exe_bytes": 9104896,
+  "exe_sha256": "E05E46C8C22BFB8CF619DC9FA79D5A58E59E7159EEDD396D32E5F1B8CAE32823"
+}

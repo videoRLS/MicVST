@@ -1,0 +1,105 @@
+MSBuild version 18.11.1-1.26513.3+940033be3 for .NET Framework
+
+  Checking File Globs
+  1>Checking Build System
+  Generating MicVST_artefacts/JuceLibraryCode/MicVST_resources.rc
+  Building Custom Rule D:/a/MicVST/MicVST/base/CMakeLists.txt
+  MicVST_rc_lib.vcxproj -> D:\a\MicVST\MicVST\build-base\MicVST_rc_lib.dir\Release\MicVST_rc_lib.lib
+  Generating juce_binarydata_MicVSTData/JuceLibraryCode/BinaryData1.cpp, juce_binarydata_MicVSTData/JuceLibraryCode/BinaryData2.cpp, juce_binarydata_MicVSTData/JuceLibraryCode/BinaryData.h
+  Building Custom Rule D:/a/MicVST/MicVST/base/CMakeLists.txt
+  Building Custom Rule D:/a/MicVST/MicVST/base/CMakeLists.txt
+  Metering.cpp
+  BinaryData1.cpp
+  BinaryData2.cpp
+  Generating Code...
+  MicVSTData.vcxproj -> D:\a\MicVST\MicVST\build-base\Release\MicVSTData.lib
+  GraphConnections.cpp
+  ScanCoordinator.cpp
+  Persistence.cpp
+  PluginScanCache.cpp
+  PluginSearch.cpp
+  juce_audio_basics.cpp
+  juce_core.cpp
+  juce_core_CompilationTime.cpp
+  juce_audio_processors.cpp
+  juce_gui_extra.cpp
+  juce_gui_basics.cpp
+  juce_gui_basics_2.cpp
+  juce_gui_basics_3.cpp
+  juce_gui_basics_4.cpp
+  juce_gui_basics_5.cpp
+  juce_graphics.cpp
+  juce_graphics_Harfbuzz.cpp
+  juce_events.cpp
+  juce_data_structures.cpp
+  Generating Code...
+  Compiling...
+  juce_audio_processors_headless.cpp
+  juce_audio_processors_headless_ara.cpp
+  juce_audio_processors_headless_lv2_libs.cpp
+  Generating Code...
+  juce_graphics_Sheenbidi.c
+  MicVSTCore.vcxproj -> D:\a\MicVST\MicVST\build-base\Release\MicVSTCore.lib
+  Building Custom Rule D:/a/MicVST/MicVST/base/CMakeLists.txt
+  Main.cpp
+  AudioEngine.cpp
+  PluginChain.cpp
+  MainComponent.cpp
+  DevicePanel.cpp
+  PluginListView.cpp
+  PluginPicker.cpp
+  LevelMeterComponent.cpp
+  TrayIcon.cpp
+  AutostartRegistry.cpp
+  juce_audio_basics.cpp
+  juce_core.cpp
+  juce_core_CompilationTime.cpp
+  juce_audio_processors.cpp
+  juce_gui_extra.cpp
+  juce_gui_basics.cpp
+  juce_gui_basics_2.cpp
+  juce_gui_basics_3.cpp
+  juce_gui_basics_4.cpp
+  juce_gui_basics_5.cpp
+  juce_graphics.cpp
+  juce_graphics_Harfbuzz.cpp
+  juce_events.cpp
+  juce_data_structures.cpp
+  juce_audio_processors_headless.cpp
+  juce_audio_processors_headless_ara.cpp
+  juce_audio_processors_headless_lv2_libs.cpp
+  juce_audio_devices.cpp
+  juce_audio_utils.cpp
+  juce_audio_formats.cpp
+  juce_graphics_Sheenbidi.c
+  MicVST.vcxproj -> D:\a\MicVST\MicVST\build-base\MicVST_artefacts\Release\MicVST.exe
+MSBuild version 18.11.1-1.26513.3+940033be3 for .NET Framework
+
+  Checking File Globs
+  Generating MicVSTTests_artefacts/JuceLibraryCode/MicVSTTests_resources.rc
+  Building Custom Rule D:/a/MicVST/MicVST/base/CMakeLists.txt
+  MicVSTTests_rc_lib.vcxproj -> D:\a\MicVST\MicVST\build-base\MicVSTTests_rc_lib.dir\Release\MicVSTTests_rc_lib.lib
+  MicVSTCore.vcxproj -> D:\a\MicVST\MicVST\build-base\Release\MicVSTCore.lib
+  Building Custom Rule D:/a/MicVST/MicVST/base/CMakeLists.txt
+  TestMain.cpp
+  ScanTests.cpp
+  PickerTests.cpp
+  juce_audio_basics.cpp
+  juce_core.cpp
+  juce_core_CompilationTime.cpp
+  juce_audio_processors.cpp
+  juce_gui_extra.cpp
+  juce_gui_basics.cpp
+  juce_gui_basics_2.cpp
+  juce_gui_basics_3.cpp
+  juce_gui_basics_4.cpp
+  juce_gui_basics_5.cpp
+  juce_graphics.cpp
+  juce_graphics_Harfbuzz.cpp
+  juce_events.cpp
+  juce_data_structures.cpp
+  juce_audio_processors_headless.cpp
+  juce_audio_processors_headless_ara.cpp
+  juce_audio_processors_headless_lv2_libs.cpp
+  juce_graphics_Sheenbidi.c
+  MicVSTTests.vcxproj -> D:\a\MicVST\MicVST\build-base\MicVSTTests_artefacts\Release\MicVSTTests.exe
