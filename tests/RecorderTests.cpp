@@ -510,7 +510,9 @@ struct RecorderTest : juce::UnitTest
                 Recorder rec;
                 expectEquals (rec.start (RecordSettings::decode (cfg, dir.getFullPathName()), 48000.0), juce::String());
                 const auto t0 = juce::Time::getMillisecondCounterHiRes();
-                const auto pushed = feed (rec, 48000.0, 20.0 * 60.0, 30.0);
+                // 10x real time: a margin of 10 over real use; the CI runners' CPU varies too much for more
+                // (the encoder's own speed is measured below: FLAC 68-300x, MP3 27-120x)
+                const auto pushed = feed (rec, 48000.0, 20.0 * 60.0, 10.0);
                 const auto res = rec.stop();
                 const double secs = (juce::Time::getMillisecondCounterHiRes() - t0) / 1000.0;
                 expect (res.verified, cfg);
@@ -524,7 +526,7 @@ struct RecorderTest : juce::UnitTest
                     expect (maxErrorLsb (r, 24) <= 0.51, cfg);
                 }
                 logMessage (juce::String (cfg) + ": 20 min recorded in " + juce::String (secs, 1) + " s (" + juce::String (1200.0 / secs, 0)
-                            + "x real time incl. the test signal), " + juce::String (res.file.getSize() / (1024 * 1024)) + " MB, verified");
+                            + "x real time incl. the test signal; real use: 1x), " + juce::String (res.file.getSize() / (1024 * 1024)) + " MB, verified");
             }
         }
 

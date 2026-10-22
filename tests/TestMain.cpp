@@ -195,13 +195,13 @@ struct PersistenceTest : juce::UnitTest
 
         beginTest ("Kayıt settings survive a restart (config.xml as text)");
         {
-            MicVSTState s;
-            s.recordFormat = "flac:16:8|44100|1";
-            s.recordFolder = juce::File::getSpecialLocation (juce::File::tempDirectory).getChildFile (juce::String::fromUTF8 ("Kayıtlar ş ğ")).getFullPathName();
-            const auto xml = toValueTree (s).createXml()->toString();
+            MicVSTState rec;
+            rec.recordFormat = "flac:16:8|44100|1";
+            rec.recordFolder = juce::File::getSpecialLocation (juce::File::tempDirectory).getChildFile (juce::String::fromUTF8 ("Kayıtlar ş ğ")).getFullPathName();
+            const auto xml = toValueTree (rec).createXml()->toString();
             const auto back = fromValueTree (juce::ValueTree::fromXml (*juce::parseXML (xml)));
-            expectEquals (back.recordFormat, s.recordFormat);
-            expectEquals (back.recordFolder, s.recordFolder);
+            expectEquals (back.recordFormat, rec.recordFormat);
+            expectEquals (back.recordFolder, rec.recordFolder);
         }
 
         beginTest ("plug-in identity inside a multi-plug-in file survives a round trip");
