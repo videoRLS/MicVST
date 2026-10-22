@@ -1132,6 +1132,26 @@ struct LufsMeterTest : juce::UnitTest
                 worst = std::max (worst, std::abs ((double) got[(size_t) k] - 0.5 * (in[0][(size_t) (10000 - 8192 + k)] + in[1][(size_t) (10000 - 8192 + k)])));
             expectLessThan (worst, 1.0e-7);
         }
+
+        beginTest ("spectrum: a full window also after 2^32 samples (R1: 24.9 h at 48 kHz, 6.2 h at 192 kHz)");
+        {
+            // 1.2.1 counted the samples in 32 bits: just after the wrap the display got only the few
+            // samples since (the rest zeros) - a blank spectrum for a moment once a day
+            auto e = make ("builtin:spectrum", 48000.0, 65536);
+            juce::AudioBuffer<float> b (2, 65536);
+            b.clear();
+            juce::MidiBuffer midi;
+            for (int k = 0; k < 65536; ++k) e->processBlock (b, midi);   // 2^32 samples
+            juce::AudioBuffer<float> t (2, 100);
+            for (int i = 0; i < 100; ++i) t.setSample (0, i, (float) (0.01 * (i + 1))), t.setSample (1, i, (float) (0.01 * (i + 1)));
+            e->processBlock (t, midi);
+            std::vector<float> got (8192);
+            const int avail = dynamic_cast<fx::SpectrumAnalyser*> (e.get())->copyLatest (got.data(), 8192);
+            expectEquals (avail, 8192, "samples available for the window");
+            bool lastOk = true;
+            for (int i = 0; i < 100; ++i) lastOk = lastOk && std::abs (got[(size_t) (8092 + i)] - (float) (0.01 * (i + 1))) < 1.0e-6f;
+            expect (lastOk, "the newest samples at the end of the window");
+        }
     }
 };
 static LufsMeterTest lufsMeterTest;

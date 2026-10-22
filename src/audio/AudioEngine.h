@@ -1,4 +1,5 @@
 #pragma once
+#include "audio/MsCounter.h"
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "audio/AudioBridge.h"
@@ -367,7 +368,7 @@ private:
     // driver error) is retried with a growing pause (1, 2, 4, 8, then every 10 s) from the timer -
     // not on every change message: each failed attempt sends one itself, which used to start the
     // next attempt at once (an endless loop of log lines and config.xml writes).
-    struct ReopenBackoff { juce::uint32 nextMs = 0; int failures = 0; };
+    using ReopenBackoff = micvst::ReopenBackoff;   // audio/MsCounter.h
     ReopenBackoff inputReopen, outputReopen;
     int safetyBufferMs = 0;                // 0 = Auto
     int processPriority = 0;               // 0 Normal (default), 1 above normal, 2 high

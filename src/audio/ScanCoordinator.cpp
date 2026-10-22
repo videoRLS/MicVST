@@ -1,5 +1,6 @@
 #include "audio/ScanCoordinator.h"
 #include "Text.h"
+#include "audio/MsCounter.h"
 
 ScanOutcome runScan (const juce::StringArray& files, ScanProcessRunner& runner, int timeoutMs,
                      std::function<void (int, int, const juce::String&)> progress,
@@ -201,14 +202,14 @@ namespace
                 return { ScanProcessResult::Status::failed, {} };
 
             // Überlauf-sichere Deadline (getMillisecondCounter wraps nach ~49.7 Tagen)
-            const auto startMs = juce::Time::getMillisecondCounter();
+            const auto startMs = micvst::msCounter();
             while (proc.isRunning())
             {
                 if (shouldAbort()) { proc.kill(); outFile.deleteFile();
                                      return { ScanProcessResult::Status::aborted, {} }; }
                 if (shouldSkip()) { proc.kill(); outFile.deleteFile();
                                     return { ScanProcessResult::Status::skippedByUser, {} }; }
-                if (juce::Time::getMillisecondCounter() - startMs >= (juce::uint32) timeoutMs)
+                if (micvst::msCounter() - startMs >= (juce::uint32) timeoutMs)
                 {   proc.kill(); outFile.deleteFile();
                     return { ScanProcessResult::Status::timeout, {} }; }
                 juce::Thread::sleep (100);

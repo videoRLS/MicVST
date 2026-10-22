@@ -3,6 +3,7 @@
 #include <array>
 #include <atomic>
 #include <cmath>
+#include <cstdint>
 
 // The DSP core of MicVST's built-in "Otomatik Kazanç" (Auto Gain): a real-time voice level rider.
 // It analyses the real input block by block and sets ONE gain for all channels.
@@ -453,7 +454,7 @@ public:
     double getTypicalDb() const noexcept      { return typicalDb; }              // typical syllable level (input)
     double getNaturalLevelDb() const noexcept { return naturalDb; }              // the speaker's natural level
     double getAimDb() const noexcept          { return currentAimDb(); }         // current output aim
-    int    getGuardCount() const noexcept     { return guardCount; }             // samples the guard had to catch
+    uint32_t getGuardCount() const noexcept   { return guardCount; }             // samples the guard had to catch
     long long getShoutsForgotten() const noexcept { return shoutsForgotten; }    // shouts taken out of the typical level
 
     // Tests (long soak): the incrementally kept counters still match what they count.
@@ -703,7 +704,7 @@ private:
     int    persistPos = 0, persistFill = 0;
     double persistentDb = -120.0;                   // the level present in all of them
     bool   sustainedValid = false;
-    int    guardCount = 0;
+    uint32_t guardCount = 0;       // unsigned: wraps after 2^32 caught samples instead of overflowing
     double levelDb = -120.0, recentDb = -120.0, naturalDb = -120.0;
     double recentHold = 0.0, learnLeft = naturalLearnSeconds;
     double typicalDb = -120.0;                      // the typical level (input)

@@ -2181,6 +2181,31 @@ int main (int argc, char** argv)
                       std::mt19937 rng (5); std::uniform_real_distribution<float> v (GainStage::minDb, GainStage::maxDb);
                       for (int i = 0; i < 400; ++i) { r.engine->getChain().setGainDb (0, v (rng)); pump (0.05); }
                   });
+        // 1.2.2: Kayıt (the plug-in thread copies every block into the recorder's FIFO), Sustur and
+        // Ham ses (ramps on the plug-in thread; the Bildirim sesi itself plays from the message thread)
+        scenario ("Kayıt WAV 24 / FLAC 24 / MP3 V0 started and stopped during playback", [] (EngineRun&) {},
+                  [] (EngineRun& r)
+                  {
+                      auto& e = *r.engine;
+                      const auto dir = juce::File::getSpecialLocation (juce::File::tempDirectory).getChildFile ("micvst-rtprobe");
+                      dir.createDirectory();
+                      for (auto f : { "wav:24|48000|2", "flac:24:5|48000|2", "mp3:v0|48000|2" })
+                          for (int i = 0; i < 2; ++i)
+                          {
+                              e.setRecordSettings (RecordSettings::decode (f, dir.getFullPathName()));
+                              if (e.startRecording().isEmpty()) { pump (3.0); e.stopRecording(); }
+                              pump (0.3);
+                          }
+                      dir.deleteRecursively();
+                  });
+        scenario ("Sustur and Ham ses toggled during playback (200 times each)", [] (EngineRun& r) { r.add (testDesc ("TestGain", 0.5)); },
+                  [] (EngineRun& r)
+                  {
+                      for (int i = 0; i < 200; ++i) { r.engine->setMuted ((i & 1) == 0); pump (0.05); }
+                      r.engine->setMuted (false);
+                      for (int i = 0; i < 200; ++i) { r.engine->setRawCompare ((i & 1) == 0); pump (0.05); }
+                      r.engine->setRawCompare (false);
+                  });
         scenario ("safety buffer changes (refill, trim)", [] (EngineRun&) {},
                   [] (EngineRun& r) { for (int i = 0; i < 4; ++i) { r.engine->setSafetyBufferMs (40); pump (2.5); r.engine->setSafetyBufferMs (10); pump (2.5); } });
         {

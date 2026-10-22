@@ -37,6 +37,13 @@ project follows [Semantic Versioning](https://semver.org/).
   two 24 bit steps, and a loud recording got a tiny DC offset (measured +0.157 LSB mean error, i.e. about
   -158 dBFS - far below hearing, but outside the test task's |mean| < 0.01 LSB). Now -0.0001 LSB, every
   sample exactly the nearest value (unit test "Recorder K22"). 16 bit (dithered) unchanged in effect.
+- Long uptimes (Windows' millisecond counter starts again from 0 every 49.7 days; Fast Startup does not
+  reset it): a microphone that could not be opened was retried after its pause by a signed time
+  difference - had the PC slept for more than 24.8 days in between, the retry waited up to 24.8 more
+  days. Now an unsigned difference, like every other timer (they were already right across the wrap:
+  shown by unit test "Counters R1", which runs the recorder, the Bildirim sesi and the retry with the
+  counter starting just before the wrap). The spectrum display counted its samples in 32 bits and showed
+  an empty picture for a moment once a day (every 24.9 h at 48 kHz); now 64 bits. No change to the audio.
 - İşlem önceliği (process priority) in the window: Normal (default), Normalin Üstünde, Yüksek.
   Applied at once, read back from Windows, saved; the audio threads stay MMCSS in every case.
 - A mono part of the chain (mono microphone, a mono plug-in such as RNNoise) followed by a stereo

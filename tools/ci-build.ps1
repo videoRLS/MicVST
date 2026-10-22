@@ -5,17 +5,19 @@ param(
     [Parameter(Mandatory = $true)][string] $Build,
     [Parameter(Mandatory = $true)][string] $Targets,
     [Parameter(Mandatory = $true)][string] $Out,
-    [string] $Arch = "x64"   # ARM64 for the Windows 11 ARM runner
+    [string] $Arch = "x64",   # ARM64 for the Windows 11 ARM runner
+    [string[]] $CMakeArgs = @(),   # extra configure arguments (R9: JUCE from the archive, no network)
+    [string] $JuceSource = ""      # where JUCE's source is when not fetched into the build folder
 )
 $ErrorActionPreference = "Stop"
 New-Item -ItemType Directory -Force $Out | Out-Null
 
 # FETCHCONTENT_QUIET=OFF: the JUCE download/patch output (cmake/PatchJuce.cmake) lands in configure.log.
-$cfg = Measure-Command { cmake -S $Source -B $Build -A $Arch -DFETCHCONTENT_QUIET=OFF 2>&1 | Tee-Object -FilePath "$Out/configure.log" | Out-Host }
+$cfg = Measure-Command { cmake -S $Source -B $Build -A $Arch -DFETCHCONTENT_QUIET=OFF @CMakeArgs 2>&1 | Tee-Object -FilePath "$Out/configure.log" | Out-Host }
 if ($LASTEXITCODE -ne 0) { throw "configure failed" }
 
 # Which JUCE was fetched, and does its WASAPI backend carry the MicVST realtime patch?
-$juceSrc = Join-Path $Build "_deps/juce-src"
+$juceSrc = if ($JuceSource) { $JuceSource } else { Join-Path $Build "_deps/juce-src" }
 $juceVersion = ""
 if (Test-Path "$juceSrc/CMakeLists.txt") {
     $mv = Select-String -Path "$juceSrc/CMakeLists.txt" -Pattern "project\(JUCE VERSION ([0-9.]+)" | Select-Object -First 1

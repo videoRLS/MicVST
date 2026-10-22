@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstring>
 #include <thread>
+#include "audio/MsCounter.h"
 
 using micvst::tr;
 
@@ -393,7 +394,7 @@ struct Recorder::Session final : juce::Thread
         opened.signal();
         if (openError.isNotEmpty()) return;
 
-        auto lastFlush = juce::Time::getMillisecondCounter(), lastSpace = lastFlush;
+        auto lastFlush = micvst::msCounter(), lastSpace = lastFlush;
         for (;;)
         {
             const bool exiting = threadShouldExit();
@@ -409,7 +410,7 @@ struct Recorder::Session final : juce::Thread
             }
             if (exiting) break;
 
-            const auto now = juce::Time::getMillisecondCounter();
+            const auto now = micvst::msCounter();
             if (now - lastFlush >= 1000) { sink->flush(); lastFlush = now; }   // WAV header up to date every second
             if (now - lastSpace >= 5000)
             {

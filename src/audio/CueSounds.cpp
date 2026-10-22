@@ -2,6 +2,7 @@
 #include "audio/DeviceFormat.h"
 #include "Text.h"
 #include <MicVSTSounds.h>
+#include "audio/MsCounter.h"
 
 #if JUCE_WINDOWS
  #ifndef NOMINMAX
@@ -254,7 +255,7 @@ bool CuePlayer::outputIsCable()
     if (! cableName) return false;
     const auto cable = cableName();
     if (cable.isEmpty()) return false;
-    const auto now = juce::Time::getMillisecondCounter();
+    const auto now = micvst::msCounter();
     if (defaultCheckedAt == 0 || now - defaultCheckedAt > 2000)   // the default output may change: checked at most every 2 s
     {
         cachedDefault = backend->defaultOutputName();

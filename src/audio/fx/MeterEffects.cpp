@@ -295,7 +295,7 @@ SpectrumAnalyser::SpectrumAnalyser (const Info& i) : BuiltInEffect (i) {}
 
 void SpectrumAnalyser::processEffect (float* const* ch, int numCh, int n) noexcept
 {
-    uint32_t w = written.load (std::memory_order_relaxed);
+    uint64_t w = written.load (std::memory_order_relaxed);
     const float k = numCh > 1 ? 0.5f : 1.0f;
     for (int i = 0; i < n; ++i, ++w)
     {
@@ -308,10 +308,10 @@ void SpectrumAnalyser::processEffect (float* const* ch, int numCh, int n) noexce
 
 int SpectrumAnalyser::copyLatest (float* dest, int count) const noexcept
 {
-    const uint32_t w = written.load (std::memory_order_acquire);
-    const int avail = (int) std::min<uint32_t> (w, (uint32_t) count);
+    const uint64_t w = written.load (std::memory_order_acquire);
+    const int avail = (int) std::min<uint64_t> (w, (uint64_t) count);
     for (int k = 0; k < count; ++k)
-        dest[k] = k < count - avail ? 0.0f : ring[(size_t) ((w - (uint32_t) (count - k)) & (ringSize - 1))];
+        dest[k] = k < count - avail ? 0.0f : ring[(size_t) ((w - (uint64_t) (count - k)) & (ringSize - 1))];
     return avail;
 }
 

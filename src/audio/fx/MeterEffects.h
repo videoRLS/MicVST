@@ -76,6 +76,6 @@ namespace fx
         void processEffect (float* const* ch, int numCh, int n) noexcept override;
 
         std::array<float, ringSize> ring {};
-        std::atomic<uint32_t> written { 0 };
+        std::atomic<uint64_t> written { 0 };   // samples so far (64 bit: 32 bit wrapped every 24.9 h at 48 kHz)
     };
 }

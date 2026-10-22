@@ -4,6 +4,7 @@
 #include "audio/BuiltInGain.h"
 #include "audio/RealtimeSupport.h"
 #include "Text.h"
+#include "audio/MsCounter.h"
 
 using micvst::tr;
 using IOProc = juce::AudioProcessorGraph::AudioGraphIOProcessor;
@@ -143,8 +144,8 @@ void AudioEngine::reconnectIfNeeded()
     if (in == back || out == back)
     {
         // After a failed attempt the device waits for its retry time (the timer calls this again).
-        const auto nowMs = juce::Time::getMillisecondCounter();
-        auto due = [nowMs] (const ReopenBackoff& b) { return b.failures == 0 || (juce::int32) (nowMs - b.nextMs) >= 0; };
+        const auto nowMs = micvst::msCounter();
+        auto due = [nowMs] (const ReopenBackoff& b) { return b.due (nowMs); };
         const bool tryIn = in == back && due (inputReopen), tryOut = out == back && due (outputReopen);
         if (! tryIn && ! tryOut)
             return;
@@ -171,7 +172,7 @@ void AudioEngine::reconnectIfNeeded()
                 return;
             }
             ++b.failures;
-            const int delayMs = juce::jmin (10000, 1000 << juce::jmin (b.failures - 1, 4));
+            const int delayMs = juce::jmin ((int) ReopenBackoff::maxWaitMs, 1000 << juce::jmin (b.failures - 1, 4));
             b.nextMs = nowMs + (juce::uint32) delayMs;
             if (b.failures == 1 || b.failures % 30 == 0)
                 juce::Logger::writeToLog ("'" + name + tr ("' listede ama açılamıyor (başka bir program tek başına kullanıyor olabilir) - ")
@@ -959,7 +960,7 @@ void AudioEngine::timerCallback()
     if (outputSelected) check (outputDevices, outputBeats.load(), lastOutputBeats, outputStallSeconds);
     else                outputStallSeconds = 0;
 
-    const auto nowMs = juce::Time::getMillisecondCounter();
+    const auto nowMs = micvst::msCounter();
     const auto backoffMs = (juce::uint32) juce::jmin<int64_t> (60000, (int64_t) 10000 << juce::jmin<uint64_t> (3, watchdogRestarts.load()));
 
     auto restart = [&] (MicVSTDeviceManager& dm, const juce::String& which)
@@ -1607,7 +1608,7 @@ void AudioEngine::testTick()
     else if (testState == TestState::playing && testPos.load (std::memory_order_acquire) >= testFrames.load())
     {
         // let the headphones play out what is still in their buffer (~0.3 s) before closing them
-        const auto now = juce::Time::getMillisecondCounter();
+        const auto now = micvst::msCounter();
         if (playbackEndMs == 0) playbackEndMs = now;
         if (now - playbackEndMs < 400) return;
         playbackEndMs = 0;

@@ -5,6 +5,7 @@
 #include "ui/PluginPicker.h"
 #include "state/Presets.h"
 #include "Text.h"
+#include "audio/MsCounter.h"
 
 using micvst::tr;
 
@@ -384,7 +385,7 @@ void PluginListView::timerCallback()
                 r->muteToggle.setToggleState (m->getParam ("muted") > 0.5f, juce::dontSendNotification);
     }
 
-    if (gainPersistPending && juce::Time::getMillisecondCounter() - lastGainChangeMs >= 400)
+    if (gainPersistPending && micvst::msCounter() - lastGainChangeMs >= 400)
     {
         gainPersistPending = false;
         engine.requestPersist();
@@ -407,7 +408,7 @@ void PluginListView::gainChanged (int index, float gainDb)
     engine.getChain().setGainDb (index, gainDb);
     engine.markPresetModified();
     gainPersistPending = true;
-    lastGainChangeMs = juce::Time::getMillisecondCounter();
+    lastGainChangeMs = micvst::msCounter();
 }
 
 void PluginListView::resized()

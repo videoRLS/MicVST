@@ -101,6 +101,12 @@ jobs:
         shell: pwsh
         run: ./tools/ci-recorder-k.ps1 -Exe build/MicVSTTests_artefacts/Release/MicVSTTests.exe -Out results/recorder
 
+      - name: The clock changed during a recording (R5)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && env.QUICK != 'true' && hashFiles('tools/ci-clockchange.ps1') != '' }}
+        continue-on-error: true
+        shell: pwsh
+        run: ./tools/ci-clockchange.ps1 -Exe build/MicVSTEngineTest_artefacts/Release/MicVSTEngineTest.exe -Out results/clock
+
       - name: Closed box - no networking library in the exe
         if: ${{ !cancelled() && steps.build.outcome == 'success' && env.QUICK != 'true' }}
         # informational while the old update checker still exists, mandatory afterwards

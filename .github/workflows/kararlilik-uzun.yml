@@ -9,12 +9,19 @@ name: kararlilik-uzun
 #              every 5 min
 #   app      - the real MicVST.exe with its window open: memory, handles, GDI/USER objects,
 #              threads, CPU, log size, config.xml writes every minute
-#   simweek  - a simulated week of the audio bridge (MicVSTStress --day 168) and 24 h of audio
-#              through the Otomatik Kazanç soak (MicVSTTests AutoGain, MICVST_SOAK_HOURS=24)
+#   simweek  - a simulated month of the audio bridge (MicVSTStress --day 720, R2; a week took 30 min)
+#              and 7 days of audio through the Otomatik Kazanç soak (MicVSTTests AutoGain,
+#              MICVST_SOAK_HOURS=168; 24 h took 10 min)
 #   win11arm - Windows 11 (ARM64 runner): unit tests and the main engine-test modes, built for ARM64
 #   vst3long - three machines, one per process priority (Normal / Normalin Ustunde / Yuksek): the long
 #              run through Otomatik Kazanc + real VST3 effects (EQ, de-esser, compressor, saturation,
 #              limiter) while another program keeps every CPU busy
+#   startstop - R6: the real MicVST.exe started and closed 1000 times, 200 of them killed in their first
+#              2 s (while config.xml is written); the settings must stay whole (tools/ci-startstop.ps1)
+#   offline  - R9: JUCE 9.0.4 as the archive holds it (its source, patched once with cmake -P
+#              cmake/PatchJuce.cmake), then MicVST configured and built without network
+#              (FETCHCONTENT_SOURCE_DIR_JUCE + FETCHCONTENT_FULLY_DISCONNECTED, dead proxy); the
+#              patches present (juce_patch_markers 3), unit tests and the engine's base modes pass
 #   reclong  - three machines (WAV 24, FLAC 24, MP3 V0): one recording in real time for 320 min in the
 #              real engine (R3; the WAV passes 4 GB after about 4 h 8 min and turns RF64); then read
 #              back by Python soundfile, ffprobe and ffmpeg (tools/ci-reclong-check.py). 320, not 330,
@@ -109,16 +116,16 @@ jobs:
       - name: Build
         shell: pwsh
         run: ./tools/ci-build.ps1 -Source . -Build build -Targets "MicVSTStress MicVSTTests" -Out results
-      - name: Simulated week of the audio bridge
+      - name: Simulated month of the audio bridge (R2, 30 days)
         continue-on-error: true
         shell: pwsh
-        run: ./tools/ci-run-timed.ps1 -Exe build/MicVSTStress_artefacts/Release/MicVSTStress.exe -OutFile results/week-stdout.txt -TimeoutSeconds 14400 -Arguments @("results/week-simulation.md", "--day", "168")
-      - name: 24 h of audio through Otomatik Kazanç (soak)
+        run: ./tools/ci-run-timed.ps1 -Exe build/MicVSTStress_artefacts/Release/MicVSTStress.exe -OutFile results/month-stdout.txt -TimeoutSeconds 10800 -Arguments @("results/month-simulation.md", "--day", "720")
+      - name: 7 days of audio through Otomatik Kazanç (soak, R2)
         continue-on-error: true
         shell: pwsh
         env:
-          MICVST_SOAK_HOURS: "24"
-        run: ./tools/ci-run-timed.ps1 -Exe build/MicVSTTests_artefacts/Release/MicVSTTests.exe -OutFile results/autogain-soak-24h.txt -TimeoutSeconds 7200 -Arguments @("AutoGain")
+          MICVST_SOAK_HOURS: "168"
+        run: ./tools/ci-run-timed.ps1 -Exe build/MicVSTTests_artefacts/Release/MicVSTTests.exe -OutFile results/autogain-soak-168h.txt -TimeoutSeconds 7200 -Arguments @("AutoGain")
       - name: Publish
         if: ${{ !cancelled() }}
         shell: pwsh
@@ -230,3 +237,72 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./tools/ci-publish.ps1 -Dir results -Branch "ci-sonuclari/${{ github.ref_name }}-uzun-reclong-${{ matrix.name }}" -Message "MicVST ${{ github.ref_name }} reclong ${{ matrix.name }}"
+
+  startstop:
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[uzun]') }}
+    runs-on: windows-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build
+        shell: pwsh
+        run: ./tools/ci-build.ps1 -Source . -Build build -Targets "MicVST" -Out results
+      - name: 1000 starts, 200 kills (R6)
+        continue-on-error: true
+        shell: pwsh
+        run: ./tools/ci-startstop.ps1 -Exe build/MicVST_artefacts/Release/MicVST.exe -Out results/startstop
+      - name: Publish
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./tools/ci-publish.ps1 -Dir results -Branch "ci-sonuclari/${{ github.ref_name }}-uzun-startstop" -Message "MicVST ${{ github.ref_name }} startstop"
+
+  offline:
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[uzun]') }}
+    runs-on: windows-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v7
+      - name: JUCE 9.0.4 as in the archive (source + MicVST's patches, applied once)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force results | Out-Null
+          git clone --quiet --depth 1 --branch 9.0.4 https://github.com/juce-framework/JUCE.git arsiv/JUCE-9.0.4
+          Remove-Item -Recurse -Force arsiv/JUCE-9.0.4/.git
+          Push-Location arsiv/JUCE-9.0.4
+          cmake -P ../../cmake/PatchJuce.cmake 2>&1 | Tee-Object -FilePath ../../results/patch-1.txt
+          if ($LASTEXITCODE -ne 0) { throw "patch failed" }
+          cmake -P ../../cmake/PatchJuce.cmake 2>&1 | Tee-Object -FilePath ../../results/patch-2-again.txt   # repeatable: no change the second time
+          if ($LASTEXITCODE -ne 0) { throw "patch not repeatable" }
+          Pop-Location
+      - name: Build without network (JUCE from the archive folder)
+        shell: pwsh
+        env:
+          HTTP_PROXY: "http://127.0.0.1:9"
+          HTTPS_PROXY: "http://127.0.0.1:9"
+          GIT_TERMINAL_PROMPT: "0"
+        run: |
+          $juce = (Resolve-Path arsiv/JUCE-9.0.4).Path -replace '\\', '/'
+          ./tools/ci-build.ps1 -Source . -Build build -Targets "MicVST MicVSTTests MicVSTEngineTest" -Out results -JuceSource $juce -CMakeArgs @("-DFETCHCONTENT_SOURCE_DIR_JUCE=$juce", "-DFETCHCONTENT_FULLY_DISCONNECTED=ON")
+          Get-Content results/metrics.json
+          $m = Get-Content results/metrics.json | ConvertFrom-Json
+          if ($m.juce_patch_markers -ne 3) { throw "the WASAPI patches are missing: juce_patch_markers $($m.juce_patch_markers)" }
+          (Get-FileHash build/MicVST_artefacts/Release/MicVST.exe -Algorithm SHA256).Hash | Set-Content results/MicVST-offline.sha256.txt
+      - name: Unit tests
+        continue-on-error: true
+        shell: pwsh
+        run: ./tools/ci-run-timed.ps1 -Exe build/MicVSTTests_artefacts/Release/MicVSTTests.exe -OutFile results/unit-tests.txt -TimeoutSeconds 3600
+      - name: Engine base modes
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          foreach ($m in @("quality", "latency", "devices", "record", "startxrun")) {
+            ./tools/ci-run-timed.ps1 -Exe build/MicVSTEngineTest_artefacts/Release/MicVSTEngineTest.exe -OutFile "results/engine/$m.txt" -TimeoutSeconds 1800 -Arguments @($m)
+          }
+      - name: Publish
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./tools/ci-publish.ps1 -Dir results -Branch "ci-sonuclari/${{ github.ref_name }}-uzun-offline" -Message "MicVST ${{ github.ref_name }} offline build"
