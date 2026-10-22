@@ -169,6 +169,7 @@ target_sources(MicVSTTests PRIVATE
     tests/HotkeyTests.cpp
     tests/DeviceFormatTests.cpp
     tests/RecorderTests.cpp
+    tests/RecorderSweepTests.cpp
     tests/CueTests.cpp
     src/audio/PluginChain.cpp
     src/ui/GlobalHotkeys.cpp

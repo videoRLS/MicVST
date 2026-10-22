@@ -32,6 +32,11 @@ project follows [Semantic Versioning](https://semver.org/).
   captured packet after every start as a discontinuity (measured on a HyperX QuadCast 2 S and VB-Cable:
   always packet 0, 4 of 4 starts), so every start showed "kesinti 1" although nothing was lost. Only
   discontinuities after the first block of each start count now (engine test `startxrun`).
+- Kayıt, 24 / 32 bit integer files (WAV, FLAC): rounded to nearest with ties to even. Before, ties were
+  always rounded up: above |0.5| a float has only 24 significant bits, so many samples sit exactly between
+  two 24 bit steps, and a loud recording got a tiny DC offset (measured +0.157 LSB mean error, i.e. about
+  -158 dBFS - far below hearing, but outside the test task's |mean| < 0.01 LSB). Now -0.0001 LSB, every
+  sample exactly the nearest value (unit test "Recorder K22"). 16 bit (dithered) unchanged in effect.
 - İşlem önceliği (process priority) in the window: Normal (default), Normalin Üstünde, Yüksek.
   Applied at once, read back from Windows, saved; the audio threads stay MMCSS in every case.
 - A mono part of the chain (mono microphone, a mono plug-in such as RNNoise) followed by a stereo

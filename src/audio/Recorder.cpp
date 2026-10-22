@@ -191,7 +191,9 @@ namespace
                     {
                         double v = (double) src[i] * scale;
                         if (dither) v += uniform() - uniform();   // TPDF dither, +-1 LSB
-                        const double q = juce::jlimit (-scale, top, std::floor (v + 0.5));
+                        // nearest, ties to even: a float above |0.5| has only 24 significant bits, so many
+                        // samples sit exactly between two steps - rounding those always up would add a DC offset
+                        const double q = juce::jlimit (-scale, top, std::nearbyint (v));
                         dst[i] = (int) ((int64_t) q * ((int64_t) 1 << shift));
                     }
                 }

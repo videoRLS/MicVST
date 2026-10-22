@@ -95,6 +95,12 @@ jobs:
         shell: pwsh
         run: ./tools/ci-recordings.ps1 -Dir results/recordings -Out results/recordings-check.md
 
+      - name: Recorder - a small disk filling up (K14) and every recording setting (K22)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && env.QUICK != 'true' && hashFiles('tools/ci-recorder-k.ps1') != '' }}
+        continue-on-error: true
+        shell: pwsh
+        run: ./tools/ci-recorder-k.ps1 -Exe build/MicVSTTests_artefacts/Release/MicVSTTests.exe -Out results/recorder
+
       - name: Closed box - no networking library in the exe
         if: ${{ !cancelled() && steps.build.outcome == 'success' && env.QUICK != 'true' }}
         # informational while the old update checker still exists, mandatory afterwards
