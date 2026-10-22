@@ -54,6 +54,10 @@ else()
     endif()
 endif()
 
+# --- Bildirim sesleri: the built-in mute / unmute sounds (FLAC, in the exe) ---
+file(GLOB MICVST_SOUND_FILES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/resources/sounds/*.flac)
+juce_add_binary_data(MicVSTSounds HEADER_NAME MicVSTSounds.h NAMESPACE MicVSTSoundData SOURCES ${MICVST_SOUND_FILES})
+
 # --- Shared logic library (engine, state, audio helpers) ---
 add_library(MicVSTCore STATIC
     src/audio/AudioBridge.cpp
@@ -69,6 +73,7 @@ add_library(MicVSTCore STATIC
     src/audio/RealtimeSupport.cpp
     src/audio/DeviceFormat.cpp
     src/audio/Recorder.cpp
+    src/audio/CueSounds.cpp
     src/audio/Metering.cpp
     src/audio/GraphConnections.cpp
     src/audio/ScanCoordinator.cpp
@@ -80,9 +85,12 @@ add_library(MicVSTCore STATIC
     src/i18n/Translations.cpp
 )
 target_compile_features(MicVSTCore PUBLIC cxx_std_17)
+# user sounds may be MP3 (Bildirim sesleri): JUCE's decoder, in every target that builds the module
+target_compile_definitions(MicVSTCore PUBLIC JUCE_USE_MP3AUDIOFORMAT=1)
 target_include_directories(MicVSTCore PUBLIC src)
 target_link_libraries(MicVSTCore PUBLIC
     MicVSTLame
+    MicVSTSounds
     juce::juce_audio_basics
     juce::juce_audio_formats
     juce::juce_audio_processors
@@ -122,6 +130,7 @@ target_sources(MicVST PRIVATE
     src/ui/HotkeyDialog.cpp
     src/ui/SettingsComponent.cpp
     src/ui/RecordingPanel.cpp
+    src/ui/CuePanel.cpp
     src/state/AutostartRegistry.cpp
 )
 target_compile_definitions(MicVST PRIVATE
@@ -160,12 +169,12 @@ target_sources(MicVSTTests PRIVATE
     tests/HotkeyTests.cpp
     tests/DeviceFormatTests.cpp
     tests/RecorderTests.cpp
+    tests/CueTests.cpp
     src/audio/PluginChain.cpp
     src/ui/GlobalHotkeys.cpp
 )
 target_include_directories(MicVSTTests PRIVATE tests)
 target_compile_definitions(MicVSTTests PRIVATE
-    JUCE_USE_MP3AUDIOFORMAT=1
     JUCE_PLUGINHOST_VST3=1
     JUCE_USE_CURL=0
 )
@@ -210,6 +219,7 @@ target_sources(MicVSTSnapshot PRIVATE
     src/ui/HotkeyDialog.cpp
     src/ui/SettingsComponent.cpp
     src/ui/RecordingPanel.cpp
+    src/ui/CuePanel.cpp
     src/state/AutostartRegistry.cpp
 )
 target_include_directories(MicVSTSnapshot BEFORE PRIVATE tests/snapshot tests)

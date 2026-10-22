@@ -69,6 +69,7 @@ AudioEngine::AudioEngine()
     inputDevices.addChangeListener (this);
     outputDevices.addChangeListener (this);
     bridge.setSafety (AudioBridge::autoStartMs, true);
+    cues.cableName = [this] { return wantedOutput; };   // a Bildirim sesi never goes into the cable
     startTimer (1000);
 }
 
@@ -1214,6 +1215,7 @@ MicVSTState AudioEngine::captureState()
     s.monitorVolumeDb = monitor.getVolumeDb();
     s.recordFormat = recordSettings.encode();
     s.recordFolder = recordSettings.folder == juce::File() ? juce::String() : recordSettings.folder.getFullPathName();
+    s.cueSounds = cues.getSettings().isDefault() ? juce::String() : cues.getSettings().encode();
 
     // Ketten-Restore steht noch aus -> gemerkten Zustand verbatim zurückgeben,
     // sonst würde persistState() die gespeicherte Kette mit "leer" überschreiben.
@@ -1259,6 +1261,7 @@ void AudioEngine::applyState (const MicVSTState& s)
     monitor.setDeviceName (s.monitorDevice);
     monitor.setVolumeDb (s.monitorVolumeDb);
     recordSettings = RecordSettings::decode (s.recordFormat, s.recordFolder);
+    cues.setSettings (CueSettings::decode (s.cueSounds));
     presetName = s.presetName;
     presetModified = s.presetModified;
     initialise (s.inputDevice, s.outputDevice);
@@ -1461,7 +1464,9 @@ void AudioEngine::undoPreset()
 void AudioEngine::setMuted (bool m)
 {
     if (muted.exchange (m) == m) return;
-    juce::Logger::writeToLog (m ? tr ("Ses kapatıldı (sustur)") : tr ("Ses açıldı"));
+    cues.play (m);   // the sound first: nothing between the state change and the start of the sound
+    const auto cue = cues.getSettings().enabled ? " - " + tr ("bildirim sesi: ") + cues.describe (m) : juce::String();
+    juce::Logger::writeToLog ((m ? tr ("Ses kapatıldı (sustur)") : tr ("Ses açıldı")) + cue);
 }
 
 void AudioEngine::setRawCompare (bool on)

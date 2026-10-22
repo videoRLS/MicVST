@@ -23,4 +23,7 @@ namespace devfmt
     // Windows: the endpoint with this friendly name (as JUCE lists WASAPI devices) and direction.
     // Elsewhere, or not found: invalid.
     Format windowsEndpointFormat (const juce::String& friendlyName, bool capture);
+    // Windows: the friendly name of the default output (what Windows plays system sounds on).
+    // Elsewhere or none: "".
+    juce::String windowsDefaultOutputName();
 }

@@ -111,10 +111,39 @@ Format windowsEndpointFormat (const juce::String& friendlyName, bool capture)
     if (uninit) CoUninitialize();
     return result;
 }
+
+juce::String windowsDefaultOutputName()
+{
+    juce::String result;
+    const HRESULT init = CoInitializeEx (nullptr, COINIT_APARTMENTTHREADED);
+    const bool uninit = SUCCEEDED (init);
+    static const PROPERTYKEY keyName { { 0xa45c254e, 0xdf1c, 0x4efd, { 0x80, 0x20, 0x67, 0xd1, 0x46, 0xa8, 0x50, 0xe0 } }, 14 };
+    IMMDeviceEnumerator* en = nullptr;
+    if (SUCCEEDED (CoCreateInstance (__uuidof (MMDeviceEnumerator), nullptr, CLSCTX_ALL, __uuidof (IMMDeviceEnumerator), (void**) &en)) && en != nullptr)
+    {
+        IMMDevice* dev = nullptr;
+        if (SUCCEEDED (en->GetDefaultAudioEndpoint (eRender, eConsole, &dev)) && dev != nullptr)
+        {
+            IPropertyStore* store = nullptr;
+            if (SUCCEEDED (dev->OpenPropertyStore (STGM_READ, &store)) && store != nullptr)
+            {
+                PROPVARIANT name; PropVariantInit (&name);
+                if (SUCCEEDED (store->GetValue (keyName, &name)) && name.vt == VT_LPWSTR) result = juce::String (name.pwszVal);
+                PropVariantClear (&name);
+                store->Release();
+            }
+            dev->Release();
+        }
+        en->Release();
+    }
+    if (uninit) CoUninitialize();
+    return result;
+}
 }
 #else
 namespace devfmt
 {
 Format windowsEndpointFormat (const juce::String&, bool) { return {}; }
+juce::String windowsDefaultOutputName() { return {}; }
 }
 #endif

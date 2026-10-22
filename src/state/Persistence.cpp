@@ -11,7 +11,7 @@ namespace ids
         preset ("presetName"), presetModified ("presetModified"), theme ("theme"), language ("language"),
         monitorDevice ("monitorDevice"), monitorVolume ("monitorVolumeDb"),
         hotkeyMute ("hotkeyMute"), hotkeyCompare ("hotkeyCompare"),
-        recordFormat ("recordFormat"), recordFolder ("recordFolder");
+        recordFormat ("recordFormat"), recordFolder ("recordFolder"), cueSounds ("cueSounds");
 }
 
 juce::ValueTree toValueTree (const MicVSTState& s)
@@ -42,6 +42,7 @@ juce::ValueTree toValueTree (const MicVSTState& s)
     if (s.hotkeyCompare.isNotEmpty()) t.setProperty (ids::hotkeyCompare, s.hotkeyCompare, nullptr);
     if (s.recordFormat.isNotEmpty()) t.setProperty (ids::recordFormat, s.recordFormat, nullptr);
     if (s.recordFolder.isNotEmpty()) t.setProperty (ids::recordFolder, s.recordFolder, nullptr);
+    if (s.cueSounds.isNotEmpty()) t.setProperty (ids::cueSounds, s.cueSounds, nullptr);
     t.appendChild (pluginsToValueTree (s.plugins), nullptr);
     return t;
 }
@@ -112,6 +113,7 @@ MicVSTState fromValueTree (const juce::ValueTree& t)
     s.hotkeyCompare = t.getProperty (ids::hotkeyCompare).toString();
     s.recordFormat = t.getProperty (ids::recordFormat).toString();
     s.recordFolder = t.getProperty (ids::recordFolder).toString();
+    s.cueSounds = t.getProperty (ids::cueSounds).toString();
     return s;
 }
 

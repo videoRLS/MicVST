@@ -8,8 +8,8 @@ using micvst::tr;
 namespace
 {
     constexpr int navW = 172, pad = 18, headH = 26, sectionGap = 22;
-    const char* const sectionNames[] = { TRK ("Ses"), TRK ("Kayıt"), TRK ("Kısayollar"), TRK ("Görünüm ve başlangıç"), TRK ("Eklentiler"), TRK ("Hakkında") };
-    constexpr int numSections = 6;
+    const char* const sectionNames[] = { TRK ("Ses"), TRK ("Kayıt"), TRK ("Kısayollar"), TRK ("Bildirim sesleri"), TRK ("Görünüm ve başlangıç"), TRK ("Eklentiler"), TRK ("Hakkında") };
+    constexpr int numSections = 7;
 }
 
 juce::String SettingsComponent::windowTitle() { return tr ("MicVST - Ayarlar"); }
@@ -22,7 +22,7 @@ void SettingsComponent::Page::paint (juce::Graphics& g)
 }
 
 SettingsComponent::SettingsComponent (AudioEngine& e, GlobalHotkeys* keys, Callbacks callbacks)
-    : engine (e), cb (std::move (callbacks)), soundPanel (e, false), recordingPanel (e)
+    : engine (e), cb (std::move (callbacks)), soundPanel (e, false), recordingPanel (e), cuePanel (e)
 {
     for (int i = 0; i < numSections; ++i)
     {
@@ -44,6 +44,7 @@ SettingsComponent::SettingsComponent (AudioEngine& e, GlobalHotkeys* keys, Callb
 
     page.addAndMakeVisible (soundPanel);
     page.addAndMakeVisible (recordingPanel);
+    page.addAndMakeVisible (cuePanel);
 
     if (keys != nullptr && GlobalHotkeys::supported() && cb.setHotkey)
     {
@@ -145,7 +146,8 @@ void SettingsComponent::timerCallback()
     updateNav();
     autostartToggle.setToggleState (AutostartRegistry::isEnabled(), juce::dontSendNotification);
     if (soundPanel.getHeight() != soundPanel.preferredHeight()   // the buffer row came or went (device change)
-        || recordingPanel.getHeight() != recordingPanel.preferredHeight (recordingPanel.getWidth()))   // FLAC row, notes
+        || recordingPanel.getHeight() != recordingPanel.preferredHeight (recordingPanel.getWidth())   // FLAC row, notes
+        || cuePanel.getHeight() != cuePanel.preferredHeight (cuePanel.getWidth()))                  // its notes
         resized();
 }
 
@@ -249,6 +251,12 @@ void SettingsComponent::resized()
 
     heading (3);
     {
+        cuePanel.setSize (w, 10);
+        line (cuePanel, cuePanel.preferredHeight (w));
+    }
+
+    heading (4);
+    {
         const int lw = juce::jmax (90, juce::roundToInt (juce::jmax (juce::GlyphArrangement::getStringWidth (languageLabel.getFont(), languageLabel.getText()),
                                                                      juce::GlyphArrangement::getStringWidth (themeLabel.getFont(), themeLabel.getText()))) + 16);
         languageLabel.setBounds (pad, y, lw, 30);
@@ -260,7 +268,7 @@ void SettingsComponent::resized()
         line (autostartToggle, 26);
     }
 
-    heading (4);
+    heading (5);
     {
         const int bw = juce::roundToInt (juce::GlyphArrangement::getStringWidth (juce::Font (juce::FontOptions (15.0f)), foldersBtn.getButtonText())) + 30;
         foldersBtn.setBounds (pad, y, juce::jmin (w, bw), 32);
@@ -268,7 +276,7 @@ void SettingsComponent::resized()
         line (foldersHint, 48);
     }
 
-    heading (5);
+    heading (6);
     aboutLine.setJustificationType (juce::Justification::topLeft);
     line (aboutLine, 36);
     {

@@ -8,6 +8,7 @@
 #include "audio/MicVSTDeviceManager.h"
 #include "audio/MonitorOutput.h"
 #include "audio/Recorder.h"
+#include "audio/CueSounds.h"
 #include "audio/RealtimeSupport.h"
 #include "audio/ScanCoordinator.h"
 #include "Text.h"
@@ -95,7 +96,8 @@ public:
     // --- Sustur, Önce/Sonra, Kendini dinle, Deneme kaydı (message thread) ---
     // Mute: what goes to the cable (and the headphones) fades to silence in 15 ms; the meter of the
     // microphone keeps showing the voice. Not saved: MicVST always starts unmuted.
-    void setMuted (bool m);
+    void setMuted (bool m);   // also plays the Bildirim sesi (same call: in sync with the mute itself)
+    CuePlayer& getCues() { return cues; }
     bool isMuted() const { return muted.load(); }
     // "Ham ses" (A/B): the cable gets the microphone without the chain - delayed by the chain's own
     // latency, cross-faded in 30 ms, so switching back and forth compares the same moment.
@@ -316,6 +318,7 @@ private:
     MonitorOutput monitor;
     Recorder recorder;
     RecordSettings recordSettings;
+    CuePlayer cues;
     void logRecordingResult (const Recorder::Result&);
     bool monitorEnabled = false;   // message thread
     void updateMonitorDevice();    // opens / closes the monitor device as needed (message thread)
