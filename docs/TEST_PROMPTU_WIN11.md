@@ -3,6 +3,9 @@
 > Bu dosya, MicVST'nin güncel sürümünü Windows 11 için A'dan Z'ye test edecek **yeni bir Claude oturumu**
 > için yazıldı. Oturum GitHub'a bağlıdır (depo: `videoRLS/MicVST`). Önce bu dosyanın tamamını oku, sonra
 > 0. bölümdeki kurallara uyarak 9. bölümdeki sırayla çalış.
+>
+> **Kullanıcının amacı:** programı **yıllarca** güvenle kullanmak. Onun için en önemli iki şey **ses kalitesi**
+> ve **kararlılık**. **Zaman sınırı yok** ("istediği kadar vakit harcasın"): hız değil titizlik.
 
 ---
 
@@ -21,13 +24,20 @@
    (bu ortamda yapılamaz, nedeni yazılı). Mutlak garanti verme ("asla bozulmaz" yok; "şu koşullarda geçti" var).
 6. **Ses kalitesi her şeyden önce gelir.** Kayıt (özellikle **WAV 24 bit**, ayrıca 16/32 bit, 32 bit float,
    FLAC, MP3) bit düzeyinde doğrulanacak; tek bir tık, kayıp örnek, kesik, yanlış başlık kabul edilmez.
-7. Kullanıcının bilgisayarında (bağlıysa) bir şey çalıştırmadan önce **`%APPDATA%\MicVST` klasörünü
-   yedekle** (config.xml, plugin_cache.xml, log.txt, Sesler\\). **FabFilter ve diğer ticari eklentilerin
+7. Kullanıcının bilgisayarına bağlısın ve tam erişim iznin var (bölüm 7.0; program `C:\MicVST\`). Orada bir
+   şey çalıştırmadan önce **`%APPDATA%\MicVST` klasörünü yedekle** (config.xml, plugin_cache.xml, log.txt, Sesler\\). **FabFilter ve diğer ticari eklentilerin
    ayarlarını değiştirme.** Testten sonra yedeği geri yükle. Geri alınamaz bir işlemden önce kullanıcıya sor.
 8. Commit mesajlarının sonuna **kendi oturumunun** Co-Authored-By / Claude-Session satırlarını ekle (bu
    oturumunkileri değil). Bir "stop hook" commit edilmemiş değişiklik bırakmana izin vermez: ara işleri
    `[skip ci]` ile commit edip gönder.
 9. Önceki raporu bozma: yeni rapor ayrı dosya (`docs/TEST_RAPORU_WIN11_1.2.2.md`).
+10. **Zaman sınırı yok – kısaltma, örnekleme yapma.** "Birkaçını denedim" yok: 30 hazır ayarın hepsi, 26 efektin
+    hepsi, kaydın her biçim × bit × sıkıştırma × hız × kanal birleşimi (K22). Zamanlamaya bağlı ya da rastgele
+    testleri farklı tohumlarla ve farklı günlerde tekrarla: **tam tur en az 3 kez, `[uzun]` en az 2 kez.** Tek bir
+    başarısızlık bile "rastgele oldu" diye geçilmez; nedeni bulunur, açıklanır ya da düzeltilir.
+11. **Uzun ömür (bölüm 5-R) zorunludur.** "Ömür boyu sorunsuz" garantisi verilemez ve verme; görevin, zamanla
+    çıkabilecek her hata türünü bugünden aramak, bulunamayanları açıkça yazmak ve kullanıcıya bir bakım yolu
+    (arşiv + kılavuz + sağlık kontrolü) bırakmak.
 
 ---
 
@@ -109,7 +119,7 @@ ASan/UBSan: aynı bayraklara `-fsanitize=address,undefined -fno-omit-frame-point
 | **W** | CI Windows Server 2025 x64 | MSVC derlemesi, birim, motor (MMCSS, gerçek Windows iş parçacıkları), gerçek MicVST.exe (kısayollar, tepsi, kapalı kutu, dayanıklılık), Windows'un kendi dosya özellik okuyucuları; **ses aygıtı yok** |
 | **A** | CI Windows 11 ARM64 | Windows 11 üzerinde birim + motor + 60 dk (ARM64 derlemesi) |
 | **S** | simülasyon | 24 sa / 168 sa sanal zaman, deterministik |
-| **U** | **kullanıcının Windows 11 x64 bilgisayarı** (HyperX QuadCast 2 S 32 bit, VB-Cable 24 bit 48 kHz, kendi VST3'leri) | gerçek donanım, gerçek sürücü, gerçek dinleme. Oturum bilgisayara bağlıysa araçlarla, değilse kullanıcıya adım adım yaptırıp dosyalarını isteyerek (bölüm 7) |
+| **U** | **kullanıcının Windows 11 x64 bilgisayarı** (HyperX QuadCast 2 S 32 bit, VB-Cable 24 bit 48 kHz, kendi VST3'leri). **Bu oturum bilgisayara bağlı ve kullanıcı tam erişim izni verdi.** Program: **`C:\MicVST\MicVST.exe`** | gerçek donanım, gerçek sürücü, gerçek dinleme – testlerin çoğunu doğrudan bilgisayarda kendin yaparsın (bölüm 7.0) |
 
 ---
 
@@ -215,7 +225,7 @@ Biçim: **Kimlik – Ne – Nasıl (ortam, araç) – Geçme ölçütü.** Var o
 
 ### K. Kayıt (KALİTE KRİTİK)
 - **K1 Biçim doğruluğu** (birim + `MICVST_RECORDER_KEEP` + `ci-recordings.ps1`): her biçim/bit/hız/kanal için başlık (biçim etiketi, bit, hız, kanal, uzunluk) beyan edilenle **birebir**; ffmpeg çözme hatası 0; Windows özellik okuyucusu süre ve bit hızını gösterir.
-- **K2 WAV 24 bit PCM:** her örnek kaynak float değerinden en çok **0,500 LSB** sapar (doğru yuvarlama), hata ortalaması |ort| < 0,01 LSB (kesme yanlılığı yok), taşma tam ölçekte kırpılır (işaret dönmesi 0). **K3 WAV 32 bit float:** kaynakla **bit-exact**. **K4 WAV 32 bit PCM:** ≤ 0,5 LSB. **K5 WAV/FLAC 16 bit:** TPDF dither: hata rms 0,50 ± 0,05 LSB, ortalama |ort| < 0,02 LSB, en büyük ≤ 1,5 LSB. **K6 FLAC 16/24 (sıkıştırma 0/5/8):** çözülünce aynı bit derinliğindeki WAV ile bit-exact; STREAMINFO MD5 doğrulanır (`flac -t` ya da ffmpeg). **K7 MP3:** 11 ayar (CBR 128…320, VBR V0/V2/V4, stereo/mono, 44,1/48): LAME etiketindeki örnek sayısı = kaydedilen (gapless), ffmpeg çözünce **tam uzunluk**, CBR'de her çerçeve beyan edilen kbps, kanal sırası doğru. **K8 Hız dönüştürme:** 48→44,1, 96→48, 96→88,2, 44,1→48 (ve birim testindeki diğer çiftler): sinyal/hata **> 130 dB**; 100 Hz / 1 kHz / 10 kHz / 19,9 kHz sinüslerinde ideal sonuca göre hata **< −135 dB** (geçirme bandı düz, faz/zaman kayması 0), alt hızın yarısının üstündeki ton (durdurma bandı) **< −135 dB**; uzunluk birebir, zaman kayması 0. Mikrofon 48 kHz iken 96 seçili → 48 kHz yazılır (yükseltme yok). **K9 Mono:** (L+R)/2; mono mikrofonda birebir. **K10 BWF:** bext originator "MicVST", tarih/saat. **K11 RF64:** > 4 GB (192 kHz float, disk hızında): başlık "RF64", geri okunur, ffmpeg tam süreyi verir, kayıp 0. **K12 Çökme:** kayıt sürerken anlık kopya (ya da gerçek exe'yi öldürme, U): dosya son saniyeye kadar geçerli, içerik ≤ 0,5 LSB. **K13 Taşma:** 30 s'den uzun disk takılması: kayıp sayılır, yazılan + kayıp = gönderilen, dosya tutarlı. **K14 Hatalar:** ses yokken ("Ses çalışmıyor…"), klasör oluşturulamazken, ikinci başlatmada ("Kayıt zaten sürüyor"), yazılamayan klasör seçiminde, **diskte 100 MB'tan az boş yer varken** (kayıt hiç başlamaz, mesaj) anlaşılır Türkçe mesaj. **Yeni test (yaz):** küçük sanal disk (W: `diskpart create vdisk` ~250 MB, NTFS – 100 MB sınırının üstünde başlasın) → doldurana kadar WAV 32 float 192 kHz kaydet: kayıt kendiliğinden durur, mesaj gelir, dosya geçerli ve son yazılan saniyeye kadar okunur (≤ 0,5 LSB); kayıt sırasında diski ayır: hata mesajı, program çökmez, kabloda tık 0. **K15 Adlandırma:** `MicVST_YYYY-AA-GG_SS-DD-ss`, aynı saniyede `_2`, `_3`; asla üzerine yazmaz. **K16 Uzun kayıt:** 20 dk (10× hızla) WAV 24 / FLAC 24 / MP3 V0: kayıp 0, geri okuma birebir. **K17 Kabloya etki** (`record` modu): kayıt açık/kapalı kabloda tık 0, seviye aynı (±0,01 dB), THD+N kayıtsız dalgalanmanın 90. yüzdeliği + 1 dB'den kötü değil, gecikme aynı (±1 ms), taşma 0; dosya içeriği seviye −26,000 dB, THD+N < −120 dB, L=R. **K18 Başlat/durdur:** 30 kez her biçimde, ses çalarken: hepsi doğrulanır, kabloda tık 0, bellek sızıntısı yok (30 kayıtta < 30 MB). **K19 Hız değişimi:** kayıt sırasında mikrofon hızı değişirse kayıt o noktada biter ve mesaj gelir. **K20 Kalıcılık:** biçim/klasör yeniden başlatınca korunur. **K21 CPU:** bölüm 4.
+- **K2 WAV 24 bit PCM:** her örnek kaynak float değerinden en çok **0,500 LSB** sapar (doğru yuvarlama), hata ortalaması |ort| < 0,01 LSB (kesme yanlılığı yok), taşma tam ölçekte kırpılır (işaret dönmesi 0). **K3 WAV 32 bit float:** kaynakla **bit-exact**. **K4 WAV 32 bit PCM:** ≤ 0,5 LSB. **K5 WAV/FLAC 16 bit:** TPDF dither: hata rms 0,50 ± 0,05 LSB, ortalama |ort| < 0,02 LSB, en büyük ≤ 1,5 LSB. **K6 FLAC 16/24 (sıkıştırma 0/5/8):** çözülünce aynı bit derinliğindeki WAV ile bit-exact; STREAMINFO MD5 doğrulanır (`flac -t` ya da ffmpeg). **K7 MP3:** 11 ayar (CBR 128…320, VBR V0/V2/V4, stereo/mono, 44,1/48): LAME etiketindeki örnek sayısı = kaydedilen (gapless), ffmpeg çözünce **tam uzunluk**, CBR'de her çerçeve beyan edilen kbps, kanal sırası doğru. **K8 Hız dönüştürme:** 48→44,1, 96→48, 96→88,2, 44,1→48 (ve birim testindeki diğer çiftler): sinyal/hata **> 130 dB**; 100 Hz / 1 kHz / 10 kHz / 19,9 kHz sinüslerinde ideal sonuca göre hata **< −135 dB** (geçirme bandı düz, faz/zaman kayması 0), alt hızın yarısının üstündeki ton (durdurma bandı) **< −135 dB**; uzunluk birebir, zaman kayması 0. Mikrofon 48 kHz iken 96 seçili → 48 kHz yazılır (yükseltme yok). **K9 Mono:** (L+R)/2; mono mikrofonda birebir. **K10 BWF:** bext originator "MicVST", tarih/saat. **K11 RF64:** > 4 GB (192 kHz float, disk hızında): başlık "RF64", geri okunur, ffmpeg tam süreyi verir, kayıp 0. **K12 Çökme:** kayıt sürerken anlık kopya (ya da gerçek exe'yi öldürme, U): dosya son saniyeye kadar geçerli, içerik ≤ 0,5 LSB. **K13 Taşma:** 30 s'den uzun disk takılması: kayıp sayılır, yazılan + kayıp = gönderilen, dosya tutarlı. **K14 Hatalar:** ses yokken ("Ses çalışmıyor…"), klasör oluşturulamazken, ikinci başlatmada ("Kayıt zaten sürüyor"), yazılamayan klasör seçiminde, **diskte 100 MB'tan az boş yer varken** (kayıt hiç başlamaz, mesaj) anlaşılır Türkçe mesaj. **Yeni test (yaz):** küçük sanal disk (W: `diskpart create vdisk` ~250 MB, NTFS – 100 MB sınırının üstünde başlasın) → doldurana kadar WAV 32 float 192 kHz kaydet: kayıt kendiliğinden durur, mesaj gelir, dosya geçerli ve son yazılan saniyeye kadar okunur (≤ 0,5 LSB); kayıt sırasında diski ayır: hata mesajı, program çökmez, kabloda tık 0. **K15 Adlandırma:** `MicVST_YYYY-AA-GG_SS-DD-ss`, aynı saniyede `_2`, `_3`; asla üzerine yazmaz. **K16 Uzun kayıt:** 20 dk (10× hızla) WAV 24 / FLAC 24 / MP3 V0: kayıp 0, geri okuma birebir. **K17 Kabloya etki** (`record` modu): kayıt açık/kapalı kabloda tık 0, seviye aynı (±0,01 dB), THD+N kayıtsız dalgalanmanın 90. yüzdeliği + 1 dB'den kötü değil, gecikme aynı (±1 ms), taşma 0; dosya içeriği seviye −26,000 dB, THD+N < −120 dB, L=R. **K18 Başlat/durdur:** 30 kez her biçimde, ses çalarken: hepsi doğrulanır, kabloda tık 0, bellek sızıntısı yok (30 kayıtta < 30 MB). **K19 Hız değişimi:** kayıt sırasında mikrofon hızı değişirse kayıt o noktada biter ve mesaj gelir. **K20 Kalıcılık:** biçim/klasör yeniden başlatınca korunur. **K21 CPU:** bölüm 4. **K22 Tam birleşim taraması (yeni, yaz):** arayüzün sunduğu **her** birleşim – WAV 16/24/32/32f × FLAC 16/24 × sıkıştırma 0–8 × MP3 9 ayar × izinli her hız (44,1/48 ve mikrofon hızına göre 88,2/96/176,4/192) × stereo/mono – ve her biri için kaynak (işlem) hızı 44,1 / 48 / 96 / 192 kHz; her dosya 10 s: K1–K9 ölçütleri (başlık, LSB hatası, dither, FLAC MD5/bit-exact, MP3 uzunluk, hız dönüştürme SNR). Arayüzün **sunmadığı** birleşim (ör. MP3 96 kHz) seçilemiyor ve config'e elle yazılsa bile güvenli bir değere düşüyor.
 
 ### L. İşlem önceliği
 - **L1** `priority` (W): her sınıf uygulanır ve Windows'tan aynı okunur; tam CPU yükünde ses temiz (tık 0); diğer programlara etkisi raporlanır. **L2** Gerçek exe (runtime-check): eski config → Normal; 0/1/2 → Normal/AboveNormal/High; yeniden açılışta korunur. **L3** Masaüstü `MicVST_Oncelik.vbs` 3 kısayolu (W): hedef, argüman, simge doğru; bildirim penceresi çıkmaz.
@@ -234,6 +244,46 @@ Biçim: **Kimlik – Ne – Nasıl (ortam, araç) – Geçme ölçütü.** Var o
 
 ### Q. Gerileme listesi (daha önce düzeltilmiş hatalar – her biri yeniden doğrulanır)
 Sonsuz yeniden bağlanma döngüsü (açılamayan cihaz) · config.xml'in boş yere yazılması · log.txt'nin sınırsız büyümesi · bozuk eklenti çıkışının kabloya ulaşması · takılan eklentiden sonra tık · zincir düzenlemede tık (1.2.0: 13'te 11) · gecikmeli zincirde fade-in tıkı · kapanış/cihaz değişiminde tık · çok eklentili VST3 kimlik kaybı · günlükte çift UTF-8 · İngilizce cihaz hataları · mono zincirin yalnızca sol kanala gitmesi · mono→stereo eklentide sağ kanalın sessiz kalması · canlı gecikmenin eksik gösterilmesi · kulaklık düzeyinin yanlış eğri izlemesi (−12 dB → −16,6) · Deneme kaydı başı/sonunda tık · JUCE tamsayı yazıcısının kesmesi (kayıtta 1 LSB / −0,5 LSB yanlılık) · Windows'ta kayıt yazıcısının yavaş kalması · test aracının eklentiyi süreç içinde tarayıp çökmesi (gerçek tarayıcı 240/240).
+
+### R. Uzun ömür – yıllarca kullanım (zorunlu)
+- **R1 Zaman sayaçlarının taşması (kod denetimi + test).** Windows'ta `juce::Time::getMillisecondCounter()` 32 bittir ve bilgisayar açık kaldıkça **49,7 günde bir başa döner**. Windows "Hızlı başlatma" açıkken kapat-aç çalışma süresini sıfırlamaz, yani bu kullanıcıda gerçekten olur. Kullanıldığı yerler (en az): `src/audio/AudioEngine.cpp` (cihaz yeniden açma beklemesi `(juce::int32) (nowMs - b.nextMs) >= 0`, denetim yeniden başlatma beklemesi `nowMs - lastRestartMs > backoffMs`, Deneme kaydı çalma sonu `playbackEndMs`), `src/audio/CueSounds.cpp` (`outputIsCable`, 2 s önbellek, `defaultCheckedAt == 0` işareti), `src/audio/Recorder.cpp` (yazıcı döngüsü: 1 s başlık yenileme, 5 s boş yer denetimi), `src/ui/PluginListView.cpp`, `src/audio/ScanCoordinator.cpp` (120 s zaman aşımı). İlk bakışta hepsi işaretsiz fark kullanıyor ve taşmaya dayanıklı görünüyor – **bunu kanıtla:** her ifadeyi tek tek incele ve sayacın `0xFFFFFF00`'den başlayıp başa döndüğü bir birim testi yaz (gerekirse saati en küçük değişiklikle enjekte edilebilir yap). Ayrıca tüm `src/` içinde 32 bitlik sayaçları tara: örnek/çerçeve sayan `int` 48 kHz'de **12,4 saatte**, 192 kHz'de **3,1 saatte** taşar. Sıra sayaçları (`AudioBridge::pushSeq`, `InputQueue::stampSeq`, `uint32_t`) taşınca karşılaştırmaların doğru kaldığını göster. Uzun süre biriken `float` zaman/konum/faz değerlerinde hassasiyet kaybını kontrol et (30 gün × 48 000 = 1,2·10¹¹ örnek: double'da tam, float'ta değil). Ölçüt: hiçbir taşma davranışı değiştirmez (testle kanıtlı) ya da en küçük değişiklikle düzeltilir.
+- **R2 Çok uzun simülasyon (S):** `MicVSTStress --day 720` (30 sanal gün; bir CI işine sığmazsa farklı tohumlarla 5 × 168 sa) ve Otomatik Kazanç 7 gün. Ölçüt: MicVST'ye bağlı tık 0, saat farkı öğrenmesi kararlı (sapma ≤ 2 ppm), bellek ve sayaçlar sınırlı.
+- **R3 Gerçek zamanlı çok saatlik kayıt (W, yeni `[uzun]` işi):** 330 dk gerçek zamanlı WAV 24 / 48 kHz / stereo kayıt. Bu kayıt ≈ 4 sa 8 dk'da **4 GB sınırını gerçek zamanda aşar ve RF64'e geçer.** Ölçüt: kayıp 0; başlık RF64; ffmpeg ve Python `soundfile` tam süreyi okur; içerik ≤ 0,5 LSB; dosya süresi ile örnek sayısı birebir; yazıcının belleği sabit; kabloda tık 0. FLAC 24 ve MP3 V0 ile 330 dk daha: uzunluk ve içerik doğruluğu.
+- **R4 Çok günlük gerçek kullanım (U):** bilgisayar açık, MicVST en az **72 saat** (mümkünse 7 gün) kesintisiz çalışır; gerçek mikrofon ve kablo, arada Discord ve normal kullanım olur. Her saat şunları toplayan bir PowerShell betiği yaz; kullanıcı Görev Zamanlayıcı ile çalıştırır:
+  - MicVST'nin özel belleği, tutamaç / GDI / USER nesne sayısı ve iş parçacığı sayısı;
+  - işlemci süresi;
+  - log.txt boyutu ve yeni satırları.
+
+  Ölçütler:
+  - bellek artışı ≤ 10 MB/gün;
+  - tutamaç, GDI ve iş parçacığı sayıları sabit (±%5);
+  - log'daki her olayın açıklaması var (cihaz olayı vb.);
+  - durum satırındaki "kesinti" sayısının her artışı açıklanmış;
+  - program yanıt veriyor;
+  - sonda 30 s WAV 24 kaydı K2 ölçütlerini ve 6.3'teki analizi geçiyor.
+- **R5 Sistem saatinin değişmesi (W, U):** MicVST çalışırken ve kayıt sürerken saati 1 saat ileri ve geri, 1 gün ileri ve geri al; ayrıca saat dilimini değiştir (`Set-Date`, `tzutil /s`). Ölçüt: ses kesilmez ve tık 0; kayıt süresi örnek sayısıyla tutarlı (duvar saatine göre değil); dosya adı çakışmaz, üzerine yazılmaz; zamanlayıcılar (yeniden deneme, 2 s önbellek, başlık yenileme) takılmaz.
+- **R6 Bin kez aç-kapa, ayar dayanıklılığı (W, gerçek exe):** exe'yi 1000 kez başlatıp kapat; bunların 200'ünde ayar yazılırken `taskkill /f` ile öldür.
+  - Her açılışta config.xml geçerli olmalı: eski ya da yeni hâli olur, asla yarım kalmaz. Son değişiklik dışında hiçbir ayar kaybolmaz.
+  - plugin_cache.xml geçerli kalır, log 2 MB'ı aşmaz, `%APPDATA%\MicVST` boyutu sınırlı kalır.
+  - Ayrıca 10 000 Sustur değişimi, her biri doğrulanan 1 000 kayıt başlat/durdur ve 1 000 hazır ayar geçişi yap. Ölçüt: bellek ve tutamaçlar sabit, kabloda tık 0.
+- **R7 Ortam değişiklikleri (U, kullanıcının onayıyla, önce yedek):** eklentiyi güncelle, kaldır ya da klasörünü taşı; VB-Cable'ı yeniden kur; QuadCast'i başka bir USB yuvasına tak; Windows'un varsayılan cihazlarını değiştir. Bunların olacağı kesin; o anki davranışı ölç ve yaz. Ölçüt: program çökmez; zincirin kalanı ses vermeye devam eder; cihaz aynı adla geri gelince kendiliğinden bağlanır. Eklenti geri gelince ayarlarının dönüp dönmediğini ölç ve yaz. **Yeni özellik ekleme; gerekiyorsa kullanıcıya öner.**
+- **R8 Kayıtların yıllar sonra da açılabilmesi:** her biçimi en az iki bağımsız okuyucuyla aç: ffmpeg, Python `soundfile` (libsndfile), FLAC için `flac -t`, MP3 için ffmpeg dışında ikinci bir çözücü (`mpg123` ya da başka bir bağımsız çözücü). Hepsinde örnek sayısı ve içerik aynı olmalı. Standartlara uygunluk denetlenir:
+
+  | Biçim | Standart |
+  |---|---|
+  | WAV/BWF | EBU Tech 3285 (bext) |
+  | RF64 | EBU Tech 3306 (ds64) |
+  | FLAC | RFC 9639 (STREAMINFO, MD5) |
+  | MP3 | ISO/IEC 11172-3 (çerçeve başlıkları), Xing/LAME etiketi |
+- **R9 Yeniden üretilebilirlik ve arşiv:** JUCE ilk derlemede GitHub'dan `GIT_TAG 9.0.4` ile iner ve yıllar sonra erişilemeyebilir. Bir **arşiv paketi** hazırla:
+  - depo kaynağı (test edilen commit) ve JUCE 9.0.4 kaynağı. **Dikkat:** `FETCHCONTENT_SOURCE_DIR_JUCE` verildiğinde CMake `PATCH_COMMAND`'ı **çalıştırmaz**; MicVST'nin 5 gerçek zamanlı JUCE yaması uygulanmadan derlenir. Bu yüzden arşivdeki JUCE'nin içinde bir kez `cmake -P <depo>/cmake/PatchJuce.cmake` çalıştır (betik tekrarlanabilir; her parça bir kez eşleşmezse hata verir). Arşivden derlenmiş exe'de yamaların varlığını kanıtla: `metrics.json` içinde `juce_patch_markers: 3` ve motor testleri temel değerlerde. Arşive bir `OKU.md` koy: hangi komutlarla, hangi sırayla derleneceği;
+  - exe ve SHA-256, test raporu, uzun ömür kılavuzu;
+  - kullanıcının config yedeği;
+  - test edilen Windows, VB-Cable ve eklenti sürümlerinin listesi.
+
+  Sonra **ağsız derleme kanıtı:** CI'da JUCE'yi arşivden derle (`-DFETCHCONTENT_SOURCE_DIR_JUCE=<klasör>` ve `-DFETCHCONTENT_FULLY_DISCONNECTED=ON`); birim testleri geçmeli. Exe'nin bayt bayt aynı olması beklenmez (MSVC zaman damgası), davranışın aynı olması beklenir. Paketi kullanıcıya zip olarak gönder; GitHub Release yayınlama yok.
+- **R10 Güvenlik yazılımı:** exe imzasız. Windows Defender ile tara (W: `Start-MpScan -ScanType CustomScan -ScanPath`); sonucu ve SmartScreen davranışını yaz. Kullanıcıya gereksiz Defender istisnası ekletme.
+- **R11 Doğrulanan Windows sürümleri:** U'daki Windows 11 sürüm ve yapı numarasını (`winver`, `[Environment]::OSVersion`) rapora yaz. W (Server 2025) ve A (Windows 11 ARM64) sonuçlarıyla birlikte "hangi Windows'ta, hangi sürücülerle doğrulandı" tablosu hazırla.
 
 ---
 
@@ -255,9 +305,40 @@ Kaynak sinyal biliniyorsa: kaynakla hizala (çapraz korelasyon), artığı 256 �
 
 ## 7. Kullanıcının Windows 11 x64 bilgisayarında testler (U) – gerçek donanım
 
-Oturum kullanıcının bilgisayarına bağlıysa (cihaz araçları varsa) bunları kendin yap; değilse kullanıcıya **adım adım, kısa** yaptır ve dosyaları (log.txt, kayıtlar, config.xml) yüklemesini iste, sonra 6.3 ile analiz et. Önce **0.7'deki yedek kuralı.**
+### 7.0 Bilgisayar erişimi (kullanıcı tam erişim izni verdi)
 
-- **U1 Kurulum:** son exe'yi `C:\MicVST\` içine koy, SHA-256'yı `Get-FileHash` ile doğrulat. SmartScreen uyarısı (imzasız exe) olabilir – not et.
+- Oturum, kullanıcının bilgisayarına Claude masaüstü uygulaması üzerinden bağlıdır. Araçlar uzak cihaz araçlarıdır (`mcp__remote-devices__*`): bilgisayarda komut çalıştırma, dosya araçları ve ekran kontrolü. İlk iş, bu araçların çalıştığını basit bir komutla doğrula (ör. `Get-ComputerInfo | Select OsName, OsVersion, OsBuildNumber`). Araç yoksa ya da bilgisayara ulaşılamıyorsa kullanıcıya söyle: bilgisayar uyanık ve çevrimiçi olmalı, masaüstü uygulaması açık olmalı ve sohbet "bu bilgisayara bağla" ile bağlanmış olmalı. O sırada konteynerde yapılabilecek işlere devam et.
+- **Program yeri: `C:\MicVST\`** (kullanıcı son exe'yi buraya koyar). İlk iş:
+  1. `Get-FileHash C:\MicVST\MicVST.exe -Algorithm SHA256` sonucu bölüm 1'deki SHA ile aynı mı?
+  2. `%APPDATA%\MicVST` klasörünün tamamını `C:\MicVST\yedek\<tarih-saat>\` altına kopyala.
+  3. Bilgisayarın envanterini rapora yaz: Windows sürümü ve yapısı; ses aygıtları ve biçimleri; VB-Cable sürümü; QuadCast sürücüsü/donanım yazılımı; VST3 klasörleri ve eklenti sürümleri; CPU, RAM, güç planı; Hızlı başlatma açık mı (R1 için önemli); çalışma süresi (`(Get-CimInstance Win32_OperatingSystem).LastBootUpTime`).
+- **Kapsam:** kullanıcı bilgisayarda her şeye göz atabileceğini söyledi. Bu izni testin gerektirdiği her şey için kullan: MicVST klasörleri, log ve config, VST3 klasörleri, ses ayarları, Olay Görüntüleyicisi (Uygulama/Sistem: MicVST, ses ve USB olayları), Audacity/OBS/Discord ayarları, Güvenilirlik İzleyicisi (çökme kayıtları). Testle ilgisi olmayan kişisel dosyaları açma.
+- **Kendin yapabileceklerin:** exe'yi başlatıp kapatmak; ayarları config.xml üzerinden ya da arayüzden değiştirmek; ekranı izlemek ve tıklamak; MicVST ile kayıt almak; CABLE Output'u aynı anda kaydetmek; dosyaları konteynere alıp 6.3 analizini yapmak; PowerShell ile bellek, tutamaç ve CPU izlemek (R4); Görev Zamanlayıcı görevi kurmak; saat ve saat dilimi değişikliği (R5, sonra geri al); Defender taraması.
+  - CABLE Output kaydı için bilgisayarda ffmpeg yoksa önce kullanıcıya sor, sonra `winget install Gyan.FFmpeg` ile kur. Kayıt komutu: `ffmpeg -f dshow -i audio="CABLE Output (VB-Audio Virtual Cable)" -c:a pcm_s24le …`. Aygıt adını önce `ffmpeg -list_devices true -f dshow -i dummy` ile al.
+  - Python gerekiyorsa aynı şekilde sorup kur ya da analizi konteynerde yap.
+- **Kullanıcının fiziksel olarak yapması gerekenler** (her seferinde kısa ve net iste, ne zaman başlayacağını söyle):
+  - mikrofona konuşmak ya da bağırmak;
+  - kulaklıktan dinleyip onaylamak (bildirim sesleri, hazır ayarlar, Deneme kaydı);
+  - USB'yi çıkarıp takmak;
+  - uyku/uyanma (uyku sırasında bağlantı kopar; uyanınca kontrol et);
+  - Discord'da karşı taraftan geri bildirim almak.
+- **Sınırlar (tam erişime rağmen):**
+  - **FabFilter ve diğer ticari eklentilerin ayarlarına dokunma.** Kullanıcının kendi zincirini ve hazır ayarlarını değiştirme; test için ayrı bir hazır ayar oluştur, sonra sil.
+  - VB-Cable, ses sürücüsü ya da Windows ayarı (varsayılan aygıt, biçim, güç planı, Hızlı başlatma) değiştireceksen önce eski değeri kaydet, sonra geri al.
+  - Kayıt klasöründeki kullanıcı kayıtlarına dokunma; test kayıtlarını `C:\MicVST\test\` altına yap.
+  - Silme işlemi bilgisayarda varsayılan olarak engellidir; gerekirse izin iste ya da `_to_delete\` klasörüne taşı.
+  - Geri alınamaz her işlemden (sürücü kaldırma/kurma, eklenti kaldırma – R7) önce kullanıcıya sor.
+  - Çok günlük testlerde (R4) bilgisayarın uykuya geçmemesi gerekir. Güç ayarını değiştirmeden önce sor ve test bitince geri al.
+- **Yeni exe kurulumu:** bir düzeltmeden sonra yeni exe derlenirse:
+  1. Önce eskisini `C:\MicVST\eski\MicVST_<sha8>.exe` olarak sakla.
+  2. Programı kapat, yeni exe'yi kopyala, SHA'yı doğrula, yeniden başlat.
+  3. Hangi exe'nin hangi testi geçtiğini rapora yaz.
+
+### 7.1 Testler
+
+Önce **0.7'deki yedek kuralı.** Bir test bilgisayarda yapılamıyorsa kullanıcıya **adım adım, kısa** yaptır; dosyaları (log.txt, kayıtlar, config.xml) iste ve 6.3 ile analiz et.
+
+- **U1 Kurulum:** exe `C:\MicVST\MicVST.exe`; SHA-256'yı `Get-FileHash` ile doğrula. İlk açılışta SmartScreen uyarısı (imzasız exe) çıkarsa not et. Windows açılışında başlatma açıksa kayıt defterindeki yol `C:\MicVST\MicVST.exe` olmalı (`HKCU\Software\Microsoft\Windows\CurrentVersion\Run`).
 - **U2 Ses biçimi:** log.txt'deki satır: `Ses biçimi: MicVST akışı ve iç işlem 32 bit kayan nokta; Windows aygıt biçimi: giriş … | çıkış …` → giriş QuadCast **32 bit**, çıkış VB-Cable **24 bit PCM, 48000 Hz** olmalı. Değilse kullanıcıya Windows Ses ayarlarından nasıl düzelteceğini anlat.
 - **U3 KAYIT KALİTESİ (kritik):** Varsayılan (WAV 24 bit, 48 kHz, stereo) ile 2 dk konuşma + 10 s sessizlik + bir bağırma. Aynı anda Audacity (ya da OBS) ile **CABLE Output**'u 24 bit 48 kHz kaydettir. İki dosyayı al: (a) MicVST dosyası: başlık 24/48000/2, gerçekten 24 bit (6.3), kırpma 0, Otomatik Kazanç açıksa hiçbir örnek > −10 dBFS, boşluk 0, tık 0, süre = kayıt süresi (±0,1 s), MicVST'nin "Kaydedildi" notu ve günlükte "dosya doğrulandı". (b) Karşılaştırma: hizalanınca seviye farkı ≤ 0,05 dB, korelasyon ≥ 0,999, hiçbirinde tık yok. Sonra aynısını **FLAC 24**, **WAV 32 float**, **WAV 16**, **MP3 320** ve **MP3 V0** ile tekrarla (her biri 30 s): başlıklar doğru, Windows Gezgini ve bir oynatıcıda (Medya Oynatıcı / VLC) açılıyor.
 - **U4 Uzun kayıt:** 60 dk WAV 24 (arka planda normal kullanım): kayıp 0, süre hatası < %0,01, dosya ~1 GB açılıyor; kayıt sırasında Discord'da ses temiz (kullanıcı onayı).
@@ -270,6 +351,8 @@ Oturum kullanıcının bilgisayarına bağlıysa (cihaz araçları varsa) bunlar
 - **U11 Windows 11:** uyku → uyanma: ≤ 5 s'de ses geri, günlük temiz; Windows açılışında başlat → tepside sessiz başlıyor; Odak/Oyun modu açıkken kısayollar çalışıyor; DPI %125/150/175'te arayüz düzgün; açık/koyu modda tepsi simgesi doğru.
 - **U12 Performans:** 10 dk normal kullanım (zinciri ile): Görev Yöneticisi CPU ve bellek; MicVST durum satırındaki "işlemci %" ve "kesinti 0". Kayıt açıkken CPU artışı ≤ %3 (bir çekirdeğin).
 - **U13 İşlem önceliği:** üç masaüstü kısayolu ve Ayarlar'daki seçim: Görev Yöneticisi > Ayrıntılar'da öncelik aynı.
+- **U14 Çok günlük kullanım:** R4 (72 saat – 7 gün) ve R7 (ortam değişiklikleri) burada yapılır.
+- **U15 Sağlık kontrolü provası:** teslim edilecek `docs/UZUN_OMUR_KILAVUZU.md` (bölüm 9) içindeki 10 dakikalık sağlık kontrolünü kullanıcıyla bir kez birlikte yap. Kullanıcının bunu tek başına, teknik bilgi gerekmeden yapabildiğini doğrula; anlaşılmayan adımı sadeleştir.
 
 ---
 
@@ -289,9 +372,29 @@ Oturum kullanıcının bilgisayarına bağlıysa (cihaz araçları varsa) bunlar
 1. Oku: bu dosya, `docs/DEVAM_NOTU.md`, `CHANGELOG.md`, `docs/TEST_RAPORU_1.2.2.md`. Kullanıcıya 3–4 cümleyle planı söyle.
 2. Exe'yi al ve SHA'yı doğrula (bölüm 1).
 3. L'de derle; birim + ASan/UBSan + `cues`/`record`/`quality` hızlı kontrol.
-4. Eksik testleri yaz (K14 disk dolu/çıkarma, P2 60 dk kayıt, I6 tepsi otomasyonu, gerekirse 6.3 analiz betiği `tools/analiz_kayit.py`); `[skip ci]` ile commit.
-5. Normal commit → tam tur (W); sonuçları sonuç dalından oku.
-6. `[uzun]` → uzun koşular (W, A, S).
-7. Kullanıcıyla U testleri (bölüm 7).
-8. Bulunanları düzelt, yeniden test et (bölüm 8).
-9. Rapor: `docs/TEST_RAPORU_WIN11_1.2.2.md` (Türkçe): özet tablo (alan, durum, ortam), her test kimliği için ölçülen değer + ölçüt + durum, bulunan hatalar önem sırasıyla (neden, düzeltme, yeniden test), ENGELLENEN/ATLANAN ve nedenleri, kullanıcının yapması gerekenler. Exe + SHA-256 ile birlikte kullanıcıya gönder.
+4. R1 kod denetimini yap (sayaç taşmaları), sonra eksik testleri yaz: K14 (disk dolu / çıkarma), K22 (tam birleşim taraması), P2 (60 dk kayıt), R1 (taşma testleri), R3 (330 dk gerçek zamanlı kayıt işi), R5 (saat değişimi), R6 (1000 aç-kapa), I6 (tepsi otomasyonu), 6.3 analiz betiği `tools/analiz_kayit.py`, R4 izleme betiği. Her biri önce yerelde, sonra `[skip ci]` ile commit.
+5. Normal commit → tam tur (W). Sonuçları sonuç dalından oku. **En az 3 tam tur**, farklı günlerde.
+6. `[uzun]` → uzun koşular (W, A, S) **en az 2 kez**; R2 (30 gün simülasyon), R3.
+7. Kullanıcıyla U testleri (bölüm 7), R4 ve R7 dahil.
+8. Bulunanları düzelt, yeniden test et (bölüm 8). Ses yolunu etkileyen her düzeltmeden sonra 5. ve 6. adımları baştan yap.
+9. **Uzun ömür kılavuzu** `docs/UZUN_OMUR_KILAVUZU.md`. Türkçe, kısa ve teknik olmayan bir dille, kullanıcının tek başına uygulayacağı biçimde yaz:
+   - neyi, nereye yedeklemeli: exe ve SHA-256, `%APPDATA%\MicVST\config.xml`, `Sesler\`, kendi hazır ayarlar (`.micvstpreset` dışa aktarımı), arşiv paketi;
+   - **10 dakikalık sağlık kontrolü** (Windows büyük güncellemesinden, ses sürücüsü, VB-Cable ya da eklenti güncellemesinden sonra ve ayda bir):
+     - log'daki "Ses biçimi" satırı;
+     - durum satırında "kesinti 0";
+     - 30 s WAV 24 kayıt ve kulaklıkla dinleme;
+     - F9 ve bildirim sesi;
+     - Discord'da karşı tarafla kısa deneme;
+     - isterse kaydı ve log.txt'yi bir Claude oturumuna analiz ettirmek için hazır bir cümle;
+   - bir şey bozulursa geri dönüş: yedek config ve önceki exe;
+   - yapılmaması gerekenler: VB-Cable biçimini 24 bit / 48 kHz dışına almak, Windows "ses geliştirmeleri"ni kablo için açmak vb. – yalnızca gerçekten ölçülmüş olanları yaz.
+10. **Arşiv paketi** (R9) ve ağsız derleme kanıtı.
+11. Rapor: `docs/TEST_RAPORU_WIN11_1.2.2.md` (Türkçe):
+    - özet tablo (alan, durum, ortam);
+    - her test kimliği için ölçülen değer, ölçüt ve durum;
+    - bulunan hatalar önem sırasıyla (neden, düzeltme, yeniden test);
+    - ENGELLENEN / ATLANAN testler ve nedenleri;
+    - **"Uzun ömür değerlendirmesi":** hangi koşullarda ne kadar süre doğrulandı; kalan riskler (Windows büyük güncellemeleri, sürücü / eklenti / donanım değişimi) ve her birinde ne yapılacağı. Mutlak garanti dili kullanma;
+    - kullanıcının yapması gerekenler.
+
+    Exe, SHA-256, arşiv zip'i ve kılavuzla birlikte kullanıcıya gönder.
