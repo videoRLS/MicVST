@@ -27,6 +27,7 @@ WASAPI benzeri sanal mikrofon / kablo / kulaklıkla çalıştırır (`tests/engi
 ## Özet
 
 - **Kod:** `kararlilik/oncelik`, son ürün kodu commit'i `ecee2b6` (sonrakiler yalnızca test ve belge). `main`'e dokunulmadı, PR/merge yok.
+- **Windows birim testleri:** son tur `a8ded71` (ürün kodu `ecee2b6` ile aynı): hepsi BAŞARILI, hata 0.
 - **Teslim edilen `MicVST.exe`:** `ecee2b6`'nin Windows CI derlemesi, SHA-256 `9ecabac2cc851245251ac059ecfb06e029816a9b2f5e9e4bcae1cc5a77b100d0` (9 006 080 bayt).
 
 | Alan | Durum | Ortam |
@@ -105,8 +106,8 @@ bir konuşma sinyaline hiçbir şey katmayanlar konmadı.
 | Tampon taşması | kayıp sayılır; yazılan + kayıp = gönderilen |
 | Hatalar | ses yokken, klasör oluşturulamazken, ikinci başlatmada anlaşılır hata |
 | 12 kez başlat/durdur | 12 dosya, hepsi sağlam, adlar farklı |
-| 20 dk kayıt (10× gerçek zaman hızında): WAV 24, FLAC 24, MP3 V0 | kayıp 0, doğrulandı (L; W: {{WUNIT}}) |
-| 4 GB üstü (RF64) | W: 4,25 GB, L: 4,7 GB; geri okundu; ffmpeg 3072 s'yi birebir ve hatasız açtı (L) |
+| 20 dk kayıt (10× gerçek zaman hızında): WAV 24, FLAC 24, MP3 V0 | kayıp 0, doğrulandı (L ve W, `a8ded71`) |
+| 4 GB üstü (RF64) | W: 4,7 GB (disk 126 MB/s), L: 4,7 GB; geri okundu; ffmpeg 3072 s'yi birebir ve hatasız açtı (L) |
 | Ayarların kalıcılığı | config.xml'e yazılıp geri okununca aynı (birim + motor testi) |
 
 Yazıcının hızı (bir çekirdek, W): WAV 24 bit 1608× gerçek zaman (%0,06 çekirdek), FLAC 5: 98×
