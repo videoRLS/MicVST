@@ -116,6 +116,7 @@ $env:ETEST_LOG = "1"   # MicVST's log lines on stdout once: shows whether the pl
 Run-Test "edits"   @("edits")   300
 Remove-Item Env:ETEST_LOG
 Run-Test "devices" @("devices") 180
+Run-Test "startxrun" @("startxrun") 120   # "kesinti": Windows' start-of-stream discontinuity flag is not a dropout, a later one is
 Run-Test "hotplug" @("hotplug") 300
 Run-Test "openfail" @("openfail") 300   # a listed device that cannot be opened: retries, log lines, recovery
 Run-Test "faults"  @("faults")  300

@@ -378,6 +378,12 @@ private:
 
     // Realtime statistics (written by the audio threads)
     std::atomic<bool>     inputRunningFlag { false }, outputRunningFlag { false };
+    // Windows flags the first captured packet after every stream start as a discontinuity (measured:
+    // QuadCast 2 S and VB-Cable, always packet 0). That is not a dropout: the count the device shows at
+    // the first callback after a start is the baseline, only discontinuities after it are shown.
+    std::atomic<juce::AudioIODevice*> inputDeviceForXruns { nullptr };
+    std::atomic<int>      inputXrunBaseline { 0 };
+    std::atomic<bool>     inputXrunBaselinePending { true };
     std::atomic<double>   inputRateNow { 0.0 }, outputRateNow { 0.0 };
     std::atomic<int>      inputBlockNow { 0 }, outputBlockNow { 0 };
     std::atomic<uint64_t> inputBeats { 0 }, outputBeats { 0 };

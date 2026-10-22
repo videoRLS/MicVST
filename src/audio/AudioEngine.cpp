@@ -433,6 +433,8 @@ void AudioEngine::inputAboutToStart (juce::AudioIODevice* device)
     rawDelay.clear();
     rawDelayPos = 0;
     inputChannelsNow.store (ins);
+    inputDeviceForXruns.store (device);
+    inputXrunBaselinePending.store (true);
     monitor.setInputRate (sr);
     // the test recording's buffer (10 s at this rate) - allocated here, never while recording
     testMode.store (0);
@@ -464,6 +466,7 @@ void AudioEngine::inputAboutToStart (juce::AudioIODevice* device)
 void AudioEngine::inputStopped()
 {
     inputRunningFlag.store (false);
+    inputDeviceForXruns.store (nullptr);
     stopProcessing();   // the capture thread has stopped already; let the plug-in thread finish
     graph.releaseResources();
 }
@@ -511,6 +514,12 @@ void AudioEngine::captureInput (const float* const* in, int numIn, int numSample
     rt::configureAudioThread();
     MICVST_REALTIME_SCOPE;
     inputBeats.fetch_add (1, std::memory_order_relaxed);
+    if (inputXrunBaselinePending.load (std::memory_order_relaxed))   // first block after a start: same thread that counts
+    {
+        if (auto* dev = inputDeviceForXruns.load (std::memory_order_relaxed))
+            inputXrunBaseline.store (juce::jmax (0, dev->getXRunCount()), std::memory_order_relaxed);
+        inputXrunBaselinePending.store (false, std::memory_order_release);
+    }
 
     int channels = 0;
     while (in != nullptr && channels < juce::jmin (2, numIn) && in[channels] != nullptr)
@@ -902,7 +911,8 @@ AudioEngine::Diagnostics AudioEngine::getDiagnostics()
     d.invalidBlocks  = invalidBlocks.load();
     d.graphBusyBlocks = graphBusyBlocks.load();
     d.chainSilentBlocks = chainSilentBlocks.load();
-    d.inputDeviceXruns = in != nullptr ? juce::jmax (0, in->getXRunCount()) : 0;
+    d.inputDeviceXruns = (in == nullptr || inputXrunBaselinePending.load (std::memory_order_acquire)) ? 0
+                       : juce::jmax (0, in->getXRunCount() - inputXrunBaseline.load (std::memory_order_relaxed));
     d.watchdogRestarts = watchdogRestarts.load();
     d.bridge = bridge.getStats();
 

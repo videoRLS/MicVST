@@ -28,6 +28,10 @@ project follows [Semantic Versioning](https://semver.org/).
 - Deneme kaydı: the playback on the headphones fades in and out (10 ms); before, it started and
   ended with a cut - a click (measured: one sample jumped by the full amplitude of the voice).
 - The developer signature is no longer shown (main window footer, Ayarlar > Hakkında).
+- "kesinti" in the status line no longer counts Windows' start-of-stream marker: WASAPI flags the first
+  captured packet after every start as a discontinuity (measured on a HyperX QuadCast 2 S and VB-Cable:
+  always packet 0, 4 of 4 starts), so every start showed "kesinti 1" although nothing was lost. Only
+  discontinuities after the first block of each start count now (engine test `startxrun`).
 - İşlem önceliği (process priority) in the window: Normal (default), Normalin Üstünde, Yüksek.
   Applied at once, read back from Windows, saved; the audio threads stay MMCSS in every case.
 - A mono part of the chain (mono microphone, a mono plug-in such as RNNoise) followed by a stereo
