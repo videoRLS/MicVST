@@ -1846,6 +1846,7 @@ namespace
    #include "enginetest/PriorityTest.inc"
    #include "enginetest/EffectsTest.inc"
    #include "enginetest/RecordTest.inc"
+   #include "enginetest/RecordLong.inc"
    #include "enginetest/CueTest.inc"
 }
 #endif
@@ -2121,6 +2122,7 @@ int main (int argc, char** argv)
     else if (mode == "autogain") autoGainTest();
     else if (mode == "effects") { if (argc > 2) fxtest::only = argv[2]; fxtest::run(); }   // built-in effects: alone, edits, all at once, live parameters, restore, mono
     else if (mode == "record") rectest::run();
+    else if (mode == "recordlong") reclong::run (argc > 2 ? std::atof (argv[2]) : 2.0, argc > 3 ? juce::String (argv[3]) : juce::String(), argc > 4 ? juce::String (argv[4]) : juce::String());   // P2 / R3: hours of recording in real time
     else if (mode == "cues") cuetest::run();   // Bildirim sesleri: in sync with Sustur, once per change, never into the cable   // Kayıt: the cable unaffected, the file exact, start/stop, CPU and memory
    #endif
     else if (mode == "long") longRun (argc > 2 ? std::atof (argv[2]) : 10.0, false);
@@ -2861,5 +2863,5 @@ int main (int argc, char** argv)
    #endif
 
     juce::Logger::setCurrentLogger (nullptr);
-    return fxtest::failures + rectest::failures + cuetest::failures + startXrunFailures > 0 ? 1 : 0;
+    return fxtest::failures + rectest::failures + cuetest::failures + startXrunFailures + reclong::failures > 0 ? 1 : 0;
 }

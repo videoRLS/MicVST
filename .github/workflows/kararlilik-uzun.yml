@@ -15,6 +15,10 @@ name: kararlilik-uzun
 #   vst3long - three machines, one per process priority (Normal / Normalin Ustunde / Yuksek): the long
 #              run through Otomatik Kazanc + real VST3 effects (EQ, de-esser, compressor, saturation,
 #              limiter) while another program keeps every CPU busy
+#   reclong  - three machines (WAV 24, FLAC 24, MP3 V0): one recording in real time for 320 min in the
+#              real engine (R3; the WAV passes 4 GB after about 4 h 8 min and turns RF64); then read
+#              back by Python soundfile, ffprobe and ffmpeg (tools/ci-reclong-check.py). 320, not 330,
+#              min: the build (about 10 min) and the read-back must fit in the 6 h job limit.
 # Each job pushes its results to ci-sonuclari/<branch>-uzun-<job>.
 on:
   push:
@@ -187,3 +191,42 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./tools/ci-publish.ps1 -Dir results -Branch "ci-sonuclari/${{ github.ref_name }}-uzun-vst3long-p${{ matrix.priority }}" -Message "MicVST ${{ github.ref_name }} vst3long priority ${{ matrix.priority }}"
+
+  reclong:
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[uzun]') }}
+    runs-on: windows-latest
+    timeout-minutes: 358
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: wav24
+            fmt: "wav:24|48000|2"
+          - name: flac24
+            fmt: "flac:24:5|48000|2"
+          - name: mp3v0
+            fmt: "mp3:v0|48000|2"
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build
+        shell: pwsh
+        run: ./tools/ci-build.ps1 -Source . -Build build -Targets "MicVSTEngineTest" -Out results
+      - name: One recording in real time (R3)
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $m = [Math]::Min(320, [int] $env:MINUTES)
+          ./tools/ci-run-timed.ps1 -Exe build/MicVSTEngineTest_artefacts/Release/MicVSTEngineTest.exe -OutFile results/reclong.txt -TimeoutSeconds ($m * 60 + 900) -Arguments @("recordlong", "$m", "${{ matrix.fmt }}", "$env:RUNNER_TEMP\reclong")
+      - name: Read back with soundfile, ffprobe and ffmpeg
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          if (-not (Get-Command ffprobe -ErrorAction SilentlyContinue)) { choco install ffmpeg -y --no-progress | Out-Null }
+          python -m pip install --quiet soundfile numpy
+          python tools/ci-reclong-check.py results/reclong.txt results/readback.md
+      - name: Publish
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./tools/ci-publish.ps1 -Dir results -Branch "ci-sonuclari/${{ github.ref_name }}-uzun-reclong-${{ matrix.name }}" -Message "MicVST ${{ github.ref_name }} reclong ${{ matrix.name }}"
