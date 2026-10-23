@@ -10,13 +10,6 @@ project follows [Semantic Versioning](https://semver.org/).
   Direct2D. After a full-screen game (GTA 5) the Direct2D content stayed shifted by the title bar -
   a white strip at the bottom / right, the top row cut - which no program-side resize fixed, only
   dragging the edge. UI only.
-- Windows: after a full-screen game changed the screen mode and gave the desktop back (user
-  report: GTA 5), the main and the settings window could show a white, unpainted strip at the
-  bottom / right until the edge was dragged. Now the window is resized by 1 px and back (what
-  dragging did) at once, 0.5 s and 2 s after any change of the screens - resolution, refresh
-  rate, scale, monitors; the screens are also compared 4 times a second, as JUCE reports only some
-  of these - and whenever the native window and its content disagree in size for 0.5 s (never
-  while a mouse button is down, at most once per size pair). Main and settings window. UI only.
 - Bildirim sesleri: fast mute / unmute no longer clicks. The sounds are no longer played with
   Windows' PlaySound (a new sound cut the old one mid-wave: up to -13 dBFS steps at 10 per second);
   MicVST mixes them itself on the default output (waveOut, 48 kHz, 10 ms blocks; a device just

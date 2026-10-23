@@ -93,75 +93,6 @@ private:
     const juce::String userHome { juce::File::getSpecialLocation (juce::File::userHomeDirectory).getFullPathName() };
 };
 
-// After the screen mode changed - a full-screen game set its own resolution / refresh rate and gave
-// the desktop back (user report: GTA 5) - Windows resizes the windows itself, and the window's
-// content could stay behind: a white, unpainted strip at the bottom / right until the user dragged
-// the edge. What dragging did is done here: the window is resized by 1 px and back,
-//   - at once, 0.5 s and 2 s after any change of the screens: resolution, refresh rate, scale,
-//     monitors (JUCE reports only some of these, so the screens are also compared 4 times a
-//     second; the later two catch Windows still moving the windows around), and
-//   - when the native window and its content disagree in size for 0.5 s (whatever caused it),
-//     never while a mouse button is down (the user dragging), and at most once per size pair.
-// UI only; nothing is saved by it (the bounds end where they were).
-struct WindowResync final : private juce::Timer
-{
-    explicit WindowResync (juce::ResizableWindow& w) : window (w) { screens = screensNow(); startTimer (250); }
-    void displaysChanged() { pending = 3; nextAt = juce::Time::getMillisecondCounter(); }   // at the next tick
-
-private:
-    static juce::String screensNow()
-    {
-        juce::String s;
-        for (auto& d : juce::Desktop::getInstance().getDisplays().displays)
-            s << d.physicalBounds.toString() << " " << d.logicalBounds.toString() << " " << d.userBounds.toString() << " x" << d.scale << " "
-              << (d.verticalFrequencyHz.has_value() ? *d.verticalFrequencyHz : 0.0) << " Hz;";
-        return s;
-    }
-
-    bool usable() const { return window.isVisible() && ! window.isMinimised() && ! window.isFullScreen() && window.getPeer() != nullptr; }
-
-    void nudge()
-    {
-        const auto b = window.getBounds();
-        window.setBounds (b.withWidth (b.getWidth() + 1));
-        window.setBounds (b);
-        window.repaint();
-    }
-
-    void timerCallback() override
-    {
-        const auto now = juce::Time::getMillisecondCounter();
-        if (const auto sc = screensNow(); sc != screens) { screens = sc; displaysChanged(); }
-        if (! usable() || juce::ModifierKeys::currentModifiers.isAnyMouseButtonDown()) { mismatchSeen = 0; return; }
-
-        if (pending > 0 && (int) (now - nextAt) >= 0)
-        {
-            nextAt = now + (pending == 3 ? 500u : 1500u);   // then 0.5 s and 2 s after the change
-            --pending;
-            nudge();
-            return;
-        }
-        // the native window (peer, its own coordinates) against the window's size
-        const auto peer = window.getPeer()->getBounds();
-        const double gs = juce::Desktop::getInstance().getGlobalScaleFactor();
-        const int w = juce::roundToInt (window.getWidth() * gs), h = juce::roundToInt (window.getHeight() * gs);
-        const bool differs = std::abs (peer.getWidth() - w) > 1 || std::abs (peer.getHeight() - h) > 1;
-        const juce::String pair = peer.toString() + " / " + juce::String (w) + "x" + juce::String (h);
-        if (! differs) { mismatchSeen = 0; return; }
-        if (++mismatchSeen >= 2 && pair != lastTried)
-        {
-            lastTried = pair;   // a size pair that a nudge does not settle is not tried again
-            mismatchSeen = 0;
-            nudge();
-        }
-    }
-
-    juce::ResizableWindow& window;
-    juce::String screens, lastTried;
-    int pending = 0, mismatchSeen = 0;
-    juce::uint32 nextAt = 0;
-};
-
 // MicVST's own windows draw with Windows' classic renderer (GDI, JUCE's "Software Renderer")
 // instead of Direct2D. User report (GTA 5, full screen): back on the desktop the Direct2D content
 // sat shifted by the title bar - a white strip at the bottom and right, the top row cut - and no
@@ -494,7 +425,6 @@ private:
         std::function<void()> onHide;
         std::function<void()> onThemeApplied;   // the app: LookAndFeel refresh + save
         void closeButtonPressed() override { setVisible (false); if (onHide) onHide(); }
-        void parentSizeChanged() override { DocumentWindow::parentSizeChanged(); resync.displaysChanged(); }   // the screen mode changed
         void visibilityChanged() override
         {
             DocumentWindow::visibilityChanged();
@@ -521,9 +451,7 @@ private:
             SettingsWindow() : juce::DocumentWindow (SettingsComponent::windowTitle(), micvst::theme::background,
                                                      juce::DocumentWindow::closeButton) {}
             void closeButtonPressed() override { setVisible (false); }
-            void parentSizeChanged() override { DocumentWindow::parentSizeChanged(); resync.displaysChanged(); }
             void visibilityChanged() override { DocumentWindow::visibilityChanged(); if (isVisible()) useClassicRendering (*this); }
-            WindowResync resync { *this };
         };
         std::unique_ptr<SettingsWindow> settingsWindow;
 
@@ -608,7 +536,6 @@ private:
         GlobalHotkeys* hotkeys = nullptr;
         HotkeySetter setHotkey;
         MainComponent* content = nullptr;   // gehört dem Fenster (setContentOwned), nur Zugriffszeiger
-        WindowResync resync { *this };
     };
 
     std::unique_ptr<MicVSTLogger> logger;
