@@ -1,0 +1,126 @@
+
+**********************************************************
+MicVST günlüğü - başlangıç: 23.10.2026 16:21:34
+[16:21:34] MicVST 1.2.2 (JUCE v9.0.4, internet erişimi yok)
+[16:21:34] İşlem: güç kısıtlaması kapalı tamam, zamanlayıcı kısıtlaması kapalı tamam
+[16:21:34] Eklenti önbelleği yok ya da bozuk -> tam tarama
+[16:21:35] Sanal kablo bulunamadı -> çıkış 'yok'
+[16:21:35] Mikrofon bulunamadı -> giriş 'yok'
+[16:21:35] İşlem önceliği: Normal (uygulandı, Windows'tan okundu)
+[16:21:35] Kurulum: giriş (yok) | çıkış (yok)
+[16:21:35] Ses biçimi: MicVST akışı ve iç işlem 32 bit kayan nokta; Windows aygıt biçimi: giriş (yok) | çıkış (yok)
+[16:21:35] Tarama (yeni): C:\Program Files\Common Files\VST3\Airwindows Consolidated.vst3
+[16:21:35] Tarama (yeni): C:\Program Files\Common Files\VST3\DC1A3.vst3
+[16:21:35] Tarama: 2 dosya taranacak
+[16:21:35] Ses: durdu (cihaz bağlı değil mi?)
+
+**********************************************************
+MicVST günlüğü - başlangıç: 23.10.2026 16:22:16
+[16:22:16] MicVST 1.2.2 (JUCE v9.0.4, internet erişimi yok)
+[16:22:16] İşlem: güç kısıtlaması kapalı tamam, zamanlayıcı kısıtlaması kapalı tamam
+[16:22:16] İşlem önceliği: Normal (uygulandı, Windows'tan okundu)
+[16:22:16] Kurulum: giriş (yok) | çıkış (yok)
+[16:22:16] Ses biçimi: MicVST akışı ve iç işlem 32 bit kayan nokta; Windows aygıt biçimi: giriş (yok) | çıkış (yok)
+[16:22:16] Tarama: 0 dosya taranacak
+[16:22:16] Ses: durdu (cihaz bağlı değil mi?)
+
+**********************************************************
+MicVST günlüğü - başlangıç: 23.10.2026 16:22:55
+[16:22:55] MicVST 1.2.2 (JUCE v9.0.4, internet erişimi yok)
+[16:22:55] İşlem: güç kısıtlaması kapalı tamam, zamanlayıcı kısıtlaması kapalı tamam
+[16:22:56] İşlem önceliği: Normal (uygulandı, Windows'tan okundu)
+[16:22:56] Kurulum: giriş (yok) | çıkış (yok)
+[16:22:56] Ses biçimi: MicVST akışı ve iç işlem 32 bit kayan nokta; Windows aygıt biçimi: giriş (yok) | çıkış (yok)
+[16:22:56] Tarama: 0 dosya taranacak
+[16:22:56] Ses: durdu (cihaz bağlı değil mi?)
+
+**********************************************************
+MicVST günlüğü - başlangıç: 23.10.2026 16:23:35
+[16:23:35] MicVST 1.2.2 (JUCE v9.0.4, internet erişimi yok)
+[16:23:35] İşlem: güç kısıtlaması kapalı tamam, zamanlayıcı kısıtlaması kapalı tamam
+[16:23:35] İşlem önceliği: Normal (uygulandı, Windows'tan okundu)
+[16:23:35] Kurulum: giriş (yok) | çıkış (yok)
+[16:23:35] Ses biçimi: MicVST akışı ve iç işlem 32 bit kayan nokta; Windows aygıt biçimi: giriş (yok) | çıkış (yok)
+[16:23:36] Tarama: 0 dosya taranacak
+[16:23:36] Ses: durdu (cihaz bağlı değil mi?)
+
+**********************************************************
+MicVST günlüğü - başlangıç: 23.10.2026 16:24:15
+[16:24:15] MicVST 1.2.2 (JUCE v9.0.4, internet erişimi yok)
+[16:24:15] İşlem: güç kısıtlaması kapalı tamam, zamanlayıcı kısıtlaması kapalı tamam
+[16:24:15] Eklenti önbelleği yok ya da bozuk -> tam tarama
+[16:24:15] İşlem önceliği: Normal (uygulandı, Windows'tan okundu)
+[16:24:15] Kurulum: giriş (yok) | çıkış (yok)
+[16:24:15] Ses biçimi: MicVST akışı ve iç işlem 32 bit kayan nokta; Windows aygıt biçimi: giriş (yok) | çıkış (yok)
+[16:24:15] Tarama (yeni): C:\Program Files\Common Files\VST3\Airwindows Consolidated.vst3
+[16:24:15] Tarama (yeni): C:\Program Files\Common Files\VST3\DC1A3.vst3
+[16:24:15] Tarama: 2 dosya taranacak
+[16:24:15] Ses: durdu (cihaz bağlı değil mi?)
+
+**********************************************************
+MicVST günlüğü - başlangıç: 23.10.2026 16:24:54
+[16:24:54] MicVST 1.2.2 (JUCE v9.0.4, internet erişimi yok)
+[16:24:54] İşlem: güç kısıtlaması kapalı tamam, zamanlayıcı kısıtlaması kapalı tamam
+[16:24:55] İşlem önceliği: Normal (uygulandı, Windows'tan okundu)
+[16:24:55] Kurulum: giriş (yok) [Cihaz bulunamadı: Olmayan Mikrofon] | çıkış (yok) [Cihaz bulunamadı: CABLE Input (VB-Audio Virtual Cable)]
+[16:24:55] Ses biçimi: MicVST akışı ve iç işlem 32 bit kayan nokta; Windows aygıt biçimi: giriş (yok) | çıkış (yok)
+[16:24:55] Zincirin geri yüklenmesi eklenti taramasını bekliyor
+[16:24:55] Tarama: 0 dosya taranacak
+[16:24:55] Eklenti bulunamadı: Olmayan - C:\Program Files\Common Files\VST3\Olmayan.vst3
+[16:24:55] Seçili cihaz bağlı değil, takılınca yeniden açılacak: Olmayan Mikrofon / CABLE Input (VB-Audio Virtual Cable)
+[16:24:55] Ses: durdu (cihaz bağlı değil mi?)
+
+**********************************************************
+MicVST günlüğü - başlangıç: 23.10.2026 16:25:29
+[16:25:29] MicVST 1.2.2 (JUCE v9.0.4, internet erişimi yok)
+[16:25:29] İşlem: güç kısıtlaması kapalı tamam, zamanlayıcı kısıtlaması kapalı tamam
+[16:25:30] İşlem önceliği: Normal (uygulandı, Windows'tan okundu)
+[16:25:30] Kurulum: giriş (yok) [Cihaz bulunamadı: Olmayan Mikrofon] | çıkış (yok) [Cihaz bulunamadı: CABLE Input (VB-Audio Virtual Cable)]
+[16:25:30] Ses biçimi: MicVST akışı ve iç işlem 32 bit kayan nokta; Windows aygıt biçimi: giriş (yok) | çıkış (yok)
+[16:25:30] Tarama: 0 dosya taranacak
+[16:25:30] Seçili cihaz bağlı değil, takılınca yeniden açılacak: Olmayan Mikrofon / CABLE Input (VB-Audio Virtual Cable)
+[16:25:30] Ses: durdu (cihaz bağlı değil mi?)
+
+**********************************************************
+MicVST günlüğü - başlangıç: 23.10.2026 16:25:41
+[16:25:41] MicVST 1.2.2 (JUCE v9.0.4, internet erişimi yok)
+[16:25:41] İşlem: güç kısıtlaması kapalı tamam, zamanlayıcı kısıtlaması kapalı tamam
+[16:25:41] İşlem önceliği: Normal (uygulandı, Windows'tan okundu)
+[16:25:41] Kurulum: giriş (yok) [Cihaz bulunamadı: Olmayan Mikrofon] | çıkış (yok) [Cihaz bulunamadı: CABLE Input (VB-Audio Virtual Cable)]
+[16:25:41] Ses biçimi: MicVST akışı ve iç işlem 32 bit kayan nokta; Windows aygıt biçimi: giriş (yok) | çıkış (yok)
+[16:25:41] Tarama: 0 dosya taranacak
+[16:25:41] Seçili cihaz bağlı değil, takılınca yeniden açılacak: Olmayan Mikrofon / CABLE Input (VB-Audio Virtual Cable)
+[16:25:41] Ses: durdu (cihaz bağlı değil mi?)
+
+**********************************************************
+MicVST günlüğü - başlangıç: 23.10.2026 16:25:52
+[16:25:52] MicVST 1.2.2 (JUCE v9.0.4, internet erişimi yok)
+[16:25:52] İşlem: güç kısıtlaması kapalı tamam, zamanlayıcı kısıtlaması kapalı tamam
+[16:25:52] İşlem önceliği: Normalin Üstünde (uygulandı, Windows'tan okundu)
+[16:25:52] Kurulum: giriş (yok) [Cihaz bulunamadı: Olmayan Mikrofon] | çıkış (yok) [Cihaz bulunamadı: CABLE Input (VB-Audio Virtual Cable)]
+[16:25:52] Ses biçimi: MicVST akışı ve iç işlem 32 bit kayan nokta; Windows aygıt biçimi: giriş (yok) | çıkış (yok)
+[16:25:52] Tarama: 0 dosya taranacak
+[16:25:52] Seçili cihaz bağlı değil, takılınca yeniden açılacak: Olmayan Mikrofon / CABLE Input (VB-Audio Virtual Cable)
+[16:25:52] Ses: durdu (cihaz bağlı değil mi?)
+
+**********************************************************
+MicVST günlüğü - başlangıç: 23.10.2026 16:26:03
+[16:26:03] MicVST 1.2.2 (JUCE v9.0.4, internet erişimi yok)
+[16:26:03] İşlem: güç kısıtlaması kapalı tamam, zamanlayıcı kısıtlaması kapalı tamam
+[16:26:03] İşlem önceliği: Yüksek (uygulandı, Windows'tan okundu)
+[16:26:03] Kurulum: giriş (yok) [Cihaz bulunamadı: Olmayan Mikrofon] | çıkış (yok) [Cihaz bulunamadı: CABLE Input (VB-Audio Virtual Cable)]
+[16:26:03] Ses biçimi: MicVST akışı ve iç işlem 32 bit kayan nokta; Windows aygıt biçimi: giriş (yok) | çıkış (yok)
+[16:26:03] Tarama: 0 dosya taranacak
+[16:26:03] Seçili cihaz bağlı değil, takılınca yeniden açılacak: Olmayan Mikrofon / CABLE Input (VB-Audio Virtual Cable)
+[16:26:03] Ses: durdu (cihaz bağlı değil mi?)
+
+**********************************************************
+MicVST günlüğü - başlangıç: 23.10.2026 16:26:14
+[16:26:14] MicVST 1.2.2 (JUCE v9.0.4, internet erişimi yok)
+[16:26:14] İşlem: güç kısıtlaması kapalı tamam, zamanlayıcı kısıtlaması kapalı tamam
+[16:26:14] İşlem önceliği: Yüksek (uygulandı, Windows'tan okundu)
+[16:26:14] Kurulum: giriş (yok) [Cihaz bulunamadı: Olmayan Mikrofon] | çıkış (yok) [Cihaz bulunamadı: CABLE Input (VB-Audio Virtual Cable)]
+[16:26:14] Ses biçimi: MicVST akışı ve iç işlem 32 bit kayan nokta; Windows aygıt biçimi: giriş (yok) | çıkış (yok)
+[16:26:14] Tarama: 0 dosya taranacak
+[16:26:14] Seçili cihaz bağlı değil, takılınca yeniden açılacak: Olmayan Mikrofon / CABLE Input (VB-Audio Virtual Cable)
+[16:26:14] Ses: durdu (cihaz bağlı değil mi?)

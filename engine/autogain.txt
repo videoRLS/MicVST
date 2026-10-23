@@ -1,0 +1,82 @@
+# MicVST engine test (1.2.2) - autogain
+## Otomatik KazanÃ§: normal speech at different microphone levels (13 s, output analysed from 6.8 s)
+| Chain | Input peaks | Output peaks | Aim | Gain shown in the row | Gain measured (out - in) | L = R | Clicks |
+|---|---:|---:|---:|---:|---:|---:|---:|
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.1 ppm, shown latency 55.3 ms, cpu 0 %
+| empty chain (reference) | -20.00 dBFS | -20.00 dBFS | -20.0 dBFS | - | -0.00 dB | yes | 0 |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.0 ppm, shown latency 58.4 ms, cpu 1 %
+| Otomatik KazanÃ§, voice at -26 dBFS (needs +6 dB) | -26.00 dBFS | -20.00 dBFS | -20.0 dBFS | 6.00 dB | 6.00 dB | yes | 0 |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.9 ppm, shown latency 58.4 ms, cpu 1 %
+| Otomatik KazanÃ§, voice at -23 dBFS (needs +3 dB) | -23.00 dBFS | -19.38 dBFS | -20.0 dBFS | 3.62 dB | 3.62 dB | yes | 0 |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.5 ppm, shown latency 58.3 ms, cpu 1 %
+| Otomatik KazanÃ§, voice already at -20 dBFS | -20.00 dBFS | -19.38 dBFS | -20.0 dBFS | 0.62 dB | 0.62 dB | yes | 0 |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.1 ppm, shown latency 58.4 ms, cpu 1 %
+| Otomatik KazanÃ§, very quiet voice -30 dBFS (boost stops at +6 dB: expected -24) | -30.00 dBFS | -24.00 dBFS | -24.0 dBFS | 6.00 dB | 6.00 dB | yes | 0 |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.4 ppm, shown latency 58.4 ms, cpu 1 %
+| Otomatik KazanÃ§, voice at -15 dBFS (above the aim: no reduction, stays -15) | -15.00 dBFS | -15.00 dBFS | -15.0 dBFS | 0.00 dB | -0.00 dB | yes | 0 |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.1 ppm, shown latency 58.4 ms, cpu 1 %
+| Otomatik KazanÃ§, hot microphone -2 dBFS (gain stays 0 dB, the ceiling holds -10) | -2.00 dBFS | -10.30 dBFS | -10.0 dBFS | -0.34 dB | -8.30 dB | yes | 0 |
+
+## Otomatik KazanÃ§: realistic synthetic speech (SpeechSynth, 45 s, output analysed from 15 s; typical = level of the loudest 20 % of the voiced 10 ms windows)
+Expected: the same input through AutoGainStage alone (no engine; the aim -20 dBFS within the gain range 0 ... +6 dB). The typical-level measure is not exactly scale-invariant with room noise (which windows count as voiced depends on the loudest one), so it is compared with that reference, not with input + gain.
+| Input typical (set / measured) | Output typical | Expected (Otomatik KazanÃ§ alone) | Difference | Loudest output (alone) | Gain shown at the end |
+|---:|---:|---:|---:|---:|---:|
+| -30.0 dBFS / -30.11 dBFS | -24.56 dBFS | -25.04 dBFS | 0.48 dB | -10.78 dBFS (-10.58 dBFS) | 6.00 dB |
+| -26.0 dBFS / -25.90 dBFS | -21.04 dBFS | -21.00 dBFS | -0.04 dB | -10.39 dBFS (-10.38 dBFS) | 6.00 dB |
+| -23.0 dBFS / -22.90 dBFS | -20.36 dBFS | -20.46 dBFS | 0.10 dB | -10.45 dBFS (-10.38 dBFS) | 3.65 dB |
+| -20.0 dBFS / -19.89 dBFS | -19.58 dBFS | -19.61 dBFS | 0.02 dB | -10.37 dBFS (-10.37 dBFS) | 0.65 dB |
+| -16.0 dBFS / -15.89 dBFS | -16.48 dBFS | -16.50 dBFS | 0.02 dB | -10.23 dBFS (-10.27 dBFS) | -0.00 dB |
+
+## Otomatik KazanÃ§: shouting and back (voice -24 dBFS, from 14 s on 10 dB louder at -14 dBFS, from 24.5 s on -24 dBFS again)
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.2 ppm, shown latency 58.4 ms, cpu 1 %
+output peaks: normal phrase before -19.38 dBFS (aim -20.0 dBFS); first 0.5 s of shouting -10.51 dBFS; last shouting phrase -13.55 dBFS (aim -15.0 dBFS)
+normal phrases after the shouting: -22.96 dBFS / -19.46 dBFS / -19.38 dBFS; clicks 0
+
+## Otomatik KazanÃ§: long silence and speaking again (voice -20 dBFS until 9.6 s, silence, from 21 s on 3 dB louder; white noise -70 dBFS RMS all the time)
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.5 ppm, shown latency 58.3 ms, cpu 1 %
+gain shown: 9.0 s (speaking) 0.6250 dB, 10.5 s (silence) 0.6250 dB, 20.5 s (silence) 0.6250 dB, 21.5 s (speaking again) 0.6250 dB, 33.5 s 0.0004 dB
+noise in the output during the silence (12..20 s): -69.60 dBFS RMS = input -70 dBFS + kept gain 0.62 dB (no gate); last phrase -16.97 dBFS (aim -20.0 dBFS)
+
+## Otomatik KazanÃ§: a full-scale phrase right after quiet speech (voice -25 dBFS, from 14 s on 0 dBFS)
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.2 ppm, shown latency 58.3 ms, cpu 1 %
+gain before 5.62 dB; output peak of the 0 dBFS phrase -10.302 dBFS (limit -10.0 dBFS)
+
+## Otomatik KazanÃ§: position in the chain is free
+added to a chain Kazanc, other: Kazanc, other, Otomatik Kazanc
+moved to the top: Otomatik Kazanc, Kazanc, other
+moved behind the Kazanc: Kazanc, Otomatik Kazanc, other
+another element moved in front: other, Kazanc, Otomatik Kazanc
+moved to the end again: other, Otomatik Kazanc, Kazanc
+second Otomatik KazanÃ§ refused: yes
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.4 ppm, shown latency 59.0 ms, cpu 1 %
+clicks while audio ran through 4 moves: 0
+| Chain | Input peaks | Output peaks | Aim | Gain shown in the row | Gain measured (out - input of the auto gain) | L = R | Clicks |
+|---|---:|---:|---:|---:|---:|---:|---:|
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.6 ppm, shown latency 58.4 ms, cpu 1 %
+| KazanÃ§ +3 -> Otomatik KazanÃ§ (auto gain behind the manual gain) | -20.00 dBFS | -17.00 dBFS | -20.0 dBFS | 0.00 dB | -0.00 dB | yes | 0 |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -5.0 ppm, shown latency 58.4 ms, cpu 1 %
+| Otomatik KazanÃ§ -> KazanÃ§ +6 (manual gain after it) | -20.00 dBFS | -13.38 dBFS | -14.0 dBFS | 0.62 dB | 6.62 dB | yes | 0 |
+
+## Otomatik KazanÃ§: latency (the limiter's 3 ms look-ahead)
+chain latency: empty 0 samples, with Otomatik Kazanç 144 samples (+3.00 ms, expected +3.00), switched off 144 samples (unchanged); the element reports 144 samples (expected 144 at 48 kHz)
+
+## Otomatik KazanÃ§ off: the manual KazanÃ§ is unchanged (997 Hz, -20 dBFS in)
+| Chain | Gain L / R | Expected | THD+N L / R | Clicks | Gaps |
+|---|---:|---:|---:|---:|---:|
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.6 ppm, shown latency 55.4 ms, cpu 0 %
+| KazanÃ§ +6 (reference) | 6.000 dB / 6.000 dB | 6.000 dB | -103.7 dB / -103.7 dB | 0 | 1 |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.0 ppm, shown latency 58.4 ms, cpu 0 %
+| KazanÃ§ +6 -> Otomatik KazanÃ§ (off) | 6.000 dB / 6.000 dB | 6.000 dB | -108.5 dB / -108.5 dB | 0 | 1 |
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.8 ppm, shown latency 58.4 ms, cpu 0 %
+| Otomatik KazanÃ§ (off) alone | -0.000 dB / -0.000 dB | 0.000 dB | -103.5 dB / -103.5 dB | 0 | 1 |
+
+## Otomatik KazanÃ§: saved and restored (captureState -> config.xml -> applyState), position and on/off
+saved Kazanc, Otomatik Kazanc (off) -> restored: Kazanc, Otomatik Kazanc; Otomatik Kazanç off; Kazanç 6.0 dB
+saved Kazanc, Otomatik Kazanc (on) -> restored: Kazanc, Otomatik Kazanc; Otomatik Kazanç on; Kazanç 6.0 dB
+
+## Otomatik KazanÃ§: switched off and on during speech (voice -20 dBFS, 4 x off 2 s / on 2 s)
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.2 ppm, shown latency 58.3 ms, cpu 1 %
+clicks 0; gain shown 2 s after switching off: 0.000000 dB
+
+loudest output sample in the runs where Otomatik KazanÃ§ is the last gain stage: -10.229 dBFS (must stay at or below -10.0 dBFS; the bridge's resampler after the chain may add a little) -> OK (at most 0.1 dB over)
+-- exit code 0, 511.2 s, peak working set 99 MB

@@ -1,0 +1,10 @@
+
+AMServiceEnabled              : True
+AntivirusEnabled              : True
+RealTimeProtectionEnabled     : False
+AntivirusSignatureVersion     : 1.461.163.0
+AntivirusSignatureLastUpdated : 10/23/2026 4:34:38 AM
+
+scan of D:\a\MicVST\MicVST\build\MicVST_artefacts\Release\MicVST.exe finished in 0.1 s
+detections since the scan: 0
+

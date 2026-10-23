@@ -1,0 +1,13 @@
+RegSetValue HKLM\System\CurrentControlSet\Services\bam\State\UserSettings\S-1-5-21-3776380004-1005456608-3524014338-500\\Device\HarddiskVolume4\a\MicVST\MicVST\build\MicVST_artefacts\Release\MicVST.exe
+SetDispositionInformationEx %USERPROFILE%\AppData\Local\Temp\micvst_scan.xml
+SetRenameInformationFile %USERPROFILE%\AppData\Local\Temp\micvst_scan_temp42896fb.xml
+SetRenameInformationFile %USERPROFILE%\AppData\Local\Temp\micvst_scan_temp961e3ffe.xml
+SetRenameInformationFile %USERPROFILE%\AppData\Roaming\MicVST\config_tempadd25120.xml
+SetRenameInformationFile %USERPROFILE%\AppData\Roaming\MicVST\plugin_cache_temp497556f.xml
+WriteFile %USERPROFILE%\AppData\Local\Temp\micvst_scan_temp42896fb.xml
+WriteFile %USERPROFILE%\AppData\Local\Temp\micvst_scan_temp961e3ffe.xml
+WriteFile %USERPROFILE%\AppData\Roaming\MicVST\config_tempadd25120.xml
+WriteFile %USERPROFILE%\AppData\Roaming\MicVST\log.txt
+WriteFile %USERPROFILE%\AppData\Roaming\MicVST\plugin_cache_temp497556f.xml
+WriteFile C:\$LogFile
+WriteFile C:\$Mft

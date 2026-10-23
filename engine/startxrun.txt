@@ -1,0 +1,9 @@
+# MicVST engine test (1.2.2) - startxrun
+| Step | mic xruns shown | expected | |
+|---|---:|---:|---|
+| 2 s after the start (device flagged its first packet) | 0 | 0 | OK |
+| after one discontinuity mid-stream | 1 | 1 | OK |
+| 2 s after a device restart | 0 | 0 | OK |
+  underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.1 ppm, shown latency 96.9 ms, cpu 0 %
+startxrun: PASS
+-- exit code 0, 4.8 s, peak working set 24 MB

@@ -1,0 +1,2 @@
+K22: exit code 0, 17.6 min
+all passed

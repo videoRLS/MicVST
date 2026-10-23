@@ -1,0 +1,12 @@
+
+RNNoise 1.10 (werman, GPL): rnnoise.vst3
+Fire 2.0.0 (multiband saturation, AGPL): Fire.vst3
+TDR VOS SlickEQ 1.3.9 (free edition): TDR VOS SlickEQ.vst3
+TDR VOS SlickEQ 1.3.9 (free edition): TDR VOS SlickEQ.vst3
+ZL Equalizer 2 1.4.1 (dynamic EQ, AGPL): ZL Equalizer 2.vst3
+ZL Compressor 0.6.1 (AGPL): ZL Compressor.vst3
+Klanghelm DC1A3 (in the archive): no .vst3 found
+DC1A3: installer DC1A3-installer.exe
+Klanghelm DC1A3: DC1A3.vst3 (installer /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-, exit 0)
+Airwindows Consolidated: Airwindows Consolidated.vst3
+suite folder: 7 bundles: Airwindows Consolidated.vst3, Fire.vst3, rnnoise.vst3, ZL Compressor.vst3, ZL Equalizer 2.vst3, DC1A3.vst3, TDR VOS SlickEQ.vst3

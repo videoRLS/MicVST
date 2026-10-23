@@ -1,0 +1,10 @@
+# MicVST engine test (1.2.2) - latency
+## Latency: measured (impulse, virtual device timeline) vs. shown by MicVST
+| Buffer | Measured | Shown | Shown - measured |
+|---:|---:|---:|---:|
+| 128 | 21.4 ms | 24.5 ms | 3.1 ms |
+| 256 | 29.9 ms | 36.4 ms | 6.5 ms |
+| 480 | 44.7 ms | 55.4 ms | 10.6 ms |
+| 1024 | 81.1 ms | 103.0 ms | 21.9 ms |
+| 2048 | 149.3 ms | 192.7 ms | 43.3 ms |
+-- exit code 0, 56.1 s, peak working set 27 MB

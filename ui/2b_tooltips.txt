@@ -1,0 +1,64 @@
+---
+Mikrofonunuzu buradan seçin.
+---
+Buradan "CABLE Input" seçin; Discord, OBS gibi programlarda mikrofon olarak "CABLE Output" seçin.
+---
+Ses bloklarının boyutu. Küçük değer: daha az gecikme ama işlemciye daha çok yük. "Otomatik" cihazın kendi değerini kullanır.
+---
+Mikrofonla kablo arasında yedekte tutulan ses. Ağır oyun veya video işleme gibi anlık yüklerde çıtırtıyı önler. "Otomatik" 10 ms ile başlar, ses kesilirse kendiliğinden artar. Büyük değer: daha sağlam, biraz daha fazla gecikme.
+---
+"Kendini dinle" ve "Deneme kaydı" sesi buradan çalar (kulaklık önerilir). Cihaz yalnızca bunlar açıkken kullanılır; diğer programlar onu kullanmaya devam eder. Sağdaki kaydırıcı dinleme sesinin seviyesidir (kabloyu etkilemez).
+---
+Çıkışta ses kesildi: 0
+Zincir yetişemedi, ses atlandı: 0
+Mikrofon sürücüsünde kayıp: 0
+Eklenti işleme takıldı: 0
+Eklentiden geçersiz ses (susturuldu): 0
+Gecikme düzeltmesi: 0
+Cihaz yeniden açıldı: 0
+Geç kalan eklenti bloğu (kesinti olmadan telafi edildi): 0
+Saat farkı mikrofon/kablo: -2 ppm
+---
+Çalışıyor  |  mikrofon 48000 Hz / 480  |  kablo 48000 Hz / 480  |  gecikme 179,1 ms
+İşlemci %2 (tepe %9)  |  güvenlik payı 10 ms (otomatik)  |  kesinti 0
+
+Çıkışta ses kesildi: 0
+Zincir yetişemedi, ses atlandı: 0
+Mikrofon sürücüsünde kayıp: 0
+Eklenti işleme takıldı: 0
+Eklentiden geçersiz ses (susturuldu): 0
+Gecikme düzeltmesi: 0
+Cihaz yeniden açıldı: 0
+Geç kalan eklenti bloğu (kesinti olmadan telafi edildi): 0
+Saat farkı mikrofon/kablo: -2 ppm
+---
+Sesi tıksız kapatır (15 ms yumuşak geçiş); tekrar tıklayınca açılır.
+---
+Hazır ayarlar: tüm zincir tek tıkla değişir. "Erkek Sesi Ayarları" ve "Kadın Sesi Ayarları" yalnızca dahili efektleri kullanır (herkeste çalışır); "Kendi Ayarlarım" sizin kaydettiğiniz zincirlerdir (VST3 eklentileri ve ayarlarıyla birlikte). Aynı elemanlardan oluşan ayarlar arasında geçişte ayarlar yumuşakça kayar; farklı zincirde kısa bir geçiş (birkaç ms) olur. * : zincir yüklendikten sonra değiştirildi.
+---
+Zinciri kendi ayarınız olarak kaydedin; yeniden adlandırın, silin ya da önceki zincire dönün
+---
+Eklentiyi geçici olarak devre dışı bırak (ses onu atlar)
+---
+Eklentiyi zincirden kaldır
+---
+Otomatik Kazanç: sesinizi canlı analiz eder; normal konuşmada tepe seviyesini yaklaşık -20 dBFS'ye, bağırırken yaklaşık -15 dBFS'ye getirir. Kazanç sesinize göre, gerektiği kadar 0 ile +6 dB arasında yavaşça değişir (sesi hiç kısmaz): hecelerin ve cümlelerin doğal iniş çıkışlarını büyük ölçüde korur, sesiniz kalıcı olarak değişince birkaç saniyede takip eder; kısa tıklar, "p" patlamaları ve darbeler kazancı düşürmez. Hiçbir tepe -10 dBFS'yi geçmez (3 ms ileri bakışlı yumuşak sınırlayıcı). Sessizlikte son kazancı aynen korur; noise gate yoktur, ses hiç kesilmez. Zincirdeki yeri sürükleyerek değiştirilebilir. Kapatınca kazanç yumuşakça 0 dB'ye döner.
+Gösterge: uygulanan kazanç (giriş tepe -> çıkış tepe, dBFS). Beyaz: konuşma algılanıyor, gri: kazanç korunuyor ya da kapalı.
+---
+Sesi tıksız susturur (15 ms yumuşak geçiş); tekrar tıklayınca ses geri gelir.
+---
+Şu an taranan eklentiyi atla
+---
+Önce / sonra: kabloya bir anlığına zincirsiz, ham mikrofon sesi gider (aynı gecikmeyle). Tekrar tıklayınca işlenmiş sese döner.
+---
+İşlenmiş sesi "Kulaklık" çıkışından anlık dinlersiniz. Hoparlörle değil kulaklıkla kullanın: hoparlörden mikrofona dönen ses yankı ve ıslık yapar.
+---
+10 saniye konuşun; MicVST kaydeder ve işlenmiş sesinizi hemen "Kulaklık" çıkışından çalar. Kablo bu sırada canlı sesi göndermeye devam eder. Tıklayınca durur.
+---
+Kabloya giden sesi (karşı tarafın duyduğunu) dosyaya kaydeder. Tıklayınca başlar, tekrar tıklayınca durur.
+WAV 24 bit PCM, 48 kHz, stereo
+C:\Users\runneradmin\Documents\MicVST Kayıtları
+---
+Hızlı kurulum rehberi
+---
+Ses, kulaklık, kısayollar, dil, tema, VST3 klasörleri

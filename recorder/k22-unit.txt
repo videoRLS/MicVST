@@ -1,0 +1,24 @@
+Random seed: 0x6ff5e0e
+-----------------------------------------------------------------
+Starting tests in: Recorder K22 / settings the panel does not offer fall back to safe values...
+Completed tests in Recorder K22 / settings the panel does not offer fall back to safe values
+-----------------------------------------------------------------
+Starting tests in: Recorder K22 / 24 / 32 bit: rounded to nearest, ties to even - no bias (K2: |mean| < 0.01 LSB)...
+wav:24|48000|2: mean error -0.0001 LSB, max 0.500 LSB, exact ties 90312 of 288000, samples not rounded to nearest/even 0
+flac:24:5|48000|2: mean error -0.0001 LSB, max 0.500 LSB, exact ties 90312 of 288000, samples not rounded to nearest/even 0
+wav:24|44100|2: mean error -0.0008 LSB, max 0.500 LSB, exact ties 82454 of 264600, samples not rounded to nearest/even 0
+Completed tests in Recorder K22 / 24 / 32 bit: rounded to nearest, ties to even - no bias (K2: |mean| < 0.01 LSB)
+-----------------------------------------------------------------
+Starting tests in: Recorder K22 / processing rate 44100 Hz: every format, rate and channel count...
+Completed tests in Recorder K22 / processing rate 44100 Hz: every format, rate and channel count
+-----------------------------------------------------------------
+Starting tests in: Recorder K22 / processing rate 48000 Hz: every format, rate and channel count...
+Completed tests in Recorder K22 / processing rate 48000 Hz: every format, rate and channel count
+-----------------------------------------------------------------
+Starting tests in: Recorder K22 / processing rate 96000 Hz: every format, rate and channel count...
+Completed tests in Recorder K22 / processing rate 96000 Hz: every format, rate and channel count
+-----------------------------------------------------------------
+Starting tests in: Recorder K22 / processing rate 192000 Hz: every format, rate and channel count...
+K22: 760 files, 0 failed
+Completed tests in Recorder K22 / processing rate 192000 Hz: every format, rate and channel count
+All tests completed successfully

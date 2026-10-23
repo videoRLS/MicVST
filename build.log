@@ -1,0 +1,505 @@
+MSBuild version 18.11.1-1.26513.3+940033be3 for .NET Framework
+
+  Checking File Globs
+  1>Checking Build System
+  Generating MicVST_artefacts/JuceLibraryCode/MicVST_resources.rc
+  Building Custom Rule D:/a/MicVST/MicVST/CMakeLists.txt
+  MicVST_rc_lib.vcxproj -> D:\a\MicVST\MicVST\build\MicVST_rc_lib.dir\Release\MicVST_rc_lib.lib
+  Generating juce_binarydata_MicVSTData/JuceLibraryCode/BinaryData1.cpp, juce_binarydata_MicVSTData/JuceLibraryCode/BinaryData2.cpp, juce_binarydata_MicVSTData/JuceLibraryCode/BinaryData.h
+  Building Custom Rule D:/a/MicVST/MicVST/CMakeLists.txt
+  BinaryData1.cpp
+  BinaryData2.cpp
+  Generating Code...
+  Generating juce_binarydata_MicVSTSounds/JuceLibraryCode/BinaryData1.cpp, juce_binarydata_MicVSTSounds/JuceLibraryCode/BinaryData2.cpp, juce_binarydata_MicVSTSounds/JuceLibraryCode/BinaryData3.cpp, juce_binarydata_MicVSTSounds/JuceLibraryCode/BinaryData4.cpp, juce_binarydata_MicVSTSounds/JuceLibraryCode/BinaryData5.cpp, juce_binarydata_MicVSTSounds/JuceLibraryCode/BinaryData6.cpp, juce_binarydata_MicVSTSounds/JuceLibraryCode/BinaryData7.cpp, juce_binarydata_MicVSTSounds/JuceLibraryCode/BinaryData8.cpp, juce_binarydata_MicVSTSounds/JuceLibraryCode/BinaryData9.cpp, juce_binarydata_MicVSTSounds/JuceLibraryCode/BinaryData10.cpp, juce_binarydata_MicVSTSounds/JuceLibraryCode/BinaryData11.cpp, juce_binarydata_MicVSTSounds/JuceLibraryCode/BinaryData12.cpp, juce_binarydata_MicVSTSounds/JuceLibraryCode/BinaryData13.cpp, juce_binarydata_MicVSTSounds/JuceLibraryCode/BinaryData14.cpp, juce_binarydata_MicVSTSounds/JuceLibraryCode/BinaryData15.cpp, juce_binarydata_MicVSTSounds/JuceLibraryCode/BinaryData16.cpp, juce_binarydata_MicVSTSounds/JuceLibraryCode/MicVSTSounds.h
+  Building Custom Rule D:/a/MicVST/MicVST/CMakeLists.txt
+  MicVSTData.vcxproj -> D:\a\MicVST\MicVST\build\Release\MicVSTData.lib
+  Building Custom Rule D:/a/MicVST/MicVST/CMakeLists.txt
+  VbrTag.c
+  BinaryData1.cpp
+  BinaryData2.cpp
+  bitstream.c
+  BinaryData3.cpp
+  encoder.c
+  BinaryData4.cpp
+  BinaryData5.cpp
+  fft.c
+  BinaryData6.cpp
+  BinaryData7.cpp
+  gain_analysis.c
+  BinaryData8.cpp
+  BinaryData9.cpp
+  id3tag.c
+  BinaryData10.cpp
+  BinaryData11.cpp
+  BinaryData12.cpp
+  lame.c
+  BinaryData13.cpp
+  BinaryData14.cpp
+  newmdct.c
+  BinaryData15.cpp
+  presets.c
+  BinaryData16.cpp
+  Generating Code...
+  psymodel.c
+  quantize.c
+  MicVSTSounds.vcxproj -> D:\a\MicVST\MicVST\build\Release\MicVSTSounds.lib
+  quantize_pvt.c
+  reservoir.c
+  set_get.c
+  tables.c
+  takehiro.c
+  util.c
+  vbrquantize.c
+  version.c
+  Generating Code...
+  MicVSTLame.vcxproj -> D:\a\MicVST\MicVST\build\Release\MicVSTLame.lib
+  Building Custom Rule D:/a/MicVST/MicVST/CMakeLists.txt
+  AudioBridge.cpp
+  BuiltInAutoGain.cpp
+  BuiltInGain.cpp
+  BuiltInEffects.cpp
+  EqEffects.cpp
+  ColourEffects.cpp
+  LevelEffects.cpp
+  DynamicsEffects.cpp
+  MeterEffects.cpp
+  BuiltInEffectEditor.cpp
+  RealtimeSupport.cpp
+  DeviceFormat.cpp
+  Recorder.cpp
+  CueSounds.cpp
+  Metering.cpp
+  GraphConnections.cpp
+  ScanCoordinator.cpp
+  Persistence.cpp
+  Presets.cpp
+  PluginScanCache.cpp
+  Generating Code...
+  Compiling...
+  PluginSearch.cpp
+  Text.cpp
+  Translations.cpp
+  juce_audio_basics.cpp
+  juce_core.cpp
+  juce_core_CompilationTime.cpp
+  juce_audio_formats.cpp
+  juce_audio_processors.cpp
+  juce_gui_extra.cpp
+  juce_gui_basics.cpp
+  juce_gui_basics_2.cpp
+  juce_gui_basics_3.cpp
+  juce_gui_basics_4.cpp
+  juce_gui_basics_5.cpp
+  juce_graphics.cpp
+  juce_graphics_Harfbuzz.cpp
+  juce_events.cpp
+  juce_data_structures.cpp
+  juce_audio_processors_headless.cpp
+  juce_audio_processors_headless_ara.cpp
+  Generating Code...
+  Compiling...
+  juce_audio_processors_headless_lv2_libs.cpp
+  juce_dsp.cpp
+  Generating Code...
+  juce_core_zlib.c
+  juce_audio_formats_flac_1.c
+  juce_audio_formats_flac_2.c
+  juce_audio_formats_ogg.c
+  juce_audio_formats_opus.c
+  juce_audio_formats_opusfile.c
+  juce_graphics_Sheenbidi.c
+  juce_graphics_libjpg_1.c
+  juce_graphics_libjpg_2.c
+  juce_graphics_libjpg_3.c
+  juce_graphics_libpng.c
+  juce_graphics_libwebp_dec.c
+  juce_graphics_libwebp_dsp_dec.c
+  juce_graphics_libwebp_dsp_dec_avx2.c
+  juce_graphics_libwebp_dsp_dec_sse41.c
+  juce_graphics_libwebp_dsp_enc.c
+  juce_graphics_libwebp_dsp_enc_avx2.c
+  juce_graphics_libwebp_dsp_enc_sse41.c
+  juce_graphics_libwebp_enc.c
+  juce_graphics_libwebp_sharpyuv.c
+  Generating Code...
+  Compiling...
+  juce_graphics_libwebp_utils.c
+  juce_graphics_lunasvg.c
+  Generating Code...
+  MicVSTCore.vcxproj -> D:\a\MicVST\MicVST\build\Release\MicVSTCore.lib
+  Building Custom Rule D:/a/MicVST/MicVST/CMakeLists.txt
+  Main.cpp
+  AudioEngine.cpp
+  MonitorOutput.cpp
+  PluginChain.cpp
+  MainComponent.cpp
+  DevicePanel.cpp
+  PluginListView.cpp
+  PluginPicker.cpp
+  LevelMeterComponent.cpp
+  TrayIcon.cpp
+  DarkTitleBar.cpp
+  GlobalHotkeys.cpp
+  HotkeyDialog.cpp
+  SettingsComponent.cpp
+  RecordingPanel.cpp
+  CuePanel.cpp
+  AutostartRegistry.cpp
+  juce_audio_basics.cpp
+  juce_core.cpp
+  juce_core_CompilationTime.cpp
+  juce_audio_formats.cpp
+  juce_audio_processors.cpp
+  juce_gui_extra.cpp
+  juce_gui_basics.cpp
+  juce_gui_basics_2.cpp
+  juce_gui_basics_3.cpp
+  juce_gui_basics_4.cpp
+  juce_gui_basics_5.cpp
+  juce_graphics.cpp
+  juce_graphics_Harfbuzz.cpp
+  juce_events.cpp
+  juce_data_structures.cpp
+  juce_audio_processors_headless.cpp
+  juce_audio_processors_headless_ara.cpp
+  juce_audio_processors_headless_lv2_libs.cpp
+  juce_dsp.cpp
+  juce_audio_devices.cpp
+  juce_audio_utils.cpp
+  juce_core_zlib.c
+  juce_audio_formats_flac_1.c
+  juce_audio_formats_flac_2.c
+  juce_audio_formats_ogg.c
+  juce_audio_formats_opus.c
+  juce_audio_formats_opusfile.c
+  juce_graphics_Sheenbidi.c
+  juce_graphics_libjpg_1.c
+  juce_graphics_libjpg_2.c
+  juce_graphics_libjpg_3.c
+  juce_graphics_libpng.c
+  juce_graphics_libwebp_dec.c
+  juce_graphics_libwebp_dsp_dec.c
+  juce_graphics_libwebp_dsp_dec_avx2.c
+  juce_graphics_libwebp_dsp_dec_sse41.c
+  juce_graphics_libwebp_dsp_enc.c
+  juce_graphics_libwebp_dsp_enc_avx2.c
+  juce_graphics_libwebp_dsp_enc_sse41.c
+  juce_graphics_libwebp_enc.c
+  juce_graphics_libwebp_sharpyuv.c
+  juce_graphics_libwebp_utils.c
+  juce_graphics_lunasvg.c
+  MicVST.vcxproj -> D:\a\MicVST\MicVST\build\MicVST_artefacts\Release\MicVST.exe
+MSBuild version 18.11.1-1.26513.3+940033be3 for .NET Framework
+
+  Checking File Globs
+  Generating MicVSTTests_artefacts/JuceLibraryCode/MicVSTTests_resources.rc
+  Building Custom Rule D:/a/MicVST/MicVST/CMakeLists.txt
+  MicVSTTests_rc_lib.vcxproj -> D:\a\MicVST\MicVST\build\MicVSTTests_rc_lib.dir\Release\MicVSTTests_rc_lib.lib
+  MicVSTSounds.vcxproj -> D:\a\MicVST\MicVST\build\Release\MicVSTSounds.lib
+  MicVSTLame.vcxproj -> D:\a\MicVST\MicVST\build\Release\MicVSTLame.lib
+  MicVSTCore.vcxproj -> D:\a\MicVST\MicVST\build\Release\MicVSTCore.lib
+  Building Custom Rule D:/a/MicVST/MicVST/CMakeLists.txt
+  TestMain.cpp
+  ScanTests.cpp
+  PickerTests.cpp
+  BridgeTests.cpp
+  TextTests.cpp
+  GainTests.cpp
+  AutoGainTests.cpp
+  EffectTests.cpp
+  PresetTests.cpp
+D:\a\MicVST\MicVST\tests\AutoGainTests.cpp(910,32): warning C4996: 'getenv': This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [D:\a\MicVST\MicVST\build\MicVSTTests.vcxproj]
+D:\a\MicVST\MicVST\tests\PresetTests.cpp(164,24): warning C4456: declaration of 'f' hides previous local declaration [D:\a\MicVST\MicVST\build\MicVSTTests.vcxproj]
+      D:\a\MicVST\MicVST\tests\PresetTests.cpp(146,25):
+      see declaration of 'f'
+  
+D:\a\MicVST\MicVST\tests\PresetTests.cpp(173,24): warning C4458: declaration of 'name' hides class member [D:\a\MicVST\MicVST\build\MicVSTTests.vcxproj]
+      D:\a\MicVST\MicVST\build\_deps\juce-src\modules\juce_core\unit_tests\juce_UnitTest.h(367,18):
+      see declaration of 'juce::UnitTest::name'
+  
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\xmemory(732,82): warning C4244: 'initializing': conversion from 'double' to '_Objty', possible loss of data [D:\a\MicVST\MicVST\build\MicVSTTests.vcxproj]
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\xmemory(732,82): warning C4244:         with [D:\a\MicVST\MicVST\build\MicVSTTests.vcxproj]
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\xmemory(732,82): warning C4244:         [ [D:\a\MicVST\MicVST\build\MicVSTTests.vcxproj]
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\xmemory(732,82): warning C4244:             _Objty=float [D:\a\MicVST\MicVST\build\MicVSTTests.vcxproj]
+C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\xmemory(732,82): warning C4244:         ] [D:\a\MicVST\MicVST\build\MicVSTTests.vcxproj]
+  (compiling source file '../tests/AutoGainTests.cpp')
+      C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\xmemory(732,82):
+      the template instantiation context (the oldest one first) is
+          D:\a\MicVST\MicVST\tests\AutoGainTests.cpp(435,42):
+          see reference to function template instantiation 'std::vector<T,std::allocator<T>>::vector<std::_Vector_iterator<std::_Vector_val<std::_Simple_types<_Ty>>>,0>(_Iter,_Iter,const _Alloc &)' being compiled
+          with
+          [
+              T=float,
+              _Ty=double,
+              _Iter=std::_Vector_iterator<std::_Vector_val<std::_Simple_types<double>>>,
+              _Alloc=std::allocator<float>
+          ]
+              D:\a\MicVST\MicVST\tests\AutoGainTests.cpp(435,42):
+              see the first reference to 'std::vector<T,std::allocator<T>>::vector' in 'AutoGainTest::runTest'
+          with
+          [
+              T=float
+          ]
+          C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\vector(702,13):
+          see reference to function template instantiation 'void std::vector<T,std::allocator<T>>::_Construct_n<double*,double*>(const unsigned __int64,double *&&,double *&&)' being compiled
+          with
+          [
+              T=float
+          ]
+          C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\vector(2128,41):
+          see reference to function template instantiation 'float *std::_Uninitialized_copy<_Ty,_Ty,std::allocator<T>>(_InIt,_Se,float *,_Alloc &)' being compiled
+          with
+          [
+              _Ty=double *,
+              T=float,
+              _InIt=double *,
+              _Se=double *,
+              _Alloc=std::allocator<float>
+          ]
+          C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\xmemory(1926,18):
+          see reference to function template instantiation 'void std::_Uninitialized_backout_al<_Alloc>::_Emplace_back<double&>(double &)' being compiled
+          with
+          [
+              _Alloc=std::allocator<float>
+          ]
+          C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\xmemory(1868,35):
+          see reference to function template instantiation 'void std::_Default_allocator_traits<_Alloc>::construct<_Ty,double&>(_Alloc &,_Objty *const ,double &)' being compiled
+          with
+          [
+              _Alloc=std::allocator<float>,
+              _Ty=float,
+              _Objty=float
+          ]
+  
+  HotkeyTests.cpp
+  DeviceFormatTests.cpp
+  RecorderTests.cpp
+  RecorderSweepTests.cpp
+  CounterWrapTests.cpp
+  CueTests.cpp
+  PluginChain.cpp
+  GlobalHotkeys.cpp
+  juce_audio_basics.cpp
+  juce_core.cpp
+  juce_core_CompilationTime.cpp
+  juce_audio_formats.cpp
+  juce_audio_processors.cpp
+  juce_gui_extra.cpp
+  juce_gui_basics.cpp
+  juce_gui_basics_2.cpp
+  juce_gui_basics_3.cpp
+  juce_gui_basics_4.cpp
+  juce_gui_basics_5.cpp
+  juce_graphics.cpp
+  juce_graphics_Harfbuzz.cpp
+  juce_events.cpp
+  juce_data_structures.cpp
+  juce_audio_processors_headless.cpp
+  juce_audio_processors_headless_ara.cpp
+  juce_audio_processors_headless_lv2_libs.cpp
+  juce_dsp.cpp
+  juce_core_zlib.c
+  juce_audio_formats_flac_1.c
+  juce_audio_formats_flac_2.c
+  juce_audio_formats_ogg.c
+  juce_audio_formats_opus.c
+  juce_audio_formats_opusfile.c
+  juce_graphics_Sheenbidi.c
+  juce_graphics_libjpg_1.c
+  juce_graphics_libjpg_2.c
+  juce_graphics_libjpg_3.c
+  juce_graphics_libpng.c
+  juce_graphics_libwebp_dec.c
+  juce_graphics_libwebp_dsp_dec.c
+  juce_graphics_libwebp_dsp_dec_avx2.c
+  juce_graphics_libwebp_dsp_dec_sse41.c
+  juce_graphics_libwebp_dsp_enc.c
+  juce_graphics_libwebp_dsp_enc_avx2.c
+  juce_graphics_libwebp_dsp_enc_sse41.c
+  juce_graphics_libwebp_enc.c
+  juce_graphics_libwebp_sharpyuv.c
+  juce_graphics_libwebp_utils.c
+  juce_graphics_lunasvg.c
+  MicVSTTests.vcxproj -> D:\a\MicVST\MicVST\build\MicVSTTests_artefacts\Release\MicVSTTests.exe
+MSBuild version 18.11.1-1.26513.3+940033be3 for .NET Framework
+
+  Checking File Globs
+  Generating MicVSTStress_artefacts/JuceLibraryCode/MicVSTStress_resources.rc
+  Building Custom Rule D:/a/MicVST/MicVST/CMakeLists.txt
+  MicVSTStress_rc_lib.vcxproj -> D:\a\MicVST\MicVST\build\MicVSTStress_rc_lib.dir\Release\MicVSTStress_rc_lib.lib
+  MicVSTSounds.vcxproj -> D:\a\MicVST\MicVST\build\Release\MicVSTSounds.lib
+  MicVSTLame.vcxproj -> D:\a\MicVST\MicVST\build\Release\MicVSTLame.lib
+  MicVSTCore.vcxproj -> D:\a\MicVST\MicVST\build\Release\MicVSTCore.lib
+  Building Custom Rule D:/a/MicVST/MicVST/CMakeLists.txt
+  StressMain.cpp
+  juce_audio_basics.cpp
+  juce_core.cpp
+  juce_core_CompilationTime.cpp
+  juce_audio_formats.cpp
+  juce_audio_processors.cpp
+  juce_gui_extra.cpp
+  juce_gui_basics.cpp
+  juce_gui_basics_2.cpp
+  juce_gui_basics_3.cpp
+  juce_gui_basics_4.cpp
+  juce_gui_basics_5.cpp
+  juce_graphics.cpp
+  juce_graphics_Harfbuzz.cpp
+  juce_events.cpp
+  juce_data_structures.cpp
+  juce_audio_processors_headless.cpp
+  juce_audio_processors_headless_ara.cpp
+  juce_audio_processors_headless_lv2_libs.cpp
+  juce_dsp.cpp
+  juce_core_zlib.c
+  juce_audio_formats_flac_1.c
+  juce_audio_formats_flac_2.c
+  juce_audio_formats_ogg.c
+  juce_audio_formats_opus.c
+  juce_audio_formats_opusfile.c
+  juce_graphics_Sheenbidi.c
+  juce_graphics_libjpg_1.c
+  juce_graphics_libjpg_2.c
+  juce_graphics_libjpg_3.c
+  juce_graphics_libpng.c
+  juce_graphics_libwebp_dec.c
+  juce_graphics_libwebp_dsp_dec.c
+  juce_graphics_libwebp_dsp_dec_avx2.c
+  juce_graphics_libwebp_dsp_dec_sse41.c
+  juce_graphics_libwebp_dsp_enc.c
+  juce_graphics_libwebp_dsp_enc_avx2.c
+  juce_graphics_libwebp_dsp_enc_sse41.c
+  juce_graphics_libwebp_enc.c
+  juce_graphics_libwebp_sharpyuv.c
+  juce_graphics_libwebp_utils.c
+  juce_graphics_lunasvg.c
+  MicVSTStress.vcxproj -> D:\a\MicVST\MicVST\build\MicVSTStress_artefacts\Release\MicVSTStress.exe
+MSBuild version 18.11.1-1.26513.3+940033be3 for .NET Framework
+
+  Checking File Globs
+  Generating MicVSTSnapshot_artefacts/JuceLibraryCode/MicVSTSnapshot_resources.rc
+  Building Custom Rule D:/a/MicVST/MicVST/CMakeLists.txt
+  MicVSTSnapshot_rc_lib.vcxproj -> D:\a\MicVST\MicVST\build\MicVSTSnapshot_rc_lib.dir\Release\MicVSTSnapshot_rc_lib.lib
+  MicVSTSounds.vcxproj -> D:\a\MicVST\MicVST\build\Release\MicVSTSounds.lib
+  MicVSTLame.vcxproj -> D:\a\MicVST\MicVST\build\Release\MicVSTLame.lib
+  MicVSTCore.vcxproj -> D:\a\MicVST\MicVST\build\Release\MicVSTCore.lib
+  Building Custom Rule D:/a/MicVST/MicVST/CMakeLists.txt
+  SnapshotMain.cpp
+  AudioEngine.cpp
+  MonitorOutput.cpp
+  PluginChain.cpp
+  MainComponent.cpp
+  DevicePanel.cpp
+  PluginListView.cpp
+  PluginPicker.cpp
+  LevelMeterComponent.cpp
+  DarkTitleBar.cpp
+  GlobalHotkeys.cpp
+  HotkeyDialog.cpp
+  SettingsComponent.cpp
+  RecordingPanel.cpp
+  CuePanel.cpp
+  AutostartRegistry.cpp
+  juce_audio_basics.cpp
+  juce_core.cpp
+  juce_core_CompilationTime.cpp
+  juce_audio_formats.cpp
+  juce_audio_processors.cpp
+  juce_gui_extra.cpp
+  juce_gui_basics.cpp
+  juce_gui_basics_2.cpp
+  juce_gui_basics_3.cpp
+  juce_gui_basics_4.cpp
+  juce_gui_basics_5.cpp
+  juce_graphics.cpp
+  juce_graphics_Harfbuzz.cpp
+  juce_events.cpp
+  juce_data_structures.cpp
+  juce_audio_processors_headless.cpp
+  juce_audio_processors_headless_ara.cpp
+  juce_audio_processors_headless_lv2_libs.cpp
+  juce_dsp.cpp
+  juce_audio_devices.cpp
+  juce_audio_utils.cpp
+  juce_core_zlib.c
+  juce_audio_formats_flac_1.c
+  juce_audio_formats_flac_2.c
+  juce_audio_formats_ogg.c
+  juce_audio_formats_opus.c
+  juce_audio_formats_opusfile.c
+  juce_graphics_Sheenbidi.c
+  juce_graphics_libjpg_1.c
+  juce_graphics_libjpg_2.c
+  juce_graphics_libjpg_3.c
+  juce_graphics_libpng.c
+  juce_graphics_libwebp_dec.c
+  juce_graphics_libwebp_dsp_dec.c
+  juce_graphics_libwebp_dsp_dec_avx2.c
+  juce_graphics_libwebp_dsp_dec_sse41.c
+  juce_graphics_libwebp_dsp_enc.c
+  juce_graphics_libwebp_dsp_enc_avx2.c
+  juce_graphics_libwebp_dsp_enc_sse41.c
+  juce_graphics_libwebp_enc.c
+  juce_graphics_libwebp_sharpyuv.c
+  juce_graphics_libwebp_utils.c
+  juce_graphics_lunasvg.c
+  MicVSTSnapshot.vcxproj -> D:\a\MicVST\MicVST\build\MicVSTSnapshot_artefacts\Release\MicVSTSnapshot.exe
+MSBuild version 18.11.1-1.26513.3+940033be3 for .NET Framework
+
+  Checking File Globs
+  Generating MicVSTEngineTest_artefacts/JuceLibraryCode/MicVSTEngineTest_resources.rc
+  Building Custom Rule D:/a/MicVST/MicVST/CMakeLists.txt
+  MicVSTEngineTest_rc_lib.vcxproj -> D:\a\MicVST\MicVST\build\MicVSTEngineTest_rc_lib.dir\Release\MicVSTEngineTest_rc_lib.lib
+  MicVSTSounds.vcxproj -> D:\a\MicVST\MicVST\build\Release\MicVSTSounds.lib
+  MicVSTLame.vcxproj -> D:\a\MicVST\MicVST\build\Release\MicVSTLame.lib
+  MicVSTCore.vcxproj -> D:\a\MicVST\MicVST\build\Release\MicVSTCore.lib
+  Building Custom Rule D:/a/MicVST/MicVST/CMakeLists.txt
+  EngineTestMain.cpp
+  MonotonicPump.cpp
+  AudioEngine.cpp
+  MonitorOutput.cpp
+  PluginChain.cpp
+  juce_audio_basics.cpp
+  juce_core.cpp
+  juce_core_CompilationTime.cpp
+  juce_audio_formats.cpp
+  juce_audio_processors.cpp
+  juce_gui_extra.cpp
+  juce_gui_basics.cpp
+  juce_gui_basics_2.cpp
+  juce_gui_basics_3.cpp
+  juce_gui_basics_4.cpp
+  juce_gui_basics_5.cpp
+  juce_graphics.cpp
+  juce_graphics_Harfbuzz.cpp
+  juce_events.cpp
+  juce_data_structures.cpp
+  juce_audio_processors_headless.cpp
+  juce_audio_processors_headless_ara.cpp
+  juce_audio_processors_headless_lv2_libs.cpp
+  juce_dsp.cpp
+  juce_audio_devices.cpp
+  juce_audio_utils.cpp
+  juce_core_zlib.c
+  juce_audio_formats_flac_1.c
+  juce_audio_formats_flac_2.c
+  juce_audio_formats_ogg.c
+  juce_audio_formats_opus.c
+  juce_audio_formats_opusfile.c
+  juce_graphics_Sheenbidi.c
+  juce_graphics_libjpg_1.c
+  juce_graphics_libjpg_2.c
+  juce_graphics_libjpg_3.c
+  juce_graphics_libpng.c
+  juce_graphics_libwebp_dec.c
+  juce_graphics_libwebp_dsp_dec.c
+  juce_graphics_libwebp_dsp_dec_avx2.c
+  juce_graphics_libwebp_dsp_dec_sse41.c
+  juce_graphics_libwebp_dsp_enc.c
+  juce_graphics_libwebp_dsp_enc_avx2.c
+  juce_graphics_libwebp_dsp_enc_sse41.c
+  juce_graphics_libwebp_enc.c
+  juce_graphics_libwebp_sharpyuv.c
+  juce_graphics_libwebp_utils.c
+  juce_graphics_lunasvg.c
+  MicVSTEngineTest.vcxproj -> D:\a\MicVST\MicVST\build\MicVSTEngineTest_artefacts\Release\MicVSTEngineTest.exe

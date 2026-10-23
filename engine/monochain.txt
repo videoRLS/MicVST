@@ -1,0 +1,10 @@
+# MicVST engine test (1.2.2) - monochain
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.3 ppm, shown latency 55.4 ms, cpu 0 %
+empty: gain L -0.000 dB, R -0.000 dB
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.6 ppm, shown latency 55.4 ms, cpu 0 %
+TestGain 1.0 (stereo in/out): gain L -0.000 dB, R -0.000 dB
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.1 ppm, shown latency 55.4 ms, cpu 0 %
+Mono -> Stereo, TestGain: gain L -0.000 dB, R -0.000 dB
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -1.1 ppm, shown latency 55.4 ms, cpu 0 %
+TestGain, Stereo -> Mono: gain L -0.000 dB, R -0.000 dB
+-- exit code 0, 35.3 s, peak working set 26 MB

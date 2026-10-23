@@ -1,0 +1,12 @@
+# MicVST engine test (1.2.2) - buffers
+## Buffer sizes (30 s each, 997 Hz -6 dBFS, light plug-in load 30 %)
+| Buffer | Clicks | Gaps | Diagnostics |
+|---:|---:|---:|---|
+| 128 | 0 | 0 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 1.8 ppm, shown latency 24.4 ms, cpu 30 % |
+| 256 | 0 | 0 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.3 ppm, shown latency 35.9 ms, cpu 30 % |
+| 480 | 0 | 0 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.8 ppm, shown latency 55.4 ms, cpu 30 % |
+| 512 | 0 | 0 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 2.7 ppm, shown latency 58.0 ms, cpu 30 % |
+| 960 | 0 | 0 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 2.1 ppm, shown latency 97.4 ms, cpu 30 % |
+| 1024 | 0 | 0 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.3 ppm, shown latency 103.1 ms, cpu 30 % |
+| 2048 | 0 | 0 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 4.2 ppm, shown latency 193.0 ms, cpu 30 % |
+-- exit code 0, 211.7 s, peak working set 34 MB

@@ -1,0 +1,16 @@
+# MicVST engine test (1.2.2) - mono
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.4 ppm, shown latency 55.3 ms, cpu 0 %
+mono: gain L -0.0000 dB R -0.0000 dB THD+N -107.6 dB windows 12 bad 0 clicks 0
+  block at 240000: peak 0.5000 first -0.0964
+  block at 240480: peak 0.5000 first -0.0028
+  block at 240960: peak 0.5000 first 0.0908
+  block at 241440: peak 0.5000 first 0.1813
+  block at 241920: peak 0.5000 first 0.2653
+  block at 242400: peak 0.5000 first 0.3400
+  block at 242880: peak 0.5000 first 0.4026
+  block at 243360: peak 0.5000 first 0.4510
+  block at 243840: peak 0.5000 first 0.4834
+  block at 244320: peak 0.5000 first 0.4988
+  block at 244800: peak 0.5000 first 0.4965
+  block at 245280: peak 0.5000 first 0.4766
+-- exit code 0, 8.8 s, peak working set 25 MB

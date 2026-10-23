@@ -1,0 +1,5 @@
+# MicVST engine test (1.2.2) - dump
+  suite chain: ZL Equalizer 2 -> Fire
+  underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 1.1 ppm, shown latency 57.1 ms, cpu 3 %
+  written: dump_s_suite_voice_{in,out}.f32 + .json
+-- exit code 0, 22.4 s, peak working set 134 MB

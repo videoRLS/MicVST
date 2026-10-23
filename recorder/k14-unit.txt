@@ -1,0 +1,17 @@
+Random seed: 0x203149a
+-----------------------------------------------------------------
+Starting tests in: Recorder K14 / the disk fills up: the recording stops by itself, the file is whole and exact...
+free on the small disk: 244 MB
+stopped after 150.2 s of audio: 'Diskte yer kalmadı (30 MB'tan az): kayıt durduruldu.' (problem: 'Diskte yer kalmadı (30 MB'tan az): kayıt durduruldu.'), file 220 MB, written 28840320 frames, dropped 0
+file readable: 150.21 s, differing samples 0
+Completed tests in Recorder K14 / the disk fills up: the recording stops by itself, the file is whole and exact
+-----------------------------------------------------------------
+Starting tests in: Recorder K14 / less than 100 MB free: the recording does not start, with a message...
+start with 24 MB free: 'Kayıt klasörünün diskinde yer yok (100 MB'tan az): Q:\kayit'
+Completed tests in Recorder K14 / less than 100 MB free: the recording does not start, with a message
+-----------------------------------------------------------------
+Starting tests in: Recorder K14 / the disk taken away while recording: an error message, no crash, no hang...
+detach: Microsoft DiskPart version 10.0.26100.1150 /  / Copyright (C) Microsoft Corporation. / On computer: runnervmdaln5 /  / Volume 3 is the selected volume. /  / DiskPart successfully removed the drive letter or mount point. /  / DiskPart successfully dismounted and offlined the volume. /  / DiskPart suc
+message: 'Kayıt dosyasına yazılamadı (disk dolu ya da çıkarılmış olabilir): Q:\kayit\MicVST_2026-10-23_13-35-12.wav', stop took 3.4857 ms, problem: 'Kayıt dosyasına yazılamadı (disk dolu ya da çıkarılmış olabilir): Q:\kayit\MicVST_2026-10-23_13-35-12.wav'
+Completed tests in Recorder K14 / the disk taken away while recording: an error message, no crash, no hang
+All tests completed successfully

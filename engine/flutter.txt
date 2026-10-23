@@ -1,0 +1,4 @@
+# MicVST engine test (1.2.2) - flutter
+tone 997 Hz: speed deviation (flutter) RMS 1.80 ppm, peak 9.6 ppm; THD+N (2048-sample windows) median -126.7 dB, worst -111.4 dB; bridge correction mean -1.1 ppm, std 3.7 ppm
+tone 10000 Hz: speed deviation (flutter) RMS 0.74 ppm, peak 2.6 ppm; THD+N (2048-sample windows) median -110.1 dB, worst -88.6 dB; bridge correction mean -0.5 ppm, std 0.7 ppm
+-- exit code 0, 93.9 s, peak working set 37 MB

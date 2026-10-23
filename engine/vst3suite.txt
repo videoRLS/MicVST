@@ -1,0 +1,351 @@
+# MicVST engine test (1.2.2) - vst3suite
+## VST3 suite: real plug-ins in MicVST's engine ($MICVST_TEST_VST3_DIR = D:\a\_temp\suite-vst3)
+found: Airwindows Consolidated 1.2026.291 (Airwindows) - D:\a\_temp\suite-vst3\Airwindows Consolidated.vst3
+found: DC1A3 3.5.0 (Klanghelm) - D:\a\_temp\suite-vst3\DC1A3.vst3
+found: Fire 2.0.0 (Blue Wings Music) - D:\a\_temp\suite-vst3\Fire.vst3
+found: RNNoise suppression for voice 1 (werman) - D:\a\_temp\suite-vst3\rnnoise.vst3\Contents\x86_64-win\rnnoise.vst3
+found: TDR VOS SlickEQ 1.3.9 (Tokyo Dawn Labs) - D:\a\_temp\suite-vst3\TDR VOS SlickEQ.vst3
+found: ZL Compressor 0.6.1 (ZL) - D:\a\_temp\suite-vst3\ZL Compressor.vst3
+found: ZL Equalizer 2 1.4.1 (ZL) - D:\a\_temp\suite-vst3\ZL Equalizer 2.vst3
+plug-in windows: opened and closed during playback
+
+### RNNoise (noise suppression; stands for: Clear (noise removal))
+plug-in: RNNoise suppression for voice 1 by werman (D:\a\_temp\suite-vst3\rnnoise.vst3\Contents\x86_64-win\rnnoise.vst3)
+loaded in 0.00 s; in 1 / out 1 channels (main in: Mono), latency 0 samples, 4 parameters, editor yes
+  PASS RNNoise: loads in MicVST and joins the chain
+settings applied live: VAD Threshold = '0.00'
+parameters back at their defaults: 4/4
+engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.3 ppm, shown latency 55.3 ms, cpu 6 %
+| phase | measurement |
+|---|---|
+| default settings | noise in -40 dBFS RMS -> out -200.0 dBFS RMS (change -160.0 dB) |
+| active settings | noise in -40 dBFS RMS -> out -99.1 dBFS RMS (change -59.1 dB) |
+| bypassed | noise in -40 dBFS RMS -> out -40.2 dBFS RMS (change -0.2 dB) |
+| bypass off again | noise in -40 dBFS RMS -> out -106.3 dBFS RMS (change -66.3 dB) |
+| plug-in window open | noise in -40 dBFS RMS -> out -103.8 dBFS RMS (change -63.8 dB) |
+| defaults restored | noise in -40 dBFS RMS -> out -200.0 dBFS RMS (change -160.0 dB) |
+  PASS RNNoise: every live parameter change accepted (1 parameters)
+  PASS RNNoise: steady noise reduced by 160.0 dB at its defaults
+  PASS RNNoise: VAD threshold change reaches the sound (output -200.0 -> -99.1 dBFS RMS; -200 = the voice-activity gate closed)
+  PASS RNNoise: bypassed = dry signal (deviation 0.237 dB)
+  PASS RNNoise: bypass off = the active sound again (difference 7.18 dB)
+  PASS RNNoise: defaults restored = the default sound again (difference 0.00 dB)
+  PASS RNNoise: no click, dropout or MicVST event while it ran (clicks not counted on this signal): clicks 0, silent gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0, stalls of the test machine 0
+  PASS RNNoise: plug-in window opened in 125.597 ms (400 x 400), closed after 2.5 s: clicks 0, silent gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0
+| restored from config.xml (new engine) | noise in -40 dBFS RMS -> out -106.2 dBFS RMS (change -66.2 dB) |
+| mono microphone, left | noise in -40 dBFS RMS -> out -106.1 dBFS RMS (change -66.1 dB) |
+| mono microphone, right | noise in -40 dBFS RMS -> out -106.1 dBFS RMS (change -66.1 dB) |
+  PASS RNNoise: saved and restored through config.xml: 'RNNoise suppression for voice', parameters identical 4/4, state 463 bytes
+  PASS RNNoise: the restored plug-in sounds like the saved one (difference 7.03 dB)
+  PASS RNNoise: mono microphone: both cable channels carry the processed voice (L/R difference 0.00 dB, vs. stereo 7.02 dB)
+
+### ZL Equalizer 2 (EQ; stands for: Pro-Q 4 / TDR VOS SlickEQ GE (EQ))
+plug-in: ZL Equalizer 2 1.4.1 by ZL (D:\a\_temp\suite-vst3\ZL Equalizer 2.vst3)
+loaded in 0.01 s; in 4 / out 2 channels (main in: Stereo), latency 0 samples, 610 parameters, editor yes
+  PASS ZL Equalizer 2: loads in MicVST and joins the chain
+settings applied live: Filter Status0 = 'On'; Filter Type0 = 'Peak'; Freq0 = '1000.0'; Gain0 = '6.00'; Q0 = '1.000'
+parameters back at their defaults: 610/610
+engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.7 ppm, shown latency 55.3 ms, cpu 0 %
+| phase | measurement |
+|---|---|
+| default settings | response (dB): 100 0.01, 200 0.03, 400 -0.01, 1k 0.01, 2k 0.01, 3k -0.00, 5k -0.00, 7k -0.00, 10k -0.00, 15k 0.00 |
+| active settings | response (dB): 100 0.08, 200 0.30, 400 1.17, 1k 6.01, 2k 1.88, 3k 0.77, 5k 0.26, 7k 0.13, 10k 0.06, 15k 0.03 |
+| active, 'Zero Phase' | response (dB): 100 0.09, 200 0.29, 400 1.18, 1k 6.01, 2k 1.89, 3k 0.78, 5k 0.27, 7k 0.14, 10k 0.07, 15k 0.03 |
+| bypassed | response (dB): 100 0.08, 200 0.08, 400 0.06, 1k 0.03, 2k 0.02, 3k 0.01, 5k -0.00, 7k -0.00, 10k 0.00, 15k -0.00 |
+| bypass off again | response (dB): 100 0.15, 200 0.35, 400 1.18, 1k 6.01, 2k 1.88, 3k 0.77, 5k 0.25, 7k 0.13, 10k 0.06, 15k 0.02 |
+| plug-in window open | response (dB): 100 0.07, 200 0.28, 400 1.15, 1k 6.01, 2k 1.89, 3k 0.77, 5k 0.26, 7k 0.13, 10k 0.06, 15k 0.02 |
+| defaults restored | response (dB): 100 0.01, 200 0.03, 400 -0.01, 1k -0.01, 2k 0.01, 3k 0.00, 5k 0.00, 7k 0.00, 10k -0.00, 15k -0.00 |
+  PASS ZL Equalizer 2: every live parameter change accepted (5 parameters)
+  PASS ZL Equalizer 2: bell +6 dB at 1 kHz measured 6.01 dB, 100 Hz 0.08 dB, 15 kHz 0.03 dB
+  PASS ZL Equalizer 2: neutral at its defaults (largest deviation 0.03 dB)
+  PASS ZL Equalizer 2: same bell in the linear-phase structure (6.01 dB)
+  PASS ZL Equalizer 2: latency change while running reaches MicVST: plug-in 0 -> 8192 samples, chain 0 -> 8192, shown latency 55.3 -> 225.9 ms (+170.7 expected)
+  PASS ZL Equalizer 2: bypassed = dry signal (deviation 0.079 dB)
+  PASS ZL Equalizer 2: bypass off = the active sound again (difference 0.08 dB)
+  PASS ZL Equalizer 2: defaults restored = the default sound again (difference 0.01 dB)
+  PASS ZL Equalizer 2: no click, dropout or MicVST event while it ran (clicks not counted on this signal): clicks 0, silent gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0, stalls of the test machine 0
+  PASS ZL Equalizer 2: plug-in window opened in 64.025 ms (600 x 371), closed after 2.5 s: clicks 0, silent gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0
+| restored from config.xml (new engine) | response (dB): 100 0.06, 200 0.27, 400 1.15, 1k 6.01, 2k 1.88, 3k 0.77, 5k 0.26, 7k 0.13, 10k 0.06, 15k 0.03 |
+| mono microphone, left | response (dB): 100 0.05, 200 0.26, 400 1.18, 1k 6.00, 2k 1.88, 3k 0.78, 5k 0.26, 7k 0.13, 10k 0.06, 15k 0.02 |
+| mono microphone, right | response (dB): 100 0.05, 200 0.26, 400 1.18, 1k 6.00, 2k 1.88, 3k 0.78, 5k 0.26, 7k 0.13, 10k 0.06, 15k 0.02 |
+  PASS ZL Equalizer 2: saved and restored through config.xml: 'ZL Equalizer 2', parameters identical 610/610, state 32998 bytes
+  PASS ZL Equalizer 2: the restored plug-in sounds like the saved one (difference 0.03 dB)
+  PASS ZL Equalizer 2: mono microphone: both cable channels carry the processed voice (L/R difference 0.00 dB, vs. stereo 0.04 dB)
+
+### ZL Compressor (compressor; stands for: Pro-C 3 / DC1A3 (compressor))
+plug-in: ZL Compressor 0.6.1 by ZL (D:\a\_temp\suite-vst3\ZL Compressor.vst3)
+loaded in 0.01 s; in 4 / out 2 channels (main in: Stereo), latency 0 samples, 83 parameters, editor yes
+  PASS ZL Compressor: loads in MicVST and joins the chain
+settings applied live: Compressor Style = 'Clean'; Threshold (dB) = '-30.0'; Ratio = '4.00'; Knee Width = '0.00'; Attack = '1.00'; Release = '50.00'
+
+parameters back at their defaults: 83/83
+engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.2 ppm, shown latency 55.4 ms, cpu 0 %
+| phase | measurement |
+|---|---|
+| default settings | 1000 Hz at -10 dBFS: gain -13.03 dB, THD+N -66.7 dB, peak -23.03 dBFS |
+| active settings | 1000 Hz at -10 dBFS: gain -14.54 dB, THD+N -41.4 dB, peak -24.58 dBFS |
+| active, quiet input | 1000 Hz at -40 dBFS: gain -0.00 dB, THD+N -111.8 dB, peak -40.00 dBFS |
+| bypassed | 1000 Hz at -10 dBFS: gain -0.00 dB, THD+N -118.1 dB, peak -10.00 dBFS |
+| bypass off again | 1000 Hz at -10 dBFS: gain -14.54 dB, THD+N -41.4 dB, peak -24.58 dBFS |
+| plug-in window open | 1000 Hz at -10 dBFS: gain -14.54 dB, THD+N -41.4 dB, peak -24.58 dBFS |
+| defaults restored | 1000 Hz at -10 dBFS: gain -13.03 dB, THD+N -66.7 dB, peak -23.04 dBFS |
+  PASS ZL Compressor: every live parameter change accepted (6 parameters)
+  PASS ZL Compressor: -10 dBFS tone compressed by 14.5 dB (threshold -30, ratio 4: about 15 expected)
+  PASS ZL Compressor: -40 dBFS tone (below the threshold) unchanged: -0.00 dB
+  PASS ZL Compressor: bypassed = dry signal (deviation 0.000 dB)
+  PASS ZL Compressor: bypass off = the active sound again (difference 0.00 dB)
+  PASS ZL Compressor: defaults restored = the default sound again (difference 0.00 dB)
+  PASS ZL Compressor: no click, dropout or MicVST event while it ran: clicks 0, silent gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0, stalls of the test machine 0
+  PASS ZL Compressor: plug-in window opened in 198.601 ms (600 x 371), closed after 2.5 s: clicks 0, silent gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0
+| restored from config.xml (new engine) | 1000 Hz at -10 dBFS: gain -14.54 dB, THD+N -41.4 dB, peak -24.57 dBFS |
+| mono microphone, left | 1000 Hz at -10 dBFS: gain -14.54 dB, THD+N -41.4 dB, peak -24.57 dBFS |
+| mono microphone, right | 1000 Hz at -10 dBFS: gain -14.54 dB, THD+N -41.4 dB, peak -24.57 dBFS |
+  PASS ZL Compressor: saved and restored through config.xml: 'ZL Compressor', parameters identical 83/83, state 5195 bytes
+  PASS ZL Compressor: the restored plug-in sounds like the saved one (difference 0.00 dB)
+  PASS ZL Compressor: mono microphone: both cable channels carry the processed voice (L/R difference 0.00 dB, vs. stereo 0.00 dB)
+
+### ZL Compressor (de-esser setting: side chain high-passed at 5 kHz) (de-esser; stands for: Pro-DS (de-esser))
+plug-in: ZL Compressor 0.6.1 by ZL (D:\a\_temp\suite-vst3\ZL Compressor.vst3)
+loaded in 0.01 s; in 4 / out 2 channels (main in: Stereo), latency 0 samples, 83 parameters, editor yes
+  PASS ZL Compressor (de-esser setting: side chain high-passed at 5 kHz): loads in MicVST and joins the chain
+settings applied live: Compressor Style = 'Clean'; Threshold (dB) = '-40.0'; Ratio = '10.00'; Knee Width = '0.00'; Attack = '1.00'; Release = '50.00'; Filter Status0 = 'On'; Filter Type0 = 'High Pass'; Order0 = '24 dB/oct'; Freq0 = '5000.0'
+
+parameters back at their defaults: 83/83
+engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -2.6 ppm, shown latency 55.4 ms, cpu 0 %
+| phase | measurement |
+|---|---|
+| default settings | 6300 Hz at -12 dBFS: gain -11.72 dB, THD+N -74.1 dB, peak -23.72 dBFS |
+| active settings | 6300 Hz at -12 dBFS: gain -24.07 dB, THD+N -52.1 dB, peak -36.03 dBFS |
+| active, 300 Hz | 300 Hz at -12 dBFS: gain -0.00 dB, THD+N -105.7 dB, peak -12.00 dBFS |
+| bypassed | 6300 Hz at -12 dBFS: gain -0.00 dB, THD+N -86.2 dB, peak -12.00 dBFS |
+| bypass off again | 6300 Hz at -12 dBFS: gain -24.07 dB, THD+N -52.1 dB, peak -36.03 dBFS |
+| plug-in window open | 6300 Hz at -12 dBFS: gain -24.07 dB, THD+N -52.1 dB, peak -36.04 dBFS |
+| defaults restored | 6300 Hz at -12 dBFS: gain -11.72 dB, THD+N -78.8 dB, peak -23.73 dBFS |
+  PASS ZL Compressor (de-esser setting: side chain high-passed at 5 kHz): every live parameter change accepted (10 parameters)
+  PASS ZL Compressor (de-esser setting: side chain high-passed at 5 kHz): 6.3 kHz (sibilance) reduced by 24.1 dB
+  PASS ZL Compressor (de-esser setting: side chain high-passed at 5 kHz): 300 Hz (voice body) unchanged: -0.00 dB
+  PASS ZL Compressor (de-esser setting: side chain high-passed at 5 kHz): bypassed = dry signal (deviation 0.000 dB)
+  PASS ZL Compressor (de-esser setting: side chain high-passed at 5 kHz): bypass off = the active sound again (difference 0.00 dB)
+  PASS ZL Compressor (de-esser setting: side chain high-passed at 5 kHz): defaults restored = the default sound again (difference 0.00 dB)
+  PASS ZL Compressor (de-esser setting: side chain high-passed at 5 kHz): no click, dropout or MicVST event while it ran: clicks 0, silent gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0, stalls of the test machine 0
+  PASS ZL Compressor (de-esser setting: side chain high-passed at 5 kHz): plug-in window opened in 151.031 ms (600 x 371), closed after 2.5 s: clicks 0, silent gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0
+| restored from config.xml (new engine) | 6300 Hz at -12 dBFS: gain -24.07 dB, THD+N -52.1 dB, peak -36.03 dBFS |
+| mono microphone, left | 6300 Hz at -12 dBFS: gain -24.07 dB, THD+N -52.1 dB, peak -36.03 dBFS |
+| mono microphone, right | 6300 Hz at -12 dBFS: gain -24.07 dB, THD+N -52.1 dB, peak -36.03 dBFS |
+  PASS ZL Compressor (de-esser setting: side chain high-passed at 5 kHz): saved and restored through config.xml: 'ZL Compressor', parameters identical 83/83, state 5196 bytes
+  PASS ZL Compressor (de-esser setting: side chain high-passed at 5 kHz): the restored plug-in sounds like the saved one (difference 0.00 dB)
+  PASS ZL Compressor (de-esser setting: side chain high-passed at 5 kHz): mono microphone: both cable channels carry the processed voice (L/R difference 0.00 dB, vs. stereo 0.00 dB)
+
+### ZL Compressor (peak limiter setting, 5 ms look-ahead) (peak limiter; stands for: TDR Limiter 6 GE (limiter))
+plug-in: ZL Compressor 0.6.1 by ZL (D:\a\_temp\suite-vst3\ZL Compressor.vst3)
+loaded in 0.01 s; in 4 / out 2 channels (main in: Stereo), latency 0 samples, 83 parameters, editor yes
+  PASS ZL Compressor (peak limiter setting, 5 ms look-ahead): loads in MicVST and joins the chain
+settings applied live: Compressor Style = 'Clean'; Threshold (dB) = '-8.0'; Ratio = '100.00'; Knee Width = '0.00'; Attack = '0.00'; Release = '50.00'; Lookahead = '5.00'
+
+parameters back at their defaults: 83/83
+engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.7 ppm, shown latency 55.4 ms, cpu 0 %
+| phase | measurement |
+|---|---|
+| default settings | 1000 Hz at -2 dBFS: gain -18.28 dB, THD+N -66.2 dB, peak -20.28 dBFS |
+| active settings | 1000 Hz at -2 dBFS: gain -5.86 dB, THD+N -41.7 dB, peak -7.94 dBFS |
+| bypassed | 1000 Hz at -2 dBFS: gain -0.00 dB, THD+N -112.2 dB, peak -2.01 dBFS |
+| bypass off again | 1000 Hz at -2 dBFS: gain -5.86 dB, THD+N -41.7 dB, peak -7.94 dBFS |
+| plug-in window open | 1000 Hz at -2 dBFS: gain -5.86 dB, THD+N -41.7 dB, peak -7.94 dBFS |
+| defaults restored | 1000 Hz at -2 dBFS: gain -18.28 dB, THD+N -66.2 dB, peak -20.28 dBFS |
+  PASS ZL Compressor (peak limiter setting, 5 ms look-ahead): every live parameter change accepted (7 parameters)
+  PASS ZL Compressor (peak limiter setting, 5 ms look-ahead): -2 dBFS tone held at -7.94 dBFS peak (threshold -8)
+  PASS ZL Compressor (peak limiter setting, 5 ms look-ahead): look-ahead reported as latency: 0 -> 240 samples (5 ms = 240); chain latency 240
+  PASS ZL Compressor (peak limiter setting, 5 ms look-ahead): bypassed = dry signal (deviation 0.000 dB)
+  PASS ZL Compressor (peak limiter setting, 5 ms look-ahead): bypass off = the active sound again (difference 0.00 dB)
+  PASS ZL Compressor (peak limiter setting, 5 ms look-ahead): defaults restored = the default sound again (difference 0.00 dB)
+  PASS ZL Compressor (peak limiter setting, 5 ms look-ahead): no click, dropout or MicVST event while it ran: clicks 0, silent gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0, stalls of the test machine 0
+  PASS ZL Compressor (peak limiter setting, 5 ms look-ahead): plug-in window opened in 157.126 ms (600 x 371), closed after 2.5 s: clicks 0, silent gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0
+| restored from config.xml (new engine) | 1000 Hz at -2 dBFS: gain -5.86 dB, THD+N -41.7 dB, peak -7.94 dBFS |
+| mono microphone, left | 1000 Hz at -2 dBFS: gain -5.86 dB, THD+N -41.7 dB, peak -7.94 dBFS |
+| mono microphone, right | 1000 Hz at -2 dBFS: gain -5.86 dB, THD+N -41.7 dB, peak -7.94 dBFS |
+  PASS ZL Compressor (peak limiter setting, 5 ms look-ahead): saved and restored through config.xml: 'ZL Compressor', parameters identical 83/83, state 5195 bytes
+  PASS ZL Compressor (peak limiter setting, 5 ms look-ahead): the restored plug-in sounds like the saved one (difference 0.00 dB)
+  PASS ZL Compressor (peak limiter setting, 5 ms look-ahead): mono microphone: both cable channels carry the processed voice (L/R difference 0.00 dB, vs. stereo 0.00 dB)
+
+### Fire (multiband saturation) (saturation; stands for: Saturn 2 / SDRR2 (saturation))
+plug-in: Fire 2.0.0 by Blue Wings Music (D:\a\_temp\suite-vst3\Fire.vst3)
+loaded in 0.16 s; in 2 / out 2 channels (main in: Stereo), latency 83 samples, 4635 parameters, editor yes
+  PASS Fire (multiband saturation): loads in MicVST and joins the chain
+settings applied live: Drive = '60.00'
+parameters back at their defaults: 4635/4635
+engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -4.5 ppm, shown latency 57.2 ms, cpu 3 %
+| phase | measurement |
+|---|---|
+| default settings | 997 Hz at -12 dBFS: gain 3.38 dB, THD+N -45.4 dB, peak -8.66 dBFS |
+| active settings | 997 Hz at -12 dBFS: gain 9.18 dB, THD+N -10.5 dB, peak -4.67 dBFS |
+| bypassed | 997 Hz at -12 dBFS: gain -0.00 dB, THD+N -94.0 dB, peak -12.00 dBFS |
+| bypass off again | 997 Hz at -12 dBFS: gain 9.18 dB, THD+N -10.5 dB, peak -4.67 dBFS |
+| plug-in window open | 997 Hz at -12 dBFS: gain 9.18 dB, THD+N -10.5 dB, peak -4.67 dBFS |
+| defaults restored | 997 Hz at -12 dBFS: gain 3.38 dB, THD+N -45.4 dB, peak -8.66 dBFS |
+  PASS Fire (multiband saturation): every live parameter change accepted (1 parameters)
+  PASS Fire (multiband saturation): drive adds harmonics: THD+N -45.4 -> -10.5 dB
+  PASS Fire (multiband saturation): bypassed = dry signal (deviation 0.000 dB)
+  PASS Fire (multiband saturation): bypass off = the active sound again (difference 0.00 dB)
+  PASS Fire (multiband saturation): defaults restored = the default sound again (difference 0.00 dB)
+  PASS Fire (multiband saturation): no click, dropout or MicVST event while it ran (clicks not counted on this signal): clicks 0, silent gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0, stalls of the test machine 0
+  PASS Fire (multiband saturation): plug-in window opened in 124.552 ms (1000 x 500), closed after 2.5 s: clicks 0, silent gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0
+| restored from config.xml (new engine) | 997 Hz at -12 dBFS: gain 9.18 dB, THD+N -10.5 dB, peak -4.69 dBFS |
+| mono microphone, left | 997 Hz at -12 dBFS: gain 9.18 dB, THD+N -10.5 dB, peak -4.70 dBFS |
+| mono microphone, right | 997 Hz at -12 dBFS: gain 9.18 dB, THD+N -10.5 dB, peak -4.70 dBFS |
+  PASS Fire (multiband saturation): saved and restored through config.xml: 'Fire', parameters identical 4635/4635, state 455947 bytes
+  PASS Fire (multiband saturation): the restored plug-in sounds like the saved one (difference 0.00 dB)
+  PASS Fire (multiband saturation): mono microphone: both cable channels carry the processed voice (L/R difference 0.00 dB, vs. stereo 0.00 dB)
+
+### Airwindows Consolidated (other effect; stands for: -)
+plug-in: Airwindows Consolidated 1.2026.291 by Airwindows (D:\a\_temp\suite-vst3\Airwindows Consolidated.vst3)
+loaded in 0.01 s; in 2 / out 2 channels (main in: Stereo), latency 0 samples, 14 parameters, editor yes
+  PASS Airwindows Consolidated: loads in MicVST and joins the chain
+settings applied live: Replace = '  0.2000'; Brightness = '  0.2000'; Detune = '  0.2000'; Bigness = '  0.2000'; - = '-'
+parameters back at their defaults: 14/14
+engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -1.6 ppm, shown latency 55.4 ms, cpu 1 %
+| phase | measurement |
+|---|---|
+| default settings | response (dB): 100 -7.66, 200 -3.70, 400 -8.75, 1k -12.54, 2k -18.79, 3k -23.13, 5k -30.74, 7k -37.27, 10k -43.77, 15k -52.30 |
+| active settings | response (dB): 100 -20.54, 200 -16.08, 400 -22.30, 1k -26.37, 2k -42.36, 3k -44.18, 5k -63.67, 7k -58.14, 10k -70.59, 15k -76.62 |
+| bypassed | response (dB): 100 0.08, 200 0.08, 400 0.04, 1k 0.03, 2k 0.01, 3k 0.01, 5k 0.01, 7k 0.01, 10k 0.00, 15k 0.00 |
+| bypass off again | response (dB): 100 -34.54, 200 -19.06, 400 -22.86, 1k -27.81, 2k -42.05, 3k -60.55, 5k -60.57, 7k -68.00, 10k -77.02, 15k -76.98 |
+| plug-in window open | response (dB): 100 -27.93, 200 -20.45, 400 -21.59, 1k -26.09, 2k -46.32, 3k -51.12, 5k -66.26, 7k -67.82, 10k -69.84, 15k -81.43 |
+| defaults restored | response (dB): 100 -9.53, 200 -1.13, 400 -9.45, 1k -9.15, 2k -19.28, 3k -23.43, 5k -35.98, 7k -38.77, 10k -46.83, 15k -53.73 |
+  NOTE Airwindows Consolidated: its sound changes by itself (same settings, two phases one after the other differ by 9.43 dB: modulation) - the 'same sound again' comparisons are NOT judged for it (ATLANDI)
+  PASS Airwindows Consolidated: every live parameter change accepted (5 parameters)
+  PASS Airwindows Consolidated: the moved parameters change the sound (largest change 32.93 dB)
+  PASS Airwindows Consolidated: bypassed = dry signal (deviation 0.083 dB)
+  NOTE Airwindows Consolidated: bypass off / defaults restored: differences 16.37 / 5.24 dB - not judged (its sound changes by itself)
+  PASS Airwindows Consolidated: no click, dropout or MicVST event while it ran (clicks not counted on this signal): clicks 0, silent gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0, stalls of the test machine 0
+  PASS Airwindows Consolidated: plug-in window opened in 102.492 ms (600 x 600), closed after 2.5 s: clicks 0, silent gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0
+| restored from config.xml (new engine) | response (dB): 100 -10.82, 200 -16.04, 400 -29.24, 1k -24.93, 2k -47.16, 3k -54.04, 5k -62.51, 7k -64.36, 10k -73.74, 15k -75.44 |
+| mono microphone, left | response (dB): 100 -10.84, 200 -16.25, 400 -29.39, 1k -24.95, 2k -46.98, 3k -54.69, 5k -62.87, 7k -65.48, 10k -75.29, 15k -77.71 |
+| mono microphone, right | response (dB): 100 -14.96, 200 -16.33, 400 -21.80, 1k -30.05, 2k -47.99, 3k -55.48, 5k -61.35, 7k -67.31, 10k -78.70, 15k -78.82 |
+  PASS Airwindows Consolidated: saved and restored through config.xml: 'Airwindows Consolidated', parameters identical 14/14, state 652 bytes
+  NOTE Airwindows Consolidated: the restored plug-in vs. the saved one: difference 9.86 dB - not judged (its sound changes by itself)
+  PASS Airwindows Consolidated: mono microphone: both cable channels carry the processed voice (L/R difference 7.59 dB, vs. stereo 10.52 dB)
+
+### DC1A3 (other effect; stands for: DC1A3 (the user's own plug-in, free))
+plug-in: DC1A3 3.5.0 by Klanghelm (D:\a\_temp\suite-vst3\DC1A3.vst3)
+loaded in 0.01 s; in 2 / out 2 channels (main in: Stereo), latency 0 samples, 10 parameters, editor yes
+  PASS DC1A3: loads in MicVST and joins the chain
+settings applied live: Input = '12.0 dB'
+parameters back at their defaults: 10/10
+engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -1.2 ppm, shown latency 55.4 ms, cpu 1 %
+| phase | measurement |
+|---|---|
+| default settings | response (dB): 100 -0.01, 200 -0.03, 400 -0.01, 1k -0.00, 2k 0.05, 3k 0.08, 5k 0.09, 7k 0.09, 10k 0.08, 15k 0.05 |
+| active settings | response (dB): 100 2.51, 200 2.57, 400 2.50, 1k 2.48, 2k 2.53, 3k 2.59, 5k 2.60, 7k 2.60, 10k 2.58, 15k 2.56 |
+| bypassed | response (dB): 100 0.08, 200 0.08, 400 0.06, 1k 0.03, 2k 0.02, 3k 0.01, 5k -0.00, 7k -0.00, 10k -0.00, 15k -0.00 |
+| bypass off again | response (dB): 100 2.55, 200 2.59, 400 2.53, 1k 2.51, 2k 2.53, 3k 2.59, 5k 2.59, 7k 2.60, 10k 2.58, 15k 2.56 |
+| plug-in window open | response (dB): 100 2.53, 200 2.57, 400 2.50, 1k 2.51, 2k 2.54, 3k 2.59, 5k 2.59, 7k 2.61, 10k 2.58, 15k 2.56 |
+| defaults restored | response (dB): 100 -0.05, 200 -0.05, 400 -0.03, 1k -0.06, 2k 0.01, 3k 0.06, 5k 0.08, 7k 0.08, 10k 0.06, 15k 0.04 |
+  PASS DC1A3: every live parameter change accepted (1 parameters)
+  PASS DC1A3: the moved parameters change the sound (largest change 2.59 dB)
+  PASS DC1A3: bypassed = dry signal (deviation 0.081 dB)
+  PASS DC1A3: bypass off = the active sound again (difference 0.05 dB)
+  PASS DC1A3: defaults restored = the default sound again (difference 0.06 dB)
+  PASS DC1A3: no click, dropout or MicVST event while it ran (clicks not counted on this signal): clicks 0, silent gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0, stalls of the test machine 0
+  PASS DC1A3: plug-in window opened in 65.8495 ms (396 x 478), closed after 2.5 s: clicks 0, silent gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0
+| restored from config.xml (new engine) | response (dB): 100 2.50, 200 2.53, 400 2.49, 1k 2.48, 2k 2.53, 3k 2.59, 5k 2.60, 7k 2.60, 10k 2.58, 15k 2.56 |
+| mono microphone, left | response (dB): 100 2.48, 200 2.52, 400 2.50, 1k 2.50, 2k 2.55, 3k 2.58, 5k 2.60, 7k 2.60, 10k 2.58, 15k 2.56 |
+| mono microphone, right | response (dB): 100 2.48, 200 2.52, 400 2.50, 1k 2.50, 2k 2.55, 3k 2.58, 5k 2.60, 7k 2.60, 10k 2.58, 15k 2.56 |
+  PASS DC1A3: saved and restored through config.xml: 'DC1A3', parameters identical 10/10, state 710 bytes
+  PASS DC1A3: the restored plug-in sounds like the saved one (difference 0.04 dB)
+  PASS DC1A3: mono microphone: both cable channels carry the processed voice (L/R difference 0.00 dB, vs. stereo 0.05 dB)
+
+### TDR VOS SlickEQ (other effect; stands for: TDR VOS SlickEQ GE (free edition of the same plug-in))
+plug-in: TDR VOS SlickEQ 1.3.9 by Tokyo Dawn Labs (D:\a\_temp\suite-vst3\TDR VOS SlickEQ.vst3)
+loaded in 0.01 s; in 2 / out 2 channels (main in: Stereo), latency 183 samples, 22 parameters, editor yes
+  PASS TDR VOS SlickEQ: loads in MicVST and joins the chain
+settings applied live: LOW Gain = '-10.8'; LOW Freq = '496'; MID Gain = '-10.8'; MID Freq = '251'; HIGH Gain = '-10.8'
+parameters back at their defaults: 22/22
+engine: underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -1.6 ppm, shown latency 59.2 ms, cpu 1 %
+| phase | measurement |
+|---|---|
+| default settings | response (dB): 100 0.03, 200 0.04, 400 0.00, 1k 0.03, 2k 0.00, 3k 0.00, 5k 0.00, 7k 0.00, 10k 0.00, 15k -0.00 |
+| active settings | response (dB): 100 -8.46, 200 -12.81, 400 -8.19, 1k 1.48, 2k 4.25, 3k 4.48, 5k 3.59, 7k 2.33, 10k 0.61, 15k -1.40 |
+| bypassed | response (dB): 100 0.09, 200 0.09, 400 0.03, 1k 0.04, 2k 0.01, 3k 0.00, 5k 0.01, 7k 0.01, 10k 0.00, 15k 0.00 |
+| bypass off again | response (dB): 100 -8.45, 200 -12.87, 400 -8.24, 1k 1.49, 2k 4.26, 3k 4.48, 5k 3.59, 7k 2.34, 10k 0.61, 15k -1.40 |
+| plug-in window open | response (dB): 100 -8.47, 200 -12.82, 400 -8.16, 1k 1.48, 2k 4.24, 3k 4.48, 5k 3.59, 7k 2.33, 10k 0.61, 15k -1.40 |
+| defaults restored | response (dB): 100 -0.00, 200 0.02, 400 -0.01, 1k 0.01, 2k 0.01, 3k -0.00, 5k 0.00, 7k 0.00, 10k 0.00, 15k 0.00 |
+  PASS TDR VOS SlickEQ: every live parameter change accepted (5 parameters)
+  PASS TDR VOS SlickEQ: the moved parameters change the sound (largest change 12.85 dB)
+  PASS TDR VOS SlickEQ: bypassed = dry signal (deviation 0.090 dB)
+  PASS TDR VOS SlickEQ: bypass off = the active sound again (difference 0.06 dB)
+  PASS TDR VOS SlickEQ: defaults restored = the default sound again (difference 0.03 dB)
+  PASS TDR VOS SlickEQ: no click, dropout or MicVST event while it ran (clicks not counted on this signal): clicks 0, silent gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0, stalls of the test machine 0
+  PASS TDR VOS SlickEQ: plug-in window opened in 86.5161 ms (748 x 228), closed after 2.5 s: clicks 0, silent gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0
+| restored from config.xml (new engine) | response (dB): 100 -8.46, 200 -12.73, 400 -8.17, 1k 1.47, 2k 4.26, 3k 4.48, 5k 3.59, 7k 2.34, 10k 0.61, 15k -1.40 |
+| mono microphone, left | response (dB): 100 -8.47, 200 -12.85, 400 -8.16, 1k 1.49, 2k 4.24, 3k 4.48, 5k 3.59, 7k 2.33, 10k 0.61, 15k -1.40 |
+| mono microphone, right | response (dB): 100 -8.47, 200 -12.85, 400 -8.16, 1k 1.49, 2k 4.24, 3k 4.48, 5k 3.59, 7k 2.33, 10k 0.61, 15k -1.40 |
+  PASS TDR VOS SlickEQ: saved and restored through config.xml: 'TDR VOS SlickEQ', parameters identical 22/22, state 2103 bytes
+  PASS TDR VOS SlickEQ: the restored plug-in sounds like the saved one (difference 0.08 dB)
+  PASS TDR VOS SlickEQ: mono microphone: both cable channels carry the processed voice (L/R difference 0.00 dB, vs. stereo 0.04 dB)
+
+## Chain like the user's (Otomatik Kazanc first, all effects, realistic speech at -20 dBFS typical, 40 s)
+order: Otomatik Kazanc -> RNNoise -> ZL Compressor [de-esser] -> ZL Equalizer 2 -> ZL Compressor -> Fire -> Airwindows Consolidated -> DC1A3 -> TDR VOS SlickEQ -> ZL Compressor [de-esser] -> ZL Compressor [limiter]
+  underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.4 ppm, shown latency 69.0 ms, cpu 13 %
+  11 elements; plug-in latencies add up to 650 samples, chain latency 410 samples (8.5 ms), MicVST shows 69.0 ms; plug-in thread load average 12.8 %, peak 15.7 %; output peak -6.34 dBFS, RMS -21.3 dBFS
+  PASS chain: MicVST's shown latency includes the plug-ins' latencies: +14.0 ms over the same chain bypassed (54.9 ms), the plug-ins report 650 samples = 13.5 ms (JUCE's own graph figure: 410 samples)
+  PASS chain: 40 s of speech through 11 elements without a MicVST event (underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0)
+  PASS chain: the voice comes out, below full scale (peak -6.34 dBFS)
+
+## Chain edits during playback with real plug-ins (997 Hz -16 dBFS; one edit per 1.2 s)
+start: Otomatik Kazanc -> ZL Equalizer 2 -> ZL Compressor -> ZL Compressor [de-esser] -> ZL Compressor [limiter]
+| edit | clicks in the following 1.2 s | longest silence (ms) |
+|---|---:|---:|
+| bypass 1 on | 0 | 23.7 |
+| bypass 1 off | 0 | 23.7 |
+| bypass 2 on | 0 | 23.7 |
+| bypass 2 off | 0 | 23.7 |
+| bypass 3 on | 0 | 23.7 |
+| bypass 3 off | 0 | 23.7 |
+| bypass 4 on | 0 | 23.7 |
+| bypass 4 off | 0 | 23.7 |
+| bypass 5 on | 0 | 23.7 |
+| bypass 5 off | 0 | 23.7 |
+| move Otomatik Kazanc to the end | 0 | 23.7 |
+| move it back to the top | 0 | 23.7 |
+| move the last effect to position 2 | 0 | 23.7 |
+| move the last effect to position 2 | 0 | 23.7 |
+| move the last effect to position 2 | 0 | 23.7 |
+| add a second EQ | 0 | 33.7 |
+| remove it | 0 | 23.7 |
+| remove effect 2 | 0 | 23.7 |
+  PASS chain edits with real plug-ins: 18 edits, followed by a click: 0
+  PASS chain edits: no silence longer than 100 ms, no MicVST event (underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0)
+
+## Levels between the effects with Otomatik Kazanc first (taps after each element; realistic speech, 26 s per run, measured over the last 14 s)
+order: Otomatik Kazanc -> RNNoise -> ZL Equalizer 2 -> ZL Compressor [de-esser] -> ZL Compressor -> Fire -> ZL Compressor [limiter]
+| run | microphone | after Otomatik Kazanc | after RNNoise | after ZL Equalizer 2 | after ZL Compressor [de-esser] | after ZL Compressor | after Fire | after ZL Compressor [limiter] | gain shown |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| quiet voice (-32 dBFS typical), Otomatik Kazanc on | -18.7 / -40.5 | -12.8 / -34.5 | -18.6 / -34.8 | -15.9 / -33.3 | -15.9 / -33.3 | -23.2 / -37.6 | -6.0 / -17.2 | -7.1 / -17.6 | 6.00 dB |
+  PASS Otomatik Kazanc first, quiet voice (-32 dBFS typical), Otomatik Kazanc on: the effects never get more than -10 dBFS (peak after it -12.75 dBFS)
+| quiet voice (-32 dBFS typical), Otomatik Kazanc off | -18.7 / -40.5 | -18.7 / -40.5 | -24.6 / -40.8 | -21.9 / -39.3 | -21.9 / -39.3 | -26.0 / -40.5 | -6.8 / -19.9 | -7.4 / -19.9 | off |
+| normal voice (-20 dBFS typical), on | -6.7 / -28.5 | -10.5 / -28.1 | -11.8 / -28.3 | -9.1 / -26.9 | -9.1 / -26.9 | -21.1 / -35.3 | -6.0 / -15.3 | -7.1 / -16.3 | 0.12 dB |
+  PASS Otomatik Kazanc first, normal voice (-20 dBFS typical), on: the effects never get more than -10 dBFS (peak after it -10.46 dBFS)
+| normal voice (-20 dBFS typical), off | -6.7 / -28.5 | -6.7 / -28.5 | -12.6 / -28.8 | -9.9 / -27.3 | -9.9 / -27.3 | -21.3 / -35.4 | -6.0 / -15.4 | -7.1 / -16.3 | off |
+| loud voice (-14 dBFS typical), on | -0.7 / -22.5 | -10.3 / -23.7 | -10.4 / -23.9 | -7.8 / -22.5 | -7.8 / -22.5 | -19.1 / -33.8 | -6.0 / -14.2 | -7.1 / -15.4 | -0.26 dB |
+  PASS Otomatik Kazanc first, loud voice (-14 dBFS typical), on: the effects never get more than -10 dBFS (peak after it -10.29 dBFS)
+| shouting (-24 dBFS voice, +10 dB for 4 s), on | -0.7 / -27.3 | -10.3 / -26.9 | -10.6 / -27.1 | -7.3 / -25.4 | -7.3 / -25.4 | -20.8 / -35.0 | -6.0 / -15.2 | -7.1 / -16.1 | 4.12 dB |
+  PASS Otomatik Kazanc first, shouting (-24 dBFS voice, +10 dB for 4 s), on: the effects never get more than -10 dBFS (peak after it -10.28 dBFS)
+| shouting (-24 dBFS voice, +10 dB for 4 s), off | -0.7 / -27.3 | -0.7 / -27.3 | -6.6 / -27.6 | -3.8 / -25.7 | -3.8 / -25.7 | -19.6 / -35.7 | -6.0 / -15.7 | -7.1 / -16.5 | off |
+(peak / RMS in dBFS at each point)
+  PASS no sample at or above full scale after any element of the chain in these runs (0)
+
+## Other orders of the same effects (normal voice -20 dBFS typical, Otomatik Kazanc on; output over the last 14 s)
+| order | output peak (dBFS) | RMS (dBFS) | crest (dB) | 100-300 Hz | 1-3 kHz | 5-10 kHz (band RMS, dBFS) |
+|---|---:|---:|---:|---:|---:|---:|
+| recommended: Otomatik Kazanc -> RNNoise -> ZL Equalizer 2 -> ZL Compressor [de-esser] -> ZL Compressor -> Fire -> ZL Compressor [limiter] | -6.50 | -16.3 | 9.8 | -23.6 | -30.0 | -43.7 |
+| saturation before compressor and EQ: Otomatik Kazanc -> RNNoise -> Fire -> ZL Compressor -> ZL Equalizer 2 -> ZL Compressor [de-esser] -> ZL Compressor [limiter] | -13.40 | -27.7 | 14.3 | -35.9 | -39.9 | -59.3 |
+| limiter first, saturation last: Otomatik Kazanc -> ZL Compressor [limiter] -> RNNoise -> ZL Equalizer 2 -> ZL Compressor [de-esser] -> ZL Compressor -> Fire | -5.90 | -15.4 | 9.5 | -22.6 | -29.2 | -42.9 |
+| Otomatik Kazanc last: RNNoise -> ZL Equalizer 2 -> ZL Compressor [de-esser] -> ZL Compressor -> Fire -> ZL Compressor [limiter] -> Otomatik Kazanc | -10.31 | -19.4 | 9.1 | -26.7 | -33.0 | -44.7 |
+
+## Hazir ayar (preset) with real plug-ins: save -> preset file -> load into a new engine; factory preset and back
+  PASS preset of the whole chain (13 elements, 5554 parameters) saved to a file and loaded into a new engine: 5554/5554 parameters identical
+  PASS factory preset 'Dengeli Profesyonel' (built-in only), then 'Onceki zincire don': the real plug-ins come back with 5554/5554 parameters identical
+  PASS presets with real plug-ins: no invalid blocks (0)
+
+## VST3 suite result: 116 passed, 0 failed, 3 notes; 0 click/gap findings put down to stalls of the test machine (late virtual cable / lost microphone packet)
+-- exit code 0, 676.5 s, peak working set 217 MB
