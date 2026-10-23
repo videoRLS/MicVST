@@ -17,7 +17,9 @@ project follows [Semantic Versioning](https://semver.org/).
   loudness when prepared (100 ms blocks, BS.1770 K-weighting and gating): 100 % = -15.5 LUFS,
   peaks at most -3 dBFS (a spiky file stays quieter instead of going over); other sample rates
   are converted to 48 kHz. Default volume 40 % (was 80 %): about 4 dB quieter than before.
-  The user's files are not changed. Unit tests: built-ins within 0.25 dB, own files at 0 dBFS /
+  The user's files are not changed. Levelled sounds are kept (the two chosen ones and the last
+  previewed one): moving the volume slider only rescales (15 ms instead of ~0.4 s per sound for a
+  10 s file at 44.1 kHz). Unit tests: built-ins within 0.25 dB, own files at 0 dBFS /
   -40 dBFS / 44.1 kHz all at -15.5 LUFS, 10 mute / unmute per second: no step larger than the
   sounds' own.
 

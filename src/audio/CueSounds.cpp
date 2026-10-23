@@ -365,9 +365,24 @@ juce::MemoryBlock CuePlayer::makeWav (const juce::AudioBuffer<float>& buf, doubl
 
 bool CuePlayer::prepare (const juce::String& id, juce::MemoryBlock& out, juce::String& name)
 {
-    juce::AudioBuffer<float> buf; double rate = 0.0;
-    if (! lib.load (id, buf, rate)) return false;
-    out = makeWav (levelled (buf, rate), outputRate, settings.volume);
+    juce::String key = id;
+    if (id.startsWith ("file:"))
+    {
+        const auto f = lib.getUserFolder().getChildFile (id.fromFirstOccurrenceOf ("file:", false, false));
+        if (! f.existsAsFile()) return false;
+        key << "|" << juce::String (f.getSize()) << "|" << juce::String (f.getLastModificationTime().toMilliseconds());
+    }
+    auto it = levelCache.find (id);
+    if (it == levelCache.end() || it->second.key != key)
+    {
+        juce::AudioBuffer<float> buf; double rate = 0.0;
+        if (! lib.load (id, buf, rate)) return false;
+        levelCache[id] = Levelled { key, levelled (buf, rate) };
+        for (auto e = levelCache.begin(); e != levelCache.end();)   // keep the chosen two and this one
+            e = (e->first == id || e->first == settings.onId || e->first == settings.offId) ? std::next (e) : levelCache.erase (e);
+        it = levelCache.find (id);
+    }
+    out = makeWav (it->second.buf, outputRate, settings.volume);
     name.clear();
     for (auto& s : lib.list()) if (s.id == id) name = s.name;
     return true;

@@ -246,6 +246,44 @@ struct CueTest : juce::UnitTest
             expect (lsp.getMagnitude (0, 0, 24000) <= juce::Decibels::decibelsToGain (CuePlayer::peakCeilingDb) + 1.0e-4f);
         }
 
+        beginTest ("level: a 10 s own file at 44.1 kHz is levelled once; moving the volume only rescales");
+        {
+            juce::AudioBuffer<float> b (2, 441000);
+            for (int i = 0; i < b.getNumSamples(); ++i)
+                for (int c = 0; c < 2; ++c) b.setSample (c, i, (float) (0.2 * std::sin (2.0 * juce::MathConstants<double>::pi * 440.0 * i / 44100.0)));
+            const double t0 = juce::Time::getMillisecondCounterHiRes();
+            const auto lv = CuePlayer::levelled (b, 44100.0);
+            const double t1 = juce::Time::getMillisecondCounterHiRes();
+            const auto w = CuePlayer::makeWav (lv, CuePlayer::outputRate, 40);
+            const double t2 = juce::Time::getMillisecondCounterHiRes();
+            logMessage ("10 s at 44.1 kHz: levelled " + juce::String (t1 - t0, 1) + " ms, WAV " + juce::String (t2 - t1, 1) + " ms");
+            expect (w.getSize() > 0);
+
+            // the player: chosen once (levelled), then the volume slider moves - only rescaled
+            dir.createDirectory();
+            writeWav (dir.getChildFile ("uzun.wav"), 10.0, 44100.0);
+            juce::Array<juce::MemoryBlock> played; int stops = 0;
+            CuePlayer p;
+            p.library().setUserFolder (dir);
+            p.setBackend (std::make_unique<FakeBackend> (&played, &stops, "Kulaklik"));
+            CueSettings s; s.onId = s.offId = "file:uzun.wav";
+            p.setSettings (s);
+            double worst = 0.0;
+            for (int v = 10; v <= 100; v += 10)
+            {
+                s.volume = v;
+                const double a0 = juce::Time::getMillisecondCounterHiRes();
+                p.setSettings (s);
+                worst = juce::jmax (worst, juce::Time::getMillisecondCounterHiRes() - a0);
+            }
+            logMessage ("volume change with a 10 s own file: at most " + juce::String (worst, 1) + " ms");
+            expect (worst < 150.0, "a volume change does not level again: " + juce::String (worst, 1) + " ms");
+            p.play (true);
+            CueLibrary l; l.setUserFolder (dir); juce::AudioBuffer<float> y; double ry = 0;
+            expect (l.load ("file:uzun.wav", y, ry) && played.size() == 1 && played[0] == wavOf (y, ry, 100), "the cached sound is the same sound");
+            dir.getChildFile ("uzun.wav").deleteFile();
+        }
+
         beginTest ("mixer: fast mute / unmute (10 per second, 1 s) makes no step bigger than the sounds' own");
         {
             CueLibrary lib; juce::AudioBuffer<float> a, b; double r = 0;

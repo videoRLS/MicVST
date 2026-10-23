@@ -137,6 +137,11 @@ private:
     bool outputIsCable();
 
     CueLibrary lib;
+    // levelled sounds by id (and, for own files, size + date): a volume change only rescales -
+    // levelling a 10 s file at 44.1 kHz takes a few hundred ms. At most the two chosen sounds
+    // and the last previewed one are kept.
+    struct Levelled { juce::String key; juce::AudioBuffer<float> buf; };
+    std::map<juce::String, Levelled> levelCache;
     CueSettings settings;
     juce::MemoryBlock onWav, offWav, previewWav;
     juce::String onName, offName;
