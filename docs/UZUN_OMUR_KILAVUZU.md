@@ -91,9 +91,9 @@ Bilmen iyi olur (ölçüldü):
   - Seçilen hazır ayar o anki zincirin yerine geçer (23 Ekim'de denerken oldu).
   - Kendi zincirini her zaman bir hazır ayar olarak kaydet ve dosyaya aktar.
 - **Zincir çok ağırlaşırsa:** log'da sık sık "İşleme: … blok gerçek zamandan uzun sürdü" satırı görür ya da kayıtta tık duyarsan:
-  - Ayarlar'da **Güvenlik payı**nı Otomatik yerine 20–40 ms yap. Gecikme biraz artar, sıçramalar emilir.
-  - Ya da Pro-Q 4'ü "Zero latency" / "Natural phase" moduna al.
-  - Bugünkü zincirinle bu satırlar ara sıra çıkıyor. 60 dakikalık testte kabloda duyulur hiçbir olay ölçülmedi; hız en çok 0,26 cent değişti.
+  - Senin **Güvenlik payı** ayarın **80 ms** (Ayarlar → Ses). Bütün testler bu ayarla yapıldı ve ses kesintisi ölçülmedi; düşürme.
+  - Zinciri hafifletmek en etkili yol: örneğin Pro-Q 4'ü "Zero latency" / "Natural phase" moduna al (gecikme de ~100 ms azalır).
+  - Bugünkü zincirinle bu satırlar ara sıra çıkıyor, çoğu sen bilgisayarda başka iş yaparken. 20 saatlik izlemede ve 60 dakikalık kayıtta ses kesintisi 0 ölçüldü; hız en çok 0,26 cent değişti (duyulmaz).
 - **Kapanışta "MicVST çöktü" kaydı:**
   - Zincirde Clear varken MicVST kapanırken Windows olay günlüğüne bu kayıt düşebiliyor (10 kapanışın 8'inde ölçüldü). Tepsiden hazır ayar seçip Clear'ı zincirden çıkarınca da bir kez düştü; MicVST çalışmaya devam etti.
   - Ayarlar ve kayıtlar bundan etkilenmiyor (ölçüldü). Görmezden gelebilirsin.

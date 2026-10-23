@@ -139,7 +139,7 @@ Görev Windows 11 x64 içindi; kullanıcının ana bilgisayarı Windows 10 Pro 2
 - **Ses sürücüsü / VB-Cable güncellemesi:** Kablonun biçimi değişebilir. MicVST farklı hızlarda da doğru çalışıyor (44,1 ↔ 48 kHz seviye farkı < 0,01 dB, C5). → Sağlık kontrolü; test edilen düzen 24 bit / 48 kHz. Kurulum dosyası 3.3.1.7'yi sakla.
 - **Eklenti güncellemesi / kaldırılması:** Eksik eklentiyle MicVST açılır (O2). Kapanıştaki Clear olayı Clear güncellemesiyle değişebilir. → Güncellemeden önce çalışan sürümün kurulumunu sakla; sonra sağlık kontrolü.
 - **Donanım değişimi (mikrofon, USB yuvası):** Aynı adla geri gelen cihaz kendiliğinden bağlanıyor (E1, W). Gerçek USB çıkar-tak bu teslimde kullanıcı kararıyla yapılmadı (U10 ATLANDI).
-- **Ağır zincir + başka yüklü programlar:** Ara sıra gerçek zamanı aşan bloklar ölçüldü. Köprü bunları duyulmayacak düzeyde emiyor (U4). Sık olursa güvenlik payını sabit 20–40 ms yap.
+- **Ağır zincir + başka yüklü programlar:** Ara sıra gerçek zamanı aşan bloklar ölçüldü. Köprü bunları kullanıcının 80 ms güvenlik payıyla emiyor (U4, R4: ses kesintisi 0). Güvenlik payını düşürmemek gerekir; sık olursa zinciri hafifletmek (ör. Pro-Q 4 doğal faz).
 - **Kod imzası yok:** SmartScreen uyarısı her yeni exe'de çıkabilir. Exe'yi SHA-256 ile doğrula.
 
 ## 8. Kullanıcının yapması gerekenler
