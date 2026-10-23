@@ -6,3 +6,6 @@
 - **U9 Discord 30 dk:** ATLANDI (kullanıcı kararı). Kullanıcının notu: Discord'daki arkadaşı sesin iyi olduğunu
   söyledi (öznel, ölçülmedi).
 - **U8, U10, U11, U13:** ATLANDI (kullanıcı kararı, 22 Ekim gecesi).
+- **Tema / dil değişiminde "hayalet" pencere (kullanıcı bulgusu, 23 Ekim 05:08):** Ayarlar penceresi yeniden kurulurken
+  önce varsayılan yerde açık başlıkla görünüp sonra eski yerine kayıyordu. Düzeltildi (`7c5e870`); kullanıcı
+  hızlı derlemeyle (SHA-256 c662993870…3721) denedi: "evet düzelmiş" (05:28).
