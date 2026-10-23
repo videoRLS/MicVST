@@ -103,3 +103,13 @@ Açık konular: uygulama adı kararı (kullanıcı seçmedi); gerçek donanım t
 - Kullanıcının zinciri (13 eklenti): Clear, Otomatik Kazanç, Pro-DS x3, Pro-Q 4 (lineer faz, 106,7 ms),
   Pro-C 3, SDRR2, Saturn 2 x2, DC1A3, TDR VOS SlickEQ GE, TDR Limiter 6 GE.
 - Commit mesajlarının sonuna o oturumun kendi Co-Authored-By / Claude-Session satırları eklenir.
+
+## 23 Ekim 2026 – Windows test görevi (TEST_PROMPTU_WIN11) sonu
+
+- 16:00 kod dondurma: ürün kodu `93cb4b7` ile aynı (sonrası yalnız test araçları ve belgeler). Tam tur #3 bu
+  commit'le başlatıldı; teslim edilen exe onun exe'si.
+- Rapor: `docs/TEST_RAPORU_WIN11_1.2.2.md`; kılavuz: `docs/UZUN_OMUR_KILAVUZU.md`; kanıtlar: `docs/kanit_win11/`.
+- Açık bulgu: Clear zincirdeyken kapanışta "MicVST.exe çöktü" olayı (çıkış kodu 0, kayıp yok). Denenen
+  "süreci hemen bitir" düzeltmesi işe yaramadı ve geri alındı (çökme eklenti kapatılırken oluyor).
+- Test araçları: `tools/ci-reclong-check.py` + `tools/r8_standart.py` (R3/R8), `tools/ci-startstop.ps1` (R6),
+  `tools/ci-clockchange.ps1` (R5), `tools/arsiv_olustur.sh` (R9 arşiv), `MicVSTTests --list` / `Prefix*`.
