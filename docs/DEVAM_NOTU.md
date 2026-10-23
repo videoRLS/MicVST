@@ -113,3 +113,9 @@ Açık konular: uygulama adı kararı (kullanıcı seçmedi); gerçek donanım t
   "süreci hemen bitir" düzeltmesi işe yaramadı ve geri alındı (çökme eklenti kapatılırken oluyor).
 - Test araçları: `tools/ci-reclong-check.py` + `tools/r8_standart.py` (R3/R8), `tools/ci-startstop.ps1` (R6),
   `tools/ci-clockchange.ps1` (R5), `tools/arsiv_olustur.sh` (R9 arşiv), `MicVSTTests --list` / `Prefix*`.
+
+## Teslim (23 Ekim 2026, ~21:00)
+
+- 1.2.2 teslim edildi: exe `5F70A33F…7798` (tur #3, baf4efd) kullanıcının PC'sinde `C:\MicVST\MicVST.exe`; rapor, kılavuz `C:\MicVST\teslim_1.2.2\`; arşiv zip (37 MB, PC'ye yazılamadı: 30 MB sınırı) sohbette dosya olarak.
+- Bulgular açık: #6 (Clear kapanış kaydı), #12 (geçici dosyalar), #14 (kulaklıkta bildirim sesi tıkı, 1.2.2'de). #13 açıklandı (Görev Yöneticisi).
+- 1.2.3 adayı: dal `kararlilik/bildirim-sesi` (a331bdf) – bildirim sesleri MicVST'nin kendi karıştırıcısıyla (waveOut, 10 ms yumuşak geçiş), hepsi aynı yükseklikte (100 % = −15,5 LUFS 100 ms blok, tepe ≤ −3 dBFS), varsayılan %40. Tam tur run 39997743979 (başlangıç 17:45Z). Kullanıcı deneme exe'sini (C303BCA3…) denedi: "gayet iyi". Tur geçerse 1.2.3 olarak exe + SHA + arşiv + rapor eki verilecek; 1.2.2 `MicVST_onceki.exe` olur.
