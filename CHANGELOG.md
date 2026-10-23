@@ -44,6 +44,10 @@ project follows [Semantic Versioning](https://semver.org/).
   shown by unit test "Counters R1", which runs the recorder, the Bildirim sesi and the retry with the
   counter starting just before the wrap). The spectrum display counted its samples in 32 bits and showed
   an empty picture for a moment once a day (every 24.9 h at 48 kHz); now 64 bits. No change to the audio.
+- Ayarlar: changing the theme or the language no longer flickers. The settings window is rebuilt with the
+  new colours; it used to appear first at the default place with a light title bar and then jump to where
+  it was (it looked like a second window for a moment). Now the new one is placed, darkened and filled
+  before it shows, over the old one, which closes only then. (Reported by the user on 23 October.)
 - İşlem önceliği (process priority) in the window: Normal (default), Normalin Üstünde, Yüksek.
   Applied at once, read back from Windows, saved; the audio threads stay MMCSS in every case.
 - A mono part of the chain (mono microphone, a mono plug-in such as RNNoise) followed by a stereo

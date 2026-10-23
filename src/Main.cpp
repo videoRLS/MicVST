@@ -434,7 +434,10 @@ private:
         std::unique_ptr<SettingsWindow> settingsWindow;
 
     public:
-        void showSettings()
+        // bounds / view: where and at which section a rebuilt settings window appears (rebuild()); they are
+        // set before the window is shown - shown first at the default place and moved afterwards, it
+        // flickered like a second window ("hayalet") when the theme or the language changed
+        void showSettings (juce::Rectangle<int> bounds = {}, const SettingsComponent::ViewState* view = nullptr)
         {
             if (settingsWindow == nullptr)
             {
@@ -454,10 +457,16 @@ private:
                 settingsWindow->setContentOwned (new SettingsComponent (engineRef, hotkeys, cb), true);
                 settingsWindow->setResizable (true, false);
                 settingsWindow->setResizeLimits (560, 420, 1200, 1400);
-                settingsWindow->centreAroundComponent (this, settingsWindow->getWidth(), settingsWindow->getHeight());
+                if (bounds.isEmpty())
+                    settingsWindow->centreAroundComponent (this, settingsWindow->getWidth(), settingsWindow->getHeight());
+                else
+                    settingsWindow->setBounds (bounds);
+                if (view != nullptr)
+                    if (auto* sc = dynamic_cast<SettingsComponent*> (settingsWindow->getContentComponent()))
+                        sc->setViewState (*view);
             }
+            micvst::useDarkTitleBar (*settingsWindow, micvst::theme::dark);   // before it shows: no light frame first
             settingsWindow->setVisible (true);
-            micvst::useDarkTitleBar (*settingsWindow, micvst::theme::dark);
             settingsWindow->toFront (true);
         }
     private:
@@ -489,19 +498,17 @@ private:
                 if (auto* sc = dynamic_cast<SettingsComponent*> (settingsWindow->getContentComponent()))
                     settingsView = sc->getViewState();
             }
-            settingsWindow = nullptr;
+            // the old settings window stays on screen until the new one is there (its panels add and remove
+            // their own listeners, so both may exist for a moment): no gap, no jump
+            auto oldSettings = std::move (settingsWindow);
             clearContentComponent();                // the old content (and its engine callbacks) first ...
             content = nullptr;
             createContent();                        // ... then the new one, built with the new colours
             micvst::useDarkTitleBar (*this, micvst::theme::dark);
             repaint();
             if (settingsOpen)                       // the settings window again, where it was, at the same section
-            {
-                showSettings();
-                settingsWindow->setBounds (settingsBounds);
-                if (auto* sc = dynamic_cast<SettingsComponent*> (settingsWindow->getContentComponent()))
-                    sc->setViewState (settingsView);
-            }
+                showSettings (settingsBounds, &settingsView);
+            oldSettings = nullptr;
         }
         AudioEngine& engineRef;
         GlobalHotkeys* hotkeys = nullptr;
