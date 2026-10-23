@@ -1,0 +1,1364 @@
+Random seed: 0x2169b9a
+-----------------------------------------------------------------
+Starting tests in: Smoke / runner works...
+Completed tests in Smoke / runner works
+-----------------------------------------------------------------
+Starting tests in: Metering / silence is zero...
+Completed tests in Metering / silence is zero
+-----------------------------------------------------------------
+Starting tests in: Metering / DC at 1.0 -> rms 1, peak 1...
+Completed tests in Metering / DC at 1.0 -> rms 1, peak 1
+-----------------------------------------------------------------
+Starting tests in: Metering / peak picks max abs across channels...
+Completed tests in Metering / peak picks max abs across channels
+-----------------------------------------------------------------
+Starting tests in: GraphConnections / empty mono chain: input(1out) -> output(2in) = 1 channel...
+Completed tests in GraphConnections / empty mono chain: input(1out) -> output(2in) = 1 channel
+-----------------------------------------------------------------
+Starting tests in: GraphConnections / empty stereo chain: input(2out) -> output(2in) = 2 channels...
+Completed tests in GraphConnections / empty stereo chain: input(2out) -> output(2in) = 2 channels
+-----------------------------------------------------------------
+Starting tests in: GraphConnections / mono plugin then mono->stereo converter then stereo out...
+Completed tests in GraphConnections / mono plugin then mono->stereo converter then stereo out
+-----------------------------------------------------------------
+Starting tests in: GraphConnections / mono microphone into a stereo plugin: the one channel feeds both plugin inputs...
+Completed tests in GraphConnections / mono microphone into a stereo plugin: the one channel feeds both plugin inputs
+-----------------------------------------------------------------
+Starting tests in: GraphConnections / mono plugin inside a stereo chain, then a stereo plugin (with an aux input bus): both inputs fed...
+Completed tests in GraphConnections / mono plugin inside a stereo chain, then a stereo plugin (with an aux input bus): both inputs fed
+-----------------------------------------------------------------
+Starting tests in: GraphConnections / chain ending mono: still exactly one channel into the output (the engine copies it)...
+Completed tests in GraphConnections / chain ending mono: still exactly one channel into the output (the engine copies it)
+-----------------------------------------------------------------
+Starting tests in: GraphConnections / two stereo plugins: in(2)->p1(2/2)->p2(2/2)->out(2)...
+Completed tests in GraphConnections / two stereo plugins: in(2)->p1(2/2)->p2(2/2)->out(2)
+-----------------------------------------------------------------
+Starting tests in: Persistence / round-trip preserves fields + plugin blob...
+Completed tests in Persistence / round-trip preserves fields + plugin blob
+-----------------------------------------------------------------
+Starting tests in: Persistence / 1.1.1 config loads: old update-check keys ignored, safety buffer defaults to Auto...
+Completed tests in Persistence / 1.1.1 config loads: old update-check keys ignored, safety buffer defaults to Auto
+-----------------------------------------------------------------
+Starting tests in: Persistence / KayÄ±t settings survive a restart (config.xml as text)...
+Completed tests in Persistence / KayÄ±t settings survive a restart (config.xml as text)
+-----------------------------------------------------------------
+Starting tests in: Persistence / plug-in identity inside a multi-plug-in file survives a round trip...
+Completed tests in Persistence / plug-in identity inside a multi-plug-in file survives a round trip
+-----------------------------------------------------------------
+Starting tests in: PluginScanCache / round-trip preserves types and skip list...
+Completed tests in PluginScanCache / round-trip preserves types and skip list
+-----------------------------------------------------------------
+Starting tests in: PluginScanCache / foreign xml is rejected...
+Completed tests in PluginScanCache / foreign xml is rejected
+-----------------------------------------------------------------
+Starting tests in: PluginScanCache / load deletes corrupt file and returns false...
+Completed tests in PluginScanCache / load deletes corrupt file and returns false
+-----------------------------------------------------------------
+Starting tests in: runScan / ok/timeout/failed are sorted into found and skipped...
+Completed tests in runScan / ok/timeout/failed are sorted into found and skipped
+-----------------------------------------------------------------
+Starting tests in: runScan / garbage xml on ok-status counts as failed...
+Completed tests in runScan / garbage xml on ok-status counts as failed
+-----------------------------------------------------------------
+Starting tests in: runScan / shouldExit aborts without blacklisting...
+Completed tests in runScan / shouldExit aborts without blacklisting
+-----------------------------------------------------------------
+Starting tests in: runScan / user skip only affects the current file and is reset per file...
+Completed tests in runScan / user skip only affects the current file and is reset per file
+-----------------------------------------------------------------
+Starting tests in: runScan / partial: rescued types are kept, file skip-listed with crash reason...
+Completed tests in runScan / partial: rescued types are kept, file skip-listed with crash reason
+-----------------------------------------------------------------
+Starting tests in: runScan / failed with crash exit code carries the code in the reason...
+Completed tests in runScan / failed with crash exit code carries the code in the reason
+-----------------------------------------------------------------
+Starting tests in: runScan / plain failed (own exit codes) keeps the short reason...
+Completed tests in runScan / plain failed (own exit codes) keeps the short reason
+-----------------------------------------------------------------
+Starting tests in: runScan / failed status with rescueable XML rescues the crash and carries the code...
+Completed tests in runScan / failed status with rescueable XML rescues the crash and carries the code
+-----------------------------------------------------------------
+Starting tests in: runScan / partial with valid root but zero rescued children still carries the crash code...
+Completed tests in runScan / partial with valid root but zero rescued children still carries the crash code
+-----------------------------------------------------------------
+Starting tests in: runScan / partial with malformed xml falls back to plain failed, exit 3 not decorated...
+Completed tests in runScan / partial with malformed xml falls back to plain failed, exit 3 not decorated
+-----------------------------------------------------------------
+Starting tests in: parseScanResultXml / valid result xml yields descriptions...
+Completed tests in parseScanResultXml / valid result xml yields descriptions
+-----------------------------------------------------------------
+Starting tests in: parseScanResultXml / garbage and wrong root are rejected...
+Completed tests in parseScanResultXml / garbage and wrong root are rejected
+-----------------------------------------------------------------
+Starting tests in: parseScanResultXml / crashCode attribute is surfaced when requested...
+Completed tests in parseScanResultXml / crashCode attribute is surfaced when requested
+-----------------------------------------------------------------
+Starting tests in: mergeScanResults / found entries get freshly stamped mtime...
+Completed tests in mergeScanResults / found entries get freshly stamped mtime
+-----------------------------------------------------------------
+Starting tests in: mergeScanResults / old entry of same file (different uid) is replaced, others untouched...
+Completed tests in mergeScanResults / old entry of same file (different uid) is replaced, others untouched
+-----------------------------------------------------------------
+Starting tests in: mergeScanResults / bundle entries are restamped with the inner binary's mtime...
+Tarama: atlama kaldırıldı (dosya değişti ya da silindi): C:\Users\RUNNER~1\AppData\Local\Temp\micvst_filter\StaleSkip.vst3
+Tarama (değişti): C:\Users\RUNNER~1\AppData\Local\Temp\micvst_filter\Changed.vst3 (önbellek=1 dosya=1792722553286)
+Tarama (yeni): C:\Users\RUNNER~1\AppData\Local\Temp\micvst_filter\StaleSkip.vst3
+Completed tests in mergeScanResults / bundle entries are restamped with the inner binary's mtime
+-----------------------------------------------------------------
+Starting tests in: filterFilesNeedingScan / cache hit is filtered, mtime mismatch is rescanned...
+Completed tests in filterFilesNeedingScan / cache hit is filtered, mtime mismatch is rescanned
+-----------------------------------------------------------------
+Starting tests in: filterFilesNeedingScan / active skip filters, stale skip is dropped and rescanned...
+Completed tests in filterFilesNeedingScan / active skip filters, stale skip is dropped and rescanned
+-----------------------------------------------------------------
+Starting tests in: filterFilesNeedingScan / force-list bypasses the cache-is-up-to-date check...
+Tarama (zorunlu): C:\Users\RUNNER~1\AppData\Local\Temp\micvst_filter\Forced.vst3 (önbellek=1792722553291 dosya=1792722553291)
+Completed tests in filterFilesNeedingScan / force-list bypasses the cache-is-up-to-date check
+-----------------------------------------------------------------
+Starting tests in: pathIsInsideAnyFolder / children match, prefix-siblings do not...
+Completed tests in pathIsInsideAnyFolder / children match, prefix-siblings do not
+-----------------------------------------------------------------
+Starting tests in: pathIsInsideAnyFolder / case-insensitive on Windows...
+Completed tests in pathIsInsideAnyFolder / case-insensitive on Windows
+-----------------------------------------------------------------
+Starting tests in: pathIsInsideAnyFolder / empty folder entries are ignored...
+Completed tests in pathIsInsideAnyFolder / empty folder entries are ignored
+-----------------------------------------------------------------
+Starting tests in: effectiveModTime / plain file uses its own mtime...
+Completed tests in effectiveModTime / plain file uses its own mtime
+-----------------------------------------------------------------
+Starting tests in: effectiveModTime / bundle dir uses the inner binary's mtime, service writes are ignored...
+Completed tests in effectiveModTime / bundle dir uses the inner binary's mtime, service writes are ignored
+-----------------------------------------------------------------
+Starting tests in: effectiveModTime / newest inner binary wins (multi-arch bundle)...
+Completed tests in effectiveModTime / newest inner binary wins (multi-arch bundle)
+-----------------------------------------------------------------
+Starting tests in: effectiveModTime / dir without inner binaries falls back to dir mtime...
+Completed tests in effectiveModTime / dir without inner binaries falls back to dir mtime
+-----------------------------------------------------------------
+Starting tests in: effectiveModTime / MicVST3Format: service write no rescan, binary update rescans...
+Completed tests in effectiveModTime / MicVST3Format: service write no rescan, binary update rescans
+-----------------------------------------------------------------
+Starting tests in: filterPlugins / empty query returns all, sorted by manufacturer then name...
+Completed tests in filterPlugins / empty query returns all, sorted by manufacturer then name
+-----------------------------------------------------------------
+Starting tests in: filterPlugins / matches name and manufacturer, case-insensitive...
+Completed tests in filterPlugins / matches name and manufacturer, case-insensitive
+-----------------------------------------------------------------
+Starting tests in: filterPlugins / no hits and whitespace-only query...
+Completed tests in filterPlugins / no hits and whitespace-only query
+-----------------------------------------------------------------
+Starting tests in: Bridge resampler / passband flat and clean at drift-sized ratios (48 kHz)...
+  100 Hz: gain -0.0000 dB, THD+N -128.5 dB
+  1000 Hz: gain -0.0000 dB, THD+N -117.7 dB
+  5000 Hz: gain -0.0000 dB, THD+N -115.6 dB
+  10000 Hz: gain -0.0000 dB, THD+N -116.5 dB
+  16000 Hz: gain -0.0000 dB, THD+N -109.0 dB
+  18000 Hz: gain -0.0001 dB, THD+N -107.7 dB
+Completed tests in Bridge resampler / passband flat and clean at drift-sized ratios (48 kHz)
+-----------------------------------------------------------------
+Starting tests in: Bridge resampler / 44.1 kHz -> 48 kHz conversion is clean...
+  1 kHz: THD+N -118.5 dB
+Completed tests in Bridge resampler / 44.1 kHz -> 48 kHz conversion is clean
+-----------------------------------------------------------------
+Starting tests in: Bridge resampler / 96 kHz -> 48 kHz: anti-aliasing removes content above 24 kHz...
+  30 kHz alias attenuation: -114.3 dB
+Completed tests in Bridge resampler / 96 kHz -> 48 kHz: anti-aliasing removes content above 24 kHz
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / clock drift -300 ppm: no gaps, converges, tracks drift...
+  underruns 0, dropped 0, resyncs 0, clicks 0, drift -298.1 ppm, margin 17.03 ms, safety 10.0 ms, latency 44.37 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 284 ppm, pitch error (last 60 s) max 2 ppm
+Completed tests in Bridge stream / clock drift -300 ppm: no gaps, converges, tracks drift
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / clock drift -50 ppm: no gaps, converges, tracks drift...
+  underruns 0, dropped 0, resyncs 0, clicks 0, drift -49.7 ppm, margin 17.04 ms, safety 10.0 ms, latency 44.65 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 47 ppm, pitch error (last 60 s) max 0 ppm
+Completed tests in Bridge stream / clock drift -50 ppm: no gaps, converges, tracks drift
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / clock drift 0 ppm: no gaps, converges, tracks drift...
+  underruns 0, dropped 0, resyncs 0, clicks 0, drift -0.0 ppm, margin 17.04 ms, safety 10.0 ms, latency 44.71 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 0 ppm, pitch error (last 60 s) max 0 ppm
+Completed tests in Bridge stream / clock drift 0 ppm: no gaps, converges, tracks drift
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / clock drift 80 ppm: no gaps, converges, tracks drift...
+  underruns 0, dropped 0, resyncs 0, clicks 0, drift 79.5 ppm, margin 17.07 ms, safety 10.0 ms, latency 44.82 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 76 ppm, pitch error (last 60 s) max 0 ppm
+Completed tests in Bridge stream / clock drift 80 ppm: no gaps, converges, tracks drift
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / clock drift 300 ppm: no gaps, converges, tracks drift...
+  underruns 0, dropped 0, resyncs 0, clicks 0, drift 298.1 ppm, margin 17.08 ms, safety 10.0 ms, latency 45.06 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 284 ppm, pitch error (last 60 s) max 2 ppm
+Completed tests in Bridge stream / clock drift 300 ppm: no gaps, converges, tracks drift
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / clock drift -1000 ppm (worst case): learned completely, pitch steady afterwards...
+  underruns 1, dropped 0, resyncs 0, clicks 0, drift -999.0 ppm, margin 22.03 ms, safety 15.0 ms, latency 48.43 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 500 ppm, pitch error (last 60 s) max 1 ppm
+Completed tests in Bridge stream / clock drift -1000 ppm (worst case): learned completely, pitch steady afterwards
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / clock drift 1000 ppm (worst case): learned completely, pitch steady afterwards...
+  underruns 0, dropped 0, resyncs 0, clicks 0, drift 999.0 ppm, margin 17.07 ms, safety 10.0 ms, latency 46.08 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 500 ppm, pitch error (last 60 s) max 1 ppm
+Completed tests in Bridge stream / clock drift 1000 ppm (worst case): learned completely, pitch steady afterwards
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / producer jitter up to 6 ms is absorbed by a 10 ms safety buffer...
+  underruns 0, dropped 0, resyncs 0, clicks 0, drift 0.0 ppm, margin 17.81 ms, safety 10.0 ms, latency 47.89 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 5.5 / max 8.5 ms, load mean 55 % (0 % of blocks late, peak 85 %), speed deviation max 188 ppm, pitch error (last 60 s) max 52 ppm
+Completed tests in Bridge stream / producer jitter up to 6 ms is absorbed by a 10 ms safety buffer
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / producer stall longer than the cushion: one faded gap, then recovery...
+  underruns 1, dropped 0, resyncs 0, clicks 0, drift 1.8 ppm, margin 22.01 ms, safety 15.0 ms, latency 51.90 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 62.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 500 ppm, pitch error (last 60 s) max 500 ppm
+Completed tests in Bridge stream / producer stall longer than the cushion: one faded gap, then recovery
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / tiny output blocks and repeated starvation: every gap is faded, never a click...
+  underruns 56, dropped 0, resyncs 0, clicks 0, drift 0.0 ppm, margin 23.71 ms, safety 2.0 ms, latency 25.60 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.9 / max 17.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 351 ppm, pitch error (last 60 s) max 351 ppm
+Completed tests in Bridge stream / tiny output blocks and repeated starvation: every gap is faded, never a click
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / output stalls longer than the ring right after an underrun: recovers, no deadlock...
+  underruns 1, dropped 68, resyncs 0, clicks 0, drift -0.1 ppm, margin 22.04 ms, safety 15.0 ms, latency 46.66 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.6 / max 62.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 4 ppm, pitch error (last 60 s) max 4 ppm
+Completed tests in Bridge stream / output stalls longer than the ring right after an underrun: recovers, no deadlock
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / output stalls longer than the ring while running: no click at the dropped input...
+  underruns 0, dropped 66, resyncs 0, clicks 4, drift -0.0 ppm, margin 17.04 ms, safety 10.0 ms, latency 43.39 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 0 ppm, pitch error (last 60 s) max 0 ppm
+Completed tests in Bridge stream / output stalls longer than the ring while running: no click at the dropped input
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / consumer stall: queue overflow is trimmed back (resync), no underrun...
+  underruns 0, dropped 0, resyncs 1, clicks 4, drift -0.6 ppm, margin 17.05 ms, safety 10.0 ms, latency 43.96 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 500 ppm, pitch error (last 60 s) max 500 ppm
+Completed tests in Bridge stream / consumer stall: queue overflow is trimmed back (resync), no underrun
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / output device gap (60 ms stall): excess latency trimmed once at a matching splice point, no pitch bend...
+  underruns 0, dropped 0, resyncs 1, clicks 4, drift 0.6 ppm, margin 17.03 ms, safety 10.0 ms, latency 43.94 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 169 ppm, pitch error (last 60 s) max 169 ppm
+  splice at sample 970079: level -0.01 .. 0.01 dB
+Completed tests in Bridge stream / output device gap (60 ms stall): excess latency trimmed once at a matching splice point, no pitch bend
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / short output gap (30 ms stall): the small excess drains slowly, no trim, no pitch bend...
+  underruns 0, dropped 0, resyncs 0, clicks 4, drift 1.3 ppm, margin 17.01 ms, safety 10.0 ms, latency 48.72 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 500 ppm, pitch error (last 60 s) max 504 ppm
+Completed tests in Bridge stream / short output gap (30 ms stall): the small excess drains slowly, no trim, no pitch bend
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / larger safety buffer chosen while running: applied at once (fade-out, refill, fade-in)...
+  underruns 0, dropped 0, resyncs 0, clicks 0, drift -0.0 ppm, margin 47.04 ms, safety 40.0 ms, latency 64.67 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 0 ppm, pitch error (last 60 s) max 0 ppm
+Completed tests in Bridge stream / larger safety buffer chosen while running: applied at once (fade-out, refill, fade-in)
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / smaller safety buffer chosen while running: the latency is trimmed at a matching splice point...
+  underruns 0, dropped 0, resyncs 1, clicks 0, drift -0.3 ppm, margin 17.00 ms, safety 10.0 ms, latency 56.19 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 381 ppm, pitch error (last 60 s) max 381 ppm
+Completed tests in Bridge stream / smaller safety buffer chosen while running: the latency is trimmed at a matching splice point
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / 44.1 kHz microphone into a 48 kHz cable...
+  underruns 0, dropped 0, resyncs 0, clicks 0, drift 54.8 ppm, margin 17.10 ms, safety 10.0 ms, latency 44.91 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 2.5 / max 2.5 ms, load mean 25 % (0 % of blocks late, peak 25 %), speed deviation max 57 ppm, pitch error (last 60 s) max 5 ppm
+Completed tests in Bridge stream / 44.1 kHz microphone into a 48 kHz cable
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / fade out and hold before a device stops, then resume: no click, silence in between...
+Completed tests in Bridge stream / fade out and hold before a device stops, then resume: no click, silence in between
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / input held (invalid plug-in output), then valid audio with a jump: faded, no click, no underrun...
+Completed tests in Bridge stream / input held (invalid plug-in output), then valid audio with a jump: faded, no click, no underrun
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / discontinuity marked by the producer: the output fades there instead of jumping...
+Completed tests in Bridge stream / discontinuity marked by the producer: the output fades there instead of jumping
+-----------------------------------------------------------------
+Starting tests in: Bridge stream / inactive consumer: push is a no-op (nothing queued, nothing counted)...
+Completed tests in Bridge stream / inactive consumer: push is a no-op (nothing queued, nothing counted)
+-----------------------------------------------------------------
+Starting tests in: Input queue / round trip across the wrap point: every frame arrives once, in order...
+Completed tests in Input queue / round trip across the wrap point: every frame arrives once, in order
+-----------------------------------------------------------------
+Starting tests in: Input queue / two threads: no frame lost, duplicated or reordered...
+  3000000 frames, producer overflows (retried) 706
+Completed tests in Input queue / two threads: no frame lost, duplicated or reordered
+-----------------------------------------------------------------
+Starting tests in: Input queue / chain fell behind by more than the limit: one crossfaded block, then the newest audio...
+Completed tests in Input queue / chain fell behind by more than the limit: one crossfaded block, then the newest audio
+-----------------------------------------------------------------
+Starting tests in: Input queue / skip with alignment: the splice follows the waveform (voice-like tone, no dip, no click)...
+  plain: skipped 13920, largest deviation during the crossfade 182.6 % of the peak
+  aligned: skipped 13745, largest deviation during the crossfade 4.0 % of the peak
+Completed tests in Input queue / skip with alignment: the splice follows the waveform (voice-like tone, no dip, no click)
+-----------------------------------------------------------------
+Starting tests in: Input queue / capture time of the newest frame read...
+Completed tests in Input queue / capture time of the newest frame read
+-----------------------------------------------------------------
+Starting tests in: Input queue / after dropped blocks the queue never plays across the jump...
+Completed tests in Input queue / after dropped blocks the queue never plays across the jump
+-----------------------------------------------------------------
+Starting tests in: Input queue / consumer stuck: the producer drops (counted) instead of overwriting...
+Completed tests in Input queue / consumer stuck: the producer drops (counted) instead of overwriting
+-----------------------------------------------------------------
+Starting tests in: Input path / render load like the Topaz log (45 % of blocks 1.1-1.9x real time): 1.2.0 loses audio, 1.2.1 none...
+  1.2.0: underruns 15, dropped 0, resyncs 5, clicks 111, drift 17.5 ppm, margin 77.93 ms, safety 80.0 ms, latency 111.85 ms, capture overflows 58 (580 ms lost), skips 0 (0 ms), input delay mean 22.5 / max 93.0 ms, load mean 92 % (45 % of blocks late, peak 190 %), speed deviation max 500 ppm, pitch error (last 60 s) max 545 ppm
+  1.2.1: underruns 14, dropped 0, resyncs 19, clicks 0, drift 0.0 ppm, margin 93.34 ms, safety 80.0 ms, latency 117.77 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 25.5 / max 117.5 ms, load mean 92 % (45 % of blocks late, peak 190 %), speed deviation max 500 ppm, pitch error (last 60 s) max 540 ppm
+Completed tests in Input path / render load like the Topaz log (45 % of blocks 1.1-1.9x real time): 1.2.0 loses audio, 1.2.1 none
+-----------------------------------------------------------------
+Starting tests in: Input path / chain slower than real time (avg. 112 %): crossfaded skips, bounded latency, no clicks...
+  underruns 78, dropped 0, resyncs 3, clicks 0, drift 0.0 ppm, margin 91.44 ms, safety 80.0 ms, latency 138.88 ms, capture overflows 0 (0 ms lost), skips 56 (6230 ms), input delay mean 61.1 / max 137.3 ms, load mean 110 % (59 % of blocks late, peak 200 %), speed deviation max 500 ppm, pitch error (last 60 s) max 500 ppm
+Completed tests in Input path / chain slower than real time (avg. 112 %): crossfaded skips, bounded latency, no clicks
+-----------------------------------------------------------------
+Starting tests in: Input path / 60 ms plug-in stall every 3 s: nothing lost at the capture side...
+  1.2.0: underruns 15, dropped 0, resyncs 0, clicks 95, drift -0.5 ppm, margin 54.79 ms, safety 80.0 ms, latency 77.25 ms, capture overflows 20 (970 ms lost), skips 0 (0 ms), input delay mean 3.4 / max 63.5 ms, load mean 30 % (0 % of blocks late, peak 35 %), speed deviation max 500 ppm, pitch error (last 60 s) max 501 ppm
+  1.2.1: underruns 10, dropped 0, resyncs 6, clicks 0, drift 13.1 ppm, margin 66.79 ms, safety 60.0 ms, latency 85.44 ms, capture overflows 0 (0 ms lost), skips 0 (0 ms), input delay mean 4.0 / max 63.5 ms, load mean 30 % (0 % of blocks late, peak 35 %), speed deviation max 500 ppm, pitch error (last 60 s) max 501 ppm
+Completed tests in Input path / 60 ms plug-in stall every 3 s: nothing lost at the capture side
+-----------------------------------------------------------------
+Starting tests in: Input path / whole system frozen 30 ms (capture thread too): audio is lost in either design...
+  1.2.1: underruns 4, dropped 0, resyncs 0, clicks 16, drift -4.3 ppm, margin 33.26 ms, safety 30.0 ms, latency 54.99 ms, capture overflows 5 (100 ms lost), skips 0 (0 ms), input delay mean 3.0 / max 13.3 ms, load mean 30 % (0 % of blocks late, peak 35 %), speed deviation max 500 ppm, pitch error (last 60 s) max 504 ppm
+Completed tests in Input path / whole system frozen 30 ms (capture thread too): audio is lost in either design
+-----------------------------------------------------------------
+Starting tests in: Turkish texts / UTF-8 literals keep the Turkish letters (no Latin-1 double encoding)...
+Completed tests in Turkish texts / UTF-8 literals keep the Turkish letters (no Latin-1 double encoding)
+-----------------------------------------------------------------
+Starting tests in: Turkish texts / decimal comma and Turkish percent...
+Completed tests in Turkish texts / decimal comma and Turkish percent
+-----------------------------------------------------------------
+Starting tests in: Turkish texts / stored scan-skip reasons are shown in Turkish (also those of older versions)...
+Completed tests in Turkish texts / stored scan-skip reasons are shown in Turkish (also those of older versions)
+-----------------------------------------------------------------
+Starting tests in: Turkish texts / JUCE's own texts are translated (message-box buttons, text-field menu)...
+Completed tests in Turkish texts / JUCE's own texts are translated (message-box buttons, text-field menu)
+-----------------------------------------------------------------
+Starting tests in: Turkish texts / device errors in the log are Turkish (also JUCE's untranslated ones)...
+Completed tests in Turkish texts / device errors in the log are Turkish (also JUCE's untranslated ones)
+-----------------------------------------------------------------
+Starting tests in: Turkish texts / every language has a translation for every Turkish text, with the same edges...
+Completed tests in Turkish texts / every language has a translation for every Turkish text, with the same edges
+-----------------------------------------------------------------
+Starting tests in: Turkish texts / switching the language: texts, numbers, JUCE's buttons; unknown id = Turkish...
+Completed tests in Turkish texts / switching the language: texts, numbers, JUCE's buttons; unknown id = Turkish
+-----------------------------------------------------------------
+Starting tests in: GainStage / range: -30 ... +12 dB, NaN/inf -> 0 dB...
+Completed tests in GainStage / range: -30 ... +12 dB, NaN/inf -> 0 dB
+-----------------------------------------------------------------
+Starting tests in: GainStage / 0 dB is bit-exact (block untouched)...
+Completed tests in GainStage / 0 dB is bit-exact (block untouched)
+-----------------------------------------------------------------
+Starting tests in: GainStage / static gain is exact: -30, -6, +6, +12 dB...
+Completed tests in GainStage / static gain is exact: -30, -6, +6, +12 dB
+-----------------------------------------------------------------
+Starting tests in: GainStage / +12 dB on a full-scale sine: 4.0 (+12 dBFS), finite - float has the headroom...
+Completed tests in GainStage / +12 dB on a full-scale sine: 4.0 (+12 dBFS), finite - float has the headroom
+-----------------------------------------------------------------
+Starting tests in: GainStage / a change glides: monotonic, 99 % after < 45 ms, then exactly on the target...
+    0 -> +12 dB: 2.46 dB after 5 ms, 10.15 after 20 ms, 11.883 after 40 ms, 11.9940 after 60 ms
+Completed tests in GainStage / a change glides: monotonic, 99 % after < 45 ms, then exactly on the target
+-----------------------------------------------------------------
+Starting tests in: GainStage / no click: slider moves on a sine vs. the same moves as abrupt steps (control)...
+    41 slider moves; samples over the engine test's click limit: glide 0, abrupt steps 45
+Completed tests in GainStage / no click: slider moves on a sine vs. the same moves as abrupt steps (control)
+-----------------------------------------------------------------
+Starting tests in: GainStage / no corners in the gain curve, also when the target changes during a glide...
+    largest slope jump relative to the gain: glide 0.0000464, straight ramps 0.0034087
+Completed tests in GainStage / no corners in the gain curve, also when the target changes during a glide
+-----------------------------------------------------------------
+Starting tests in: GainStage / fast slider: the gain never jumps between two samples...
+    largest gain change between two samples: 0.03127 dB (bound 0.14558 dB)
+Completed tests in GainStage / fast slider: the gain never jumps between two samples
+-----------------------------------------------------------------
+Starting tests in: GainStage / restore (immediate) jumps without a glide; reset() snaps too...
+Completed tests in GainStage / restore (immediate) jumps without a glide; reset() snaps too
+-----------------------------------------------------------------
+Starting tests in: GainStage / stereo: both channels get exactly the same gain curve...
+Completed tests in GainStage / stereo: both channels get exactly the same gain curve
+-----------------------------------------------------------------
+Starting tests in: GainStage / sample rate: the glide takes the same time at 44.1, 48 and 96 kHz...
+    99 % of a 12 dB change after 39.82 / 39.81 / 39.82 ms
+Completed tests in GainStage / sample rate: the glide takes the same time at 44.1, 48 and 96 kHz
+-----------------------------------------------------------------
+Starting tests in: GainStage / concurrent: UI thread moves the slider while the plug-in thread processes...
+    96028 blocks processed while the gain changed continuously
+Completed tests in GainStage / concurrent: UI thread moves the slider while the plug-in thread processes
+-----------------------------------------------------------------
+Starting tests in: BuiltInGain / name, channels, no editor, no latency...
+Completed tests in BuiltInGain / name, channels, no editor, no latency
+-----------------------------------------------------------------
+Starting tests in: BuiltInGain / state round trip (config.xml blob), restored value applies without a glide...
+Completed tests in BuiltInGain / state round trip (config.xml blob), restored value applies without a glide
+-----------------------------------------------------------------
+Starting tests in: BuiltInGain / damaged / foreign state is ignored, out-of-range state is clamped...
+Completed tests in BuiltInGain / damaged / foreign state is ignored, out-of-range state is clamped
+-----------------------------------------------------------------
+Starting tests in: GainWiring / mono microphone -> Kazanc -> output: stays one channel (engine copies it to both cable channels)...
+Completed tests in GainWiring / mono microphone -> Kazanc -> output: stays one channel (engine copies it to both cable channels)
+-----------------------------------------------------------------
+Starting tests in: GainWiring / stereo microphone -> Kazanc -> output: two channels...
+Completed tests in GainWiring / stereo microphone -> Kazanc -> output: two channels
+-----------------------------------------------------------------
+Starting tests in: GainWiring / mono -> Kazanc -> Mono->Stereo -> Kazanc -> output: 1, 1, 2, 2 channels...
+Completed tests in GainWiring / mono -> Kazanc -> Mono->Stereo -> Kazanc -> output: 1, 1, 2, 2 channels
+-----------------------------------------------------------------
+Starting tests in: GainWiring / stereo -> Stereo->Mono -> Kazanc -> output: mono after the downmix...
+Completed tests in GainWiring / stereo -> Stereo->Mono -> Kazanc -> output: mono after the downmix
+-----------------------------------------------------------------
+Starting tests in: GainWiring / no microphone channels: nothing is wired through Kazanc...
+Completed tests in GainWiring / no microphone channels: nothing is wired through Kazanc
+-----------------------------------------------------------------
+Starting tests in: Pcm24Conversion / overs (e.g. +12 dB on a loud voice) clip at full scale, never wrap around...
+    +4.0 -> 8388607, -4.0 -> -8388608
+Completed tests in Pcm24Conversion / overs (e.g. +12 dB on a loud voice) clip at full scale, never wrap around
+-----------------------------------------------------------------
+Starting tests in: Pcm24Conversion / in range: error below 1 LSB of 24 bit...
+    worst error: 0.750 LSB
+Completed tests in Pcm24Conversion / in range: error below 1 LSB of 24 bit
+-----------------------------------------------------------------
+Starting tests in: AutoGain / typical speech is led to about -20 dBFS, as far as the gain range 0 ... +6 dB allows...
+    input typical -32.00 dBFS (measured -33.66): mean gain 6.00 dB (range 0.00 ... 6.00), output typical -27.67 dBFS (expected -27.66)
+    input typical -28.00 dBFS (measured -28.15): mean gain 5.95 dB (range 0.00 ... 6.00), output typical -22.20 dBFS (expected -22.15)
+    input typical -26.00 dBFS (measured -26.13): mean gain 5.44 dB (range 0.00 ... 6.00), output typical -20.69 dBFS (expected -20.13)
+    input typical -24.00 dBFS (measured -24.12): mean gain 3.91 dB (range 0.00 ... 6.00), output typical -20.21 dBFS (expected -20.00)
+    input typical -22.00 dBFS (measured -22.12): mean gain 2.03 dB (range 0.00 ... 4.88), output typical -20.09 dBFS (expected -20.00)
+    input typical -20.00 dBFS (measured -20.11): mean gain 0.57 dB (range 0.00 ... 2.88), output typical -19.54 dBFS (expected -20.00)
+    input typical -17.00 dBFS (measured -17.10): mean gain 0.00 dB (range 0.00 ... 0.62), output typical -17.26 dBFS (expected -17.10)
+    input typical -14.00 dBFS (measured -14.10): mean gain 0.00 dB (range 0.00 ... 0.14), output typical -14.84 dBFS (expected -14.10)
+Completed tests in AutoGain / typical speech is led to about -20 dBFS, as far as the gain range 0 ... +6 dB allows
+-----------------------------------------------------------------
+Starting tests in: AutoGain / a very quiet voice gets exactly the maximum +6 dB, a loud one exactly 0 dB...
+    -40 dBFS voice: highest gain 6.000000 dB; -9 dBFS voice: gain between 0.000000 and 0.000000 dB, loudest output -10.250 dBFS
+Completed tests in AutoGain / a very quiet voice gets exactly the maximum +6 dB, a loud one exactly 0 dB
+-----------------------------------------------------------------
+Starting tests in: AutoGain / shouting 10-12 dB over the natural voice: about -15 dBFS, never above -10 dBFS, no clicks (4 voices)...
+    +10.00 dB: output typical 2-8 s after the onset -15.25 dBFS (mean of 4 voices), loudest -10.255 dBFS; largest gain step 0.1591 dB/sample
+    +12.00 dB: output typical 2-8 s after the onset -14.40 dBFS (mean of 4 voices), loudest -10.253 dBFS; largest gain step 0.1718 dB/sample
+Completed tests in AutoGain / shouting 10-12 dB over the natural voice: about -15 dBFS, never above -10 dBFS, no clicks (4 voices)
+-----------------------------------------------------------------
+Starting tests in: AutoGain / a slightly raised voice (+3 dB) stays a normal voice; louder than that, the aim slides towards -15 dBFS...
+    aim after 5 s at +3 dB: -20.00 dBFS, after 5 s more at +7 dB: -17.32 dBFS (the natural level follows a lastingly louder voice slowly, 20 s)
+Completed tests in AutoGain / a slightly raised voice (+3 dB) stays a normal voice; louder than that, the aim slides towards -15 dBFS
+-----------------------------------------------------------------
+Starting tests in: AutoGain / long silence: the gain is kept bit-exactly for 10 minutes, the signal is never gated (output = input x gain)...
+    gain 6.00 dB kept through 5 min room noise + 5 min digital silence; largest deviation of output/input 0.0000085 %; first block of speech afterwards 6.00 dB
+Completed tests in AutoGain / long silence: the gain is kept bit-exactly for 10 minutes, the signal is never gated (output = input x gain)
+-----------------------------------------------------------------
+Starting tests in: AutoGain / the gain moves only while there is voice; never in pauses between words...
+    2294 blocks clearly without voice: gain moved in 0
+Completed tests in AutoGain / the gain moves only while there is voice; never in pauses between words
+-----------------------------------------------------------------
+Starting tests in: AutoGain / plosives and breath pops (1-30 ms) do not pull the gain down; the limiter catches their peaks...
+    mean gain: clean speech 3.91 dB, strong plosives (+8 dB) 4.12 dB, breath pops (+12 dB) 4.31 dB; loudest output -10.000 dBFS
+Completed tests in AutoGain / plosives and breath pops (1-30 ms) do not pull the gain down; the limiter catches their peaks
+-----------------------------------------------------------------
+Starting tests in: AutoGain / short clicks (0.5 ms, 12 dB over the voice) do not pull the gain down...
+    gain before 1.05 dB; largest drop against the same speech without clicks 0.210 dB; loudest output -10.481 dBFS
+Completed tests in AutoGain / short clicks (0.5 ms, 12 dB over the voice) do not pull the gain down
+-----------------------------------------------------------------
+Starting tests in: AutoGain / the ceiling: torture signals at the maximum gain never exceed -10 dBFS...
+    full-scale square 100 Hz: loudest output -11.0253 dBFS
+    white noise 0 dBFS peak: loudest output -11.6756 dBFS
+    impulses every 7 ms: loudest output -10.0000 dBFS
+    sweep 20 Hz - 20 kHz, -1 dBFS: loudest output -10.2997 dBFS
+    DC steps: loudest output -10.3000 dBFS
+Completed tests in AutoGain / the ceiling: torture signals at the maximum gain never exceed -10 dBFS
+-----------------------------------------------------------------
+Starting tests in: AutoGain / the ceiling also holds as a true peak (inter-sample peaks of plosives and noise, as after the engine's resampler)...
+    speech, strong plosives (+8 dB, input up to +7 dBFS): input peak 7.15 dBFS; output sample peak -10.000 dBFS, true peak -9.463 dBFS
+    speech, breath pops (+12 dB): input peak 5.25 dBFS; output sample peak -10.280 dBFS, true peak -10.271 dBFS
+    speech, normal plosives: input peak -10.54 dBFS; output sample peak -10.444 dBFS, true peak -10.153 dBFS
+    white noise near 0 dBFS, band-limited to 20 kHz (as from a microphone), gain +6 dB: sample peak -10.284 dBFS, true peak -10.141 dBFS
+    white noise near 0 dBFS, full band up to 24 kHz (purely digital), gain +6 dB: sample peak -10.289 dBFS, true peak -9.121 dBFS
+Completed tests in AutoGain / the ceiling also holds as a true peak (inter-sample peaks of plosives and noise, as after the engine's resampler)
+-----------------------------------------------------------------
+Starting tests in: AutoGain / normal speech: the limiter only touches the onsets of the loudest syllables (measured)...
+    input typical -26.00 dBFS: limiter active in 3.93 % of the blocks, deepest -1.60 dB
+    input typical -23.00 dBFS: limiter active in 4.94 % of the blocks, deepest -3.04 dB
+Completed tests in AutoGain / normal speech: the limiter only touches the onsets of the loudest syllables (measured)
+-----------------------------------------------------------------
+Starting tests in: AutoGain / linear while the gain is steady: THD+N of a sine at the float noise floor...
+    100 Hz at -30 dBFS (gain 0.00 dB): THD+N -152.07 dB
+    997 Hz at -30 dBFS (gain 0.00 dB): THD+N -152.35 dB
+    6000 Hz at -30 dBFS (gain 0.00 dB): THD+N -146.76 dB
+Completed tests in AutoGain / linear while the gain is steady: THD+N of a sine at the float noise floor
+-----------------------------------------------------------------
+Starting tests in: AutoGain / the limiter on a loud steady tone: exact level, no ripple, low distortion...
+    80 Hz at -4 dBFS: peaks per cycle -10.301 ... -10.301 dBFS, THD+N -148.66 dB
+    120 Hz at -4 dBFS: peaks per cycle -10.301 ... -10.301 dBFS, THD+N -147.96 dB
+    997 Hz at -4 dBFS: peaks per cycle -10.320 ... -10.301 dBFS, THD+N -112.84 dB
+    4000 Hz at -4 dBFS: peaks per cycle -10.301 ... -10.301 dBFS, THD+N -161.66 dB
+Completed tests in AutoGain / the limiter on a loud steady tone: exact level, no ripple, low distortion
+-----------------------------------------------------------------
+Starting tests in: AutoGain / no clicks: the gain changes smoothly on level steps, shouts and switching...
+    abrupt level steps of a 997 Hz tone (-30 / -12 / -40 / -20 / -6 / -35 dBFS): largest gain change between two samples 0.1084 dB, loudest output -10.275 dBFS
+Completed tests in AutoGain / no clicks: the gain changes smoothly on level steps, shouts and switching
+-----------------------------------------------------------------
+Starting tests in: AutoGain / the result hardly depends on the block size (32 ... 4096 samples and random; 3 voices)...
+    block 32: output typical -20.29 dBFS (480: -20.20), mean gain 4.77 dB (480: 4.87)
+    block 64: output typical -20.27 dBFS (480: -20.20), mean gain 4.79 dB (480: 4.87)
+    block 128: output typical -20.25 dBFS (480: -20.20), mean gain 4.81 dB (480: 4.87)
+    block 144: output typical -20.24 dBFS (480: -20.20), mean gain 4.81 dB (480: 4.87)
+    block 256: output typical -20.23 dBFS (480: -20.20), mean gain 4.83 dB (480: 4.87)
+    block 441: output typical -20.21 dBFS (480: -20.20), mean gain 4.86 dB (480: 4.87)
+    block 512: output typical -20.20 dBFS (480: -20.20), mean gain 4.88 dB (480: 4.87)
+    block 1024: output typical -20.12 dBFS (480: -20.20), mean gain 4.96 dB (480: 4.87)
+    block 2048: output typical -20.00 dBFS (480: -20.20), mean gain 5.07 dB (480: 4.87)
+    block 4096: output typical -19.84 dBFS (480: -20.20), mean gain 5.23 dB (480: 4.87)
+    block random: output typical -20.07 dBFS (480: -20.20), mean gain 5.02 dB (480: 4.87)
+Completed tests in AutoGain / the result hardly depends on the block size (32 ... 4096 samples and random; 3 voices)
+-----------------------------------------------------------------
+Starting tests in: AutoGain / sample rates 8 ... 384 kHz: latency, levels and ceiling...
+    48000 Hz: latency 144 samples (3.000 ms), output typical -19.87 dBFS, loudest -10.41 dBFS
+    8000 Hz: latency 24 samples (3.000 ms), output typical -20.17 dBFS, loudest -10.49 dBFS
+    16000 Hz: latency 48 samples (3.000 ms), output typical -19.80 dBFS, loudest -10.53 dBFS
+    22050 Hz: latency 66 samples (2.993 ms), output typical -19.83 dBFS, loudest -10.33 dBFS
+    32000 Hz: latency 96 samples (3.000 ms), output typical -20.06 dBFS, loudest -10.37 dBFS
+    44100 Hz: latency 132 samples (2.993 ms), output typical -19.83 dBFS, loudest -10.39 dBFS
+    88200 Hz: latency 265 samples (3.005 ms), output typical -20.16 dBFS, loudest -10.44 dBFS
+    96000 Hz: latency 288 samples (3.000 ms), output typical -20.31 dBFS, loudest -10.38 dBFS
+    176400 Hz: latency 529 samples (2.999 ms), output typical -19.87 dBFS, loudest -10.56 dBFS
+    192000 Hz: latency 576 samples (3.000 ms), output typical -20.28 dBFS, loudest -10.43 dBFS
+    384000 Hz: latency 1024 samples (2.667 ms), output typical -20.66 dBFS, loudest -10.45 dBFS
+Completed tests in AutoGain / sample rates 8 ... 384 kHz: latency, levels and ceiling
+-----------------------------------------------------------------
+Starting tests in: AutoGain / channels: one gain for all (mono, stereo, 8), missing channels skipped, channels beyond 8 untouched...
+Completed tests in AutoGain / channels: one gain for all (mono, stereo, 8), missing channels skipped, channels beyond 8 untouched
+-----------------------------------------------------------------
+Starting tests in: AutoGain / broken input (NaN, infinite, absurd) from a faulty plug-in: passed on, but the gain and the limiter are not disturbed...
+    nan: gain 2 s later 5.86 dB (with silence instead: 5.86 dB), limiter 0.0000 dB
+    inf: gain 2 s later 5.86 dB (with silence instead: 5.86 dB), limiter 0.0000 dB
+    -inf: gain 2 s later 5.86 dB (with silence instead: 5.86 dB), limiter 0.0000 dB
+    1e+09: gain 2 s later 5.86 dB (with silence instead: 5.86 dB), limiter 0.0000 dB
+Completed tests in AutoGain / broken input (NaN, infinite, absurd) from a faulty plug-in: passed on, but the gain and the limiter are not disturbed
+-----------------------------------------------------------------
+Starting tests in: AutoGain / tiny signals (denormal range) pass correctly...
+    largest error 3.25309e-41
+Completed tests in AutoGain / tiny signals (denormal range) pass correctly
+-----------------------------------------------------------------
+Starting tests in: AutoGain / switched off: glides back to exactly 0 dB, then the audio passes bit-exact (3 ms later)...
+    from 5.66 dB to 0 dB in 470 ms
+Completed tests in AutoGain / switched off: glides back to exactly 0 dB, then the audio passes bit-exact (3 ms later)
+-----------------------------------------------------------------
+Starting tests in: AutoGain / switching on and off every block for 20 s: smooth, no clicks, valid...
+    largest gain change between two samples 0.0000 dB
+Completed tests in AutoGain / switching on and off every block for 20 s: smooth, no clicks, valid
+-----------------------------------------------------------------
+Starting tests in: AutoGain / latency: an impulse comes out exactly 3 ms later (on at 0 dB and off)...
+Completed tests in AutoGain / latency: an impulse comes out exactly 3 ms later (on at 0 dB and off)
+-----------------------------------------------------------------
+Starting tests in: AutoGain / the meters show the real gain and peaks...
+    meter gain 5.991 dB, real gain of the last sample 5.991 dB; peaks in -20.00 / out -14.00 dBFS
+Completed tests in AutoGain / the meters show the real gain and peaks
+-----------------------------------------------------------------
+Starting tests in: AutoGain / lasting changes (further from / closer to the mic): ensemble of 16 voices, the gain follows within seconds...
+    -6 dB: mean gain 2.00 -> 5.99 dB; within 1 dB after 4.26 s; gain after 1 / 3 / 5 / 10 s: 2.23 / 3.67 / 5.36 / 5.93 dB; loudest output -10.11 dBFS
+    -3 dB: mean gain 2.00 -> 4.85 dB; within 1 dB after 4.12 s; gain after 1 / 3 / 5 / 10 s: 1.98 / 2.89 / 4.32 / 4.85 dB; loudest output -10.05 dBFS
+    3 dB: mean gain 5.89 -> 3.98 dB; within 1 dB after 0.52 s; gain after 1 / 3 / 5 / 10 s: 4.86 / 4.35 / 4.14 / 4.18 dB; loudest output -10.00 dBFS
+    6 dB: mean gain 5.89 -> 1.19 dB; within 1 dB after 10.21 s; gain after 1 / 3 / 5 / 10 s: 3.65 / 3.19 / 2.99 / 2.21 dB; loudest output -10.00 dBFS
+Completed tests in AutoGain / lasting changes (further from / closer to the mic): ensemble of 16 voices, the gain follows within seconds
+-----------------------------------------------------------------
+Starting tests in: AutoGain / after a shout the gain returns within seconds; lasting louder voices and normal speech are not affected...
+    shout +10 dB for 4 s: gain before 4.34 dB; after the shout, relative to before: 0-1 s -4.26, 1-2 s -3.49, 2-3 s -1.85, 3-4 s -0.72, 4-5 s -0.33 dB; the shout was forgotten in 8 of 8 voices
+    forgotten shouts in lastingly louder voices (+6 / +8 dB, 2 x 8 voices x 90 s): 0; in normal speech (8 voices x 120 s): 0
+Completed tests in AutoGain / after a shout the gain returns within seconds; lasting louder voices and normal speech are not affected
+-----------------------------------------------------------------
+Starting tests in: AutoGain / regression: the first 0.5 s of a sudden shout at full gain and normal speech afterwards (spec: never above -10 dBFS)...
+    quiet voice -32 dBFS, shout -14 dBFS: gain before the shout 6.00 dB, at the end 6.00 dB; first 0.5 s of the shout: sample peak -10.236 dBFS, true peak -10.081 dBFS; whole run -10.236 dBFS; voice typical before -27.57, 6-20 s after -27.44 dBFS
+    normal voice -25 dBFS, shout -11 dBFS: gain before the shout 4.74 dB, at the end 4.81 dB; first 0.5 s of the shout: sample peak -10.214 dBFS, true peak -10.008 dBFS; whole run -10.214 dBFS; voice typical before -20.06, 6-20 s after -20.16 dBFS
+Completed tests in AutoGain / regression: the first 0.5 s of a sudden shout at full gain and normal speech afterwards (spec: never above -10 dBFS)
+-----------------------------------------------------------------
+Starting tests in: AutoGain / naturalness: how much the gain moves inside phrases and between phrases (measured, see the log)...
+    gain range inside a phrase: median 1.38 dB, 90 % 2.91 dB; loudness differences between phrases kept: 83 % (100 % = untouched); gain change within 100 ms: 99 % below 0.31 dB
+Completed tests in AutoGain / naturalness: how much the gain moves inside phrases and between phrases (measured, see the log)
+-----------------------------------------------------------------
+Starting tests in: AutoGain / long soak: random speech, shouts, silence, noise, pops, broken blocks, switching, random blocks (MICVST_SOAK_HOURS)...
+    0.25 h of audio in 1.6 s (560.11x real time), 84753 blocks, 16 broken blocks, 3 on/off switches; samples above -10 dBFS 0, invalid output samples 0, gain outside 0 ... +6 dB 0, internal counter checks failed 0; processing time per 10 ms of audio: mean 7.15 us, slowest block 394.0 us
+Completed tests in AutoGain / long soak: random speech, shouts, silence, noise, pops, broken blocks, switching, random blocks (MICVST_SOAK_HOURS)
+-----------------------------------------------------------------
+Starting tests in: BuiltInAutoGain / name, channels, on by default, latency = the 3 ms look-ahead...
+Completed tests in BuiltInAutoGain / name, channels, on by default, latency = the 3 ms look-ahead
+-----------------------------------------------------------------
+Starting tests in: BuiltInAutoGain / processBlock with a mono and a stereo buffer...
+Completed tests in BuiltInAutoGain / processBlock with a mono and a stereo buffer
+-----------------------------------------------------------------
+Starting tests in: BuiltInAutoGain / on/off survives the config.xml round trip; damaged state is ignored...
+Completed tests in BuiltInAutoGain / on/off survives the config.xml round trip; damaged state is ignored
+-----------------------------------------------------------------
+Starting tests in: Effects / registry, names, parameters, state / 26 effects, unique ids, all create, names and descriptions in Turkish...
+Completed tests in Effects / registry, names, parameters, state / 26 effects, unique ids, all create, names and descriptions in Turkish
+-----------------------------------------------------------------
+Starting tests in: Effects / registry, names, parameters, state / state round trip: every parameter of every effect (random values)...
+Completed tests in Effects / registry, names, parameters, state / state round trip: every parameter of every effect (random values)
+-----------------------------------------------------------------
+Starting tests in: Effects / registry, names, parameters, state / damaged or foreign state keeps the current values...
+Completed tests in Effects / registry, names, parameters, state / damaged or foreign state keeps the current values
+-----------------------------------------------------------------
+Starting tests in: Effects / registry, names, parameters, state / defaults: nothing enabled by itself; reset to defaults...
+Completed tests in Effects / registry, names, parameters, state / defaults: nothing enabled by itself; reset to defaults
+-----------------------------------------------------------------
+Starting tests in: Effects / registry, names, parameters, state / Turkish value texts...
+Completed tests in Effects / registry, names, parameters, state / Turkish value texts
+-----------------------------------------------------------------
+Starting tests in: Effects / every effect: speech, random settings, broken input, mono/stereo / speech through every effect (defaults and 20 random settings): finite, bounded...
+Completed tests in Effects / every effect: speech, random settings, broken input, mono/stereo / speech through every effect (defaults and 20 random settings): finite, bounded
+-----------------------------------------------------------------
+Starting tests in: Effects / every effect: speech, random settings, broken input, mono/stereo / broken input (NaN, inf, +30 dBFS) is passed untouched and never enters the effect...
+Completed tests in Effects / every effect: speech, random settings, broken input, mono/stereo / broken input (NaN, inf, +30 dBFS) is passed untouched and never enters the effect
+-----------------------------------------------------------------
+Starting tests in: Effects / every effect: speech, random settings, broken input, mono/stereo / channel-neutral effects: mono (1 channel) = left of the same stereo; stereo effects on L=R...
+Completed tests in Effects / every effect: speech, random settings, broken input, mono/stereo / channel-neutral effects: mono (1 channel) = left of the same stereo; stereo effects on L=R
+-----------------------------------------------------------------
+Starting tests in: Effects / every effect: speech, random settings, broken input, mono/stereo / block size does not change the result (32 / 480 / 1024 samples)...
+Completed tests in Effects / every effect: speech, random settings, broken input, mono/stereo / block size does not change the result (32 / 480 / 1024 samples)
+-----------------------------------------------------------------
+Starting tests in: Effects / every effect: speech, random settings, broken input, mono/stereo / transparent where promised: bit-exact (meters, mute open, sync delay 0, channel tool neutral)...
+Completed tests in Effects / every effect: speech, random settings, broken input, mono/stereo / transparent where promised: bit-exact (meters, mute open, sync delay 0, channel tool neutral)
+-----------------------------------------------------------------
+Starting tests in: Effects / every effect: speech, random settings, broken input, mono/stereo / latency: measured (cross-correlation with noise) = reported, at 44.1 / 48 / 96 kHz...
+Completed tests in Effects / every effect: speech, random settings, broken input, mono/stereo / latency: measured (cross-correlation with noise) = reported, at 44.1 / 48 / 96 kHz
+-----------------------------------------------------------------
+Starting tests in: Effects / no click on any parameter change (jumps min <-> max, every choice) / every parameter of every effect: 200 Hz and 1 kHz sines, jumps while playing...
+parameter jumps checked: 560
+Completed tests in Effects / no click on any parameter change (jumps min <-> max, every choice) / every parameter of every effect: 200 Hz and 1 kHz sines, jumps while playing
+-----------------------------------------------------------------
+Starting tests in: Effects / EQ and cleaning: measured responses against the design targets / Low-Cut / High-Cut: Butterworth 12 and 24 dB/oct (44100)...
+Completed tests in Effects / EQ and cleaning: measured responses against the design targets / Low-Cut / High-Cut: Butterworth 12 and 24 dB/oct (44100)
+-----------------------------------------------------------------
+Starting tests in: Effects / EQ and cleaning: measured responses against the design targets / bells and shelves at their defaults (44100)...
+Completed tests in Effects / EQ and cleaning: measured responses against the design targets / bells and shelves at their defaults (44100)
+-----------------------------------------------------------------
+Starting tests in: Effects / EQ and cleaning: measured responses against the design targets / hum remover: 50 Hz and harmonics deep, voice range untouched (44100)...
+Completed tests in Effects / EQ and cleaning: measured responses against the design targets / hum remover: 50 Hz and harmonics deep, voice range untouched (44100)
+-----------------------------------------------------------------
+Starting tests in: Effects / EQ and cleaning: measured responses against the design targets / DC remover: DC gone, 40 Hz untouched (44100)...
+Completed tests in Effects / EQ and cleaning: measured responses against the design targets / DC remover: DC gone, 40 Hz untouched (44100)
+-----------------------------------------------------------------
+Starting tests in: Effects / EQ and cleaning: measured responses against the design targets / Low-Cut / High-Cut: Butterworth 12 and 24 dB/oct (48000)...
+Completed tests in Effects / EQ and cleaning: measured responses against the design targets / Low-Cut / High-Cut: Butterworth 12 and 24 dB/oct (48000)
+-----------------------------------------------------------------
+Starting tests in: Effects / EQ and cleaning: measured responses against the design targets / bells and shelves at their defaults (48000)...
+Completed tests in Effects / EQ and cleaning: measured responses against the design targets / bells and shelves at their defaults (48000)
+-----------------------------------------------------------------
+Starting tests in: Effects / EQ and cleaning: measured responses against the design targets / hum remover: 50 Hz and harmonics deep, voice range untouched (48000)...
+Completed tests in Effects / EQ and cleaning: measured responses against the design targets / hum remover: 50 Hz and harmonics deep, voice range untouched (48000)
+-----------------------------------------------------------------
+Starting tests in: Effects / EQ and cleaning: measured responses against the design targets / DC remover: DC gone, 40 Hz untouched (48000)...
+Completed tests in Effects / EQ and cleaning: measured responses against the design targets / DC remover: DC gone, 40 Hz untouched (48000)
+-----------------------------------------------------------------
+Starting tests in: Effects / EQ and cleaning: measured responses against the design targets / Low-Cut / High-Cut: Butterworth 12 and 24 dB/oct (96000)...
+Completed tests in Effects / EQ and cleaning: measured responses against the design targets / Low-Cut / High-Cut: Butterworth 12 and 24 dB/oct (96000)
+-----------------------------------------------------------------
+Starting tests in: Effects / EQ and cleaning: measured responses against the design targets / bells and shelves at their defaults (96000)...
+Completed tests in Effects / EQ and cleaning: measured responses against the design targets / bells and shelves at their defaults (96000)
+-----------------------------------------------------------------
+Starting tests in: Effects / EQ and cleaning: measured responses against the design targets / hum remover: 50 Hz and harmonics deep, voice range untouched (96000)...
+Completed tests in Effects / EQ and cleaning: measured responses against the design targets / hum remover: 50 Hz and harmonics deep, voice range untouched (96000)
+-----------------------------------------------------------------
+Starting tests in: Effects / EQ and cleaning: measured responses against the design targets / DC remover: DC gone, 40 Hz untouched (96000)...
+Completed tests in Effects / EQ and cleaning: measured responses against the design targets / DC remover: DC gone, 40 Hz untouched (96000)
+-----------------------------------------------------------------
+Starting tests in: Effects / limiter, de-esser, saturation, colour, time and channel tools / limiter: true peak at the ceiling (speech, plosives, full-scale clicks; 0 / +6 / +12 dB input gain)...
+input +0 dB, ceiling -1.0 dBTP: output true peak -1.083
+input +0 dB, ceiling -6.0 dBTP: output true peak -6.041
+input +0 dB, ceiling -0.1 dBTP: output true peak -0.183
+input +6 dB, ceiling -1.0 dBTP: output true peak -1.027
+input +6 dB, ceiling -6.0 dBTP: output true peak -5.948
+input +6 dB, ceiling -0.1 dBTP: output true peak -0.140
+input +12 dB, ceiling -1.0 dBTP: output true peak -0.945
+input +12 dB, ceiling -6.0 dBTP: output true peak -5.917
+input +12 dB, ceiling -0.1 dBTP: output true peak -0.048
+Completed tests in Effects / limiter, de-esser, saturation, colour, time and channel tools / limiter: true peak at the ceiling (speech, plosives, full-scale clicks; 0 / +6 / +12 dB input gain)
+-----------------------------------------------------------------
+Starting tests in: Effects / limiter, de-esser, saturation, colour, time and channel tools / limiter: below the knee the audio is only delayed (3 ms), unchanged...
+Completed tests in Effects / limiter, de-esser, saturation, colour, time and channel tools / limiter: below the knee the audio is only delayed (3 ms), unchanged
+-----------------------------------------------------------------
+Starting tests in: Effects / limiter, de-esser, saturation, colour, time and channel tools / de-esser: static curve (threshold, soft knee, 4:1, range)...
+Completed tests in Effects / limiter, de-esser, saturation, colour, time and channel tools / de-esser: static curve (threshold, soft knee, 4:1, range)
+-----------------------------------------------------------------
+Starting tests in: Effects / limiter, de-esser, saturation, colour, time and channel tools / de-esser: sibilant bursts turned down, the voice below them untouched (split mode)...
+absolute: sibilance reduced by 7.37 dB; voice below 3 kHz changed by 0.009 dB
+relative, input -12 dB: sibilance reduced by 7.32 dB; voice below 3 kHz changed by 0.007 dB
+relative, input 0 dB: sibilance reduced by 7.32 dB; voice below 3 kHz changed by 0.007 dB
+relative, input 8 dB: sibilance reduced by 7.32 dB; voice below 3 kHz changed by 0.007 dB
+Completed tests in Effects / limiter, de-esser, saturation, colour, time and channel tools / de-esser: sibilant bursts turned down, the voice below them untouched (split mode)
+-----------------------------------------------------------------
+Starting tests in: Effects / limiter, de-esser, saturation, colour, time and channel tools / saturation: level kept, harmonics present but mild at 6 dB, aliasing low at 4x...
+tube 6 dB at -20 dBFS: H1 -0.07 dB, H2 -32.4 dBc, H3 -51.4 dBc
+tape 24 dB, 9 kHz: alias at 3 kHz -61.6 dBc
+Completed tests in Effects / limiter, de-esser, saturation, colour, time and channel tools / saturation: level kept, harmonics present but mild at 6 dB, aliasing low at 4x
+-----------------------------------------------------------------
+Starting tests in: Effects / limiter, de-esser, saturation, colour, time and channel tools / telephone / radio / megaphone: band limited, speech level kept within 4 dB...
+lofi mode 0: speech level 0.00 dB
+lofi mode 1: speech level 0.03 dB
+lofi mode 2: speech level -0.02 dB
+Completed tests in Effects / limiter, de-esser, saturation, colour, time and channel tools / telephone / radio / megaphone: band limited, speech level kept within 4 dB
+-----------------------------------------------------------------
+Starting tests in: Effects / limiter, de-esser, saturation, colour, time and channel tools / reverb: dry unchanged at mix 0, a tail after an impulse at the default mix...
+Completed tests in Effects / limiter, de-esser, saturation, colour, time and channel tools / reverb: dry unchanged at mix 0, a tail after an impulse at the default mix
+-----------------------------------------------------------------
+Starting tests in: Effects / limiter, de-esser, saturation, colour, time and channel tools / echo: repeats at the set time, decaying by the feedback...
+Completed tests in Effects / limiter, de-esser, saturation, colour, time and channel tools / echo: repeats at the set time, decaying by the feedback
+-----------------------------------------------------------------
+Starting tests in: Effects / limiter, de-esser, saturation, colour, time and channel tools / stereo widener: mono input becomes stereo, and L + R gives back the input exactly...
+Completed tests in Effects / limiter, de-esser, saturation, colour, time and channel tools / stereo widener: mono input becomes stereo, and L + R gives back the input exactly
+-----------------------------------------------------------------
+Starting tests in: Effects / limiter, de-esser, saturation, colour, time and channel tools / sync delay: exact delay, latency follows the setting...
+Completed tests in Effects / limiter, de-esser, saturation, colour, time and channel tools / sync delay: exact delay, latency follows the setting
+-----------------------------------------------------------------
+Starting tests in: Effects / limiter, de-esser, saturation, colour, time and channel tools / channel tool: modes, phase, balance...
+Completed tests in Effects / limiter, de-esser, saturation, colour, time and channel tools / channel tool: modes, phase, balance
+-----------------------------------------------------------------
+Starting tests in: Effects / limiter, de-esser, saturation, colour, time and channel tools / mute: silence after the fade, back unchanged afterwards...
+Completed tests in Effects / limiter, de-esser, saturation, colour, time and channel tools / mute: silence after the fade, back unchanged afterwards
+-----------------------------------------------------------------
+Starting tests in: Effects / limiter, de-esser, saturation, colour, time and channel tools / compressor: static curve (threshold, ratio, soft knee)...
+Completed tests in Effects / limiter, de-esser, saturation, colour, time and channel tools / compressor: static curve (threshold, ratio, soft knee)
+-----------------------------------------------------------------
+Starting tests in: Effects / limiter, de-esser, saturation, colour, time and channel tools / compressor: steady sine reaches the static curve; below the threshold bit-exact...
+Completed tests in Effects / limiter, de-esser, saturation, colour, time and channel tools / compressor: steady sine reaches the static curve; below the threshold bit-exact
+-----------------------------------------------------------------
+Starting tests in: Effects / limiter, de-esser, saturation, colour, time and channel tools / compressor: parallel mix 0 % = dry...
+Completed tests in Effects / limiter, de-esser, saturation, colour, time and channel tools / compressor: parallel mix 0 % = dry
+-----------------------------------------------------------------
+Starting tests in: Effects / limiter, de-esser, saturation, colour, time and channel tools / noise gate: room noise turned down by the range, words pass whole (look-ahead)...
+Completed tests in Effects / limiter, de-esser, saturation, colour, time and channel tools / noise gate: room noise turned down by the range, words pass whole (look-ahead)
+-----------------------------------------------------------------
+Starting tests in: Effects / limiter, de-esser, saturation, colour, time and channel tools / noise gate: a level right at the threshold does not flutter (hysteresis)...
+Completed tests in Effects / limiter, de-esser, saturation, colour, time and channel tools / noise gate: a level right at the threshold does not flutter (hysteresis)
+-----------------------------------------------------------------
+Starting tests in: Effects / LUFS meter (EBU Tech 3341 / 3342 cases), spectrum ring / stereo 1 kHz sine at -23 dBFS = -23.0 LUFS (M, S, I) @44100...
+Completed tests in Effects / LUFS meter (EBU Tech 3341 / 3342 cases), spectrum ring / stereo 1 kHz sine at -23 dBFS = -23.0 LUFS (M, S, I) @44100
+-----------------------------------------------------------------
+Starting tests in: Effects / LUFS meter (EBU Tech 3341 / 3342 cases), spectrum ring / Tech 3341 case 3: -36 / -23 / -36 dBFS (10 / 60 / 10 s) -> -23.0 LUFS (gating)...
+Completed tests in Effects / LUFS meter (EBU Tech 3341 / 3342 cases), spectrum ring / Tech 3341 case 3: -36 / -23 / -36 dBFS (10 / 60 / 10 s) -> -23.0 LUFS (gating)
+-----------------------------------------------------------------
+Starting tests in: Effects / LUFS meter (EBU Tech 3341 / 3342 cases), spectrum ring / Tech 3342 case 1: 20 s at -20, 20 s at -30 dBFS -> LRA 10 LU...
+Completed tests in Effects / LUFS meter (EBU Tech 3341 / 3342 cases), spectrum ring / Tech 3342 case 1: 20 s at -20, 20 s at -30 dBFS -> LRA 10 LU
+-----------------------------------------------------------------
+Starting tests in: Effects / LUFS meter (EBU Tech 3341 / 3342 cases), spectrum ring / stereo 1 kHz sine at -23 dBFS = -23.0 LUFS (M, S, I) @48000...
+Completed tests in Effects / LUFS meter (EBU Tech 3341 / 3342 cases), spectrum ring / stereo 1 kHz sine at -23 dBFS = -23.0 LUFS (M, S, I) @48000
+-----------------------------------------------------------------
+Starting tests in: Effects / LUFS meter (EBU Tech 3341 / 3342 cases), spectrum ring / Tech 3341 case 3: -36 / -23 / -36 dBFS (10 / 60 / 10 s) -> -23.0 LUFS (gating)...
+Completed tests in Effects / LUFS meter (EBU Tech 3341 / 3342 cases), spectrum ring / Tech 3341 case 3: -36 / -23 / -36 dBFS (10 / 60 / 10 s) -> -23.0 LUFS (gating)
+-----------------------------------------------------------------
+Starting tests in: Effects / LUFS meter (EBU Tech 3341 / 3342 cases), spectrum ring / Tech 3342 case 1: 20 s at -20, 20 s at -30 dBFS -> LRA 10 LU...
+Completed tests in Effects / LUFS meter (EBU Tech 3341 / 3342 cases), spectrum ring / Tech 3342 case 1: 20 s at -20, 20 s at -30 dBFS -> LRA 10 LU
+-----------------------------------------------------------------
+Starting tests in: Effects / LUFS meter (EBU Tech 3341 / 3342 cases), spectrum ring / mono element (one channel): -26 LUFS for the same sine; true peak between samples...
+Completed tests in Effects / LUFS meter (EBU Tech 3341 / 3342 cases), spectrum ring / mono element (one channel): -26 LUFS for the same sine; true peak between samples
+-----------------------------------------------------------------
+Starting tests in: Effects / LUFS meter (EBU Tech 3341 / 3342 cases), spectrum ring / reset clears the integrated value...
+Completed tests in Effects / LUFS meter (EBU Tech 3341 / 3342 cases), spectrum ring / reset clears the integrated value
+-----------------------------------------------------------------
+Starting tests in: Effects / LUFS meter (EBU Tech 3341 / 3342 cases), spectrum ring / spectrum: the window gets the newest samples (mean of the channels)...
+Completed tests in Effects / LUFS meter (EBU Tech 3341 / 3342 cases), spectrum ring / spectrum: the window gets the newest samples (mean of the channels)
+-----------------------------------------------------------------
+Starting tests in: Effects / LUFS meter (EBU Tech 3341 / 3342 cases), spectrum ring / spectrum: a full window also after 2^32 samples (R1: 24.9 h at 48 kHz, 6.2 h at 192 kHz)...
+Completed tests in Effects / LUFS meter (EBU Tech 3341 / 3342 cases), spectrum ring / spectrum: a full window also after 2^32 samples (R1: 24.9 h at 48 kHz, 6.2 h at 192 kHz)
+-----------------------------------------------------------------
+Starting tests in: Effects / in the chain: wiring, channel widths, move, bypass, restore / mono microphone: channel-neutral effects stay mono, a stereo effect gets the voice on both inputs...
+Completed tests in Effects / in the chain: wiring, channel widths, move, bypass, restore / mono microphone: channel-neutral effects stay mono, a stereo effect gets the voice on both inputs
+-----------------------------------------------------------------
+Starting tests in: Presets / factory presets: 15 + 15, built-in only, same elements in the same order, every state valid...
+Completed tests in Presets / factory presets: 15 + 15, built-in only, same elements in the same order, every state valid
+-----------------------------------------------------------------
+Starting tests in: Presets / factory presets: really different (EQ curves 1.5 dB apart somewhere, or clearly different dynamics)...
+Erkek Sesi - Dengeli Profesyonel vs Erkek Sesi - Podcast / Sohbet: up to 3.0 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Erkek Sesi - Radyo Spikeri: up to 5.8 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Erkek Sesi - Haber Sunucusu: up to 1.4 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Erkek Sesi - Seslendirme / Belgesel: up to 6.7 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Erkek Sesi - Sesli Kitap: up to 6.8 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Erkek Sesi - Sinema Sesi: up to 7.4 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Erkek Sesi - Film Diyaloğu: up to 6.0 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Erkek Sesi - Kristal Netlik: up to 5.8 dB apart
+Erkek Sesi - Dengeli Profesyonel vs Erkek Sesi - Yumuşak ve Pürüzsüz: up to 3.1 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Erkek Sesi - Derin ve Sıcak: up to 8.5 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Erkek Sesi - Şarkı / Vokal: up to 4.1 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Erkek Sesi - Oyun / Canlı Yayın: up to 7.0 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Erkek Sesi - Toplantı / Ders: up to 12.7 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Erkek Sesi - ASMR / Fısıltı: up to 13.0 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Kadın Sesi - Dengeli Profesyonel: up to 7.3 dB apart
+Erkek Sesi - Dengeli Profesyonel vs Kadın Sesi - Podcast / Sohbet: up to 5.7 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Kadın Sesi - Radyo Spikeri: up to 3.8 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Kadın Sesi - Haber Sunucusu: up to 8.5 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Kadın Sesi - Seslendirme / Anlatıcı: up to 3.7 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Kadın Sesi - Sesli Kitap: up to 3.2 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Kadın Sesi - Sinema Sesi: up to 2.6 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Kadın Sesi - Film Diyaloğu: up to 2.6 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Kadın Sesi - Kristal Netlik: up to 12.2 dB apart
+Erkek Sesi - Dengeli Profesyonel vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 6.8 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Kadın Sesi - Sıcak ve Dolgun: up to 4.5 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Kadın Sesi - Şarkı / Vokal: up to 11.2 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Kadın Sesi - Oyun / Canlı Yayın: up to 15.7 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Kadın Sesi - Toplantı / Ders: up to 15.2 dB apart, dynamics differ
+Erkek Sesi - Dengeli Profesyonel vs Kadın Sesi - ASMR / Fısıltı: up to 4.1 dB apart, dynamics differ
+Erkek Sesi - Podcast / Sohbet vs Erkek Sesi - Radyo Spikeri: up to 3.0 dB apart, dynamics differ
+Erkek Sesi - Podcast / Sohbet vs Erkek Sesi - Haber Sunucusu: up to 4.2 dB apart
+Erkek Sesi - Podcast / Sohbet vs Erkek Sesi - Seslendirme / Belgesel: up to 4.0 dB apart
+Erkek Sesi - Podcast / Sohbet vs Erkek Sesi - Sesli Kitap: up to 4.0 dB apart, dynamics differ
+Erkek Sesi - Podcast / Sohbet vs Erkek Sesi - Sinema Sesi: up to 4.6 dB apart, dynamics differ
+Erkek Sesi - Podcast / Sohbet vs Erkek Sesi - Film Diyaloğu: up to 3.2 dB apart, dynamics differ
+Erkek Sesi - Podcast / Sohbet vs Erkek Sesi - Kristal Netlik: up to 8.6 dB apart, dynamics differ
+Erkek Sesi - Podcast / Sohbet vs Erkek Sesi - Yumuşak ve Pürüzsüz: up to 2.2 dB apart, dynamics differ
+Erkek Sesi - Podcast / Sohbet vs Erkek Sesi - Derin ve Sıcak: up to 5.8 dB apart
+Erkek Sesi - Podcast / Sohbet vs Erkek Sesi - Şarkı / Vokal: up to 6.8 dB apart, dynamics differ
+Erkek Sesi - Podcast / Sohbet vs Erkek Sesi - Oyun / Canlı Yayın: up to 9.8 dB apart, dynamics differ
+Erkek Sesi - Podcast / Sohbet vs Erkek Sesi - Toplantı / Ders: up to 15.5 dB apart, dynamics differ
+Erkek Sesi - Podcast / Sohbet vs Erkek Sesi - ASMR / Fısıltı: up to 10.2 dB apart, dynamics differ
+Erkek Sesi - Podcast / Sohbet vs Kadın Sesi - Dengeli Profesyonel: up to 10.1 dB apart, dynamics differ
+Erkek Sesi - Podcast / Sohbet vs Kadın Sesi - Podcast / Sohbet: up to 8.5 dB apart
+Erkek Sesi - Podcast / Sohbet vs Kadın Sesi - Radyo Spikeri: up to 6.1 dB apart, dynamics differ
+Erkek Sesi - Podcast / Sohbet vs Kadın Sesi - Haber Sunucusu: up to 11.2 dB apart
+Erkek Sesi - Podcast / Sohbet vs Kadın Sesi - Seslendirme / Anlatıcı: up to 5.3 dB apart
+Erkek Sesi - Podcast / Sohbet vs Kadın Sesi - Sesli Kitap: up to 5.3 dB apart, dynamics differ
+Erkek Sesi - Podcast / Sohbet vs Kadın Sesi - Sinema Sesi: up to 5.3 dB apart, dynamics differ
+Erkek Sesi - Podcast / Sohbet vs Kadın Sesi - Film Diyaloğu: up to 5.4 dB apart, dynamics differ
+Erkek Sesi - Podcast / Sohbet vs Kadın Sesi - Kristal Netlik: up to 15.0 dB apart, dynamics differ
+Erkek Sesi - Podcast / Sohbet vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 9.5 dB apart, dynamics differ
+Erkek Sesi - Podcast / Sohbet vs Kadın Sesi - Sıcak ve Dolgun: up to 3.7 dB apart
+Erkek Sesi - Podcast / Sohbet vs Kadın Sesi - Şarkı / Vokal: up to 13.9 dB apart, dynamics differ
+Erkek Sesi - Podcast / Sohbet vs Kadın Sesi - Oyun / Canlı Yayın: up to 18.5 dB apart, dynamics differ
+Erkek Sesi - Podcast / Sohbet vs Kadın Sesi - Toplantı / Ders: up to 18.0 dB apart, dynamics differ
+Erkek Sesi - Podcast / Sohbet vs Kadın Sesi - ASMR / Fısıltı: up to 3.1 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Erkek Sesi - Haber Sunucusu: up to 7.2 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Erkek Sesi - Seslendirme / Belgesel: up to 3.5 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Erkek Sesi - Sesli Kitap: up to 3.5 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Erkek Sesi - Sinema Sesi: up to 1.9 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Erkek Sesi - Film Diyaloğu: up to 2.6 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Erkek Sesi - Kristal Netlik: up to 11.6 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Erkek Sesi - Yumuşak ve Pürüzsüz: up to 4.4 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Erkek Sesi - Derin ve Sıcak: up to 2.7 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Erkek Sesi - Şarkı / Vokal: up to 9.9 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Erkek Sesi - Oyun / Canlı Yayın: up to 12.8 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Erkek Sesi - Toplantı / Ders: up to 18.5 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Erkek Sesi - ASMR / Fısıltı: up to 7.2 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Kadın Sesi - Dengeli Profesyonel: up to 13.1 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Kadın Sesi - Podcast / Sohbet: up to 11.5 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Kadın Sesi - Radyo Spikeri: up to 9.1 dB apart
+Erkek Sesi - Radyo Spikeri vs Kadın Sesi - Haber Sunucusu: up to 14.3 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Kadın Sesi - Seslendirme / Anlatıcı: up to 8.3 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Kadın Sesi - Sesli Kitap: up to 8.4 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Kadın Sesi - Sinema Sesi: up to 8.4 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Kadın Sesi - Film Diyaloğu: up to 8.4 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Kadın Sesi - Kristal Netlik: up to 18.0 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 12.6 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Kadın Sesi - Sıcak ve Dolgun: up to 6.7 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Kadın Sesi - Şarkı / Vokal: up to 16.9 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Kadın Sesi - Oyun / Canlı Yayın: up to 21.5 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Kadın Sesi - Toplantı / Ders: up to 21.0 dB apart, dynamics differ
+Erkek Sesi - Radyo Spikeri vs Kadın Sesi - ASMR / Fısıltı: up to 4.2 dB apart, dynamics differ
+Erkek Sesi - Haber Sunucusu vs Erkek Sesi - Seslendirme / Belgesel: up to 8.2 dB apart
+Erkek Sesi - Haber Sunucusu vs Erkek Sesi - Sesli Kitap: up to 8.2 dB apart, dynamics differ
+Erkek Sesi - Haber Sunucusu vs Erkek Sesi - Sinema Sesi: up to 8.8 dB apart, dynamics differ
+Erkek Sesi - Haber Sunucusu vs Erkek Sesi - Film Diyaloğu: up to 7.4 dB apart, dynamics differ
+Erkek Sesi - Haber Sunucusu vs Erkek Sesi - Kristal Netlik: up to 4.5 dB apart, dynamics differ
+Erkek Sesi - Haber Sunucusu vs Erkek Sesi - Yumuşak ve Pürüzsüz: up to 4.2 dB apart, dynamics differ
+Erkek Sesi - Haber Sunucusu vs Erkek Sesi - Derin ve Sıcak: up to 10.0 dB apart, dynamics differ
+Erkek Sesi - Haber Sunucusu vs Erkek Sesi - Şarkı / Vokal: up to 2.6 dB apart, dynamics differ
+Erkek Sesi - Haber Sunucusu vs Erkek Sesi - Oyun / Canlı Yayın: up to 5.6 dB apart, dynamics differ
+Erkek Sesi - Haber Sunucusu vs Erkek Sesi - Toplantı / Ders: up to 11.3 dB apart
+Erkek Sesi - Haber Sunucusu vs Erkek Sesi - ASMR / Fısıltı: up to 14.4 dB apart, dynamics differ
+Erkek Sesi - Haber Sunucusu vs Kadın Sesi - Dengeli Profesyonel: up to 5.9 dB apart, dynamics differ
+Erkek Sesi - Haber Sunucusu vs Kadın Sesi - Podcast / Sohbet: up to 4.3 dB apart
+Erkek Sesi - Haber Sunucusu vs Kadın Sesi - Radyo Spikeri: up to 3.5 dB apart, dynamics differ
+Erkek Sesi - Haber Sunucusu vs Kadın Sesi - Haber Sunucusu: up to 7.0 dB apart
+Erkek Sesi - Haber Sunucusu vs Kadın Sesi - Seslendirme / Anlatıcı: up to 4.6 dB apart
+Erkek Sesi - Haber Sunucusu vs Kadın Sesi - Sesli Kitap: up to 4.1 dB apart, dynamics differ
+Erkek Sesi - Haber Sunucusu vs Kadın Sesi - Sinema Sesi: up to 3.3 dB apart, dynamics differ
+Erkek Sesi - Haber Sunucusu vs Kadın Sesi - Film Diyaloğu: up to 2.5 dB apart, dynamics differ
+Erkek Sesi - Haber Sunucusu vs Kadın Sesi - Kristal Netlik: up to 10.8 dB apart, dynamics differ
+Erkek Sesi - Haber Sunucusu vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 5.3 dB apart, dynamics differ
+Erkek Sesi - Haber Sunucusu vs Kadın Sesi - Sıcak ve Dolgun: up to 4.3 dB apart, dynamics differ
+Erkek Sesi - Haber Sunucusu vs Kadın Sesi - Şarkı / Vokal: up to 9.7 dB apart, dynamics differ
+Erkek Sesi - Haber Sunucusu vs Kadın Sesi - Oyun / Canlı Yayın: up to 14.3 dB apart, dynamics differ
+Erkek Sesi - Haber Sunucusu vs Kadın Sesi - Toplantı / Ders: up to 13.8 dB apart
+Erkek Sesi - Haber Sunucusu vs Kadın Sesi - ASMR / Fısıltı: up to 4.4 dB apart, dynamics differ
+Erkek Sesi - Seslendirme / Belgesel vs Erkek Sesi - Sesli Kitap: up to 0.7 dB apart, dynamics differ
+Erkek Sesi - Seslendirme / Belgesel vs Erkek Sesi - Sinema Sesi: up to 2.0 dB apart, dynamics differ
+Erkek Sesi - Seslendirme / Belgesel vs Erkek Sesi - Film Diyaloğu: up to 2.0 dB apart, dynamics differ
+Erkek Sesi - Seslendirme / Belgesel vs Erkek Sesi - Kristal Netlik: up to 12.5 dB apart, dynamics differ
+Erkek Sesi - Seslendirme / Belgesel vs Erkek Sesi - Yumuşak ve Pürüzsüz: up to 3.9 dB apart, dynamics differ
+Erkek Sesi - Seslendirme / Belgesel vs Erkek Sesi - Derin ve Sıcak: up to 2.2 dB apart
+Erkek Sesi - Seslendirme / Belgesel vs Erkek Sesi - Şarkı / Vokal: up to 10.8 dB apart, dynamics differ
+Erkek Sesi - Seslendirme / Belgesel vs Erkek Sesi - Oyun / Canlı Yayın: up to 13.8 dB apart, dynamics differ
+Erkek Sesi - Seslendirme / Belgesel vs Erkek Sesi - Toplantı / Ders: up to 19.5 dB apart, dynamics differ
+Erkek Sesi - Seslendirme / Belgesel vs Erkek Sesi - ASMR / Fısıltı: up to 6.2 dB apart, dynamics differ
+Erkek Sesi - Seslendirme / Belgesel vs Kadın Sesi - Dengeli Profesyonel: up to 14.1 dB apart, dynamics differ
+Erkek Sesi - Seslendirme / Belgesel vs Kadın Sesi - Podcast / Sohbet: up to 12.5 dB apart
+Erkek Sesi - Seslendirme / Belgesel vs Kadın Sesi - Radyo Spikeri: up to 10.1 dB apart, dynamics differ
+Erkek Sesi - Seslendirme / Belgesel vs Kadın Sesi - Haber Sunucusu: up to 15.2 dB apart
+Erkek Sesi - Seslendirme / Belgesel vs Kadın Sesi - Seslendirme / Anlatıcı: up to 9.3 dB apart
+Erkek Sesi - Seslendirme / Belgesel vs Kadın Sesi - Sesli Kitap: up to 9.3 dB apart, dynamics differ
+Erkek Sesi - Seslendirme / Belgesel vs Kadın Sesi - Sinema Sesi: up to 9.3 dB apart, dynamics differ
+Erkek Sesi - Seslendirme / Belgesel vs Kadın Sesi - Film Diyaloğu: up to 9.4 dB apart, dynamics differ
+Erkek Sesi - Seslendirme / Belgesel vs Kadın Sesi - Kristal Netlik: up to 18.9 dB apart, dynamics differ
+Erkek Sesi - Seslendirme / Belgesel vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 13.5 dB apart, dynamics differ
+Erkek Sesi - Seslendirme / Belgesel vs Kadın Sesi - Sıcak ve Dolgun: up to 7.7 dB apart
+Erkek Sesi - Seslendirme / Belgesel vs Kadın Sesi - Şarkı / Vokal: up to 17.9 dB apart, dynamics differ
+Erkek Sesi - Seslendirme / Belgesel vs Kadın Sesi - Oyun / Canlı Yayın: up to 22.5 dB apart, dynamics differ
+Erkek Sesi - Seslendirme / Belgesel vs Kadın Sesi - Toplantı / Ders: up to 22.0 dB apart, dynamics differ
+Erkek Sesi - Seslendirme / Belgesel vs Kadın Sesi - ASMR / Fısıltı: up to 3.8 dB apart, dynamics differ
+Erkek Sesi - Sesli Kitap vs Erkek Sesi - Sinema Sesi: up to 2.4 dB apart, dynamics differ
+Erkek Sesi - Sesli Kitap vs Erkek Sesi - Film Diyaloğu: up to 1.8 dB apart, dynamics differ
+Erkek Sesi - Sesli Kitap vs Erkek Sesi - Kristal Netlik: up to 12.5 dB apart, dynamics differ
+Erkek Sesi - Sesli Kitap vs Erkek Sesi - Yumuşak ve Pürüzsüz: up to 4.0 dB apart
+Erkek Sesi - Sesli Kitap vs Erkek Sesi - Derin ve Sıcak: up to 2.1 dB apart, dynamics differ
+Erkek Sesi - Sesli Kitap vs Erkek Sesi - Şarkı / Vokal: up to 10.8 dB apart, dynamics differ
+Erkek Sesi - Sesli Kitap vs Erkek Sesi - Oyun / Canlı Yayın: up to 13.8 dB apart, dynamics differ
+Erkek Sesi - Sesli Kitap vs Erkek Sesi - Toplantı / Ders: up to 19.5 dB apart, dynamics differ
+Erkek Sesi - Sesli Kitap vs Erkek Sesi - ASMR / Fısıltı: up to 6.2 dB apart, dynamics differ
+Erkek Sesi - Sesli Kitap vs Kadın Sesi - Dengeli Profesyonel: up to 14.1 dB apart, dynamics differ
+Erkek Sesi - Sesli Kitap vs Kadın Sesi - Podcast / Sohbet: up to 12.5 dB apart, dynamics differ
+Erkek Sesi - Sesli Kitap vs Kadın Sesi - Radyo Spikeri: up to 10.1 dB apart, dynamics differ
+Erkek Sesi - Sesli Kitap vs Kadın Sesi - Haber Sunucusu: up to 15.2 dB apart, dynamics differ
+Erkek Sesi - Sesli Kitap vs Kadın Sesi - Seslendirme / Anlatıcı: up to 9.3 dB apart, dynamics differ
+Erkek Sesi - Sesli Kitap vs Kadın Sesi - Sesli Kitap: up to 9.3 dB apart
+Erkek Sesi - Sesli Kitap vs Kadın Sesi - Sinema Sesi: up to 9.3 dB apart, dynamics differ
+Erkek Sesi - Sesli Kitap vs Kadın Sesi - Film Diyaloğu: up to 9.4 dB apart, dynamics differ
+Erkek Sesi - Sesli Kitap vs Kadın Sesi - Kristal Netlik: up to 19.0 dB apart, dynamics differ
+Erkek Sesi - Sesli Kitap vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 13.5 dB apart
+Erkek Sesi - Sesli Kitap vs Kadın Sesi - Sıcak ve Dolgun: up to 7.7 dB apart, dynamics differ
+Erkek Sesi - Sesli Kitap vs Kadın Sesi - Şarkı / Vokal: up to 17.9 dB apart, dynamics differ
+Erkek Sesi - Sesli Kitap vs Kadın Sesi - Oyun / Canlı Yayın: up to 22.5 dB apart, dynamics differ
+Erkek Sesi - Sesli Kitap vs Kadın Sesi - Toplantı / Ders: up to 22.0 dB apart, dynamics differ
+Erkek Sesi - Sesli Kitap vs Kadın Sesi - ASMR / Fısıltı: up to 3.8 dB apart, dynamics differ
+Erkek Sesi - Sinema Sesi vs Erkek Sesi - Film Diyaloğu: up to 2.4 dB apart, dynamics differ
+Erkek Sesi - Sinema Sesi vs Erkek Sesi - Kristal Netlik: up to 13.1 dB apart, dynamics differ
+Erkek Sesi - Sinema Sesi vs Erkek Sesi - Yumuşak ve Pürüzsüz: up to 4.5 dB apart, dynamics differ
+Erkek Sesi - Sinema Sesi vs Erkek Sesi - Derin ve Sıcak: up to 3.5 dB apart, dynamics differ
+Erkek Sesi - Sinema Sesi vs Erkek Sesi - Şarkı / Vokal: up to 11.4 dB apart, dynamics differ
+Erkek Sesi - Sinema Sesi vs Erkek Sesi - Oyun / Canlı Yayın: up to 14.4 dB apart, dynamics differ
+Erkek Sesi - Sinema Sesi vs Erkek Sesi - Toplantı / Ders: up to 20.1 dB apart, dynamics differ
+Erkek Sesi - Sinema Sesi vs Erkek Sesi - ASMR / Fısıltı: up to 5.6 dB apart, dynamics differ
+Erkek Sesi - Sinema Sesi vs Kadın Sesi - Dengeli Profesyonel: up to 14.7 dB apart, dynamics differ
+Erkek Sesi - Sinema Sesi vs Kadın Sesi - Podcast / Sohbet: up to 13.1 dB apart, dynamics differ
+Erkek Sesi - Sinema Sesi vs Kadın Sesi - Radyo Spikeri: up to 10.7 dB apart, dynamics differ
+Erkek Sesi - Sinema Sesi vs Kadın Sesi - Haber Sunucusu: up to 15.8 dB apart, dynamics differ
+Erkek Sesi - Sinema Sesi vs Kadın Sesi - Seslendirme / Anlatıcı: up to 9.9 dB apart, dynamics differ
+Erkek Sesi - Sinema Sesi vs Kadın Sesi - Sesli Kitap: up to 9.9 dB apart, dynamics differ
+Erkek Sesi - Sinema Sesi vs Kadın Sesi - Sinema Sesi: up to 9.9 dB apart
+Erkek Sesi - Sinema Sesi vs Kadın Sesi - Film Diyaloğu: up to 10.0 dB apart, dynamics differ
+Erkek Sesi - Sinema Sesi vs Kadın Sesi - Kristal Netlik: up to 19.6 dB apart, dynamics differ
+Erkek Sesi - Sinema Sesi vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 14.1 dB apart, dynamics differ
+Erkek Sesi - Sinema Sesi vs Kadın Sesi - Sıcak ve Dolgun: up to 8.3 dB apart, dynamics differ
+Erkek Sesi - Sinema Sesi vs Kadın Sesi - Şarkı / Vokal: up to 18.5 dB apart, dynamics differ
+Erkek Sesi - Sinema Sesi vs Kadın Sesi - Oyun / Canlı Yayın: up to 23.1 dB apart, dynamics differ
+Erkek Sesi - Sinema Sesi vs Kadın Sesi - Toplantı / Ders: up to 22.6 dB apart, dynamics differ
+Erkek Sesi - Sinema Sesi vs Kadın Sesi - ASMR / Fısıltı: up to 4.4 dB apart, dynamics differ
+Erkek Sesi - Film Diyaloğu vs Erkek Sesi - Kristal Netlik: up to 11.8 dB apart, dynamics differ
+Erkek Sesi - Film Diyaloğu vs Erkek Sesi - Yumuşak ve Pürüzsüz: up to 3.2 dB apart, dynamics differ
+Erkek Sesi - Film Diyaloğu vs Erkek Sesi - Derin ve Sıcak: up to 3.3 dB apart, dynamics differ
+Erkek Sesi - Film Diyaloğu vs Erkek Sesi - Şarkı / Vokal: up to 10.1 dB apart, dynamics differ
+Erkek Sesi - Film Diyaloğu vs Erkek Sesi - Oyun / Canlı Yayın: up to 13.0 dB apart, dynamics differ
+Erkek Sesi - Film Diyaloğu vs Erkek Sesi - Toplantı / Ders: up to 18.7 dB apart, dynamics differ
+Erkek Sesi - Film Diyaloğu vs Erkek Sesi - ASMR / Fısıltı: up to 7.0 dB apart, dynamics differ
+Erkek Sesi - Film Diyaloğu vs Kadın Sesi - Dengeli Profesyonel: up to 13.3 dB apart, dynamics differ
+Erkek Sesi - Film Diyaloğu vs Kadın Sesi - Podcast / Sohbet: up to 11.7 dB apart, dynamics differ
+Erkek Sesi - Film Diyaloğu vs Kadın Sesi - Radyo Spikeri: up to 9.3 dB apart, dynamics differ
+Erkek Sesi - Film Diyaloğu vs Kadın Sesi - Haber Sunucusu: up to 14.4 dB apart, dynamics differ
+Erkek Sesi - Film Diyaloğu vs Kadın Sesi - Seslendirme / Anlatıcı: up to 8.5 dB apart, dynamics differ
+Erkek Sesi - Film Diyaloğu vs Kadın Sesi - Sesli Kitap: up to 8.5 dB apart, dynamics differ
+Erkek Sesi - Film Diyaloğu vs Kadın Sesi - Sinema Sesi: up to 8.6 dB apart, dynamics differ
+Erkek Sesi - Film Diyaloğu vs Kadın Sesi - Film Diyaloğu: up to 8.6 dB apart
+Erkek Sesi - Film Diyaloğu vs Kadın Sesi - Kristal Netlik: up to 18.2 dB apart, dynamics differ
+Erkek Sesi - Film Diyaloğu vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 12.7 dB apart, dynamics differ
+Erkek Sesi - Film Diyaloğu vs Kadın Sesi - Sıcak ve Dolgun: up to 6.9 dB apart, dynamics differ
+Erkek Sesi - Film Diyaloğu vs Kadın Sesi - Şarkı / Vokal: up to 17.1 dB apart, dynamics differ
+Erkek Sesi - Film Diyaloğu vs Kadın Sesi - Oyun / Canlı Yayın: up to 21.7 dB apart, dynamics differ
+Erkek Sesi - Film Diyaloğu vs Kadın Sesi - Toplantı / Ders: up to 21.2 dB apart, dynamics differ
+Erkek Sesi - Film Diyaloğu vs Kadın Sesi - ASMR / Fısıltı: up to 3.0 dB apart, dynamics differ
+Erkek Sesi - Kristal Netlik vs Erkek Sesi - Yumuşak ve Pürüzsüz: up to 8.6 dB apart, dynamics differ
+Erkek Sesi - Kristal Netlik vs Erkek Sesi - Derin ve Sıcak: up to 14.3 dB apart, dynamics differ
+Erkek Sesi - Kristal Netlik vs Erkek Sesi - Şarkı / Vokal: up to 2.5 dB apart, dynamics differ
+Erkek Sesi - Kristal Netlik vs Erkek Sesi - Oyun / Canlı Yayın: up to 2.0 dB apart, dynamics differ
+Erkek Sesi - Kristal Netlik vs Erkek Sesi - Toplantı / Ders: up to 6.9 dB apart, dynamics differ
+Erkek Sesi - Kristal Netlik vs Erkek Sesi - ASMR / Fısıltı: up to 18.8 dB apart, dynamics differ
+Erkek Sesi - Kristal Netlik vs Kadın Sesi - Dengeli Profesyonel: up to 3.1 dB apart
+Erkek Sesi - Kristal Netlik vs Kadın Sesi - Podcast / Sohbet: up to 4.5 dB apart, dynamics differ
+Erkek Sesi - Kristal Netlik vs Kadın Sesi - Radyo Spikeri: up to 5.5 dB apart, dynamics differ
+Erkek Sesi - Kristal Netlik vs Kadın Sesi - Haber Sunucusu: up to 3.3 dB apart, dynamics differ
+Erkek Sesi - Kristal Netlik vs Kadın Sesi - Seslendirme / Anlatıcı: up to 5.1 dB apart, dynamics differ
+Erkek Sesi - Kristal Netlik vs Kadın Sesi - Sesli Kitap: up to 4.7 dB apart, dynamics differ
+Erkek Sesi - Kristal Netlik vs Kadın Sesi - Sinema Sesi: up to 4.0 dB apart, dynamics differ
+Erkek Sesi - Kristal Netlik vs Kadın Sesi - Film Diyaloğu: up to 4.2 dB apart, dynamics differ
+Erkek Sesi - Kristal Netlik vs Kadın Sesi - Kristal Netlik: up to 6.4 dB apart
+Erkek Sesi - Kristal Netlik vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 5.8 dB apart, dynamics differ
+Erkek Sesi - Kristal Netlik vs Kadın Sesi - Sıcak ve Dolgun: up to 6.0 dB apart, dynamics differ
+Erkek Sesi - Kristal Netlik vs Kadın Sesi - Şarkı / Vokal: up to 5.4 dB apart, dynamics differ
+Erkek Sesi - Kristal Netlik vs Kadın Sesi - Oyun / Canlı Yayın: up to 10.0 dB apart, dynamics differ
+Erkek Sesi - Kristal Netlik vs Kadın Sesi - Toplantı / Ders: up to 9.4 dB apart, dynamics differ
+Erkek Sesi - Kristal Netlik vs Kadın Sesi - ASMR / Fısıltı: up to 8.8 dB apart, dynamics differ
+Erkek Sesi - Yumuşak ve Pürüzsüz vs Erkek Sesi - Derin ve Sıcak: up to 5.7 dB apart, dynamics differ
+Erkek Sesi - Yumuşak ve Pürüzsüz vs Erkek Sesi - Şarkı / Vokal: up to 6.9 dB apart, dynamics differ
+Erkek Sesi - Yumuşak ve Pürüzsüz vs Erkek Sesi - Oyun / Canlı Yayın: up to 9.9 dB apart, dynamics differ
+Erkek Sesi - Yumuşak ve Pürüzsüz vs Erkek Sesi - Toplantı / Ders: up to 15.5 dB apart, dynamics differ
+Erkek Sesi - Yumuşak ve Pürüzsüz vs Erkek Sesi - ASMR / Fısıltı: up to 10.2 dB apart, dynamics differ
+Erkek Sesi - Yumuşak ve Pürüzsüz vs Kadın Sesi - Dengeli Profesyonel: up to 10.1 dB apart, dynamics differ
+Erkek Sesi - Yumuşak ve Pürüzsüz vs Kadın Sesi - Podcast / Sohbet: up to 8.5 dB apart, dynamics differ
+Erkek Sesi - Yumuşak ve Pürüzsüz vs Kadın Sesi - Radyo Spikeri: up to 6.1 dB apart, dynamics differ
+Erkek Sesi - Yumuşak ve Pürüzsüz vs Kadın Sesi - Haber Sunucusu: up to 11.3 dB apart, dynamics differ
+Erkek Sesi - Yumuşak ve Pürüzsüz vs Kadın Sesi - Seslendirme / Anlatıcı: up to 5.3 dB apart, dynamics differ
+Erkek Sesi - Yumuşak ve Pürüzsüz vs Kadın Sesi - Sesli Kitap: up to 5.4 dB apart
+Erkek Sesi - Yumuşak ve Pürüzsüz vs Kadın Sesi - Sinema Sesi: up to 5.4 dB apart, dynamics differ
+Erkek Sesi - Yumuşak ve Pürüzsüz vs Kadın Sesi - Film Diyaloğu: up to 5.5 dB apart, dynamics differ
+Erkek Sesi - Yumuşak ve Pürüzsüz vs Kadın Sesi - Kristal Netlik: up to 15.0 dB apart, dynamics differ
+Erkek Sesi - Yumuşak ve Pürüzsüz vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 9.6 dB apart
+Erkek Sesi - Yumuşak ve Pürüzsüz vs Kadın Sesi - Sıcak ve Dolgun: up to 3.8 dB apart, dynamics differ
+Erkek Sesi - Yumuşak ve Pürüzsüz vs Kadın Sesi - Şarkı / Vokal: up to 14.0 dB apart, dynamics differ
+Erkek Sesi - Yumuşak ve Pürüzsüz vs Kadın Sesi - Oyun / Canlı Yayın: up to 18.6 dB apart, dynamics differ
+Erkek Sesi - Yumuşak ve Pürüzsüz vs Kadın Sesi - Toplantı / Ders: up to 18.0 dB apart, dynamics differ
+Erkek Sesi - Yumuşak ve Pürüzsüz vs Kadın Sesi - ASMR / Fısıltı: up to 3.3 dB apart, dynamics differ
+Erkek Sesi - Derin ve Sıcak vs Erkek Sesi - Şarkı / Vokal: up to 12.6 dB apart, dynamics differ
+Erkek Sesi - Derin ve Sıcak vs Erkek Sesi - Oyun / Canlı Yayın: up to 15.6 dB apart, dynamics differ
+Erkek Sesi - Derin ve Sıcak vs Erkek Sesi - Toplantı / Ders: up to 21.2 dB apart, dynamics differ
+Erkek Sesi - Derin ve Sıcak vs Erkek Sesi - ASMR / Fısıltı: up to 4.5 dB apart, dynamics differ
+Erkek Sesi - Derin ve Sıcak vs Kadın Sesi - Dengeli Profesyonel: up to 15.8 dB apart, dynamics differ
+Erkek Sesi - Derin ve Sıcak vs Kadın Sesi - Podcast / Sohbet: up to 14.2 dB apart
+Erkek Sesi - Derin ve Sıcak vs Kadın Sesi - Radyo Spikeri: up to 11.8 dB apart, dynamics differ
+Erkek Sesi - Derin ve Sıcak vs Kadın Sesi - Haber Sunucusu: up to 17.0 dB apart, dynamics differ
+Erkek Sesi - Derin ve Sıcak vs Kadın Sesi - Seslendirme / Anlatıcı: up to 11.1 dB apart
+Erkek Sesi - Derin ve Sıcak vs Kadın Sesi - Sesli Kitap: up to 11.1 dB apart, dynamics differ
+Erkek Sesi - Derin ve Sıcak vs Kadın Sesi - Sinema Sesi: up to 11.1 dB apart, dynamics differ
+Erkek Sesi - Derin ve Sıcak vs Kadın Sesi - Film Diyaloğu: up to 11.2 dB apart, dynamics differ
+Erkek Sesi - Derin ve Sıcak vs Kadın Sesi - Kristal Netlik: up to 20.7 dB apart, dynamics differ
+Erkek Sesi - Derin ve Sıcak vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 15.3 dB apart, dynamics differ
+Erkek Sesi - Derin ve Sıcak vs Kadın Sesi - Sıcak ve Dolgun: up to 9.5 dB apart
+Erkek Sesi - Derin ve Sıcak vs Kadın Sesi - Şarkı / Vokal: up to 19.7 dB apart, dynamics differ
+Erkek Sesi - Derin ve Sıcak vs Kadın Sesi - Oyun / Canlı Yayın: up to 24.3 dB apart, dynamics differ
+Erkek Sesi - Derin ve Sıcak vs Kadın Sesi - Toplantı / Ders: up to 23.7 dB apart, dynamics differ
+Erkek Sesi - Derin ve Sıcak vs Kadın Sesi - ASMR / Fısıltı: up to 5.5 dB apart, dynamics differ
+Erkek Sesi - Şarkı / Vokal vs Erkek Sesi - Oyun / Canlı Yayın: up to 3.0 dB apart, dynamics differ
+Erkek Sesi - Şarkı / Vokal vs Erkek Sesi - Toplantı / Ders: up to 8.6 dB apart, dynamics differ
+Erkek Sesi - Şarkı / Vokal vs Erkek Sesi - ASMR / Fısıltı: up to 17.1 dB apart, dynamics differ
+Erkek Sesi - Şarkı / Vokal vs Kadın Sesi - Dengeli Profesyonel: up to 3.2 dB apart, dynamics differ
+Erkek Sesi - Şarkı / Vokal vs Kadın Sesi - Podcast / Sohbet: up to 3.1 dB apart, dynamics differ
+Erkek Sesi - Şarkı / Vokal vs Kadın Sesi - Radyo Spikeri: up to 3.7 dB apart, dynamics differ
+Erkek Sesi - Şarkı / Vokal vs Kadın Sesi - Haber Sunucusu: up to 4.4 dB apart, dynamics differ
+Erkek Sesi - Şarkı / Vokal vs Kadın Sesi - Seslendirme / Anlatıcı: up to 3.4 dB apart, dynamics differ
+Erkek Sesi - Şarkı / Vokal vs Kadın Sesi - Sesli Kitap: up to 3.0 dB apart, dynamics differ
+Erkek Sesi - Şarkı / Vokal vs Kadın Sesi - Sinema Sesi: up to 2.2 dB apart, dynamics differ
+Erkek Sesi - Şarkı / Vokal vs Kadın Sesi - Film Diyaloğu: up to 2.5 dB apart, dynamics differ
+Erkek Sesi - Şarkı / Vokal vs Kadın Sesi - Kristal Netlik: up to 8.1 dB apart, dynamics differ
+Erkek Sesi - Şarkı / Vokal vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 4.0 dB apart, dynamics differ
+Erkek Sesi - Şarkı / Vokal vs Kadın Sesi - Sıcak ve Dolgun: up to 4.5 dB apart, dynamics differ
+Erkek Sesi - Şarkı / Vokal vs Kadın Sesi - Şarkı / Vokal: up to 7.1 dB apart
+Erkek Sesi - Şarkı / Vokal vs Kadın Sesi - Oyun / Canlı Yayın: up to 11.7 dB apart, dynamics differ
+Erkek Sesi - Şarkı / Vokal vs Kadın Sesi - Toplantı / Ders: up to 11.1 dB apart, dynamics differ
+Erkek Sesi - Şarkı / Vokal vs Kadın Sesi - ASMR / Fısıltı: up to 7.0 dB apart, dynamics differ
+Erkek Sesi - Oyun / Canlı Yayın vs Erkek Sesi - Toplantı / Ders: up to 5.7 dB apart, dynamics differ
+Erkek Sesi - Oyun / Canlı Yayın vs Erkek Sesi - ASMR / Fısıltı: up to 20.0 dB apart, dynamics differ
+Erkek Sesi - Oyun / Canlı Yayın vs Kadın Sesi - Dengeli Profesyonel: up to 2.8 dB apart, dynamics differ
+Erkek Sesi - Oyun / Canlı Yayın vs Kadın Sesi - Podcast / Sohbet: up to 4.2 dB apart, dynamics differ
+Erkek Sesi - Oyun / Canlı Yayın vs Kadın Sesi - Radyo Spikeri: up to 4.8 dB apart, dynamics differ
+Erkek Sesi - Oyun / Canlı Yayın vs Kadın Sesi - Haber Sunucusu: up to 3.1 dB apart, dynamics differ
+Erkek Sesi - Oyun / Canlı Yayın vs Kadın Sesi - Seslendirme / Anlatıcı: up to 5.2 dB apart, dynamics differ
+Erkek Sesi - Oyun / Canlı Yayın vs Kadın Sesi - Sesli Kitap: up to 4.8 dB apart, dynamics differ
+Erkek Sesi - Oyun / Canlı Yayın vs Kadın Sesi - Sinema Sesi: up to 4.5 dB apart, dynamics differ
+Erkek Sesi - Oyun / Canlı Yayın vs Kadın Sesi - Film Diyaloğu: up to 4.4 dB apart, dynamics differ
+Erkek Sesi - Oyun / Canlı Yayın vs Kadın Sesi - Kristal Netlik: up to 5.2 dB apart, dynamics differ
+Erkek Sesi - Oyun / Canlı Yayın vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 5.6 dB apart, dynamics differ
+Erkek Sesi - Oyun / Canlı Yayın vs Kadın Sesi - Sıcak ve Dolgun: up to 6.1 dB apart, dynamics differ
+Erkek Sesi - Oyun / Canlı Yayın vs Kadın Sesi - Şarkı / Vokal: up to 4.1 dB apart, dynamics differ
+Erkek Sesi - Oyun / Canlı Yayın vs Kadın Sesi - Oyun / Canlı Yayın: up to 8.7 dB apart
+Erkek Sesi - Oyun / Canlı Yayın vs Kadın Sesi - Toplantı / Ders: up to 8.2 dB apart, dynamics differ
+Erkek Sesi - Oyun / Canlı Yayın vs Kadın Sesi - ASMR / Fısıltı: up to 10.0 dB apart, dynamics differ
+Erkek Sesi - Toplantı / Ders vs Erkek Sesi - ASMR / Fısıltı: up to 25.7 dB apart, dynamics differ
+Erkek Sesi - Toplantı / Ders vs Kadın Sesi - Dengeli Profesyonel: up to 5.4 dB apart, dynamics differ
+Erkek Sesi - Toplantı / Ders vs Kadın Sesi - Podcast / Sohbet: up to 7.0 dB apart, dynamics differ
+Erkek Sesi - Toplantı / Ders vs Kadın Sesi - Radyo Spikeri: up to 9.5 dB apart, dynamics differ
+Erkek Sesi - Toplantı / Ders vs Kadın Sesi - Haber Sunucusu: up to 4.3 dB apart
+Erkek Sesi - Toplantı / Ders vs Kadın Sesi - Seslendirme / Anlatıcı: up to 10.2 dB apart, dynamics differ
+Erkek Sesi - Toplantı / Ders vs Kadın Sesi - Sesli Kitap: up to 10.1 dB apart, dynamics differ
+Erkek Sesi - Toplantı / Ders vs Kadın Sesi - Sinema Sesi: up to 10.1 dB apart, dynamics differ
+Erkek Sesi - Toplantı / Ders vs Kadın Sesi - Film Diyaloğu: up to 10.1 dB apart, dynamics differ
+Erkek Sesi - Toplantı / Ders vs Kadın Sesi - Kristal Netlik: up to 3.4 dB apart, dynamics differ
+Erkek Sesi - Toplantı / Ders vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 6.0 dB apart, dynamics differ
+Erkek Sesi - Toplantı / Ders vs Kadın Sesi - Sıcak ve Dolgun: up to 11.8 dB apart, dynamics differ
+Erkek Sesi - Toplantı / Ders vs Kadın Sesi - Şarkı / Vokal: up to 3.0 dB apart, dynamics differ
+Erkek Sesi - Toplantı / Ders vs Kadın Sesi - Oyun / Canlı Yayın: up to 3.1 dB apart, dynamics differ
+Erkek Sesi - Toplantı / Ders vs Kadın Sesi - Toplantı / Ders: up to 2.5 dB apart
+Erkek Sesi - Toplantı / Ders vs Kadın Sesi - ASMR / Fısıltı: up to 15.7 dB apart, dynamics differ
+Erkek Sesi - ASMR / Fısıltı vs Kadın Sesi - Dengeli Profesyonel: up to 20.3 dB apart, dynamics differ
+Erkek Sesi - ASMR / Fısıltı vs Kadın Sesi - Podcast / Sohbet: up to 18.7 dB apart, dynamics differ
+Erkek Sesi - ASMR / Fısıltı vs Kadın Sesi - Radyo Spikeri: up to 16.3 dB apart, dynamics differ
+Erkek Sesi - ASMR / Fısıltı vs Kadın Sesi - Haber Sunucusu: up to 21.4 dB apart, dynamics differ
+Erkek Sesi - ASMR / Fısıltı vs Kadın Sesi - Seslendirme / Anlatıcı: up to 15.5 dB apart, dynamics differ
+Erkek Sesi - ASMR / Fısıltı vs Kadın Sesi - Sesli Kitap: up to 15.6 dB apart, dynamics differ
+Erkek Sesi - ASMR / Fısıltı vs Kadın Sesi - Sinema Sesi: up to 15.6 dB apart, dynamics differ
+Erkek Sesi - ASMR / Fısıltı vs Kadın Sesi - Film Diyaloğu: up to 15.6 dB apart, dynamics differ
+Erkek Sesi - ASMR / Fısıltı vs Kadın Sesi - Kristal Netlik: up to 25.2 dB apart, dynamics differ
+Erkek Sesi - ASMR / Fısıltı vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 19.7 dB apart, dynamics differ
+Erkek Sesi - ASMR / Fısıltı vs Kadın Sesi - Sıcak ve Dolgun: up to 13.9 dB apart, dynamics differ
+Erkek Sesi - ASMR / Fısıltı vs Kadın Sesi - Şarkı / Vokal: up to 24.1 dB apart, dynamics differ
+Erkek Sesi - ASMR / Fısıltı vs Kadın Sesi - Oyun / Canlı Yayın: up to 28.7 dB apart, dynamics differ
+Erkek Sesi - ASMR / Fısıltı vs Kadın Sesi - Toplantı / Ders: up to 28.2 dB apart, dynamics differ
+Erkek Sesi - ASMR / Fısıltı vs Kadın Sesi - ASMR / Fısıltı: up to 10.0 dB apart
+Kadın Sesi - Dengeli Profesyonel vs Kadın Sesi - Podcast / Sohbet: up to 2.1 dB apart, dynamics differ
+Kadın Sesi - Dengeli Profesyonel vs Kadın Sesi - Radyo Spikeri: up to 4.1 dB apart, dynamics differ
+Kadın Sesi - Dengeli Profesyonel vs Kadın Sesi - Haber Sunucusu: up to 1.1 dB apart, dynamics differ
+Kadın Sesi - Dengeli Profesyonel vs Kadın Sesi - Seslendirme / Anlatıcı: up to 4.8 dB apart, dynamics differ
+Kadın Sesi - Dengeli Profesyonel vs Kadın Sesi - Sesli Kitap: up to 4.7 dB apart, dynamics differ
+Kadın Sesi - Dengeli Profesyonel vs Kadın Sesi - Sinema Sesi: up to 4.7 dB apart, dynamics differ
+Kadın Sesi - Dengeli Profesyonel vs Kadın Sesi - Film Diyaloğu: up to 4.7 dB apart, dynamics differ
+Kadın Sesi - Dengeli Profesyonel vs Kadın Sesi - Kristal Netlik: up to 4.9 dB apart
+Kadın Sesi - Dengeli Profesyonel vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 2.9 dB apart, dynamics differ
+Kadın Sesi - Dengeli Profesyonel vs Kadın Sesi - Sıcak ve Dolgun: up to 6.4 dB apart, dynamics differ
+Kadın Sesi - Dengeli Profesyonel vs Kadın Sesi - Şarkı / Vokal: up to 3.8 dB apart, dynamics differ
+Kadın Sesi - Dengeli Profesyonel vs Kadın Sesi - Oyun / Canlı Yayın: up to 8.5 dB apart, dynamics differ
+Kadın Sesi - Dengeli Profesyonel vs Kadın Sesi - Toplantı / Ders: up to 7.9 dB apart, dynamics differ
+Kadın Sesi - Dengeli Profesyonel vs Kadın Sesi - ASMR / Fısıltı: up to 10.3 dB apart, dynamics differ
+Kadın Sesi - Podcast / Sohbet vs Kadın Sesi - Radyo Spikeri: up to 2.4 dB apart, dynamics differ
+Kadın Sesi - Podcast / Sohbet vs Kadın Sesi - Haber Sunucusu: up to 2.8 dB apart
+Kadın Sesi - Podcast / Sohbet vs Kadın Sesi - Seslendirme / Anlatıcı: up to 3.2 dB apart
+Kadın Sesi - Podcast / Sohbet vs Kadın Sesi - Sesli Kitap: up to 3.1 dB apart, dynamics differ
+Kadın Sesi - Podcast / Sohbet vs Kadın Sesi - Sinema Sesi: up to 3.1 dB apart, dynamics differ
+Kadın Sesi - Podcast / Sohbet vs Kadın Sesi - Film Diyaloğu: up to 3.1 dB apart, dynamics differ
+Kadın Sesi - Podcast / Sohbet vs Kadın Sesi - Kristal Netlik: up to 6.6 dB apart, dynamics differ
+Kadın Sesi - Podcast / Sohbet vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 1.8 dB apart, dynamics differ
+Kadın Sesi - Podcast / Sohbet vs Kadın Sesi - Sıcak ve Dolgun: up to 4.8 dB apart
+Kadın Sesi - Podcast / Sohbet vs Kadın Sesi - Şarkı / Vokal: up to 5.5 dB apart, dynamics differ
+Kadın Sesi - Podcast / Sohbet vs Kadın Sesi - Oyun / Canlı Yayın: up to 10.1 dB apart, dynamics differ
+Kadın Sesi - Podcast / Sohbet vs Kadın Sesi - Toplantı / Ders: up to 9.5 dB apart, dynamics differ
+Kadın Sesi - Podcast / Sohbet vs Kadın Sesi - ASMR / Fısıltı: up to 8.7 dB apart, dynamics differ
+Kadın Sesi - Radyo Spikeri vs Kadın Sesi - Haber Sunucusu: up to 5.2 dB apart, dynamics differ
+Kadın Sesi - Radyo Spikeri vs Kadın Sesi - Seslendirme / Anlatıcı: up to 3.5 dB apart, dynamics differ
+Kadın Sesi - Radyo Spikeri vs Kadın Sesi - Sesli Kitap: up to 3.1 dB apart, dynamics differ
+Kadın Sesi - Radyo Spikeri vs Kadın Sesi - Sinema Sesi: up to 2.3 dB apart, dynamics differ
+Kadın Sesi - Radyo Spikeri vs Kadın Sesi - Film Diyaloğu: up to 2.2 dB apart, dynamics differ
+Kadın Sesi - Radyo Spikeri vs Kadın Sesi - Kristal Netlik: up to 9.0 dB apart, dynamics differ
+Kadın Sesi - Radyo Spikeri vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 3.9 dB apart, dynamics differ
+Kadın Sesi - Radyo Spikeri vs Kadın Sesi - Sıcak ve Dolgun: up to 2.8 dB apart, dynamics differ
+Kadın Sesi - Radyo Spikeri vs Kadın Sesi - Şarkı / Vokal: up to 7.9 dB apart, dynamics differ
+Kadın Sesi - Radyo Spikeri vs Kadın Sesi - Oyun / Canlı Yayın: up to 12.5 dB apart, dynamics differ
+Kadın Sesi - Radyo Spikeri vs Kadın Sesi - Toplantı / Ders: up to 12.0 dB apart, dynamics differ
+Kadın Sesi - Radyo Spikeri vs Kadın Sesi - ASMR / Fısıltı: up to 6.3 dB apart, dynamics differ
+Kadın Sesi - Haber Sunucusu vs Kadın Sesi - Seslendirme / Anlatıcı: up to 5.9 dB apart
+Kadın Sesi - Haber Sunucusu vs Kadın Sesi - Sesli Kitap: up to 5.9 dB apart, dynamics differ
+Kadın Sesi - Haber Sunucusu vs Kadın Sesi - Sinema Sesi: up to 5.9 dB apart, dynamics differ
+Kadın Sesi - Haber Sunucusu vs Kadın Sesi - Film Diyaloğu: up to 5.8 dB apart, dynamics differ
+Kadın Sesi - Haber Sunucusu vs Kadın Sesi - Kristal Netlik: up to 3.8 dB apart, dynamics differ
+Kadın Sesi - Haber Sunucusu vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 3.8 dB apart, dynamics differ
+Kadın Sesi - Haber Sunucusu vs Kadın Sesi - Sıcak ve Dolgun: up to 7.5 dB apart, dynamics differ
+Kadın Sesi - Haber Sunucusu vs Kadın Sesi - Şarkı / Vokal: up to 2.7 dB apart, dynamics differ
+Kadın Sesi - Haber Sunucusu vs Kadın Sesi - Oyun / Canlı Yayın: up to 7.3 dB apart, dynamics differ
+Kadın Sesi - Haber Sunucusu vs Kadın Sesi - Toplantı / Ders: up to 6.8 dB apart
+Kadın Sesi - Haber Sunucusu vs Kadın Sesi - ASMR / Fısıltı: up to 11.4 dB apart, dynamics differ
+Kadın Sesi - Seslendirme / Anlatıcı vs Kadın Sesi - Sesli Kitap: up to 0.6 dB apart, dynamics differ
+Kadın Sesi - Seslendirme / Anlatıcı vs Kadın Sesi - Sinema Sesi: up to 1.7 dB apart, dynamics differ
+Kadın Sesi - Seslendirme / Anlatıcı vs Kadın Sesi - Film Diyaloğu: up to 2.3 dB apart, dynamics differ
+Kadın Sesi - Seslendirme / Anlatıcı vs Kadın Sesi - Kristal Netlik: up to 9.7 dB apart, dynamics differ
+Kadın Sesi - Seslendirme / Anlatıcı vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 4.2 dB apart, dynamics differ
+Kadın Sesi - Seslendirme / Anlatıcı vs Kadın Sesi - Sıcak ve Dolgun: up to 1.8 dB apart
+Kadın Sesi - Seslendirme / Anlatıcı vs Kadın Sesi - Şarkı / Vokal: up to 8.6 dB apart, dynamics differ
+Kadın Sesi - Seslendirme / Anlatıcı vs Kadın Sesi - Oyun / Canlı Yayın: up to 13.2 dB apart, dynamics differ
+Kadın Sesi - Seslendirme / Anlatıcı vs Kadın Sesi - Toplantı / Ders: up to 12.7 dB apart, dynamics differ
+Kadın Sesi - Seslendirme / Anlatıcı vs Kadın Sesi - ASMR / Fısıltı: up to 5.5 dB apart, dynamics differ
+Kadın Sesi - Sesli Kitap vs Kadın Sesi - Sinema Sesi: up to 2.0 dB apart, dynamics differ
+Kadın Sesi - Sesli Kitap vs Kadın Sesi - Film Diyaloğu: up to 1.8 dB apart, dynamics differ
+Kadın Sesi - Sesli Kitap vs Kadın Sesi - Kristal Netlik: up to 9.6 dB apart, dynamics differ
+Kadın Sesi - Sesli Kitap vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 4.2 dB apart
+Kadın Sesi - Sesli Kitap vs Kadın Sesi - Sıcak ve Dolgun: up to 2.0 dB apart, dynamics differ
+Kadın Sesi - Sesli Kitap vs Kadın Sesi - Şarkı / Vokal: up to 8.6 dB apart, dynamics differ
+Kadın Sesi - Sesli Kitap vs Kadın Sesi - Oyun / Canlı Yayın: up to 13.2 dB apart, dynamics differ
+Kadın Sesi - Sesli Kitap vs Kadın Sesi - Toplantı / Ders: up to 12.6 dB apart, dynamics differ
+Kadın Sesi - Sesli Kitap vs Kadın Sesi - ASMR / Fısıltı: up to 5.5 dB apart, dynamics differ
+Kadın Sesi - Sinema Sesi vs Kadın Sesi - Film Diyaloğu: up to 2.0 dB apart, dynamics differ
+Kadın Sesi - Sinema Sesi vs Kadın Sesi - Kristal Netlik: up to 9.6 dB apart, dynamics differ
+Kadın Sesi - Sinema Sesi vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 4.2 dB apart, dynamics differ
+Kadın Sesi - Sinema Sesi vs Kadın Sesi - Sıcak ve Dolgun: up to 2.8 dB apart, dynamics differ
+Kadın Sesi - Sinema Sesi vs Kadın Sesi - Şarkı / Vokal: up to 8.6 dB apart, dynamics differ
+Kadın Sesi - Sinema Sesi vs Kadın Sesi - Oyun / Canlı Yayın: up to 13.2 dB apart, dynamics differ
+Kadın Sesi - Sinema Sesi vs Kadın Sesi - Toplantı / Ders: up to 12.6 dB apart, dynamics differ
+Kadın Sesi - Sinema Sesi vs Kadın Sesi - ASMR / Fısıltı: up to 5.6 dB apart, dynamics differ
+Kadın Sesi - Film Diyaloğu vs Kadın Sesi - Kristal Netlik: up to 9.6 dB apart, dynamics differ
+Kadın Sesi - Film Diyaloğu vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 4.1 dB apart, dynamics differ
+Kadın Sesi - Film Diyaloğu vs Kadın Sesi - Sıcak ve Dolgun: up to 2.7 dB apart, dynamics differ
+Kadın Sesi - Film Diyaloğu vs Kadın Sesi - Şarkı / Vokal: up to 8.5 dB apart, dynamics differ
+Kadın Sesi - Film Diyaloğu vs Kadın Sesi - Oyun / Canlı Yayın: up to 13.1 dB apart, dynamics differ
+Kadın Sesi - Film Diyaloğu vs Kadın Sesi - Toplantı / Ders: up to 12.6 dB apart, dynamics differ
+Kadın Sesi - Film Diyaloğu vs Kadın Sesi - ASMR / Fısıltı: up to 5.6 dB apart, dynamics differ
+Kadın Sesi - Kristal Netlik vs Kadın Sesi - Yumuşak ve Pürüzsüz: up to 5.5 dB apart, dynamics differ
+Kadın Sesi - Kristal Netlik vs Kadın Sesi - Sıcak ve Dolgun: up to 11.3 dB apart, dynamics differ
+Kadın Sesi - Kristal Netlik vs Kadın Sesi - Şarkı / Vokal: up to 1.7 dB apart, dynamics differ
+Kadın Sesi - Kristal Netlik vs Kadın Sesi - Oyun / Canlı Yayın: up to 3.5 dB apart, dynamics differ
+Kadın Sesi - Kristal Netlik vs Kadın Sesi - Toplantı / Ders: up to 3.4 dB apart, dynamics differ
+Kadın Sesi - Kristal Netlik vs Kadın Sesi - ASMR / Fısıltı: up to 15.2 dB apart, dynamics differ
+Kadın Sesi - Yumuşak ve Pürüzsüz vs Kadın Sesi - Sıcak ve Dolgun: up to 5.8 dB apart, dynamics differ
+Kadın Sesi - Yumuşak ve Pürüzsüz vs Kadın Sesi - Şarkı / Vokal: up to 4.4 dB apart, dynamics differ
+Kadın Sesi - Yumuşak ve Pürüzsüz vs Kadın Sesi - Oyun / Canlı Yayın: up to 9.0 dB apart, dynamics differ
+Kadın Sesi - Yumuşak ve Pürüzsüz vs Kadın Sesi - Toplantı / Ders: up to 8.5 dB apart, dynamics differ
+Kadın Sesi - Yumuşak ve Pürüzsüz vs Kadın Sesi - ASMR / Fısıltı: up to 9.7 dB apart, dynamics differ
+Kadın Sesi - Sıcak ve Dolgun vs Kadın Sesi - Şarkı / Vokal: up to 10.2 dB apart, dynamics differ
+Kadın Sesi - Sıcak ve Dolgun vs Kadın Sesi - Oyun / Canlı Yayın: up to 14.8 dB apart, dynamics differ
+Kadın Sesi - Sıcak ve Dolgun vs Kadın Sesi - Toplantı / Ders: up to 14.3 dB apart, dynamics differ
+Kadın Sesi - Sıcak ve Dolgun vs Kadın Sesi - ASMR / Fısıltı: up to 3.9 dB apart, dynamics differ
+Kadın Sesi - Şarkı / Vokal vs Kadın Sesi - Oyun / Canlı Yayın: up to 4.6 dB apart, dynamics differ
+Kadın Sesi - Şarkı / Vokal vs Kadın Sesi - Toplantı / Ders: up to 4.1 dB apart, dynamics differ
+Kadın Sesi - Şarkı / Vokal vs Kadın Sesi - ASMR / Fısıltı: up to 14.1 dB apart, dynamics differ
+Kadın Sesi - Oyun / Canlı Yayın vs Kadın Sesi - Toplantı / Ders: up to 1.7 dB apart, dynamics differ
+Kadın Sesi - Oyun / Canlı Yayın vs Kadın Sesi - ASMR / Fısıltı: up to 18.7 dB apart, dynamics differ
+Kadın Sesi - Toplantı / Ders vs Kadın Sesi - ASMR / Fısıltı: up to 18.2 dB apart, dynamics differ
+Completed tests in Presets / factory presets: really different (EQ curves 1.5 dB apart somewhere, or clearly different dynamics)
+-----------------------------------------------------------------
+Starting tests in: Presets / user preset: save -> file -> load gives back every byte (100 kB plug-in state, Turkish name)...
+Completed tests in Presets / user preset: save -> file -> load gives back every byte (100 kB plug-in state, Turkish name)
+-----------------------------------------------------------------
+Starting tests in: Presets / overwrite, rename, delete; names that make the same file name stay apart...
+Completed tests in Presets / overwrite, rename, delete; names that make the same file name stay apart
+-----------------------------------------------------------------
+Starting tests in: Presets / name rules: empty, too long, a factory name...
+Completed tests in Presets / name rules: empty, too long, a factory name
+-----------------------------------------------------------------
+Starting tests in: Presets / damaged and foreign files in the folder are skipped, the good ones load...
+Hazır ayar dosyası okunamadı, atlandı: C:\Users\RUNNER~1\AppData\Local\Temp\micvst-preset-test-6507629890412688720\broken.micvstpreset
+Hazır ayar dosyası okunamadı, atlandı: C:\Users\RUNNER~1\AppData\Local\Temp\micvst-preset-test-6507629890412688720\noname.micvstpreset
+Hazır ayar dosyası okunamadı, atlandı: C:\Users\RUNNER~1\AppData\Local\Temp\micvst-preset-test-6507629890412688720\other.micvstpreset
+Completed tests in Presets / damaged and foreign files in the folder are skipped, the good ones load
+-----------------------------------------------------------------
+Starting tests in: Presets / XML: a preset of a newer version with unknown attributes still loads its chain...
+Completed tests in Presets / XML: a preset of a newer version with unknown attributes still loads its chain
+-----------------------------------------------------------------
+Starting tests in: Shortcuts (keys and mouse buttons) / every key and mouse shortcut is read back exactly as it was saved...
+Completed tests in Shortcuts (keys and mouse buttons) / every key and mouse shortcut is read back exactly as it was saved
+-----------------------------------------------------------------
+Starting tests in: Shortcuts (keys and mouse buttons) / older settings files (without the mouse part) keep their key...
+Completed tests in Shortcuts (keys and mouse buttons) / older settings files (without the mouse part) keep their key
+-----------------------------------------------------------------
+Starting tests in: Shortcuts (keys and mouse buttons) / damaged or impossible values give the default, never a broken shortcut...
+Completed tests in Shortcuts (keys and mouse buttons) / damaged or impossible values give the default, never a broken shortcut
+-----------------------------------------------------------------
+Starting tests in: Shortcuts (keys and mouse buttons) / defaults: Sustur F9 on, Ham ses F10 off...
+Completed tests in Shortcuts (keys and mouse buttons) / defaults: Sustur F9 on, Ham ses F10 off
+-----------------------------------------------------------------
+Starting tests in: Shortcuts (keys and mouse buttons) / the same shortcut is found for both actions, a different one is not...
+Completed tests in Shortcuts (keys and mouse buttons) / the same shortcut is found for both actions, a different one is not
+-----------------------------------------------------------------
+Starting tests in: Shortcuts (keys and mouse buttons) / names: keys and mouse buttons with their modifier keys...
+Completed tests in Shortcuts (keys and mouse buttons) / names: keys and mouse buttons with their modifier keys
+-----------------------------------------------------------------
+Starting tests in: Device formats / the usual endpoint formats...
+Completed tests in Device formats / the usual endpoint formats
+-----------------------------------------------------------------
+Starting tests in: Device formats / damaged or unknown blobs are never misread...
+Completed tests in Device formats / damaged or unknown blobs are never misread
+-----------------------------------------------------------------
+Starting tests in: Recorder / settings: defaults, config.xml text, the rates offered...
+Completed tests in Recorder / settings: defaults, config.xml text, the rates offered
+-----------------------------------------------------------------
+Starting tests in: Recorder / file names: date and time, never over an existing file...
+Completed tests in Recorder / file names: date and time, never over an existing file
+-----------------------------------------------------------------
+Starting tests in: Recorder / WAV and FLAC: every bit depth, read back to the LSB...
+wav:16|48000|2: 144000 samples, max error 1.470 LSB, file 563 KB
+wav:24|48000|2: 144000 samples, max error 0.500 LSB, file 844 KB
+wav:32|48000|2: 144000 samples, max error 0.500 LSB, file 1125 KB
+wav:32f|48000|2: 144000 samples, max error 0.000 LSB, file 1125 KB
+flac:16:5|48000|2: 144000 samples, max error 1.470 LSB, file 153 KB
+flac:24:5|48000|2: 144000 samples, max error 0.500 LSB, file 346 KB
+flac:24:0|48000|2: 144000 samples, max error 0.500 LSB, file 346 KB
+flac:24:8|48000|2: 144000 samples, max error 0.500 LSB, file 301 KB
+Completed tests in Recorder / WAV and FLAC: every bit depth, read back to the LSB
+-----------------------------------------------------------------
+Starting tests in: Recorder / WAV: Broadcast WAV chunk (originator, date)...
+Completed tests in Recorder / WAV: Broadcast WAV chunk (originator, date)
+-----------------------------------------------------------------
+Starting tests in: Recorder / integer formats: overs limited to full scale, never wrapped round...
+Completed tests in Recorder / integer formats: overs limited to full scale, never wrapped round
+-----------------------------------------------------------------
+Starting tests in: Recorder / 16 bit dither: TPDF, unbiased, no sign of truncation...
+16 bit dither: error mean 0.0012 LSB, rms 0.4982 LSB (TPDF: 0.5)
+Completed tests in Recorder / 16 bit dither: TPDF, unbiased, no sign of truncation
+-----------------------------------------------------------------
+Starting tests in: Recorder / mono: (L+R)/2 - a mono voice exactly...
+Completed tests in Recorder / mono: (L+R)/2 - a mono voice exactly
+-----------------------------------------------------------------
+Starting tests in: Recorder / sample rates: 48 -> 44.1 kHz and 96 -> 48 / 88.2 kHz, converted cleanly and in time...
+wav:32f|44100|2 from 48000 Hz: signal/error 147.9 dB, length exact
+wav:24|44100|2 from 48000 Hz: signal/error 136.5 dB, length exact
+flac:24:5|48000|2 from 96000 Hz: signal/error 136.8 dB, length exact
+wav:32f|88200|2 from 96000 Hz: signal/error 147.9 dB, length exact
+wav:32f|48000|2 from 44100 Hz: signal/error 147.5 dB, length exact
+Completed tests in Recorder / sample rates: 48 -> 44.1 kHz and 96 -> 48 / 88.2 kHz, converted cleanly and in time
+-----------------------------------------------------------------
+Starting tests in: Recorder / the converter: flat pass band, 140 dB stop band...
+Completed tests in Recorder / the converter: flat pass band, 140 dB stop band
+-----------------------------------------------------------------
+Starting tests in: Recorder / MP3: CBR 128-320 and VBR V0/V2/V4, stereo and mono, 44.1 and 48 kHz...
+   R signal/error 26.0 dB
+mp3:cbr128|48000|2: 168 frames, 192000 samples (= written), 129.792 kbps average, L signal/error 26.0 dB, decoder offset 1105
+   R signal/error 26.0 dB
+mp3:cbr160|48000|2: 168 frames, 192000 samples (= written), 162.24 kbps average, L signal/error 26.0 dB, decoder offset 1105
+   R signal/error 30.5 dB
+mp3:cbr192|44100|2: 155 frames, 176400 samples (= written), 195.602 kbps average, L signal/error 30.5 dB, decoder offset 1105
+   R signal/error 34.0 dB
+mp3:cbr224|48000|2: 168 frames, 192000 samples (= written), 227.136 kbps average, L signal/error 34.0 dB, decoder offset 1105
+   R signal/error 76.5 dB
+mp3:cbr256|48000|2: 168 frames, 192000 samples (= written), 259.584 kbps average, L signal/error 71.9 dB, decoder offset 1105
+   R signal/error 75.0 dB
+mp3:cbr320|48000|2: 168 frames, 192000 samples (= written), 324.48 kbps average, L signal/error 71.8 dB, decoder offset 1105
+mp3:cbr320|44100|1: 155 frames, 176400 samples (= written), 326.006 kbps average, L signal/error 75.1 dB, decoder offset 1105
+   R signal/error 56.9 dB
+mp3:v0|48000|2: 168 frames, 192000 samples (= written), 113.28 kbps average, L signal/error 67.3 dB, decoder offset 1105
+   R signal/error 46.2 dB
+mp3:v2|48000|2: 168 frames, 192000 samples (= written), 80.64 kbps average, L signal/error 52.0 dB, decoder offset 1105
+   R signal/error 40.4 dB
+mp3:v4|44100|2: 155 frames, 176400 samples (= written), 65.744 kbps average, L signal/error 41.6 dB, decoder offset 1105
+mp3:v0|48000|1: 168 frames, 192000 samples (= written), 56.208 kbps average, L signal/error 67.3 dB, decoder offset 1105
+Completed tests in Recorder / MP3: CBR 128-320 and VBR V0/V2/V4, stereo and mono, 44.1 and 48 kHz
+-----------------------------------------------------------------
+Starting tests in: Recorder / MP3 check rejects damaged files...
+Completed tests in Recorder / MP3 check rejects damaged files
+-----------------------------------------------------------------
+Starting tests in: Recorder / a crash while recording: the WAV is valid up to the last second...
+Completed tests in Recorder / a crash while recording: the WAV is valid up to the last second
+-----------------------------------------------------------------
+Starting tests in: Recorder / FIFO overflow (disk stalled > 30 s): counted, the file stays consistent...
+Completed tests in Recorder / FIFO overflow (disk stalled > 30 s): counted, the file stays consistent
+-----------------------------------------------------------------
+Starting tests in: Recorder / errors: no audio, folder that cannot exist, two starts...
+Completed tests in Recorder / errors: no audio, folder that cannot exist, two starts
+-----------------------------------------------------------------
+Starting tests in: Recorder / start / stop many times: every file whole, no two the same...
+Completed tests in Recorder / start / stop many times: every file whole, no two the same
+-----------------------------------------------------------------
+Starting tests in: Recorder / long recording: 20 minutes, WAV 24 bit and FLAC, no loss...
+wav:24|48000|2: 20 min recorded in 120.0 s (9.99953x real time incl. the test signal; real use: 1x), 329 MB, verified
+flac:24:5|48000|2: 20 min recorded in 120.0 s (9.99757x real time incl. the test signal; real use: 1x), 134 MB, verified
+mp3:v0|48000|2: 20 min recorded in 120.0 s (9.99712x real time incl. the test signal; real use: 1x), 15 MB, verified
+Completed tests in Recorder / long recording: 20 minutes, WAV 24 bit and FLAC, no loss
+-----------------------------------------------------------------
+Starting tests in: Recorder / encoder speed (writer thread, one core): times real time...
+wav:24|48000|2: 1264.68x real time (0.08 % of one core)
+wav:16|48000|2: 1032.55x real time (0.10 % of one core)
+flac:24:5|48000|2: 155.476x real time (0.64 % of one core)
+flac:24:8|48000|2: 111.663x real time (0.90 % of one core)
+wav:24|44100|2: 79.2196x real time (1.26 % of one core)
+mp3:cbr320|48000|2: 52.9842x real time (1.89 % of one core)
+mp3:v0|48000|2: 110.998x real time (0.90 % of one core)
+mp3:cbr320|44100|2: 36.5336x real time (2.74 % of one core)
+Completed tests in Recorder / encoder speed (writer thread, one core): times real time
+-----------------------------------------------------------------
+Starting tests in: Recorder K22 / settings the panel does not offer fall back to safe values...
+Completed tests in Recorder K22 / settings the panel does not offer fall back to safe values
+-----------------------------------------------------------------
+Starting tests in: Recorder K22 / 24 / 32 bit: rounded to nearest, ties to even - no bias (K2: |mean| < 0.01 LSB)...
+wav:24|48000|2: mean error -0.0001 LSB, max 0.500 LSB, exact ties 90312 of 288000, samples not rounded to nearest/even 0
+flac:24:5|48000|2: mean error -0.0001 LSB, max 0.500 LSB, exact ties 90312 of 288000, samples not rounded to nearest/even 0
+wav:24|44100|2: mean error -0.0008 LSB, max 0.500 LSB, exact ties 82454 of 264600, samples not rounded to nearest/even 0
+Completed tests in Recorder K22 / 24 / 32 bit: rounded to nearest, ties to even - no bias (K2: |mean| < 0.01 LSB)
+-----------------------------------------------------------------
+Starting tests in: Recorder K22 / full sweep (skipped: set MICVST_TEST_K22=1)...
+K22 full sweep not run in this pass (MICVST_TEST_K22 not set)
+Completed tests in Recorder K22 / full sweep (skipped: set MICVST_TEST_K22=1)
+-----------------------------------------------------------------
+Starting tests in: Recorder K14 / small disk (skipped: set MICVST_TEST_SMALLDISK)...
+K14 small disk not run (MICVST_TEST_SMALLDISK not set)
+Completed tests in Recorder K14 / small disk (skipped: set MICVST_TEST_SMALLDISK)
+-----------------------------------------------------------------
+Starting tests in: Counters R1 / ReopenBackoff: due exactly when the pause is over - before, across and long after the wrap...
+Completed tests in Counters R1 / ReopenBackoff: due exactly when the pause is over - before, across and long after the wrap
+-----------------------------------------------------------------
+Starting tests in: Counters R1 / the unsigned interval checks of the other timers, across the wrap...
+Completed tests in Counters R1 / the unsigned interval checks of the other timers, across the wrap
+-----------------------------------------------------------------
+Starting tests in: Counters R1 / Recorder: the WAV header up to date every second after the wrap...
+header at 4.5 s (wrap at 1.5 s): 4.09 s; file 6.000 s, verified yes
+Completed tests in Counters R1 / Recorder: the WAV header up to date every second after the wrap
+-----------------------------------------------------------------
+Starting tests in: Counters R1 / CuePlayer: Windows' default output looked up every 2 s across the wrap...
+138 plays in 7 s across the wrap: 4 look-ups of the default output
+Completed tests in Counters R1 / CuePlayer: Windows' default output looked up every 2 s across the wrap
+-----------------------------------------------------------------
+Starting tests in: Cue sounds / 16 built-in sounds: all load, 48 kHz stereo, short, start and end silent...
+Completed tests in Cue sounds / 16 built-in sounds: all load, 48 kHz stereo, short, start and end silent
+-----------------------------------------------------------------
+Starting tests in: Cue sounds / settings: default AhÅap, config.xml text, unreadable -> default...
+Completed tests in Cue sounds / settings: default AhÅap, config.xml text, unreadable -> default
+-----------------------------------------------------------------
+Starting tests in: Cue sounds / user folder: suitable files listed by themselves, others skipped...
+Completed tests in Cue sounds / user folder: suitable files listed by themselves, others skipped
+-----------------------------------------------------------------
+Starting tests in: Cue sounds / the WAV for Windows: 16-bit PCM, its rate, the volume applied...
+Completed tests in Cue sounds / the WAV for Windows: 16-bit PCM, its rate, the volume applied
+-----------------------------------------------------------------
+Starting tests in: Cue sounds / player: unmute -> aÃ§Ä±lma, mute -> kapanma, off -> nothing, never into the cable...
+Bildirim sesi çalınmadı: Windows'un varsayılan çıkışı sanal kablo (karşı taraf duyardı)
+Completed tests in Cue sounds / player: unmute -> aÃ§Ä±lma, mute -> kapanma, off -> nothing, never into the cable
+-----------------------------------------------------------------
+Starting tests in: Cue sounds / player: play returns at once (the sound starts with the mute itself)...
+play(): 104.2 us per call (nothing decoded or allocated there; the sounds are prepared when chosen)
+Completed tests in Cue sounds / player: play returns at once (the sound starts with the mute itself)
+All tests completed successfully
+-- exit code 0, 769.1 s, peak working set 450 MB

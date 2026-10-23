@@ -1,0 +1,4 @@
+-- PatchJuce: applied MicVST graph fix to modules/juce_audio_processors_headless/processors/juce_AudioProcessorGraph.cpp
+-- PatchJuce: applied MicVST device-manager fix to modules/juce_audio_devices/audio_io/juce_AudioDeviceManager.cpp
+-- PatchJuce: version resource language set to Turkish (0x041F) in extras/Build/juce_build_tools/utils/juce_ResourceRc.cpp
+-- PatchJuce: applied MicVST WASAPI realtime fixes to modules/juce_audio_devices/native/juce_WASAPI_windows.cpp

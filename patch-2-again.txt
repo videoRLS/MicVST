@@ -1,0 +1,4 @@
+-- PatchJuce: graph fix already applied
+-- PatchJuce: device-manager fix already applied
+-- PatchJuce: version resource language already Turkish
+-- PatchJuce: WASAPI realtime fixes already applied
