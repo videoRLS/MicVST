@@ -1193,7 +1193,7 @@ Omitir el plugin que se está analizando
 @@3
  (ilegible o de más de 10 segundos)
 @@81
-Sonidos Ahşap de apertura y de cierre, volumen 80 %
+Sonidos Ahşap de apertura y de cierre, volumen 40 %
 @@101
 Sonido de activar/desactivar
 @@104

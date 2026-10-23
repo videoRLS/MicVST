@@ -1193,7 +1193,7 @@ Pular o plugin que está sendo verificado
 @@3
  (ilegível ou com mais de 10 segundos)
 @@81
-Sons Ahşap de abertura e de fechamento, volume 80%
+Sons Ahşap de abertura e de fechamento, volume 40%
 @@101
 Som de ligar/desligar
 @@104

@@ -1193,7 +1193,7 @@ Skip the plug-in being scanned now
 @@3
  (unreadable or longer than 10 seconds)
 @@81
-Ahşap opening and Ahşap closing sounds, volume 80%
+Ahşap opening and Ahşap closing sounds, volume 40%
 @@101
 On/off sound
 @@104

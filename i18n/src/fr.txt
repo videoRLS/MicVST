@@ -1193,7 +1193,7 @@ Ignorer le plug-in en cours d'analyse
 @@3
  (illisible ou plus de 10 secondes)
 @@81
-Sons Ahşap d'ouverture et de fermeture, volume 80 %
+Sons Ahşap d'ouverture et de fermeture, volume 40 %
 @@101
 Son marche/arrêt
 @@104

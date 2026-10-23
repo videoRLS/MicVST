@@ -1193,7 +1193,7 @@ Das gerade gescannte Plugin überspringen
 @@3
  (nicht lesbar oder länger als 10 Sekunden)
 @@81
-Ahşap-Klänge für Ein und Aus, Lautstärke 80 %
+Ahşap-Klänge für Ein und Aus, Lautstärke 40 %
 @@101
 Ein/Aus-Klang
 @@104
