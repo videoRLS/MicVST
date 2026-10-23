@@ -326,6 +326,9 @@ public:
         lookAndFeel = nullptr;
         juce::Logger::setCurrentLogger (nullptr);
         logger = nullptr;
+        // Everything is closed and written now (settings, a running recording, the log, the tray icon).
+        // The process ends here: Windows' DLL clean-up at exit, where a plug-in crashed (Clear), is skipped.
+        rt::endProcessNow (getApplicationReturnValue());
     }
 
 private:

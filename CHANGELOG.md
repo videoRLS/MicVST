@@ -44,6 +44,12 @@ project follows [Semantic Versioning](https://semver.org/).
   shown by unit test "Counters R1", which runs the recorder, the Bildirim sesi and the retry with the
   counter starting just before the wrap). The spectrum display counted its samples in 32 bits and showed
   an empty picture for a moment once a day (every 24.9 h at 48 kHz); now 64 bits. No change to the audio.
+- Closing MicVST: after everything is closed and written (settings, a running recording, the log, the tray
+  icon), the process ends at once (Windows: TerminateProcess with the program's exit code). Some plug-ins crash
+  in their own DLL clean-up when Windows unloads them at process exit (measured on the user's PC with Clear:
+  8 of 10 exits left a "MicVST.exe crashed" event, although the exit code was 0 and nothing was lost); that
+  clean-up is no longer reached. Windows frees all memory, handles and threads of an ending process anyway.
+  The plug-in scan child (--scan) keeps its exit code the same way.
 - Ayarlar: changing the theme or the language no longer flickers. The settings window is rebuilt with the
   new colours; it used to appear first at the default place with a light title bar and then jump to where
   it was (it looked like a second window for a moment). Now the new one is placed, darkened and filled

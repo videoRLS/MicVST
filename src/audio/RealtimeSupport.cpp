@@ -119,6 +119,7 @@ namespace rt
     }
 
     bool processPrioritySupported() noexcept { return true; }
+    void endProcessNow (int exitCode) noexcept { TerminateProcess (GetCurrentProcess(), (UINT) exitCode); }
 
     int currentProcessPriority() noexcept
     {
@@ -249,6 +250,7 @@ namespace rt
 {
     ProcessSetup configureRealtimeProcess() noexcept { return {}; }
     bool processPrioritySupported() noexcept { return false; }
+    void endProcessNow (int) noexcept {}
     int currentProcessPriority() noexcept { return -1; }
     PriorityResult setProcessPriority (ProcessPriority) noexcept { return {}; }
     void configureBackgroundProcess() noexcept {}

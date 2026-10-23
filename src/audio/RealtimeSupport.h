@@ -34,6 +34,13 @@ namespace rt
 
     // Windows only (elsewhere: not supported, nothing happens). Message thread.
     bool           processPrioritySupported() noexcept;
+
+    // Ends the process at once with this exit code (Windows: TerminateProcess). Called as the very last step
+    // of the program's shutdown, when everything of MicVST is closed and written: some plug-ins crash in their
+    // own clean-up when Windows unloads their DLLs at process exit (DLL_PROCESS_DETACH; measured with Clear,
+    // 8 of 10 exits). Windows frees all memory, handles and threads of an ending process whichever way it
+    // ends - only that DLL clean-up is skipped. Elsewhere: returns, the normal exit follows.
+    void endProcessNow (int exitCode) noexcept;
     PriorityResult setProcessPriority (ProcessPriority) noexcept;
     // The class the process has now: 0..2 as ProcessPriority, -1 for any other class (idle,
     // below normal, realtime - set from outside, e.g. in Task Manager) or where not supported.
