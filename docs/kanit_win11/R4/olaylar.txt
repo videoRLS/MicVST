@@ -1,0 +1,147 @@
+﻿izleme basladi 2026-10-22T19:02:06.8111914+03:00 aralik=600 s bitis(UTC)=2026-10-23T15:05:00Z
+SISTEM 2026-10-22T21:09:27.8547115+03:00 [Microsoft-Windows-FilterManager 1] Dosya Sistemi Filtresi 'BEDaisy' (Sürüm 10.0, ‎2026‎-‎10‎-‎12T16:11:53.000000000Z) başarıyla kaldırıldı.
+SISTEM 2026-10-23T01:39:21.4785235+03:00 [Microsoft-Windows-FilterManager 1] Dosya Sistemi Filtresi 'BEDaisy' (Sürüm 10.0, ‎2026‎-‎10‎-‎12T16:11:53.000000000Z) başarıyla kaldırıldı.
+[2026-10-23T01:52:59.8034700+03:00] log.txt kucildu (760788 -> 263049): kirpma
+OLAY 2026-10-23T02:04:43.4247691+03:00 [Application Error 1000] Hatalı uygulama adı: MicVST.exe, sürüm: 1.2.2.0, zaman damgası: 0x6ada0b48
+Hatalı modül adı: unknown, sürüm: 0.0.0.0, zaman damgası: 0x00000000
+Özel durum kodu: 0xc0000005
+Hata uzaklığı 0x0000000000000000
+Hatalı işlem kimliği: 0x3ab0
+Uygulama başlangıç zamanı: 0x01dd627793270dd1
+Hatalı uygulama yolu: C:\MicVST\MicVST.exe
+Hatalı modül yolu: unknown
+Rapor kimliği: 7b0bf06c-3558-4824-9f29-763f4c33ad89
+Hatalı paket tam adı: 
+Hatalı paketle ilgili uygulama kimliği: 
+[2026-10-23T02:33:04.8033284+03:00] log.txt kucildu (265476 -> 263673): kirpma
+OLAY 2026-10-23T02:25:59.3388230+03:00 [Application Hang 1002] MicVST.exe programının 1.2.2.0 sürümü, Windows ile birlikte çalışmayı durdurdu ve kapatıldı. Sorun hakkında daha fazla bilgi olup olmadığını görmek için Güvenlik ve Bakım denetim masasında sorunun geçmişine göz atın.
+ İşlem Kimlik No: 3ab0
+ Başlatma Saati: 01dd627793270dd1
+ Sona Erme Saati: 4294967295
+ Uygulama Yolu: C:\MicVST\MicVST.exe
+ Rapor Kimliği: 64f95542-fe77-4408-ab4c-deb4d90230e1
+ Hatalı paket tam adı: 
+ Hatalı paketle ilgili uygulama kimliği: 
+ Askı türü: Top level window is idle
+
+[2026-10-23T02:53:07.3348779+03:00] log.txt kucildu (263673 -> 263154): kirpma
+OLAY 2026-10-23T02:52:31.3737574+03:00 [Application Hang 1002] MicVST.exe programının 1.2.2.0 sürümü, Windows ile birlikte çalışmayı durdurdu ve kapatıldı. Sorun hakkında daha fazla bilgi olup olmadığını görmek için Güvenlik ve Bakım denetim masasında sorunun geçmişine göz atın.
+ İşlem Kimlik No: 3cec
+ Başlatma Saati: 01dd6280532332f9
+ Sona Erme Saati: 4294967295
+ Uygulama Yolu: C:\MicVST\MicVST.exe
+ Rapor Kimliği: 13ca7a2f-eac3-4dad-af6c-be2f0f773209
+ Hatalı paket tam adı: 
+ Hatalı paketle ilgili uygulama kimliği: 
+ Askı türü: Top level window is idle
+
+OLAY 2026-10-23T03:02:53.4460370+03:00 [Application Error 1000] Hatalı uygulama adı: MicVST.exe, sürüm: 1.2.2.0, zaman damgası: 0x6adacd20
+Hatalı modül adı: unknown, sürüm: 0.0.0.0, zaman damgası: 0x00000000
+Özel durum kodu: 0xc0000005
+Hata uzaklığı 0x0000015500000154
+Hatalı işlem kimliği: 0x3f70
+Uygulama başlangıç zamanı: 0x01dd6281d2728d37
+Hatalı uygulama yolu: C:\MicVST\test\yeni2\MicVST.exe
+Hatalı modül yolu: unknown
+Rapor kimliği: 5b7de9fc-f3c7-4d96-8045-a518626cd80f
+Hatalı paket tam adı: 
+Hatalı paketle ilgili uygulama kimliği: 
+OLAY 2026-10-23T03:02:35.7627213+03:00 [Application Error 1000] Hatalı uygulama adı: MicVST.exe, sürüm: 1.2.2.0, zaman damgası: 0x6adacd20
+Hatalı modül adı: unknown, sürüm: 0.0.0.0, zaman damgası: 0x00000000
+Özel durum kodu: 0xc0000005
+Hata uzaklığı 0x0000000000000033
+Hatalı işlem kimliği: 0x386c
+Uygulama başlangıç zamanı: 0x01dd6281bd2e45cb
+Hatalı uygulama yolu: C:\MicVST\test\yeni2\MicVST.exe
+Hatalı modül yolu: unknown
+Rapor kimliği: 21ca2b13-8ab7-4f6a-9598-0b1c57179c7b
+Hatalı paket tam adı: 
+Hatalı paketle ilgili uygulama kimliği: 
+OLAY 2026-10-23T03:01:46.7510955+03:00 [Application Error 1000] Hatalı uygulama adı: MicVST.exe, sürüm: 1.2.2.0, zaman damgası: 0x6adacd20
+Hatalı modül adı: unknown, sürüm: 0.0.0.0, zaman damgası: 0x00000000
+Özel durum kodu: 0xc0000005
+Hata uzaklığı 0x000000000000000a
+Hatalı işlem kimliği: 0x4b40
+Uygulama başlangıç zamanı: 0x01dd62819705eadb
+Hatalı uygulama yolu: C:\MicVST\test\yeni2\MicVST.exe
+Hatalı modül yolu: unknown
+Rapor kimliği: e8d68abf-2967-4812-bfee-87d03af067ff
+Hatalı paket tam adı: 
+Hatalı paketle ilgili uygulama kimliği: 
+OLAY 2026-10-23T03:00:56.0514792+03:00 [Application Error 1000] Hatalı uygulama adı: MicVST.exe, sürüm: 1.2.2.0, zaman damgası: 0x6adacd20
+Hatalı modül adı: unknown, sürüm: 0.0.0.0, zaman damgası: 0x00000000
+Özel durum kodu: 0xc0000005
+Hata uzaklığı 0x000002328d711ae0
+Hatalı işlem kimliği: 0x3980
+Uygulama başlangıç zamanı: 0x01dd628187b652b0
+Hatalı uygulama yolu: C:\MicVST\test\yeni2\MicVST.exe
+Hatalı modül yolu: unknown
+Rapor kimliği: b6836254-3a17-4b3b-934d-815c65b667ef
+Hatalı paket tam adı: 
+Hatalı paketle ilgili uygulama kimliği: 
+OLAY 2026-10-23T03:00:30.2953830+03:00 [Application Error 1000] Hatalı uygulama adı: MicVST.exe, sürüm: 1.2.2.0, zaman damgası: 0x6adacd20
+Hatalı modül adı: unknown, sürüm: 0.0.0.0, zaman damgası: 0x00000000
+Özel durum kodu: 0xc0000005
+Hata uzaklığı 0x0000000000000033
+Hatalı işlem kimliği: 0x19e8
+Uygulama başlangıç zamanı: 0x01dd62817e4cdc11
+Hatalı uygulama yolu: C:\MicVST\test\yeni2\MicVST.exe
+Hatalı modül yolu: unknown
+Rapor kimliği: d785cada-bf6a-4ba2-bc66-8626d873cb41
+Hatalı paket tam adı: 
+Hatalı paketle ilgili uygulama kimliği: 
+OLAY 2026-10-23T03:00:19.3129874+03:00 [Application Error 1000] Hatalı uygulama adı: MicVST.exe, sürüm: 1.2.2.0, zaman damgası: 0x6adac561
+Hatalı modül adı: unknown, sürüm: 0.0.0.0, zaman damgası: 0x00000000
+Özel durum kodu: 0xc0000005
+Hata uzaklığı 0x0000000000000000
+Hatalı işlem kimliği: 0x221c
+Uygulama başlangıç zamanı: 0x01dd62806a6d05c7
+Hatalı uygulama yolu: C:\MicVST\test\yeni\MicVST.exe
+Hatalı modül yolu: unknown
+Rapor kimliği: 4a049b27-7903-42b4-8995-b2d614528baa
+Hatalı paket tam adı: 
+Hatalı paketle ilgili uygulama kimliği: 
+OLAY 2026-10-23T03:05:36.3973039+03:00 [Application Error 1000] Hatalı uygulama adı: MicVST.exe, sürüm: 1.2.2.0, zaman damgası: 0x6adacd20
+Hatalı modül adı: unknown, sürüm: 0.0.0.0, zaman damgası: 0x00000000
+Özel durum kodu: 0xc0000005
+Hata uzaklığı 0x000000000f800111
+Hatalı işlem kimliği: 0x2aec
+Uygulama başlangıç zamanı: 0x01dd628222df8aa9
+Hatalı uygulama yolu: C:\MicVST\test\yeni2\MicVST.exe
+Hatalı modül yolu: unknown
+Rapor kimliği: a2d51a39-42d7-4019-a36f-b683618d264e
+Hatalı paket tam adı: 
+Hatalı paketle ilgili uygulama kimliği: 
+OLAY 2026-10-23T03:04:50.6695948+03:00 [Application Error 1000] Hatalı uygulama adı: MicVST.exe, sürüm: 1.2.2.0, zaman damgası: 0x6adacd20
+Hatalı modül adı: Clear.vst3, sürüm: 0.0.0.0, zaman damgası: 0x67e6b0b2
+Özel durum kodu: 0xc0000005
+Hata uzaklığı 0x0000000000028913
+Hatalı işlem kimliği: 0x3898
+Uygulama başlangıç zamanı: 0x01dd6282108febd7
+Hatalı uygulama yolu: C:\MicVST\test\yeni2\MicVST.exe
+Hatalı modül yolu: C:\Program Files\Common Files\VST3\Clear.vst3
+Rapor kimliği: 6b0b1b79-fb9d-4a27-9116-304722f440d1
+Hatalı paket tam adı: 
+Hatalı paketle ilgili uygulama kimliği: 
+OLAY 2026-10-23T03:04:19.9438300+03:00 [Application Error 1000] Hatalı uygulama adı: MicVST.exe, sürüm: 1.2.2.0, zaman damgası: 0x6adacd20
+Hatalı modül adı: unknown, sürüm: 0.0.0.0, zaman damgası: 0x00000000
+Özel durum kodu: 0xc0000005
+Hata uzaklığı 0x0000000000000000
+Hatalı işlem kimliği: 0x41c8
+Uygulama başlangıç zamanı: 0x01dd6282043238dc
+Hatalı uygulama yolu: C:\MicVST\test\yeni2\MicVST.exe
+Hatalı modül yolu: unknown
+Rapor kimliği: 56bd0deb-c2c1-4a96-a88f-3fce2409c45e
+Hatalı paket tam adı: 
+Hatalı paketle ilgili uygulama kimliği: 
+OLAY 2026-10-23T03:03:59.1930694+03:00 [Application Error 1000] Hatalı uygulama adı: MicVST.exe, sürüm: 1.2.2.0, zaman damgası: 0x6adacd20
+Hatalı modül adı: unknown, sürüm: 0.0.0.0, zaman damgası: 0x00000000
+Özel durum kodu: 0xc0000005
+Hata uzaklığı 0x0000023e44263e60
+Hatalı işlem kimliği: 0x2bb0
+Uygulama başlangıç zamanı: 0x01dd6281dd03f221
+Hatalı uygulama yolu: C:\MicVST\test\yeni2\MicVST.exe
+Hatalı modül yolu: unknown
+Rapor kimliği: 2116df48-39f6-48cf-8f68-fc42540fbb58
+Hatalı paket tam adı: 
+Hatalı paketle ilgili uygulama kimliği: 
