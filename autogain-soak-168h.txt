@@ -1,0 +1,163 @@
+Random seed: 0x6b012bb
+-----------------------------------------------------------------
+Starting tests in: AutoGain / typical speech is led to about -20 dBFS, as far as the gain range 0 ... +6 dB allows...
+    input typical -32.00 dBFS (measured -33.66): mean gain 6.00 dB (range 0.00 ... 6.00), output typical -27.67 dBFS (expected -27.66)
+    input typical -28.00 dBFS (measured -28.15): mean gain 5.95 dB (range 0.00 ... 6.00), output typical -22.20 dBFS (expected -22.15)
+    input typical -26.00 dBFS (measured -26.13): mean gain 5.44 dB (range 0.00 ... 6.00), output typical -20.69 dBFS (expected -20.13)
+    input typical -24.00 dBFS (measured -24.12): mean gain 3.91 dB (range 0.00 ... 6.00), output typical -20.21 dBFS (expected -20.00)
+    input typical -22.00 dBFS (measured -22.12): mean gain 2.03 dB (range 0.00 ... 4.88), output typical -20.09 dBFS (expected -20.00)
+    input typical -20.00 dBFS (measured -20.11): mean gain 0.57 dB (range 0.00 ... 2.88), output typical -19.54 dBFS (expected -20.00)
+    input typical -17.00 dBFS (measured -17.10): mean gain 0.00 dB (range 0.00 ... 0.62), output typical -17.26 dBFS (expected -17.10)
+    input typical -14.00 dBFS (measured -14.10): mean gain 0.00 dB (range 0.00 ... 0.14), output typical -14.84 dBFS (expected -14.10)
+Completed tests in AutoGain / typical speech is led to about -20 dBFS, as far as the gain range 0 ... +6 dB allows
+-----------------------------------------------------------------
+Starting tests in: AutoGain / a very quiet voice gets exactly the maximum +6 dB, a loud one exactly 0 dB...
+    -40 dBFS voice: highest gain 6.000000 dB; -9 dBFS voice: gain between 0.000000 and 0.000000 dB, loudest output -10.250 dBFS
+Completed tests in AutoGain / a very quiet voice gets exactly the maximum +6 dB, a loud one exactly 0 dB
+-----------------------------------------------------------------
+Starting tests in: AutoGain / shouting 10-12 dB over the natural voice: about -15 dBFS, never above -10 dBFS, no clicks (4 voices)...
+    +10.00 dB: output typical 2-8 s after the onset -15.25 dBFS (mean of 4 voices), loudest -10.255 dBFS; largest gain step 0.1591 dB/sample
+    +12.00 dB: output typical 2-8 s after the onset -14.40 dBFS (mean of 4 voices), loudest -10.253 dBFS; largest gain step 0.1718 dB/sample
+Completed tests in AutoGain / shouting 10-12 dB over the natural voice: about -15 dBFS, never above -10 dBFS, no clicks (4 voices)
+-----------------------------------------------------------------
+Starting tests in: AutoGain / a slightly raised voice (+3 dB) stays a normal voice; louder than that, the aim slides towards -15 dBFS...
+    aim after 5 s at +3 dB: -20.00 dBFS, after 5 s more at +7 dB: -17.32 dBFS (the natural level follows a lastingly louder voice slowly, 20 s)
+Completed tests in AutoGain / a slightly raised voice (+3 dB) stays a normal voice; louder than that, the aim slides towards -15 dBFS
+-----------------------------------------------------------------
+Starting tests in: AutoGain / long silence: the gain is kept bit-exactly for 10 minutes, the signal is never gated (output = input x gain)...
+    gain 6.00 dB kept through 5 min room noise + 5 min digital silence; largest deviation of output/input 0.0000085 %; first block of speech afterwards 6.00 dB
+Completed tests in AutoGain / long silence: the gain is kept bit-exactly for 10 minutes, the signal is never gated (output = input x gain)
+-----------------------------------------------------------------
+Starting tests in: AutoGain / the gain moves only while there is voice; never in pauses between words...
+    2294 blocks clearly without voice: gain moved in 0
+Completed tests in AutoGain / the gain moves only while there is voice; never in pauses between words
+-----------------------------------------------------------------
+Starting tests in: AutoGain / plosives and breath pops (1-30 ms) do not pull the gain down; the limiter catches their peaks...
+    mean gain: clean speech 3.91 dB, strong plosives (+8 dB) 4.12 dB, breath pops (+12 dB) 4.31 dB; loudest output -10.000 dBFS
+Completed tests in AutoGain / plosives and breath pops (1-30 ms) do not pull the gain down; the limiter catches their peaks
+-----------------------------------------------------------------
+Starting tests in: AutoGain / short clicks (0.5 ms, 12 dB over the voice) do not pull the gain down...
+    gain before 1.05 dB; largest drop against the same speech without clicks 0.210 dB; loudest output -10.481 dBFS
+Completed tests in AutoGain / short clicks (0.5 ms, 12 dB over the voice) do not pull the gain down
+-----------------------------------------------------------------
+Starting tests in: AutoGain / the ceiling: torture signals at the maximum gain never exceed -10 dBFS...
+    full-scale square 100 Hz: loudest output -11.0253 dBFS
+    white noise 0 dBFS peak: loudest output -11.6756 dBFS
+    impulses every 7 ms: loudest output -10.0000 dBFS
+    sweep 20 Hz - 20 kHz, -1 dBFS: loudest output -10.2997 dBFS
+    DC steps: loudest output -10.3000 dBFS
+Completed tests in AutoGain / the ceiling: torture signals at the maximum gain never exceed -10 dBFS
+-----------------------------------------------------------------
+Starting tests in: AutoGain / the ceiling also holds as a true peak (inter-sample peaks of plosives and noise, as after the engine's resampler)...
+    speech, strong plosives (+8 dB, input up to +7 dBFS): input peak 7.15 dBFS; output sample peak -10.000 dBFS, true peak -9.463 dBFS
+    speech, breath pops (+12 dB): input peak 5.25 dBFS; output sample peak -10.280 dBFS, true peak -10.271 dBFS
+    speech, normal plosives: input peak -10.54 dBFS; output sample peak -10.444 dBFS, true peak -10.153 dBFS
+    white noise near 0 dBFS, band-limited to 20 kHz (as from a microphone), gain +6 dB: sample peak -10.284 dBFS, true peak -10.141 dBFS
+    white noise near 0 dBFS, full band up to 24 kHz (purely digital), gain +6 dB: sample peak -10.289 dBFS, true peak -9.121 dBFS
+Completed tests in AutoGain / the ceiling also holds as a true peak (inter-sample peaks of plosives and noise, as after the engine's resampler)
+-----------------------------------------------------------------
+Starting tests in: AutoGain / normal speech: the limiter only touches the onsets of the loudest syllables (measured)...
+    input typical -26.00 dBFS: limiter active in 3.93 % of the blocks, deepest -1.60 dB
+    input typical -23.00 dBFS: limiter active in 4.94 % of the blocks, deepest -3.04 dB
+Completed tests in AutoGain / normal speech: the limiter only touches the onsets of the loudest syllables (measured)
+-----------------------------------------------------------------
+Starting tests in: AutoGain / linear while the gain is steady: THD+N of a sine at the float noise floor...
+    100 Hz at -30 dBFS (gain 0.00 dB): THD+N -152.07 dB
+    997 Hz at -30 dBFS (gain 0.00 dB): THD+N -152.35 dB
+    6000 Hz at -30 dBFS (gain 0.00 dB): THD+N -146.76 dB
+Completed tests in AutoGain / linear while the gain is steady: THD+N of a sine at the float noise floor
+-----------------------------------------------------------------
+Starting tests in: AutoGain / the limiter on a loud steady tone: exact level, no ripple, low distortion...
+    80 Hz at -4 dBFS: peaks per cycle -10.301 ... -10.301 dBFS, THD+N -148.66 dB
+    120 Hz at -4 dBFS: peaks per cycle -10.301 ... -10.301 dBFS, THD+N -147.96 dB
+    997 Hz at -4 dBFS: peaks per cycle -10.320 ... -10.301 dBFS, THD+N -112.84 dB
+    4000 Hz at -4 dBFS: peaks per cycle -10.301 ... -10.301 dBFS, THD+N -161.66 dB
+Completed tests in AutoGain / the limiter on a loud steady tone: exact level, no ripple, low distortion
+-----------------------------------------------------------------
+Starting tests in: AutoGain / no clicks: the gain changes smoothly on level steps, shouts and switching...
+    abrupt level steps of a 997 Hz tone (-30 / -12 / -40 / -20 / -6 / -35 dBFS): largest gain change between two samples 0.1084 dB, loudest output -10.275 dBFS
+Completed tests in AutoGain / no clicks: the gain changes smoothly on level steps, shouts and switching
+-----------------------------------------------------------------
+Starting tests in: AutoGain / the result hardly depends on the block size (32 ... 4096 samples and random; 3 voices)...
+    block 32: output typical -20.29 dBFS (480: -20.20), mean gain 4.77 dB (480: 4.87)
+    block 64: output typical -20.27 dBFS (480: -20.20), mean gain 4.79 dB (480: 4.87)
+    block 128: output typical -20.25 dBFS (480: -20.20), mean gain 4.81 dB (480: 4.87)
+    block 144: output typical -20.24 dBFS (480: -20.20), mean gain 4.81 dB (480: 4.87)
+    block 256: output typical -20.23 dBFS (480: -20.20), mean gain 4.83 dB (480: 4.87)
+    block 441: output typical -20.21 dBFS (480: -20.20), mean gain 4.86 dB (480: 4.87)
+    block 512: output typical -20.20 dBFS (480: -20.20), mean gain 4.88 dB (480: 4.87)
+    block 1024: output typical -20.12 dBFS (480: -20.20), mean gain 4.96 dB (480: 4.87)
+    block 2048: output typical -20.00 dBFS (480: -20.20), mean gain 5.07 dB (480: 4.87)
+    block 4096: output typical -19.84 dBFS (480: -20.20), mean gain 5.23 dB (480: 4.87)
+    block random: output typical -20.07 dBFS (480: -20.20), mean gain 5.02 dB (480: 4.87)
+Completed tests in AutoGain / the result hardly depends on the block size (32 ... 4096 samples and random; 3 voices)
+-----------------------------------------------------------------
+Starting tests in: AutoGain / sample rates 8 ... 384 kHz: latency, levels and ceiling...
+    48000 Hz: latency 144 samples (3.000 ms), output typical -19.87 dBFS, loudest -10.41 dBFS
+    8000 Hz: latency 24 samples (3.000 ms), output typical -20.17 dBFS, loudest -10.49 dBFS
+    16000 Hz: latency 48 samples (3.000 ms), output typical -19.80 dBFS, loudest -10.53 dBFS
+    22050 Hz: latency 66 samples (2.993 ms), output typical -19.83 dBFS, loudest -10.33 dBFS
+    32000 Hz: latency 96 samples (3.000 ms), output typical -20.06 dBFS, loudest -10.37 dBFS
+    44100 Hz: latency 132 samples (2.993 ms), output typical -19.83 dBFS, loudest -10.39 dBFS
+    88200 Hz: latency 265 samples (3.005 ms), output typical -20.16 dBFS, loudest -10.44 dBFS
+    96000 Hz: latency 288 samples (3.000 ms), output typical -20.31 dBFS, loudest -10.38 dBFS
+    176400 Hz: latency 529 samples (2.999 ms), output typical -19.87 dBFS, loudest -10.56 dBFS
+    192000 Hz: latency 576 samples (3.000 ms), output typical -20.28 dBFS, loudest -10.43 dBFS
+    384000 Hz: latency 1024 samples (2.667 ms), output typical -20.66 dBFS, loudest -10.45 dBFS
+Completed tests in AutoGain / sample rates 8 ... 384 kHz: latency, levels and ceiling
+-----------------------------------------------------------------
+Starting tests in: AutoGain / channels: one gain for all (mono, stereo, 8), missing channels skipped, channels beyond 8 untouched...
+Completed tests in AutoGain / channels: one gain for all (mono, stereo, 8), missing channels skipped, channels beyond 8 untouched
+-----------------------------------------------------------------
+Starting tests in: AutoGain / broken input (NaN, infinite, absurd) from a faulty plug-in: passed on, but the gain and the limiter are not disturbed...
+    nan: gain 2 s later 5.86 dB (with silence instead: 5.86 dB), limiter 0.0000 dB
+    inf: gain 2 s later 5.86 dB (with silence instead: 5.86 dB), limiter 0.0000 dB
+    -inf: gain 2 s later 5.86 dB (with silence instead: 5.86 dB), limiter 0.0000 dB
+    1e+09: gain 2 s later 5.86 dB (with silence instead: 5.86 dB), limiter 0.0000 dB
+Completed tests in AutoGain / broken input (NaN, infinite, absurd) from a faulty plug-in: passed on, but the gain and the limiter are not disturbed
+-----------------------------------------------------------------
+Starting tests in: AutoGain / tiny signals (denormal range) pass correctly...
+    largest error 3.25309e-41
+Completed tests in AutoGain / tiny signals (denormal range) pass correctly
+-----------------------------------------------------------------
+Starting tests in: AutoGain / switched off: glides back to exactly 0 dB, then the audio passes bit-exact (3 ms later)...
+    from 5.66 dB to 0 dB in 470 ms
+Completed tests in AutoGain / switched off: glides back to exactly 0 dB, then the audio passes bit-exact (3 ms later)
+-----------------------------------------------------------------
+Starting tests in: AutoGain / switching on and off every block for 20 s: smooth, no clicks, valid...
+    largest gain change between two samples 0.0000 dB
+Completed tests in AutoGain / switching on and off every block for 20 s: smooth, no clicks, valid
+-----------------------------------------------------------------
+Starting tests in: AutoGain / latency: an impulse comes out exactly 3 ms later (on at 0 dB and off)...
+Completed tests in AutoGain / latency: an impulse comes out exactly 3 ms later (on at 0 dB and off)
+-----------------------------------------------------------------
+Starting tests in: AutoGain / the meters show the real gain and peaks...
+    meter gain 5.991 dB, real gain of the last sample 5.991 dB; peaks in -20.00 / out -14.00 dBFS
+Completed tests in AutoGain / the meters show the real gain and peaks
+-----------------------------------------------------------------
+Starting tests in: AutoGain / lasting changes (further from / closer to the mic): ensemble of 16 voices, the gain follows within seconds...
+    -6 dB: mean gain 2.00 -> 5.99 dB; within 1 dB after 4.26 s; gain after 1 / 3 / 5 / 10 s: 2.23 / 3.67 / 5.36 / 5.93 dB; loudest output -10.11 dBFS
+    -3 dB: mean gain 2.00 -> 4.85 dB; within 1 dB after 4.12 s; gain after 1 / 3 / 5 / 10 s: 1.98 / 2.89 / 4.32 / 4.85 dB; loudest output -10.05 dBFS
+    3 dB: mean gain 5.89 -> 3.98 dB; within 1 dB after 0.52 s; gain after 1 / 3 / 5 / 10 s: 4.86 / 4.35 / 4.14 / 4.18 dB; loudest output -10.00 dBFS
+    6 dB: mean gain 5.89 -> 1.19 dB; within 1 dB after 10.21 s; gain after 1 / 3 / 5 / 10 s: 3.65 / 3.19 / 2.99 / 2.21 dB; loudest output -10.00 dBFS
+Completed tests in AutoGain / lasting changes (further from / closer to the mic): ensemble of 16 voices, the gain follows within seconds
+-----------------------------------------------------------------
+Starting tests in: AutoGain / after a shout the gain returns within seconds; lasting louder voices and normal speech are not affected...
+    shout +10 dB for 4 s: gain before 4.34 dB; after the shout, relative to before: 0-1 s -4.26, 1-2 s -3.49, 2-3 s -1.85, 3-4 s -0.72, 4-5 s -0.33 dB; the shout was forgotten in 8 of 8 voices
+    forgotten shouts in lastingly louder voices (+6 / +8 dB, 2 x 8 voices x 90 s): 0; in normal speech (8 voices x 120 s): 0
+Completed tests in AutoGain / after a shout the gain returns within seconds; lasting louder voices and normal speech are not affected
+-----------------------------------------------------------------
+Starting tests in: AutoGain / regression: the first 0.5 s of a sudden shout at full gain and normal speech afterwards (spec: never above -10 dBFS)...
+    quiet voice -32 dBFS, shout -14 dBFS: gain before the shout 6.00 dB, at the end 6.00 dB; first 0.5 s of the shout: sample peak -10.236 dBFS, true peak -10.081 dBFS; whole run -10.236 dBFS; voice typical before -27.57, 6-20 s after -27.44 dBFS
+    normal voice -25 dBFS, shout -11 dBFS: gain before the shout 4.74 dB, at the end 4.81 dB; first 0.5 s of the shout: sample peak -10.214 dBFS, true peak -10.008 dBFS; whole run -10.214 dBFS; voice typical before -20.06, 6-20 s after -20.16 dBFS
+Completed tests in AutoGain / regression: the first 0.5 s of a sudden shout at full gain and normal speech afterwards (spec: never above -10 dBFS)
+-----------------------------------------------------------------
+Starting tests in: AutoGain / naturalness: how much the gain moves inside phrases and between phrases (measured, see the log)...
+    gain range inside a phrase: median 1.38 dB, 90 % 2.91 dB; loudness differences between phrases kept: 83 % (100 % = untouched); gain change within 100 ms: 99 % below 0.31 dB
+Completed tests in AutoGain / naturalness: how much the gain moves inside phrases and between phrases (measured, see the log)
+-----------------------------------------------------------------
+Starting tests in: AutoGain / long soak: random speech, shouts, silence, noise, pops, broken blocks, switching, random blocks (MICVST_SOAK_HOURS)...
+    168.00 h of audio in 2838.9 s (213.038x real time), 56672491 blocks, 11333 broken blocks, 2795 on/off switches; samples above -10 dBFS 0, invalid output samples 0, gain outside 0 ... +6 dB 0, internal counter checks failed 0; processing time per 10 ms of audio: mean 32.97 us, slowest block 11731.1 us
+Completed tests in AutoGain / long soak: random speech, shouts, silence, noise, pops, broken blocks, switching, random blocks (MICVST_SOAK_HOURS)
+All tests completed successfully
+-- exit code 0, 3080.6 s, peak working set 441 MB
