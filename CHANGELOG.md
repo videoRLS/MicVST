@@ -6,6 +6,10 @@ project follows [Semantic Versioning](https://semver.org/).
 
 ## [1.2.3] - 2026-10-23
 
+- Windows: after a full-screen game changed the screen mode and gave the desktop back (user
+  report: GTA 5), the main and the settings window could show a white, unpainted strip at the
+  bottom / right until the edge was dragged. 1 s and 3 s after a screen change the window is
+  resized by 1 px and back, which makes it and its content agree again. UI only.
 - Bildirim sesleri: fast mute / unmute no longer clicks. The sounds are no longer played with
   Windows' PlaySound (a new sound cut the old one mid-wave: up to -13 dBFS steps at 10 per second);
   MicVST mixes them itself on the default output (waveOut, 48 kHz, 10 ms blocks; a device just

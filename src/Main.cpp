@@ -93,6 +93,31 @@ private:
     const juce::String userHome { juce::File::getSpecialLocation (juce::File::userHomeDirectory).getFullPathName() };
 };
 
+// After the screen mode changed - a full-screen game set its own resolution and gave the desktop
+// back (user report: GTA 5) - Windows resizes the windows itself, and the window's content could
+// stay at the old size: a white, unpainted strip at the bottom / right until the user dragged the
+// edge. 1 s and 3 s after the last change the window is resized by 1 px and back, which makes the
+// native window and its content agree again (dragging the edge did the same). UI only.
+struct DisplayChangeResync final : private juce::Timer
+{
+    explicit DisplayChangeResync (juce::ResizableWindow& w) : window (w) {}
+    void displaysChanged() { left = 2; startTimer (1000); }
+
+private:
+    void timerCallback() override
+    {
+        if (--left <= 0) stopTimer();
+        else             startTimer (2000);
+        if (! window.isVisible() || window.isMinimised() || window.isFullScreen()) return;
+        const auto b = window.getBounds();
+        window.setBounds (b.withWidth (b.getWidth() + 1));
+        window.setBounds (b);
+    }
+
+    juce::ResizableWindow& window;
+    int left = 0;
+};
+
 class MicVSTApplication : public juce::JUCEApplication
 {
 public:
@@ -408,6 +433,7 @@ private:
         std::function<void()> onHide;
         std::function<void()> onThemeApplied;   // the app: LookAndFeel refresh + save
         void closeButtonPressed() override { setVisible (false); if (onHide) onHide(); }
+        void parentSizeChanged() override { DocumentWindow::parentSizeChanged(); resync.displaysChanged(); }   // the screen mode changed
         void visibilityChanged() override
         {
             DocumentWindow::visibilityChanged();
@@ -430,6 +456,8 @@ private:
             SettingsWindow() : juce::DocumentWindow (SettingsComponent::windowTitle(), micvst::theme::background,
                                                      juce::DocumentWindow::closeButton) {}
             void closeButtonPressed() override { setVisible (false); }
+            void parentSizeChanged() override { DocumentWindow::parentSizeChanged(); resync.displaysChanged(); }
+            DisplayChangeResync resync { *this };
         };
         std::unique_ptr<SettingsWindow> settingsWindow;
 
@@ -514,6 +542,7 @@ private:
         GlobalHotkeys* hotkeys = nullptr;
         HotkeySetter setHotkey;
         MainComponent* content = nullptr;   // gehört dem Fenster (setContentOwned), nur Zugriffszeiger
+        DisplayChangeResync resync { *this };
     };
 
     std::unique_ptr<MicVSTLogger> logger;
