@@ -15,7 +15,7 @@ test edilen hâline geri dönebilmen için hazırlandı.
 | `kaynak/MicVST/` | MicVST'nin kaynak kodu (yukarıdaki commit). LAME 4.0 (MP3) `third_party/` içinde. |
 | `kaynak/JUCE-9.0.4/` | JUCE 9.0.4 kaynağı, **MicVST'nin 5 gerçek zamanlı yaması uygulanmış hâlde** (`cmake/PatchJuce.cmake` bir kez çalıştırıldı). |
 | `kaynak/JUCE-9.0.4_MicVST_yamalari.diff` | Yamaların özgün JUCE 9.0.4'e göre farkı (inceleme için). |
-| `belgeler/` | Test raporu, uzun ömür kılavuzu, ayar yedeği (`config.xml`), test edilen sürümler listesi. |
+| `belgeler/` | Test raporu, uzun ömür kılavuzu, test edilen sürümler listesi, ayar yedekleri: `config_test_oncesi.xml` (22 Ekim, testlerden önce) ve `config_23ekim.xml` (teslim günü; aynı zincir). Geri yüklemek için birini `config.xml` adıyla `%APPDATA%\MicVST\` içine koy. |
 
 ## Yeniden derleme (Windows, internet gerekmez)
 
