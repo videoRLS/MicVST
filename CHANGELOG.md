@@ -6,6 +6,10 @@ project follows [Semantic Versioning](https://semver.org/).
 
 ## [1.2.3] - 2026-10-23
 
+- Windows: MicVST's own windows (main, settings) draw with the classic GDI renderer instead of
+  Direct2D. After a full-screen game (GTA 5) the Direct2D content stayed shifted by the title bar -
+  a white strip at the bottom / right, the top row cut - which no program-side resize fixed, only
+  dragging the edge. UI only.
 - Windows: after a full-screen game changed the screen mode and gave the desktop back (user
   report: GTA 5), the main and the settings window could show a white, unpainted strip at the
   bottom / right until the edge was dragged. Now the window is resized by 1 px and back (what

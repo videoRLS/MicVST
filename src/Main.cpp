@@ -162,6 +162,23 @@ private:
     juce::uint32 nextAt = 0;
 };
 
+// MicVST's own windows draw with Windows' classic renderer (GDI, JUCE's "Software Renderer")
+// instead of Direct2D. User report (GTA 5, full screen): back on the desktop the Direct2D content
+// sat shifted by the title bar - a white strip at the bottom and right, the top row cut - and no
+// resize from the program put it back, only the user dragging the edge. GDI paints the client area
+// on every WM_PAINT and does not depend on the graphics card's state across a full-screen game.
+// UI only; the meters cost slightly more CPU to draw.
+static void useClassicRendering (juce::Component& window)
+{
+   #if JUCE_WINDOWS
+    if (auto* peer = window.getPeer())
+        if (peer->getCurrentRenderingEngine() != 0)
+            peer->setCurrentRenderingEngine (0);
+   #else
+    juce::ignoreUnused (window);
+   #endif
+}
+
 class MicVSTApplication : public juce::JUCEApplication
 {
 public:
@@ -481,7 +498,11 @@ private:
         void visibilityChanged() override
         {
             DocumentWindow::visibilityChanged();
-            if (isVisible()) micvst::useDarkTitleBar (*this, micvst::theme::dark);   // native title bar like the theme
+            if (isVisible())
+            {
+                useClassicRendering (*this);
+                micvst::useDarkTitleBar (*this, micvst::theme::dark);   // native title bar like the theme
+            }
         }
         MainComponent* getContent() const { return content; }
     private:
@@ -501,6 +522,7 @@ private:
                                                      juce::DocumentWindow::closeButton) {}
             void closeButtonPressed() override { setVisible (false); }
             void parentSizeChanged() override { DocumentWindow::parentSizeChanged(); resync.displaysChanged(); }
+            void visibilityChanged() override { DocumentWindow::visibilityChanged(); if (isVisible()) useClassicRendering (*this); }
             WindowResync resync { *this };
         };
         std::unique_ptr<SettingsWindow> settingsWindow;
