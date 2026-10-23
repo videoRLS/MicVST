@@ -106,8 +106,35 @@ Görev Windows 11 x64 içindi; kullanıcının ana bilgisayarı Windows 10 Pro 2
 
 ## 7. Uzun ömür değerlendirmesi
 
-(bekleniyor)
+**Hangi koşullarda, ne kadar süre doğrulandı** (bu teslimdeki ölçümler; mutlak garanti değildir):
+
+| Koşul | Süre / kapsam | Sonuç |
+|---|---|---|
+| Kullanıcının PC'si, gerçek mikrofon + VB-Cable + kendi ağır zinciri | R4: 22 Ekim 21:53'ten itibaren (bekleniyor: toplam), ilk süreç 7 sa kesintisiz; U4 60 dk kayıt | Bellek sabit, kabloda duyulur olay yok, kayıt kusursuz |
+| Gerçek motor + sanal cihazlar, Otomatik Kazanç | 330 dk × 2 (long, chaos – zincir düzenlemeleri ve cihaz değişimleri dahil) | Açıklanamayan tık 0, boşluk 0, bellek eğimi 0 |
+| Gerçek VST3 zinciri, tüm CPU'lar başka programla meşgul | 330 dk × 3 öncelik | Açıklanamayan tık 0, bellek eğimi ≈ 0 |
+| Gerçek MicVST.exe penceresi açık | 330 dk | Bellek, tutamaç, GDI/USER, iş parçacığı sabit; kapanış temiz |
+| Simülasyon (köprü, saat kayması ±300 ppm, takılmalar) | 1 hafta (tur #1), 30 gün (tur #2 – bekleniyor) | MicVST kaynaklı tık 0 |
+| Otomatik Kazanç soak | 24 sa (tur #1), 7 gün (tur #2 – bekleniyor) | −10 dBFS üstü örnek 0, geçersiz örnek 0 |
+| Gerçek zamanlı uzun kayıt | 320 dk WAV 24 (4 GB'ı geçip RF64), FLAC 24, MP3 V0 (bekleniyor) | |
+| 1000 aç-kapa, 200 öldürme | 21 dk | Ayarlar hiç bozulmadı |
+| 49,7 gün sayaç dönüşü | Birim testiyle (sayaç dönüşün hemen öncesinden başlatılarak) | Zamanlayıcılar doğru; 2 küçük hata düzeltildi |
+| Saat / saat dilimi değişimi | Kayıt sürerken ±1 sa, ±1 gün, saat dilimi (bekleniyor) | |
+| Ağsız yeniden derleme | Arşivdeki JUCE ile | BAŞARILI |
+
+**Kalan riskler ve her birinde ne yapılır** (ayrıntı: `docs/UZUN_OMUR_KILAVUZU.md`):
+
+- **Windows büyük güncellemesi / Windows 11'e geçiş:** Ses aygıtı biçimleri ya da varsayılan aygıtlar değişebilir. → 10 dakikalık sağlık kontrolü ("Ses biçimi" satırı, kesinti, 30 s kayıt). Windows 10 ESU 12 Ekim 2027'de bitiyor.
+- **Ses sürücüsü / VB-Cable güncellemesi:** Kablonun biçimi değişebilir. MicVST farklı hızlarda da doğru çalışıyor (44,1 ↔ 48 kHz seviye farkı < 0,01 dB, C5). → Sağlık kontrolü; test edilen düzen 24 bit / 48 kHz. Kurulum dosyası 3.3.1.7'yi sakla.
+- **Eklenti güncellemesi / kaldırılması:** Eksik eklentiyle MicVST açılır (O2). Kapanıştaki Clear olayı Clear güncellemesiyle değişebilir. → Güncellemeden önce çalışan sürümün kurulumunu sakla; sonra sağlık kontrolü.
+- **Donanım değişimi (mikrofon, USB yuvası):** Aynı adla geri gelen cihaz kendiliğinden bağlanıyor (E1, W). Gerçek USB çıkar-tak bu teslimde kullanıcı kararıyla yapılmadı (U10 ATLANDI).
+- **Ağır zincir + başka yüklü programlar:** Ara sıra gerçek zamanı aşan bloklar ölçüldü. Köprü bunları duyulmayacak düzeyde emiyor (U4). Sık olursa güvenlik payını sabit 20–40 ms yap.
+- **Kod imzası yok:** SmartScreen uyarısı her yeni exe'de çıkabilir. Exe'yi SHA-256 ile doğrula.
 
 ## 8. Kullanıcının yapması gerekenler
 
-(bekleniyor – kılavuzla birlikte)
+1. Teslim edilen exe'yi `C:\MicVST\MicVST.exe` yap. Öncekini `MicVST_onceki.exe` olarak sakla. SHA-256'yı `Get-FileHash` ile doğrula.
+2. Kılavuzdaki yedekleri al: exe + SHA, `config.xml`, `Sesler`, hazır ayar dosyaları, arşiv zip'i. En az iki yere.
+3. Kendi zincirini hazır ayar olarak kaydet ve `.micvstpreset` olarak dışa aktar.
+4. Büyük Windows / sürücü / VB-Cable / eklenti güncellemesinden sonra ve ayda bir 10 dakikalık sağlık kontrolü.
+5. Windows 10 ESU kaydını kontrol et (güvenlik güncellemeleri 12 Ekim 2027'ye kadar).
