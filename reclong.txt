@@ -1,0 +1,56 @@
+# MicVST engine test (1.2.2) - recordlong
+## KayÄ±t for 320 min in real time: flac:24:5|48000|2, 997.123 Hz -12 dBFS, empty chain, folder D:\a\_temp\reclong
+  PASS the recording starts
+| minute | recorded (s) | wall (s) | working set (MB) | CPU % of one core | engine |
+|---:|---:|---:|---:|---:|---|
+| 1 | 60.00 | 60.00 | 34.2 | 1.02 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.1 ppm, shown latency 55.4 ms, cpu 0 % |
+| 2 | 120.00 | 120.00 | 29.4 | 1.02 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 3 | 180.00 | 180.00 | 28.6 | 1.22 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.2 ppm, shown latency 55.4 ms, cpu 0 % |
+| 10 | 600.00 | 600.00 | 16.5 | 1.02 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 20 | 1200.00 | 1200.00 | 16.3 | 1.04 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 30 | 1800.00 | 1800.00 | 16.3 | 1.01 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 40 | 2400.00 | 2400.00 | 16.3 | 1.00 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.1 ppm, shown latency 55.4 ms, cpu 0 % |
+| 50 | 3000.00 | 3000.00 | 16.3 | 1.00 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 60 | 3600.00 | 3600.00 | 16.3 | 0.99 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 70 | 4200.00 | 4200.00 | 16.3 | 1.01 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 80 | 4800.00 | 4800.00 | 16.3 | 1.03 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 90 | 5400.00 | 5400.00 | 16.3 | 1.04 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 100 | 6000.00 | 6000.00 | 16.3 | 1.05 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 110 | 6600.00 | 6600.00 | 16.3 | 1.06 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 120 | 7200.00 | 7200.00 | 15.6 | 1.07 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.1 ppm, shown latency 55.4 ms, cpu 0 % |
+| 130 | 7800.00 | 7800.00 | 15.6 | 1.07 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.1 ppm, shown latency 55.4 ms, cpu 0 % |
+| 140 | 8400.00 | 8400.00 | 15.6 | 1.08 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 150 | 9000.00 | 9000.00 | 15.6 | 1.08 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.1 ppm, shown latency 55.4 ms, cpu 0 % |
+| 160 | 9600.00 | 9600.00 | 15.6 | 1.09 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 170 | 10200.00 | 10200.00 | 15.6 | 1.09 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 180 | 10800.00 | 10800.00 | 15.6 | 1.10 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 190 | 11400.00 | 11400.00 | 15.6 | 1.10 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 200 | 12000.00 | 12000.00 | 15.6 | 1.10 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 210 | 12600.00 | 12600.00 | 15.7 | 1.10 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.1 ppm, shown latency 55.4 ms, cpu 0 % |
+| 220 | 13200.00 | 13200.00 | 15.7 | 1.10 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.0 ppm, shown latency 55.9 ms, cpu 0 % |
+| 230 | 13800.00 | 13800.00 | 15.7 | 1.10 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 240 | 14400.00 | 14400.00 | 15.7 | 1.11 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 250 | 15000.00 | 15000.00 | 15.7 | 1.11 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.1 ppm, shown latency 55.4 ms, cpu 0 % |
+| 260 | 15600.00 | 15600.00 | 15.7 | 1.11 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.1 ppm, shown latency 55.4 ms, cpu 0 % |
+| 270 | 16200.00 | 16200.00 | 15.7 | 1.11 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 280 | 16800.00 | 16800.00 | 15.7 | 1.11 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 290 | 17400.00 | 17400.00 | 15.7 | 1.12 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 300 | 18000.00 | 18000.00 | 15.7 | 1.12 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 310 | 18600.00 | 18600.00 | 15.7 | 1.12 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+| 320 | 19200.00 | 19200.00 | 15.7 | 1.12 | underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 0.0 ppm, shown latency 55.4 ms, cpu 0 % |
+  underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.0 ppm, shown latency 55.4 ms, cpu 0 %
+cable: clicks 0 (unexplained 0), test-machine stalls: cable gaps 0, lost microphone packets 0
+  PASS no click on the cable that a stall of the test machine does not explain
+file: D:\a\_temp\reclong\MicVST_2026-10-23_02-22-10.flac, 862.8 MB, 19200.000 s (shown 19200.00 s, wall 19200.017 s), frames 921600000, dropped 0, verified yes
+  PASS the file is whole and verified
+  PASS no frame lost (dropped 0)
+  PASS length = the time it ran: difference 0.017 s (0.00009 %)
+working set: start 34.2 MB, end 15.7 MB, slope -0.178 MB/h
+  PASS memory does not grow with the recording (<= 1 MB/h)
+  PASS the file opens
+  PASS length / rate / channels as recorded: 921600000 frames
+  PASS the file's first sample found on the microphone's timeline
+content: 921600000 frames compared with the microphone's samples: differing 0; timeline shifts 0 (0 samples, microphone packets lost by the test machine: 0)
+  PASS nothing missing in the file except what the (virtual) microphone itself lost
+  PASS every sample in the file is the microphone's (nothing missing, doubled or changed)
+-- exit code 0, 19248.9 s, peak working set 34 MB
