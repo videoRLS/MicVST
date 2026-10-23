@@ -10,7 +10,9 @@ project follows [Semantic Versioning](https://semver.org/).
   Windows' PlaySound (a new sound cut the old one mid-wave: up to -13 dBFS steps at 10 per second);
   MicVST mixes them itself on the default output (waveOut, 48 kHz, 4 x 10 ms, open only while a
   sound plays + 2 s) and a new sound fades the old one out in 10 ms. If the device cannot be
-  opened, PlaySound as before.
+  opened (another program holds it exclusively, nothing plugged in), that one sound is played
+  with PlaySound and the next sound tries the device again; a device that stops taking audio for
+  1 s (pulled out while playing) is closed and reopened with the next sound.
 - Bildirim sesleri: every sound - built in or the user's own file - is brought to the same
   loudness when prepared (100 ms blocks, BS.1770 K-weighting and gating): 100 % = -15.5 LUFS,
   peaks at most -3 dBFS (a spiky file stays quieter instead of going over); other sample rates

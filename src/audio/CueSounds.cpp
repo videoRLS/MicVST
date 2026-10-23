@@ -174,12 +174,15 @@ namespace
    #if JUCE_WINDOWS
     // MicVST's own little output for the sounds: waveOut on Windows' default output (WAVE_MAPPER),
     // 48 kHz 16-bit stereo, 4 blocks of 10 ms, fed by CueMixer from a thread of its own. Opened when a
-    // sound starts, closed 2 s after the last one ended - nothing is open while silent. If the device
-    // cannot be opened, PlaySound plays the sound as before (then a fast new sound cuts the old one).
+    // sound starts, closed 2 s after the last one ended - nothing is open while silent, and the next
+    // sound goes to whatever the default output is then. If the device cannot be opened (another
+    // program holds it exclusively, it is unplugged ...), that one sound is played with PlaySound
+    // and the next sound tries the device again. If the device stops taking blocks for 1 s (pulled
+    // out while playing) it is closed; the sound still playing is dropped, the next one reopens.
     struct WindowsBackend final : CuePlayer::Backend, private juce::Thread
     {
         static constexpr int blockFrames = 480, numBlocks = 4;
-        static constexpr juce::uint32 idleCloseMs = 2000;
+        static constexpr juce::uint32 idleCloseMs = 2000, stallMs = 1000;
 
         WindowsBackend() : juce::Thread ("MicVST cue sounds") { doneEvent = CreateEventW (nullptr, FALSE, FALSE, nullptr); }
         ~WindowsBackend() override
@@ -194,23 +197,19 @@ namespace
 
         bool play (const juce::MemoryBlock& wav) override
         {
-            if (! deviceFailed)
             {
-                {
-                    const std::lock_guard<std::mutex> g (lock);
-                    mixer.start (wav);
-                }
-                if (! isThreadRunning()) startThread (juce::Thread::Priority::high);
-                wake.signal();
-                return true;
+                const std::lock_guard<std::mutex> g (lock);
+                mixer.start (wav);
+                pending = wav;    // for PlaySound, should the device not open
             }
-            fallback = wav;   // PlaySound reads these bytes while it plays: kept until the next sound
-            return PlaySoundW ((LPCWSTR) fallback.getData(), nullptr, SND_MEMORY | SND_ASYNC | SND_NODEFAULT) != FALSE;
+            if (! isThreadRunning()) startThread (juce::Thread::Priority::high);
+            wake.signal();
+            return true;
         }
         void stop() override
         {
             { const std::lock_guard<std::mutex> g (lock); mixer.stop(); }
-            if (deviceFailed) PlaySoundW (nullptr, nullptr, 0);
+            PlaySoundW (nullptr, nullptr, 0);
         }
         juce::String defaultOutputName() override { return devfmt::windowsDefaultOutputName(); }
 
@@ -224,15 +223,26 @@ namespace
                 if (! any) { wake.wait (-1); continue; }
                 if (! open())
                 {
-                    deviceFailed = true;   // from now on PlaySound; the sound asked for now is lost (logged by the caller's next play)
-                    const std::lock_guard<std::mutex> g (lock);
-                    mixer = CueMixer{};
-                    continue;
+                    {
+                        const std::lock_guard<std::mutex> g (lock);
+                        mixer = CueMixer{};
+                        PlaySoundW (nullptr, nullptr, 0);   // before its bytes are replaced
+                        fallback = pending;
+                    }
+                    const bool ok = fallback.getSize() > 0
+                                    && PlaySoundW ((LPCWSTR) fallback.getData(), nullptr, SND_MEMORY | SND_ASYNC | SND_NODEFAULT) != FALSE;
+                    if (! ok && ! failureLogged)
+                    {
+                        juce::Logger::writeToLog (tr ("Bildirim sesi çalınamadı (Windows'ta ses çıkışı yok ya da meşgul)"));
+                        failureLogged = true;
+                    }
+                    continue;   // the next sound tries the device again
                 }
-                juce::uint32 silentSince = 0;
+                failureLogged = false;
+                juce::uint32 silentSince = 0, lastDone = micvst::msCounter();
                 while (! threadShouldExit())
                 {
-                    bool wrote = false;
+                    bool wrote = false, broken = false;
                     for (auto& h : headers)
                         if ((h.dwFlags & WHDR_DONE) != 0 || (h.dwFlags & WHDR_INQUEUE) == 0)
                         {
@@ -243,13 +253,20 @@ namespace
                                 idleNow = mixer.idle();
                             }
                             h.dwFlags &= ~(DWORD) WHDR_DONE;
-                            waveOutWrite (out, &h, sizeof (WAVEHDR));
+                            if (waveOutWrite (out, &h, sizeof (WAVEHDR)) != MMSYSERR_NOERROR) { broken = true; break; }
                             wrote = true;
                             const auto now = micvst::msCounter();
+                            lastDone = now;
                             if (! idleNow) silentSince = 0;
                             else if (silentSince == 0) silentSince = now == 0 ? 1 : now;
                         }
-                    if (silentSince != 0 && micvst::msCounter() - silentSince > idleCloseMs) break;
+                    const auto now = micvst::msCounter();
+                    if (broken || now - lastDone > stallMs)   // device gone or stuck: give up what plays now
+                    {
+                        { const std::lock_guard<std::mutex> g (lock); mixer = CueMixer{}; }
+                        break;
+                    }
+                    if (silentSince != 0 && now - silentSince > idleCloseMs) break;
                     if (! wrote) WaitForSingleObject (doneEvent, 20);
                 }
                 close();
@@ -284,13 +301,13 @@ namespace
 
         std::mutex lock;
         CueMixer mixer;
+        juce::MemoryBlock pending, fallback;
         juce::WaitableEvent wake;
         HANDLE doneEvent = nullptr;
         HWAVEOUT out = nullptr;
         std::array<WAVEHDR, numBlocks> headers {};
         std::array<std::array<int16_t, blockFrames * 2>, numBlocks> data {};
-        std::atomic<bool> deviceFailed { false };
-        juce::MemoryBlock fallback;
+        bool failureLogged = false;   // the cue thread only
     };
    #endif
 
