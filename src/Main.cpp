@@ -328,8 +328,6 @@ public:
         logger = nullptr;
         // Everything is closed and written now (settings, a running recording, the log, the tray icon).
         // The process ends here: Windows' DLL clean-up at exit, where a plug-in crashed (Clear), is skipped.
-        // IMPORTANT for later changes: whatever must reach the disk or be closed at exit belongs ABOVE this
-        // line - nothing after it runs (no static destructors, no atexit handlers, no DLL clean-up).
         rt::endProcessNow (getApplicationReturnValue());
     }
 
