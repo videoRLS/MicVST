@@ -249,6 +249,7 @@ target_link_libraries(MicVSTSnapshot PRIVATE
 juce_add_console_app(MicVSTEngineTest PRODUCT_NAME "MicVSTEngineTest")
 target_sources(MicVSTEngineTest PRIVATE
     tests/EngineTestMain.cpp
+    tests/enginetest/MonotonicPump.cpp
     src/audio/AudioEngine.cpp
     src/audio/MonitorOutput.cpp
     src/audio/PluginChain.cpp

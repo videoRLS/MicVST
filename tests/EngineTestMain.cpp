@@ -8,6 +8,7 @@
 // $MICVST_TEST_OUT, default ./engine-test). VST3 tests use $MICVST_TEST_VST3 (default: the LSP
 // plug-ins bundle in the standard VST3 folder).
 #include <juce_gui_basics/juce_gui_basics.h>
+void pumpMonotonic (double seconds);   // enginetest/MonotonicPump.cpp
 #include <juce_audio_formats/juce_audio_formats.h>
 #include "audio/AudioEngine.h"
 #include "audio/GainStage.h"
@@ -285,7 +286,7 @@ namespace
        #endif
     }
 
-    void pump (double seconds) { juce::MessageManager::getInstance()->runDispatchLoopUntil ((int) (seconds * 1000.0)); }
+    void pump (double seconds) { pumpMonotonic (seconds); }   // enginetest/MonotonicPump.cpp: not the wall clock (R5)
 
     // every line the engine logs (the test's logger counts and keeps them)
     std::atomic<int> logLineCount { 0 };
