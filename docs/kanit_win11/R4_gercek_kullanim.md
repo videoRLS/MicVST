@@ -15,11 +15,12 @@ PC saati bilerek 3 saat geride. Aşağıdaki saatler **PC saatidir** (gerçek = 
 | 15672 | `yeni\MicVST.exe` (titreme düzeltmesi) | 02:26 → 02:43+ | | kullanıcı kapattı, olay yok |
 | 15596 | `C:\MicVST\MicVST.exe` | 02:51:58 → 02:52:31 | 33 s | Askı kaydı 02:52:31 – aynı (bulgu #13) |
 | 8732, 11184, … | `yeni2\MicVST.exe` | 02:52 → 03:05 | | bilerek yapılan kapanış denemeleri (Clear çıkış olayı, bulgu #6) |
-| **15868** | `yeni2\MicVST.exe` | **03:05:41 → 15:04:38 (izleme sonu), hâlâ çalışıyor** | **≥ 11 sa 59 dk kesintisiz** | – |
+| **15868** | `yeni2\MicVST.exe` | **03:05:41 → 16:29:46** | **13 sa 24 dk kesintisiz** | Kullanıcı Görev Yöneticisi ile kapattı (son exe'ye geçerken) |
+| 2520, 6460, 15884, 11560 | son exe `C:\MicVST\MicVST.exe` | 16:29 → 18:05 | | U15 (sağlık kontrolü), tepsiden kapat-aç denemeleri, #13 yeniden üretimi |
 
-İzleme toplam: 22 Eki 19:02 → 23 Eki 15:04 (PC) = **20 sa 2 dk**, 121 örnek.
+İzleme toplam: 22 Eki 19:02 → 23 Eki 18:05 (PC) = **23 sa 3 dk**, 138 örnek. (Bitişi 18:05 gerçek saat olarak düşünülmüştü; PC saati 3 sa geri olduğundan 21:05 gerçek saatte bitti.)
 
-## Son süreç (15868, 72 örnek, ~12 sa)
+## Gece başlayan süreç (15868, 80 örnek, 13 sa 24 dk)
 
 | Ölçü | İlk | En az | En çok | Son |
 |---|---|---|---|---|
@@ -30,8 +31,8 @@ PC saati bilerek 3 saat geride. Aşağıdaki saatler **PC saatidir** (gerçek = 
 | USER | 46 | 45 | 47 | 47 |
 | İş parçacığı | 33 | 30 | 35 | 32 |
 
-- CPU ortalama bir çekirdeğin **%47**'si (U12 ile aynı); öncelik 72/72 örnekte **Normal**; pencere 72/72 örnekte **yanıt veriyor**.
-- Bellek 12 saatte +4,3 MB, tamamı ilk saatlerde; sonra ±0,1 MB. Tutamaç / GDI / USER / iş parçacığı sabit → sızıntı yok.
+- CPU ortalama bir çekirdeğin **%47**'si (U12 ile aynı); öncelik 80/80 örnekte **Normal**; pencere 80/80 örnekte **yanıt veriyor**.
+- Bellek 13 saatte +4,3 MB, tamamı ilk saatlerde; sonra ±0,1 MB. Tutamaç / GDI / USER / iş parçacığı sabit → sızıntı yok.
 - Windows olay günlüğünde bu süreç için olay **0**.
 
 ## log.txt (20 saat, bütün süreçler)
@@ -53,7 +54,7 @@ PC saati bilerek 3 saat geride. Aşağıdaki saatler **PC saatidir** (gerçek = 
 | 02:52:31 | Application Hang 1002 | 15596, eski exe | Açılıştan 33 s sonra; son log satırı 16 s önce: dil → en. Bulgu #13 (aynı) |
 | 03:00–03:05 | Application Error 1000 × 10 | yeni2 (çıkış değişikliği denemesi) | Bilerek yapılan kapanış denemeleri, Clear (bulgu #6) |
 
-03:05:41'den sonra (son süreç, ~12 sa): **olay 0**.
+03:05:41 → 16:29 (gece başlayan süreç, 13 sa 24 dk): **olay 0**; 16:29:46 Görev Yöneticisi ile kapatma kaydı (#13). Son exe ile 16:29 → 18:05: tepsiden 4 kapanışın 3ünde bilinen Clear kaydı (#6), 17:52:35 #13 yeniden üretimi.
 
 ## Son 30 s kontrol kaydı
 
