@@ -16,7 +16,7 @@ class SettingsComponent final : public juce::Component, private juce::Timer
 public:
     struct Callbacks
     {
-        std::function<void (const juce::String&)> chooseTheme, chooseLanguage;
+        std::function<void (const juce::String&)> chooseTheme, chooseLanguage, chooseRenderer;
         std::function<void (juce::Component* target)> showFolderMenu;
         std::function<void()> showHowTo;
         HotkeyDialog::Setter setHotkey;
@@ -56,8 +56,8 @@ private:
     juce::Label cueHeading;
     std::unique_ptr<HotkeyDialog> hotkeys;
     juce::Label noHotkeys;
-    juce::Label languageLabel, themeLabel;
-    juce::ComboBox languageBox, themeBox;
+    juce::Label languageLabel, themeLabel, renderLabel, renderInfo;
+    juce::ComboBox languageBox, themeBox, renderBox;
     juce::ToggleButton autostartToggle;
     juce::TextButton foldersBtn;
     juce::Label foldersHint;

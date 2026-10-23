@@ -8,7 +8,7 @@ namespace ids
         window ("windowState"),
         plugins ("plugins"), plugin ("plugin"), fileId ("fileOrId"), byp ("bypassed"), blob ("state"),
         pluginId ("pluginId"), pluginName ("pluginName"), pluginUid ("pluginUid"),
-        preset ("presetName"), presetModified ("presetModified"), theme ("theme"), language ("language"),
+        preset ("presetName"), presetModified ("presetModified"), theme ("theme"), language ("language"), uiRenderer ("uiRenderer"),
         monitorDevice ("monitorDevice"), monitorVolume ("monitorVolumeDb"),
         hotkeyMute ("hotkeyMute"), hotkeyCompare ("hotkeyCompare"),
         recordFormat ("recordFormat"), recordFolder ("recordFolder"), cueSounds ("cueSounds");
@@ -35,6 +35,8 @@ juce::ValueTree toValueTree (const MicVSTState& s)
         t.setProperty (ids::theme, s.theme, nullptr);
     if (s.language.isNotEmpty())
         t.setProperty (ids::language, s.language, nullptr);
+    if (s.uiRenderer.isNotEmpty())
+        t.setProperty (ids::uiRenderer, s.uiRenderer, nullptr);
     if (s.monitorDevice.isNotEmpty())
         t.setProperty (ids::monitorDevice, s.monitorDevice, nullptr);
     t.setProperty (ids::monitorVolume, s.monitorVolumeDb, nullptr);
@@ -107,6 +109,7 @@ MicVSTState fromValueTree (const juce::ValueTree& t)
     s.presetModified = (bool) t.getProperty (ids::presetModified, false);
     s.theme = t.getProperty (ids::theme).toString();
     s.language = t.getProperty (ids::language).toString();
+    s.uiRenderer = t.getProperty (ids::uiRenderer).toString();
     s.monitorDevice = t.getProperty (ids::monitorDevice).toString();
     s.monitorVolumeDb = juce::jlimit (-40.0f, 6.0f, (float) (double) t.getProperty (ids::monitorVolume, 0.0));
     s.hotkeyMute = t.getProperty (ids::hotkeyMute).toString();

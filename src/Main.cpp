@@ -9,6 +9,7 @@
 #include "ui/SettingsComponent.h"
 #include "ui/Theme.h"
 #include "ui/DarkTitleBar.h"
+#include "ui/RenderMode.h"
 #include "Text.h"
 
 using micvst::tr;
@@ -92,23 +93,6 @@ private:
     juce::CriticalSection lock;
     const juce::String userHome { juce::File::getSpecialLocation (juce::File::userHomeDirectory).getFullPathName() };
 };
-
-// MicVST's own windows draw with Windows' classic renderer (GDI, JUCE's "Software Renderer")
-// instead of Direct2D. User report (GTA 5, full screen): back on the desktop the Direct2D content
-// sat shifted by the title bar - a white strip at the bottom and right, the top row cut - and no
-// resize from the program put it back, only the user dragging the edge. GDI paints the client area
-// on every WM_PAINT and does not depend on the graphics card's state across a full-screen game.
-// UI only; the meters cost slightly more CPU to draw.
-static void useClassicRendering (juce::Component& window)
-{
-   #if JUCE_WINDOWS
-    if (auto* peer = window.getPeer())
-        if (peer->getCurrentRenderingEngine() != 0)
-            peer->setCurrentRenderingEngine (0);
-   #else
-    juce::ignoreUnused (window);
-   #endif
-}
 
 class MicVSTApplication : public juce::JUCEApplication
 {
@@ -197,6 +181,8 @@ public:
         const auto rtSetup = rt::configureRealtimeProcess();
         juce::Logger::writeToLog (tr ("İşlem: güç kısıtlaması kapalı ") + (rtSetup.executionThrottlingOff ? tr ("tamam") : tr ("desteklenmiyor"))
                                   + tr (", zamanlayıcı kısıtlaması kapalı ") + (rtSetup.timerThrottlingOff ? tr ("tamam") : tr ("desteklenmiyor")));
+        // Arayüz çizimi (Otomatik / Yalnızca ekran kartı / Yalnızca işlemci): logged, before any window
+        micvst::render::setMode (micvst::render::fromId (loadState().uiRenderer));
 
         const bool silent = commandLine.contains ("--tray");
 
@@ -354,6 +340,7 @@ private:
         if (mainWindow != nullptr) s.windowState = mainWindow->getWindowStateAsString();
         s.theme = micvst::theme::currentId;
         s.language = micvst::currentLanguage();
+        s.uiRenderer = micvst::render::toId (micvst::render::current());
         if (hotkeys != nullptr)
         {
             s.hotkeyMute = GlobalHotkeys::encode (hotkeys->get (GlobalHotkeys::mute));
@@ -425,12 +412,13 @@ private:
         std::function<void()> onHide;
         std::function<void()> onThemeApplied;   // the app: LookAndFeel refresh + save
         void closeButtonPressed() override { setVisible (false); if (onHide) onHide(); }
+        void parentSizeChanged() override { DocumentWindow::parentSizeChanged(); micvst::render::screensChanged(); }   // the screens changed
         void visibilityChanged() override
         {
             DocumentWindow::visibilityChanged();
             if (isVisible())
             {
-                useClassicRendering (*this);
+                micvst::render::attach (*this);   // GPU / CPU drawing (Ayarlar > Arayüz çizimi)
                 micvst::useDarkTitleBar (*this, micvst::theme::dark);   // native title bar like the theme
             }
         }
@@ -451,7 +439,8 @@ private:
             SettingsWindow() : juce::DocumentWindow (SettingsComponent::windowTitle(), micvst::theme::background,
                                                      juce::DocumentWindow::closeButton) {}
             void closeButtonPressed() override { setVisible (false); }
-            void visibilityChanged() override { DocumentWindow::visibilityChanged(); if (isVisible()) useClassicRendering (*this); }
+            void visibilityChanged() override { DocumentWindow::visibilityChanged(); if (isVisible()) micvst::render::attach (*this); }
+            void parentSizeChanged() override { DocumentWindow::parentSizeChanged(); micvst::render::screensChanged(); }
         };
         std::unique_ptr<SettingsWindow> settingsWindow;
 
@@ -475,6 +464,8 @@ private:
                 cb.showFolderMenu = [safe] (juce::Component* target)
                     { if (safe != nullptr && safe->content != nullptr) safe->content->getPluginList().showFolderMenu (target); };
                 cb.showHowTo = [safe] { if (safe != nullptr && safe->content != nullptr) safe->content->showHowTo(); };
+                cb.chooseRenderer = [safe] (const juce::String& id)
+                    { juce::MessageManager::callAsync ([safe, id] { if (safe != nullptr) safe->applyRenderer (id); }); };
                 cb.setHotkey = setHotkey;
                 settingsWindow->setContentOwned (new SettingsComponent (engineRef, hotkeys, cb), true);
                 settingsWindow->setResizable (true, false);
@@ -498,6 +489,11 @@ private:
             micvst::setLanguage (id);
             juce::Logger::writeToLog (micvst::tr ("Dil: ") + id);
             rebuild();
+        }
+        void applyRenderer (const juce::String& id)
+        {
+            micvst::render::setMode (micvst::render::fromId (id));
+            if (onThemeApplied) onThemeApplied();   // saved with the other appearance settings
         }
         void applyTheme (const juce::String& id)
         {

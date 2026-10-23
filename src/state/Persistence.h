@@ -27,6 +27,7 @@ struct MicVSTState
     bool presetModified = false;       // the chain was changed after loading it
     juce::String theme;                // colour theme id (ui/Theme.h); empty = Gece (default)
     juce::String language;             // interface language id (Text.h); empty = Türkçe (default)
+    juce::String uiRenderer;           // interface drawing (ui/RenderMode.h): "gpu" / "cpu"; empty = automatic (default)
     juce::String monitorDevice;        // "Kendini dinle" output (headphones); empty = Windows' default output
     float monitorVolumeDb = 0.0f;      // (monitoring itself always starts off: no feedback through speakers)
     // shortcut keys (ui/GlobalHotkeys.h) as "enabled:keyCode:modifiers"; empty = the default

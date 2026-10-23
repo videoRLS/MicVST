@@ -6,10 +6,15 @@ project follows [Semantic Versioning](https://semver.org/).
 
 ## [1.2.3] - 2026-10-23
 
-- Windows: MicVST's own windows (main, settings) draw with the classic GDI renderer instead of
-  Direct2D. After a full-screen game (GTA 5) the Direct2D content stayed shifted by the title bar -
-  a white strip at the bottom / right, the top row cut - which no program-side resize fixed, only
-  dragging the edge. UI only.
+- Ayarlar > Görünüm ve başlangıç > "Arayüz çizimi": Otomatik (default; graphics card first), Yalnızca
+  ekran kartı, Yalnızca işlemci. Automatic: Direct2D when a Direct3D 11 hardware device with Direct2D
+  support (not the Basic Render Driver) can be created - checked once, inside an SEH guard - else GDI;
+  while Windows reports a full-screen program, and for 3 s after it or after a screen change, GDI,
+  then a fresh Direct2D picture (after GTA 5 the old one sat shifted by the title bar: white strip);
+  more than 6 switches in 10 minutes: GDI for the session. Graphics card only: Direct2D always, the
+  user is told when no usable card was found. Processor only: GDI. The choice is saved
+  (config.xml uiRenderer; automatic writes nothing), applied at once, logged ("Arayüz çizimi: ...").
+  Interface only: the audio engine is not touched.
 - Bildirim sesleri: fast mute / unmute no longer clicks. The sounds are no longer played with
   Windows' PlaySound (a new sound cut the old one mid-wave: up to -13 dBFS steps at 10 per second);
   MicVST mixes them itself on the default output (waveOut, 48 kHz, 10 ms blocks; a device just

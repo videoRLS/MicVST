@@ -2,6 +2,7 @@
 #include "ui/Theme.h"
 #include "state/AutostartRegistry.h"
 #include "Text.h"
+#include "ui/RenderMode.h"
 
 using micvst::tr;
 
@@ -65,7 +66,8 @@ SettingsComponent::SettingsComponent (AudioEngine& e, GlobalHotkeys* keys, Callb
 
     languageLabel.setText (tr ("Dil"), juce::dontSendNotification);
     themeLabel.setText (tr ("Tema"), juce::dontSendNotification);
-    for (auto* l : { &languageLabel, &themeLabel })
+    renderLabel.setText (tr ("Arayüz çizimi"), juce::dontSendNotification);
+    for (auto* l : { &languageLabel, &themeLabel, &renderLabel })
     {
         l->setColour (juce::Label::textColourId, micvst::theme::textDim);
         page.addAndMakeVisible (l);
@@ -108,6 +110,30 @@ SettingsComponent::SettingsComponent (AudioEngine& e, GlobalHotkeys* keys, Callb
     page.addAndMakeVisible (languageBox);
     page.addAndMakeVisible (themeBox);
 
+    // Arayüz çizimi: only how these windows are drawn - never the sound
+    renderBox.addItem (tr ("Otomatik (ekran kartı öncelikli)"), 1);
+    renderBox.addItem (tr ("Yalnızca ekran kartı"), 2);
+    renderBox.addItem (tr ("Yalnızca işlemci"), 3);
+    {
+        const auto m = micvst::render::current();
+        renderBox.setSelectedId (m == micvst::render::Mode::gpuOnly ? 2 : m == micvst::render::Mode::cpuOnly ? 3 : 1, juce::dontSendNotification);
+    }
+    renderBox.setTooltip (tr ("Yalnızca pencerelerin nasıl çizildiğini değiştirir; ses işleme, ses kalitesi ve gecikme değişmez. "
+                              "Otomatik: ekran kartı varsa onu kullanır; tam ekran oyun sırasında ve ekranlar değişince "
+                              "geçici olarak işlemciye geçer. Yalnızca ekran kartı: tam ekran oyunlardan sonra pencerede beyaz "
+                              "alan kalabilir, kenarı çekmek düzeltir. Yalnızca işlemci: her durumda kararlı, pencere açıkken "
+                              "biraz daha fazla işlemci kullanır."));
+    renderBox.onChange = [this]
+    {
+        const int id = renderBox.getSelectedId();
+        const auto m = id == 2 ? micvst::render::Mode::gpuOnly : id == 3 ? micvst::render::Mode::cpuOnly : micvst::render::Mode::automatic;
+        if (cb.chooseRenderer) cb.chooseRenderer (micvst::render::toId (m));
+    };
+    page.addAndMakeVisible (renderBox);
+    renderInfo.setColour (juce::Label::textColourId, micvst::theme::textDim);
+    renderInfo.setFont (juce::FontOptions (13.0f));
+    page.addAndMakeVisible (renderInfo);
+
     autostartToggle.setButtonText (tr ("Windows açılışında başlat"));
     autostartToggle.setTooltip (tr ("Windows açılınca MicVST'yi pencere açmadan, simge olarak başlatır"));
     autostartToggle.setToggleState (AutostartRegistry::isEnabled(), juce::dontSendNotification);
@@ -149,6 +175,15 @@ void SettingsComponent::timerCallback()
 {
     updateNav();
     autostartToggle.setToggleState (AutostartRegistry::isEnabled(), juce::dontSendNotification);
+    {
+        const auto p = micvst::render::problem();
+        const auto t = p.isNotEmpty() ? p : micvst::render::describeNow();
+        if (renderInfo.getText() != t)
+        {
+            renderInfo.setText (t, juce::dontSendNotification);
+            renderInfo.setColour (juce::Label::textColourId, p.isNotEmpty() ? micvst::theme::warning : micvst::theme::textDim);
+        }
+    }
     if (soundPanel.getHeight() != soundPanel.preferredHeight()   // the buffer row came or went (device change)
         || recordingPanel.getHeight() != recordingPanel.preferredHeight (recordingPanel.getWidth())   // FLAC row, notes
         || cuePanel.getHeight() != cuePanel.preferredHeight (cuePanel.getWidth()))                  // its notes
@@ -264,13 +299,20 @@ void SettingsComponent::resized()
     heading (3);
     {
         const int lw = juce::jmax (90, juce::roundToInt (juce::jmax (juce::GlyphArrangement::getStringWidth (languageLabel.getFont(), languageLabel.getText()),
-                                                                     juce::GlyphArrangement::getStringWidth (themeLabel.getFont(), themeLabel.getText()))) + 16);
+                                                                     juce::GlyphArrangement::getStringWidth (themeLabel.getFont(), themeLabel.getText()),
+                                                                     juce::GlyphArrangement::getStringWidth (renderLabel.getFont(), renderLabel.getText()))) + 16);
         languageLabel.setBounds (pad, y, lw, 30);
         languageBox.setBounds (pad + lw, y, juce::jmin (260, w - lw), 30);
         y += 36;
         themeLabel.setBounds (pad, y, lw, 30);
         themeBox.setBounds (pad + lw, y, juce::jmin (260, w - lw), 30);
-        y += 38;
+        y += 36;
+        renderLabel.setBounds (pad, y, lw, 30);
+        renderBox.setBounds (pad + lw, y, juce::jmin (260, w - lw), 30);
+        y += 32;
+        renderInfo.setBounds (pad + lw, y, w - lw, 36);
+        renderInfo.setJustificationType (juce::Justification::topLeft);
+        y += 40;
         line (autostartToggle, 26);
     }
 
