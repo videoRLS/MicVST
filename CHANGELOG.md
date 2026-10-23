@@ -6,15 +6,14 @@ project follows [Semantic Versioning](https://semver.org/).
 
 ## [1.2.3] - 2026-10-23
 
-- Ayarlar > Görünüm ve başlangıç > "Arayüz çizimi": Otomatik (default; graphics card first), Yalnızca
-  ekran kartı, Yalnızca işlemci. Automatic: Direct2D when a Direct3D 11 hardware device with Direct2D
-  support (not the Basic Render Driver) can be created - checked once, inside an SEH guard - else GDI;
-  while Windows reports a full-screen program, and for 3 s after it or after a screen change, GDI,
-  then a fresh Direct2D picture (after GTA 5 the old one sat shifted by the title bar: white strip);
-  more than 6 switches in 10 minutes: GDI for the session. Graphics card only: Direct2D always, the
-  user is told when no usable card was found. Processor only: GDI. The choice is saved
-  (config.xml uiRenderer; automatic writes nothing), applied at once, logged ("Arayüz çizimi: ...").
-  Interface only: the audio engine is not touched.
+- Ayarlar > Görünüm ve başlangıç > "Arayüz çizimi": Otomatik (default), Yalnızca ekran kartı,
+  Yalnızca işlemci. Decided once at every start and fixed until MicVST closes (switching while a
+  window was open left the old Direct2D picture behind). Automatic: Direct2D when a Direct3D 11
+  hardware device with Direct2D support (not the Basic Render Driver) can be created - checked in an
+  SEH guard - else GDI. Graphics card only: Direct2D, the user is told when no usable card was
+  found. Processor only: GDI (immune to the shifted picture after full-screen games such as GTA 5).
+  A new choice is saved (config.xml uiRenderer; automatic writes nothing) and used from the next
+  start; logged ("Arayüz çizimi: ..."). Interface only: the audio engine is not touched.
 - Bildirim sesleri: fast mute / unmute no longer clicks. The sounds are no longer played with
   Windows' PlaySound (a new sound cut the old one mid-wave: up to -13 dBFS steps at 10 per second);
   MicVST mixes them itself on the default output (waveOut, 48 kHz, 10 ms blocks; a device just

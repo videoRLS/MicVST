@@ -31,24 +31,9 @@ Mode fromId (const juce::String& id)
     return t == "gpu" ? Mode::gpuOnly : t == "cpu" ? Mode::cpuOnly : Mode::automatic;
 }
 
-int chooseEngine (Mode m, bool gpu, bool risky, bool braked)
+int chooseEngine (Mode m, bool gpu)
 {
-    switch (m)
-    {
-        case Mode::cpuOnly:   return 0;
-        case Mode::gpuOnly:   return 1;
-        case Mode::automatic: break;
-    }
-    return gpu && ! risky && ! braked ? 1 : 0;
-}
-
-bool SwitchBrake::note (juce::uint32 now)
-{
-    times.add (now);
-    while (! times.isEmpty() && now - times.getFirst() > windowMs)
-        times.remove (0);
-    if (times.size() > maxSwitches) on = true;
-    return on;
+    return m == Mode::cpuOnly ? 0 : m == Mode::gpuOnly ? 1 : (gpu ? 1 : 0);
 }
 
 namespace
@@ -93,106 +78,14 @@ namespace
         __except (1 /* EXCEPTION_EXECUTE_HANDLER */) { return 0; }
     }
 
-    // Windows' own notice: a full-screen program (a game in exclusive full screen, or any
-    // full-screen window) is in front
-    static bool fullScreenProgram()
-    {
-        QUERY_USER_NOTIFICATION_STATE s {};
-        if (FAILED (SHQueryUserNotificationState (&s))) return false;
-        return s == QUNS_RUNNING_D3D_FULL_SCREEN || s == QUNS_BUSY;
-    }
    #else
     static int probeGpu() { return 0; }
-    static bool fullScreenProgram() { return false; }
    #endif
 
     juce::String engineName (int e) { return e == 1 ? tr ("ekran kartı") : tr ("işlemci"); }
 
-    struct Controller final : private juce::Timer, public juce::DeletedAtShutdown
-    {
-        static Controller& get()
-        {
-            if (instance == nullptr) instance = new Controller();
-            return *instance;
-        }
-        ~Controller() override { stopTimer(); instance = nullptr; }
-
-        Mode mode = Mode::automatic;
-        juce::Array<juce::Component::SafePointer<juce::Component>> windows;
-        juce::uint32 riskUntil = 0;
-        bool fullScreen = false;
-        SwitchBrake brake;
-        int lastEngine = -1;
-        juce::String lastReason;
-
-        bool risky() const
-        {
-            return mode == Mode::automatic && (fullScreen || (int) (riskUntil - juce::Time::getMillisecondCounter()) > 0);
-        }
-
-        juce::String reason (int engine) const
-        {
-            if (mode == Mode::gpuOnly)   return gpuUsable() ? juce::String() : tr ("kullanılabilir ekran kartı yok");
-            if (mode == Mode::cpuOnly)   return {};
-            if (engine == 1)             return {};
-            if (! gpuUsable())           return tr ("kullanılabilir ekran kartı yok");
-            if (brake.on)                return tr ("10 dakikada çok sık geçiş: bu oturumda işlemci");
-            return tr ("tam ekran program ya da ekran değişikliği");
-        }
-
-        void apply()
-        {
-            for (int i = windows.size(); --i >= 0;)
-                if (windows.getReference (i) == nullptr) windows.remove (i);
-
-            int engine = chooseEngine (mode, gpuUsable(), risky(), brake.on);
-            if (lastEngine >= 0 && engine != lastEngine && mode == Mode::automatic
-                && brake.note (juce::Time::getMillisecondCounter()))
-                engine = chooseEngine (mode, gpuUsable(), risky(), true);
-
-            for (auto& w : windows)
-                if (auto* peer = w->getPeer())
-                    if (peer->getCurrentRenderingEngine() != engine)
-                        peer->setCurrentRenderingEngine (engine);
-
-            const auto why = reason (engine);
-            if (engine != lastEngine || why != lastReason)
-            {
-                juce::Logger::writeToLog (tr ("Arayüz çizimi") + ": " + engineName (engine) + (why.isNotEmpty() ? " (" + why + ")" : juce::String()));
-                lastEngine = engine;
-                lastReason = why;
-            }
-        }
-
-        void setMode (Mode m)
-        {
-            mode = m;
-            if (mode == Mode::automatic) startTimer (1000);
-            else                         stopTimer();
-            apply();
-        }
-
-        void screensChanged()
-        {
-            if (mode != Mode::automatic) return;
-            riskUntil = juce::Time::getMillisecondCounter() + 3000;
-            apply();
-        }
-
-    private:
-        static inline Controller* instance = nullptr;
-
-        Controller() { startTimer (1000); }
-
-        void timerCallback() override
-        {
-            if (mode != Mode::automatic) { stopTimer(); return; }
-            const bool fs = fullScreenProgram();
-            if (fullScreen && ! fs) riskUntil = juce::Time::getMillisecondCounter() + 3000;   // a fresh picture 3 s after it ended
-            fullScreen = fs;
-            apply();
-        }
-    };
+    Mode saved = Mode::automatic, session = Mode::automatic;
+    int sessionEngine = -1;
 }
 
 bool gpuUsable()
@@ -201,31 +94,40 @@ bool gpuUsable()
     return usable;
 }
 
-Mode current()                { return Controller::get().mode; }
-void setMode (Mode m)         { Controller::get().setMode (m); }
-void screensChanged()         { Controller::get().screensChanged(); }
+void startSession (Mode m)
+{
+    saved = session = m;
+    sessionEngine = chooseEngine (m, gpuUsable());
+    const auto why = problem();
+    juce::Logger::writeToLog (tr ("Arayüz çizimi") + ": " + engineName (sessionEngine)
+                              + (m == Mode::automatic && sessionEngine == 0 ? " (" + tr ("kullanılabilir ekran kartı yok") + ")" : juce::String())
+                              + (why.isNotEmpty() ? " - " + why : juce::String()));
+}
+
+Mode current()        { return saved; }
+void setMode (Mode m) { saved = m; }
 
 juce::String problem()
 {
-    return Controller::get().mode == Mode::gpuOnly && ! gpuUsable()
+    return session == Mode::gpuOnly && ! gpuUsable()
              ? tr ("Bu bilgisayarda kullanılabilir ekran kartı bulunamadı; arayüz yine de ekran kartıyla çizilmeye çalışılıyor.")
              : juce::String();
 }
 
 void attach (juce::Component& window)
 {
-    auto& c = Controller::get();
-    bool known = false;
-    for (auto& w : c.windows) if (w == &window) known = true;
-    if (! known) c.windows.add (&window);
-    c.apply();
+    if (sessionEngine < 0) startSession (saved);
+    if (auto* peer = window.getPeer())
+        if (peer->getCurrentRenderingEngine() != sessionEngine)
+            peer->setCurrentRenderingEngine (sessionEngine);
 }
 
 juce::String describeNow()
 {
-    auto& c = Controller::get();
-    const int engine = c.lastEngine >= 0 ? c.lastEngine : chooseEngine (c.mode, gpuUsable(), c.risky(), c.brake.on);
-    const auto why = c.reason (engine);
-    return tr ("Şu an: ") + engineName (engine) + (why.isNotEmpty() ? " (" + why + ")" : juce::String());
+    const int engine = sessionEngine >= 0 ? sessionEngine : chooseEngine (session, gpuUsable());
+    juce::String t = tr ("Şu an: ") + engineName (engine);
+    if (session == Mode::automatic && engine == 0) t << " (" << tr ("kullanılabilir ekran kartı yok") << ")";
+    if (saved != session) t << "\n" << tr ("Değişiklik MicVST yeniden başlatılınca uygulanır.");
+    return t;
 }
 }

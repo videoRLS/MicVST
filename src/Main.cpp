@@ -181,8 +181,9 @@ public:
         const auto rtSetup = rt::configureRealtimeProcess();
         juce::Logger::writeToLog (tr ("İşlem: güç kısıtlaması kapalı ") + (rtSetup.executionThrottlingOff ? tr ("tamam") : tr ("desteklenmiyor"))
                                   + tr (", zamanlayıcı kısıtlaması kapalı ") + (rtSetup.timerThrottlingOff ? tr ("tamam") : tr ("desteklenmiyor")));
-        // Arayüz çizimi (Otomatik / Yalnızca ekran kartı / Yalnızca işlemci): logged, before any window
-        micvst::render::setMode (micvst::render::fromId (loadState().uiRenderer));
+        // Arayüz çizimi (Otomatik / Yalnızca ekran kartı / Yalnızca işlemci): decided once per start,
+        // logged, fixed until MicVST closes
+        micvst::render::startSession (micvst::render::fromId (loadState().uiRenderer));
 
         const bool silent = commandLine.contains ("--tray");
 
@@ -412,7 +413,6 @@ private:
         std::function<void()> onHide;
         std::function<void()> onThemeApplied;   // the app: LookAndFeel refresh + save
         void closeButtonPressed() override { setVisible (false); if (onHide) onHide(); }
-        void parentSizeChanged() override { DocumentWindow::parentSizeChanged(); micvst::render::screensChanged(); }   // the screens changed
         void visibilityChanged() override
         {
             DocumentWindow::visibilityChanged();
@@ -440,7 +440,6 @@ private:
                                                      juce::DocumentWindow::closeButton) {}
             void closeButtonPressed() override { setVisible (false); }
             void visibilityChanged() override { DocumentWindow::visibilityChanged(); if (isVisible()) micvst::render::attach (*this); }
-            void parentSizeChanged() override { DocumentWindow::parentSizeChanged(); micvst::render::screensChanged(); }
         };
         std::unique_ptr<SettingsWindow> settingsWindow;
 
@@ -492,7 +491,7 @@ private:
         }
         void applyRenderer (const juce::String& id)
         {
-            micvst::render::setMode (micvst::render::fromId (id));
+            micvst::render::setMode (micvst::render::fromId (id));   // used from the next start
             if (onThemeApplied) onThemeApplied();   // saved with the other appearance settings
         }
         void applyTheme (const juce::String& id)

@@ -119,10 +119,10 @@ SettingsComponent::SettingsComponent (AudioEngine& e, GlobalHotkeys* keys, Callb
         renderBox.setSelectedId (m == micvst::render::Mode::gpuOnly ? 2 : m == micvst::render::Mode::cpuOnly ? 3 : 1, juce::dontSendNotification);
     }
     renderBox.setTooltip (tr ("Yalnızca pencerelerin nasıl çizildiğini değiştirir; ses işleme, ses kalitesi ve gecikme değişmez. "
-                              "Otomatik: ekran kartı varsa onu kullanır; tam ekran oyun sırasında ve ekranlar değişince "
-                              "geçici olarak işlemciye geçer. Yalnızca ekran kartı: tam ekran oyunlardan sonra pencerede beyaz "
-                              "alan kalabilir, kenarı çekmek düzeltir. Yalnızca işlemci: her durumda kararlı, pencere açıkken "
-                              "biraz daha fazla işlemci kullanır."));
+                              "Seçim MicVST her açıldığında bir kez uygulanır ve kapanana kadar değişmez. "
+                              "Otomatik: ekran kartı kullanılabiliyorsa onu, değilse işlemciyi kullanır. "
+                              "Ekran kartıyla çizerken tam ekran oyunlardan sonra pencerede beyaz alan kalabilir; kenarı çekmek düzeltir, "
+                              "kalıcı çözüm Yalnızca işlemci. Yalnızca işlemci: her durumda kararlı, pencere açıkken biraz daha fazla işlemci kullanır."));
     renderBox.onChange = [this]
     {
         const int id = renderBox.getSelectedId();
