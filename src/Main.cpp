@@ -93,29 +93,72 @@ private:
     const juce::String userHome { juce::File::getSpecialLocation (juce::File::userHomeDirectory).getFullPathName() };
 };
 
-// After the screen mode changed - a full-screen game set its own resolution and gave the desktop
-// back (user report: GTA 5) - Windows resizes the windows itself, and the window's content could
-// stay at the old size: a white, unpainted strip at the bottom / right until the user dragged the
-// edge. 1 s and 3 s after the last change the window is resized by 1 px and back, which makes the
-// native window and its content agree again (dragging the edge did the same). UI only.
-struct DisplayChangeResync final : private juce::Timer
+// After the screen mode changed - a full-screen game set its own resolution / refresh rate and gave
+// the desktop back (user report: GTA 5) - Windows resizes the windows itself, and the window's
+// content could stay behind: a white, unpainted strip at the bottom / right until the user dragged
+// the edge. What dragging did is done here: the window is resized by 1 px and back,
+//   - 1 s and 3 s after any change of the screens: resolution, refresh rate, scale, monitors
+//     (JUCE reports only some of these, so the screens are also compared once a second), and
+//   - when the native window and its content disagree in size for 2 s in a row (whatever caused
+//     it), never while a mouse button is down (the user dragging), and at most once per size pair.
+// UI only; nothing is saved by it (the bounds end where they were).
+struct WindowResync final : private juce::Timer
 {
-    explicit DisplayChangeResync (juce::ResizableWindow& w) : window (w) {}
-    void displaysChanged() { left = 2; startTimer (1000); }
+    explicit WindowResync (juce::ResizableWindow& w) : window (w) { screens = screensNow(); startTimer (1000); }
+    void displaysChanged() { pending = 2; nextAt = juce::Time::getMillisecondCounter() + 1000; }
 
 private:
-    void timerCallback() override
+    static juce::String screensNow()
     {
-        if (--left <= 0) stopTimer();
-        else             startTimer (2000);
-        if (! window.isVisible() || window.isMinimised() || window.isFullScreen()) return;
+        juce::String s;
+        for (auto& d : juce::Desktop::getInstance().getDisplays().displays)
+            s << d.physicalBounds.toString() << " " << d.logicalBounds.toString() << " " << d.userBounds.toString() << " x" << d.scale << " "
+              << (d.verticalFrequencyHz.has_value() ? *d.verticalFrequencyHz : 0.0) << " Hz;";
+        return s;
+    }
+
+    bool usable() const { return window.isVisible() && ! window.isMinimised() && ! window.isFullScreen() && window.getPeer() != nullptr; }
+
+    void nudge()
+    {
         const auto b = window.getBounds();
         window.setBounds (b.withWidth (b.getWidth() + 1));
         window.setBounds (b);
+        window.repaint();
+    }
+
+    void timerCallback() override
+    {
+        const auto now = juce::Time::getMillisecondCounter();
+        if (const auto sc = screensNow(); sc != screens) { screens = sc; displaysChanged(); }
+        if (! usable() || juce::ModifierKeys::currentModifiers.isAnyMouseButtonDown()) { mismatchSeen = 0; return; }
+
+        if (pending > 0 && (int) (now - nextAt) >= 0)
+        {
+            --pending;
+            nextAt = now + 2000;
+            nudge();
+            return;
+        }
+        // the native window (peer, its own coordinates) against the window's size
+        const auto peer = window.getPeer()->getBounds();
+        const double gs = juce::Desktop::getInstance().getGlobalScaleFactor();
+        const int w = juce::roundToInt (window.getWidth() * gs), h = juce::roundToInt (window.getHeight() * gs);
+        const bool differs = std::abs (peer.getWidth() - w) > 1 || std::abs (peer.getHeight() - h) > 1;
+        const juce::String pair = peer.toString() + " / " + juce::String (w) + "x" + juce::String (h);
+        if (! differs) { mismatchSeen = 0; return; }
+        if (++mismatchSeen >= 2 && pair != lastTried)
+        {
+            lastTried = pair;   // a size pair that a nudge does not settle is not tried again
+            mismatchSeen = 0;
+            nudge();
+        }
     }
 
     juce::ResizableWindow& window;
-    int left = 0;
+    juce::String screens, lastTried;
+    int pending = 0, mismatchSeen = 0;
+    juce::uint32 nextAt = 0;
 };
 
 class MicVSTApplication : public juce::JUCEApplication
@@ -457,7 +500,7 @@ private:
                                                      juce::DocumentWindow::closeButton) {}
             void closeButtonPressed() override { setVisible (false); }
             void parentSizeChanged() override { DocumentWindow::parentSizeChanged(); resync.displaysChanged(); }
-            DisplayChangeResync resync { *this };
+            WindowResync resync { *this };
         };
         std::unique_ptr<SettingsWindow> settingsWindow;
 
@@ -542,7 +585,7 @@ private:
         GlobalHotkeys* hotkeys = nullptr;
         HotkeySetter setHotkey;
         MainComponent* content = nullptr;   // gehört dem Fenster (setContentOwned), nur Zugriffszeiger
-        DisplayChangeResync resync { *this };
+        WindowResync resync { *this };
     };
 
     std::unique_ptr<MicVSTLogger> logger;
