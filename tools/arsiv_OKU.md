@@ -5,6 +5,7 @@ test edilen hâline geri dönebilmen için hazırlandı.
 
 - Kaynak commit: `@COMMIT@` (GitHub: `videoRLS/MicVST`, dal `kararlilik/oncelik`)
 - Teslim edilen exe'nin SHA-256'sı: `@SHA@`
+- Exe, GitHub'daki tam test turu #3'te commit `baf4efd5835b6f09b0ef396aea2cf8f895dff7f2`'den derlendi. Yukarıdaki kaynak commit'le arasındaki fark yalnız belgeler ve test betikleri: ürün kodu (`src`, `cmake`, `CMakeLists.txt`, `third_party`, `resources`) birebir aynı.
 
 ## İçerik
 
