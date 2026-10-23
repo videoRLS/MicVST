@@ -1,6 +1,6 @@
 # MicVST 1.2.2 – Kapsamlı test raporu (Windows)
 
-> Taslak – 23 Ekim 2026 sabah. CI tur #2 / #3 sonuçları geldikçe doldurulacak bölümler **(bekleniyor)** diye işaretli.
+> Teslim – 23 Ekim 2026 akşam. Teslim edilen exe: tam tur #3'ün exe'si (commit `baf4efd`), SHA-256 `5F70A33F5408D49DA053B7B7252803018656E517E68A240CABC44C02537D7798`, 9 987 072 bayt. Kod dondurma 16:00; sonrasında yalnız belge ve test betikleri değişti.
 
 - **Dal:** `kararlilik/oncelik` (`main`'e dokunulmadı, PR / merge / release yok)
 - **Görev tanımı:** `docs/TEST_PROMPTU_WIN11.md`
@@ -18,28 +18,35 @@
 
 ## 1. Özet
 
-**(bekleniyor – tur #3 sonrası tablo)**
+Son kod (`baf4efd`) üzerinde tam tur #3 (W, 23 Ekim 12:56–16:28 UTC) ve uzun koşular (tur #2, `c0515a9`: ürün kodu teslim edilenle aynı; fark yalnız test programına eklenen `MonotonicPump.cpp`).
 
 | Alan | Durum | Ortam | Not |
 |---|---|---|---|
-| A Derleme / exe | | W, A | |
-| B Birim testleri | | W, A, L | L: tümü geçti (23 Ekim 04:41-05:50) |
-| C Ses kalitesi / bütünlük | | W, A, L, U | C7 rtprobe L: 0 bellek ayırma, 0 bekleyen kilit |
-| D Saat farkı / tampon / gecikme | | W, S | |
-| E Cihazlar / hatalar | | W | |
-| F Dahili efektler | | W, L | |
-| G Otomatik Kazanç | | W, S | |
-| H Hazır ayarlar | | W | |
-| I Sustur / Ham ses / kısayollar / bildirim sesleri | | W, U | I6 tepsi menüsü: kullanıcı beyanı |
-| J Kendini dinle / Deneme kaydı | | W | |
-| K Kayıt | | W, L, U | K22: 760 dosya, 0 hata (L) |
-| L İşlem önceliği | | W, U | |
-| M VST3 | | W | Airwindows: zamanla değişen eklenti (bkz. §3) |
-| N Arayüz / dil / tema | | W, U | Tema/dil titremesi düzeltildi, kullanıcı doğruladı |
-| O Kapalı kutu / gizlilik / kalıcılık | | W | |
-| P Uzun süre | BAŞARILI (tur #1) | W, A, S | tur #2 (bekleniyor) |
-| R Uzun ömür | | W, S, L, U | |
+| A Derleme / exe | BAŞARILI | W, A | build_ok, hata 0, uyarı 8 (temel, değişmedi), JUCE uyarısı 0, yama işareti 3; A (Windows 11 ARM64) derleme + birim testleri |
+| B Birim testleri | BAŞARILI | W, A, L | W: 243 bölüm "All tests completed successfully"; A: aynı, 833 s; L: ASan/UBSan 0 hata, 0 sızıntı (B2) |
+| C Ses kalitesi / bütünlük | BAŞARILI (1 ATLANDI) | W, A, L, U | Bütünlük 24 döküm: 21'inde açıklanamayan 0; `s_suite_wrongref` 541 = negatif kontrol (bulmalı ✓); `i_mt_vst3` 395 = Airwindows zamanla değişen eklenti, çevrimdışı referansla karşılaştırılamaz → ATLANDI (bulgu #10); `i_voice_pluginstall` artık 0. Sinüs −0,1 dBFS: seviye 0,0000 dB, THD+N medyan −134,5 dB, süreksizlik 0; sessizlik girişi → çıkış tam 0. C7 rtprobe (L): ses iş parçacığında bellek ayırma 0, bekleyen kilit 0. U3/U4: gerçek kayıtlar kusursuz |
+| D Saat farkı / tampon / gecikme | BAŞARILI | W, S | quality: ±150 ppm THD+N ≤ −102 dB, tık 0; ölçümler bölümü: 1.2.1 tasarımı 11 senaryonun 10'unda tık 0 (6. senaryo: bütün iş parçacıklarını donduran sistem – kaçınılmaz, eski tasarımlarla aynı); simüle gün: MicVST kaynaklı tık 0 |
+| E Cihazlar / hatalar | BAŞARILI | W | devices, hotplug, openfail, faults, msgblock: FAIL 0; bozuk ayar / önbellek, eksik cihaz-eklenti-klasör ile açılış: çalışıyor (runtime) |
+| F Dahili efektler | BAŞARILI | W, L | effects: kanal-nötr zincirler L/R 0,00 dB, tık 0; birim 52 bölüm |
+| G Otomatik Kazanç | BAŞARILI | W, S | autogain: tık 0, kapatınca 2 s sonra kazanç 0,000000 dB; R2: 168 sa soak, sınır dışı 0 |
+| H Hazır ayarlar | BAŞARILI | W | birim "Presets" 7 bölüm; U8 (dinleme) ATLANDI (kullanıcı kararı) |
+| I Sustur / Ham ses / kısayollar / bildirim sesleri | BAŞARILI (not) | W, U | cues: 10 PASS (kabloda Sustur tık 0, varsayılan çıkış kabloysa ses yok); kısayollar (gerçek exe) 20 PASS; U6/U7. I6 tepsi: kullanıcı beyanı. Not: kulaklıkta hızlı aç-kapada bildirim sesinde tık (bulgu #14) |
+| J Kendini dinle / Deneme kaydı | BAŞARILI | W | motor testleri (gecikme, edits) FAIL 0 |
+| K Kayıt | BAŞARILI | W, L, U | record 20 PASS; K14 (disk dolu / çıkarma) ve K22 (760 dosya, 0 hata, 17,6 dk) geçti; 24/24 dosya ffmpeg ve Windows ile açıldı; R3 320 dk; U4 60 dk; U5 zorla kapatma |
+| L İşlem önceliği | BAŞARILI | W, U | priority 16 PASS, öncelik denetimi hatası 0; R4: 20 sa Normal okundu. U13 ATLANDI |
+| M VST3 | BAŞARILI (not) | W | vst3suite 116 PASS, FAIL 0 (Airwindows "aynı ses" karşılaştırmaları ATLANDI: zamanla değişen eklenti); gerçek eklenti penceresi açma/kapama tık 0 |
+| N Arayüz / dil / tema | BAŞARILI | W, U | 202 ekran görüntüsü / metin (Türkçe yazı tipleri); tema/dil titremesi düzeltildi, kullanıcı doğruladı; U15'te son exe ile 6 dil + 5 tema değişimi: askı yok |
+| O Kapalı kutu / gizlilik / kalıcılık | BAŞARILI | W | exe'de ağ kütüphanesi yok (WinINet/WinHTTP/Winsock/URLMon); 6 senaryoda ağ etkinliği 0 (WFP 0, soket 0, ProcMon 0); masaüstü betikleri ve kısayollar geçti; R6 ayar dosyası 1000 aç-kapa / 200 öldürmede bozulmadı |
+| P Uzun süre | BAŞARILI | W, A, S | tur #2 uzun: long 330 dk tık 0 / boşluk 0, bellek eğimi 0,00 MB/sa; chaos 330 dk açıklanamayan 0; gerçek VST3 zinciri 330 dk × 3 öncelik açıklanamayan 0; gerçek exe 330 dk tutamaç 390–406, özel bellek eğimi 0,061 MB/sa, temiz kapanış; A (Win 11 ARM) 60 dk tık 0 |
+| R Uzun ömür | BAŞARILI (R7 ATLANDI) | W, S, L, U | bkz. §5 |
 | U Gerçek donanım | bkz. §4 | U | |
+
+### Tam tur #3 (W, baf4efd – teslim edilen kod)
+
+- Derleme ve birim testleri: yukarıda. Exe SHA-256 = teslim edilen.
+- R5 (saat değişimi, düzeltilmiş test pompasıyla): kayıt 420,000 s, geçen 420,004 s, kabloda tık 0, düşen kare 0, dosya doğrulandı.
+- R10: Defender (imza 23 Ekim) taraması tespit 0.
+- Motor testleri, bütünlük, kapalı kutu, kısayollar, masaüstü betikleri: yukarıdaki tabloda; FAIL 0.
 
 ### Tam tur #2 (W, c0515a9, 23 Ekim 02:16–06:00 UTC) – ara sonuç
 
@@ -64,9 +71,10 @@
 | 7 | Düşük | Kendi zinciri tepsiden hazır ayar seçilince değişir (beklenen davranış, ama kullanıcı fark etmeyebilir) | – | Kılavuza not | – | Bilgi |
 | 8 | Düşük | İmzasız exe ilk açılışta SmartScreen uyarısı (Zone.Identifier) | Kod imzası yok | – (imza dışarıda) | U1 | Bilgi |
 | 9 | Üçüncü taraf | libsndfile 1.2 (Python `soundfile`) MP3'ü **parça parça** okurken her okuma sınırından sonra ~1600 örneği yanlış çözüyor | libsndfile hatası (ffmpeg ile yapılmış MP3'te de aynı) | MicVST'de değil; R8 betiği MP3'ü bütün okur | `tools/r8_standart.py` | Bilgi |
-| 10 | Test altyapısı | Airwindows Consolidated (CI'nın indirdiği gece sürümü 1.2026.291) sesi kendiliğinden değişen bir efektle açılıyor → 4 vst3suite + 1 bütünlük karşılaştırması BAŞARISIZ görünüyordu | Eklenti modülasyonlu (aynı ayarla ardışık iki ölçüm 10,5 dB farklı; ZL EQ 0,04, DC1A3 0,06, SlickEQ 0,14) | vst3suite: > 1 dB ise "aynı ses" karşılaştırmaları ATLANDI olarak raporlanır | tur #2/#3 (bekleniyor) | Test düzeltildi; bütünlük karşılaştırması: (bekleniyor) |
+| 10 | Test altyapısı | Airwindows Consolidated (CI'nın indirdiği gece sürümü 1.2026.291) sesi kendiliğinden değişen bir efektle açılıyor → 4 vst3suite + 1 bütünlük karşılaştırması BAŞARISIZ görünüyordu | Eklenti modülasyonlu (aynı ayarla ardışık iki ölçüm 10,5 dB farklı; ZL EQ 0,04, DC1A3 0,06, SlickEQ 0,14) | vst3suite: > 1 dB ise "aynı ses" karşılaştırmaları ATLANDI olarak raporlanır | tur #2 ve #3: vst3suite FAIL 0 | Test düzeltildi; bütünlükte `i_mt_vst3` (395) çevrimdışı referansla karşılaştırılamaz → ATLANDI; aynı zincir atlanmış (bypass) hâlde açıklanamayan 0 |
 | 11 | Test altyapısı | Yeni `RecordLong.inc`'te `near` değişkeni → MSVC derlemesi durdu (tur #2 ilk deneme) | `near`, windows.h'de makro | `isNear` | tur #2 yeniden | Düzeltildi |
 | 13 | Orta (nedeni belirsiz) | R4'te Windows 2 kez "MicVST yanıt vermiyordu ve kapatıldı" (Application Hang 1002, "Top level window is idle") kaydetti: 02:25:59 ve 02:52:31 (PC saati). İkisi de **eski exe** (`C:\MicVST\MicVST.exe`, titreme düzeltmesinden önceki yapım), kullanıcının elle dil / tema / kapanış denemeleri sırasında; son log satırları 97 s ve 16 s önce dil değişimi (zh, en) | Log'da kapanış satırı olmadığından askının dil değişiminde mi kapanışta mı olduğu ayrılamıyor. Kapanışta Clear sorunu (bulgu #6) olası, kanıtlanmadı | Kod değişikliği yok (dondurma) | Kullanıcının titreme düzeltmesini denediği süreçte (15672, yeni kod) 9 dil + 12 tema değişimi ve son süreçte 12 sa: askı 0; CI'da 1000 aç-kapa: askı 0 (Clear yok). U15'te son exe ile dil/tema/kapanış tekrarı: (bekleniyor) | Açık |
+| 14 | Düşük (yalnız kulaklık) | Sustur hızlı açılıp kapatılınca (saniyede 2–4) **kulaklıkta** bildirim sesinde "çıt" (kullanıcı, U15) | Sesler Windows `PlaySound` ile çalınıyor; yeni ses eskisini dalganın ortasında kesiyor. Ahşap 1,3 s sürüyor: ilk 0,5 s içinde kesilince −13…−30 dBFS'lik ani düşüş (dosyadan hesaplandı) | 1.2.2'de yok (kod dondurma). Geçici: kısa ses (Kıvılcım 0,29 s / Kristal 0,10 s) + %40–50. Ayrı dalda deneme (`kararlilik/bildirim-sesi`): sesleri MicVST kendisi çalıyor, eski ses 10 ms'de kısılıyor; tüm sesler aynı yükseklikte | Kabloya etkisi yok: cues "Sustur on the cable: no clicks" PASS, U6. Deneme dalı birim testi: saniyede 10 aç-kapada en büyük sıçrama 912 (seslerin kendisi 1319; kesme 6048) | 1.2.2'de açık; düzeltme deneme dalında |
 | 12 | Düşük | Ayar / önbellek / log yazılırken süreç öldürülürse geçici dosya kalıyor (R6: 200 öldürmede 6 dosya) | JUCE `writeTo` geçici dosya + değiştirme; öldürülünce geçici dosya silinmiyor | Düzeltilmedi (zararsız; ayar dosyası hiç bozulmadı) – öneri: açılışta eski `*_temp*.xml` dosyalarını sil | R6 | Bilgi |
 
 ## 3. Notlar ve açıklamalar
@@ -92,7 +100,7 @@
 | U12 Performans | Kayıtsız %45,28, kayıtlı %44,81 bir çekirdek (fark −0,47 puan); bellek 261 → 275 MB; durum satırı kesinti sabit 1 (eski exe, başlangıç işareti) | kayıt açıkken artış ≤ 3 puan | BAŞARILI |
 | U13 İşlem önceliği | – | | ATLANDI (kullanıcı kararı); R4 boyunca öncelik Normal okundu |
 | U14 Uzun kullanım (R4) | Bkz. R4 ve `docs/kanit_win11/R4_gercek_kullanim.md`: 20 sa izleme; son süreç ~12 sa kesintisiz, bellek +4 MB sonra sabit, tutamaç/GDI/USER/iş parçacığı sabit, öncelik Normal, pencere hep yanıt verdi, log'da kesinti satırı 0. Son 30 s kontrol kaydı alınamadı (pencere tepsideydi) – U15 kaydı yerine geçer | sızıntı yok, çökme/askı yok | BAŞARILI (son süreç); eski exe'de 2 askı olayı → bulgu #13 |
-| U15 Sağlık kontrolü provası | (bekleniyor – kullanıcıyla) | | |
+| U15 Sağlık kontrolü provası | Son exe (`5F70A33F…`) ile, kullanıcı kılavuzu izleyerek: açılış, "Ses biçimi" satırı (giriş 32 bit, çıkış 24 bit, 48 kHz – test edilenle aynı), Sustur sesi duyuldu, 6 kayıt (1,6–24,6 s) "dosya doğrulandı"; 24,6 s ve 19,2 s kayıtlar incelendi: boşluk 0, kırpma 0, 24 bit gerçek %99,6, tık adayları yalnız sessiz anlarda −50 dB (düğme tıkları / ünsüzler). 6 dil + 5 tema değişimi: askı yok. Kullanıcı: "herşey çalışıyor". Kulaklıkta hızlı aç-kapada bildirim sesinde tık → bulgu #14 | kılavuz uygulanabilir | BAŞARILI (askı tekrarı: bkz. #13) |
 | I6 Tepsi menüsü | Kullanıcı tüm öğeleri denedi: "sorunsuz" | | BAŞARILI (kullanıcı beyanı, ölçülmedi) |
 
 ## 5. Uzun ömür testleri (R)
@@ -125,12 +133,12 @@ Görev Windows 11 x64 içindi; kullanıcının ana bilgisayarı Windows 10 Pro 2
 | Gerçek motor + sanal cihazlar, Otomatik Kazanç | 330 dk × 2 (long, chaos – zincir düzenlemeleri ve cihaz değişimleri dahil) | Açıklanamayan tık 0, boşluk 0, bellek eğimi 0 |
 | Gerçek VST3 zinciri, tüm CPU'lar başka programla meşgul | 330 dk × 3 öncelik | Açıklanamayan tık 0, bellek eğimi ≈ 0 |
 | Gerçek MicVST.exe penceresi açık | 330 dk | Bellek, tutamaç, GDI/USER, iş parçacığı sabit; kapanış temiz |
-| Simülasyon (köprü, saat kayması ±300 ppm, takılmalar) | 1 hafta (tur #1), 30 gün (tur #2 – bekleniyor) | MicVST kaynaklı tık 0 |
-| Otomatik Kazanç soak | 24 sa (tur #1), 7 gün (tur #2 – bekleniyor) | −10 dBFS üstü örnek 0, geçersiz örnek 0 |
-| Gerçek zamanlı uzun kayıt | 320 dk WAV 24 (4 GB'ı geçip RF64), FLAC 24, MP3 V0 (bekleniyor) | |
+| Simülasyon (köprü, saat kayması ±300 ppm, takılmalar) | 1 hafta (tur #1), 30 gün (tur #2) | MicVST kaynaklı tık 0; saat farkı hatası 0,3 ppm |
+| Otomatik Kazanç soak | 24 sa (tur #1), 7 gün (tur #2) | −10 dBFS üstü örnek 0, geçersiz örnek 0 |
+| Gerçek zamanlı uzun kayıt | 320 dk WAV 24 (4 GB'ı geçip RF64), FLAC 24, MP3 V0 | Kayıp 0; WAV/FLAC her kare mikrofonla birebir |
 | 1000 aç-kapa, 200 öldürme | 21 dk | Ayarlar hiç bozulmadı |
 | 49,7 gün sayaç dönüşü | Birim testiyle (sayaç dönüşün hemen öncesinden başlatılarak) | Zamanlayıcılar doğru; 2 küçük hata düzeltildi |
-| Saat / saat dilimi değişimi | Kayıt sürerken ±1 sa, ±1 gün, saat dilimi (bekleniyor) | |
+| Saat / saat dilimi değişimi | Kayıt sürerken ±1 sa, ±1 gün, saat dilimi (tur #2b ve #3) | Tık 0, süre duvar saatinden bağımsız |
 | Ağsız yeniden derleme | Arşivdeki JUCE ile | BAŞARILI |
 
 **Kalan riskler ve her birinde ne yapılır** (ayrıntı: `docs/UZUN_OMUR_KILAVUZU.md`):
