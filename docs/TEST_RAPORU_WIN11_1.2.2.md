@@ -41,6 +41,16 @@
 | R Uzun ömür | | W, S, L, U | |
 | U Gerçek donanım | bkz. §4 | U | |
 
+### Tam tur #2 (W, c0515a9, 23 Ekim 02:16–06:00 UTC) – ara sonuç
+
+- Derleme: build_ok, hata 0, uyarı 8 (temel), JUCE uyarısı 0, yama işareti 3; exe 9 987 072 bayt.
+- Birim testleri: 243 bölüm, "All tests completed successfully".
+- Kayıt: diğer programlarla açılış (ffmpeg hata 0; Windows 24/24 dosyada uzunluk gösterdi), K14 (260 MB VHD: dolunca kendiliğinden durma, < 100 MB'ta başlamama, kayıt sürerken disk çıkarılınca hata mesajı – askıda kalma yok) ve K22 (760 dosya, 0 hata, 17,6 dk): BAŞARILI.
+- Motor testleri: tüm modlar FAIL 0, çıkış 0; vst3suite artık Airwindows'ta "ATLANDI (zamanla değişen)" diyor.
+- Bütünlük (24 döküm): 21'inde açıklanamayan 0; `s_suite_wrongref` 539 (**negatif kontrol, bulgu üretmesi beklenir** ✓); `i_mt_vst3` 405 (Airwindows, zamanla değişen eklenti – çevrimdışı referansla karşılaştırılamaz); `i_voice_pluginstall` 1 (kasıtlı 200 ms eklenti takılması senaryosu: bir input-skip olayından 55 ms sonra – ölçülen gecikme 54,8 ms – tek tık; tur #1'de 0; tur #3'te yeniden bakılacak).
+- Kapalı kutu: ağ kütüphanesi yok; çalışma anında 6 senaryoda ağ etkinliği 0 (WFP 0, soket 0, ProcMon 0); kısayollar (gerçek exe) ve masaüstü betikleri: tüm denetimler geçti.
+- **R5 (saat değişimi): ENGELLENDİ** – test programı askıda kaldı. Neden ürün değil test düzeneği: motor testinin mesaj pompası JUCE `runDispatchLoopUntil` kullanıyordu ve bu, süreyi duvar saatiyle ölçüyor (saat 1 gün geri alınınca 1 gün bekler). İlk 3 dakikada (+1 sa, −1 sa sonrası) kayıt süresi = geçen süre, olay 0. MicVST'nin kendisi bu çağrıyı kullanmıyor (sonsuz döngü + monoton zamanlayıcılar; duvar saati yalnız dosya adı, log ve BWF tarihi). Düzeltme: pompa performans sayacıyla (`MonotonicPump.cpp`); tur #3'te yeniden ölçülecek.
+
 ## 2. Bulunan hatalar (önem sırasıyla)
 
 | # | Önem | Bulgu | Neden | Düzeltme | Yeniden test | Durum |
