@@ -56,6 +56,7 @@
 | 9 | Üçüncü taraf | libsndfile 1.2 (Python `soundfile`) MP3'ü **parça parça** okurken her okuma sınırından sonra ~1600 örneği yanlış çözüyor | libsndfile hatası (ffmpeg ile yapılmış MP3'te de aynı) | MicVST'de değil; R8 betiği MP3'ü bütün okur | `tools/r8_standart.py` | Bilgi |
 | 10 | Test altyapısı | Airwindows Consolidated (CI'nın indirdiği gece sürümü 1.2026.291) sesi kendiliğinden değişen bir efektle açılıyor → 4 vst3suite + 1 bütünlük karşılaştırması BAŞARISIZ görünüyordu | Eklenti modülasyonlu (aynı ayarla ardışık iki ölçüm 10,5 dB farklı; ZL EQ 0,04, DC1A3 0,06, SlickEQ 0,14) | vst3suite: > 1 dB ise "aynı ses" karşılaştırmaları ATLANDI olarak raporlanır | tur #2/#3 (bekleniyor) | Test düzeltildi; bütünlük karşılaştırması: (bekleniyor) |
 | 11 | Test altyapısı | Yeni `RecordLong.inc`'te `near` değişkeni → MSVC derlemesi durdu (tur #2 ilk deneme) | `near`, windows.h'de makro | `isNear` | tur #2 yeniden | Düzeltildi |
+| 12 | Düşük | Ayar / önbellek / log yazılırken süreç öldürülürse geçici dosya kalıyor (R6: 200 öldürmede 6 dosya) | JUCE `writeTo` geçici dosya + değiştirme; öldürülünce geçici dosya silinmiyor | Düzeltilmedi (zararsız; ayar dosyası hiç bozulmadı) – öneri: açılışta eski `*_temp*.xml` dosyalarını sil | R6 | Bilgi |
 
 ## 3. Notlar ve açıklamalar
 
@@ -92,10 +93,10 @@
 | R3 320 dk gerçek zamanlı kayıt (WAV 24 → RF64, FLAC 24, MP3 V0) | L kısa koşular geçti; W: (bekleniyor) | |
 | R4 Gerçek kullanım | 22 Ekim 21:53 → … ; ilk süreç 7 saat kesintisiz (U5'te bilerek öldürüldü); bellek 248 → 272 MB sonra sabit; öncelik hep Normal; pencere hep yanıt verdi (bekleniyor: son) | |
 | R5 Saat değişimi | (bekleniyor – tam tur #2/#3) | |
-| R6 1000 aç-kapa / 200 öldürme | (bekleniyor – uzun tur #2) | |
+| R6 1000 aç-kapa / 200 öldürme | W, gerçek MicVST.exe (c0515a9): 800 normal kapanış (WM_QUERYENDSESSION, çıkış 0) + 200 `taskkill /f` (ilk 2 s içinde, rastgele an); çökme 0, askıda kalma 0, okunamayan config 0, kaybolan ayar (3 işaret) 0; WER/Application Error olayı 0; pencereye kadar medyan 261 ms, %95 624 ms, en çok 3,1 s. Not: öldürülen yazmalardan 6 geçici dosya kaldı (`config_temp*.xml` ×2, `plugin_cache_temp*.xml` ×2, `log.txt~RF*.TMP` ×2) – zararsız, birikir (bulgu #12) | BAŞARILI |
 | R7 Ortam değişiklikleri | – | ATLANDI (kullanıcı kararı / süre) |
 | R8 Okunabilirlik | L: WAV/BWF (EBU 3285), FLAC (RFC 9639 + MD5), MP3 (çerçeveler + Xing/LAME): BAŞARILI; libsndfile + ffmpeg bit-exact; MP3 ffmpeg + mpg123 + libsndfile aynı (< 1e-4); RF64 (EBU 3306): W (bekleniyor) | |
-| R9 Arşiv + ağsız derleme | (bekleniyor – uzun tur #2 `offline`) | |
+| R9 Arşiv + ağsız derleme | W `offline` işi (c0515a9): JUCE 9.0.4 arşiv klasöründen, `PatchJuce.cmake` bir kez uygulandı, ikinci çalıştırmada "already applied" (tekrarlanabilir); `FETCHCONTENT_FULLY_DISCONNECTED=ON` + ölü proxy ile derleme: build_ok, hata 0, uyarı 8 (temel), `juce_patch_markers: 3`; configure günlüğünde indirme yok; birim testleri "All tests completed successfully"; motor modları quality / latency / devices / record (20 PASS) / startxrun çıkış 0. Arşiv paketi: `tools/arsiv_olustur.sh` (deneme: 37 MB, 6329 dosya) | BAŞARILI (paketin kendisi teslimde) |
 | R10 Güvenlik yazılımı | (bekleniyor) | |
 | R11 Windows sürümleri | U: Windows 10 Pro 22H2 19045.7725; A: Windows 11 Enterprise 26200; W: Server 2025 | bilgi |
 
