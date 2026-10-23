@@ -8,8 +8,8 @@ project follows [Semantic Versioning](https://semver.org/).
 
 - Bildirim sesleri: fast mute / unmute no longer clicks. The sounds are no longer played with
   Windows' PlaySound (a new sound cut the old one mid-wave: up to -13 dBFS steps at 10 per second);
-  MicVST mixes them itself on the default output (waveOut, 48 kHz, 4 x 10 ms, open only while a
-  sound plays + 2 s) and a new sound fades the old one out in 10 ms. If the device cannot be
+  MicVST mixes them itself on the default output (waveOut, 48 kHz, 5 x 20 ms, started only once
+  every block is queued, open only while a sound plays + 2 s) and a new sound fades the old one out in 10 ms. If the device cannot be
   opened (another program holds it exclusively, nothing plugged in), that one sound is played
   with PlaySound and the next sound tries the device again; a device that stops taking audio for
   1 s (pulled out while playing) is closed and reopened with the next sound.
