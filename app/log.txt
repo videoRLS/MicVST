@@ -1,0 +1,12 @@
+
+**********************************************************
+MicVST günlüğü - başlangıç: 23.10.2026 02:26:35
+[02:26:35] MicVST 1.2.2 (JUCE v9.0.4, internet erişimi yok)
+[02:26:35] İşlem: güç kısıtlaması kapalı tamam, zamanlayıcı kısıtlaması kapalı tamam
+[02:26:35] Eklenti önbelleği yok ya da bozuk -> tam tarama
+[02:26:35] İşlem önceliği: Normal (uygulandı, Windows'tan okundu)
+[02:26:35] Kurulum: giriş (yok) [Cihaz bulunamadı: Mikrofon (USB Audio Device)] | çıkış (yok) [Cihaz bulunamadı: CABLE Input (VB-Audio Virtual Cable)]
+[02:26:35] Ses biçimi: MicVST akışı ve iç işlem 32 bit kayan nokta; Windows aygıt biçimi: giriş (yok) | çıkış (yok)
+[02:26:35] Tarama: 0 dosya taranacak
+[02:26:35] Seçili cihaz bağlı değil, takılınca yeniden açılacak: Mikrofon (USB Audio Device) / CABLE Input (VB-Audio Virtual Cable)
+[02:26:35] Ses: durdu (cihaz bağlı değil mi?)
