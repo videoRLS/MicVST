@@ -101,6 +101,19 @@ jobs:
         shell: pwsh
         run: ./tools/ci-recorder-k.ps1 -Exe build/MicVSTTests_artefacts/Release/MicVSTTests.exe -Out results/recorder
 
+      - name: Windows Defender scan of the exe (R10)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && env.QUICK != 'true' }}
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force results/defender | Out-Null
+          $exe = (Resolve-Path build/MicVST_artefacts/Release/MicVST.exe).Path
+          $f = "results/defender/defender.txt"
+          try { Get-MpComputerStatus | Select-Object AMServiceEnabled, AntivirusEnabled, RealTimeProtectionEnabled, AntivirusSignatureVersion, AntivirusSignatureLastUpdated | Format-List | Out-File $f } catch { "Get-MpComputerStatus: $_" | Out-File $f }
+          $t0 = Get-Date
+          try { Start-MpScan -ScanType CustomScan -ScanPath $exe; "scan of $exe finished in $([Math]::Round(((Get-Date) - $t0).TotalSeconds, 1)) s" | Add-Content $f } catch { "Start-MpScan: $_" | Add-Content $f }
+          try { $d = @(Get-MpThreatDetection | Where-Object { $_.InitialDetectionTime -ge $t0 }); "detections since the scan: $($d.Count)" | Add-Content $f; $d | Format-List | Out-String | Add-Content $f } catch { "Get-MpThreatDetection: $_" | Add-Content $f }
+
       - name: The clock changed during a recording (R5)
         if: ${{ !cancelled() && steps.build.outcome == 'success' && env.QUICK != 'true' && hashFiles('tools/ci-clockchange.ps1') != '' }}
         continue-on-error: true
