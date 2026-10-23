@@ -100,12 +100,12 @@ namespace reclong
         int unexplained = 0;
         for (auto at : clickAt)
         {
-            bool near = false;
-            for (int i = 0; i < gaps && ! near; ++i) near = std::llabs (rec.gapEvents[(size_t) i].first - at) < (int64_t) fs;
-            if (! near && lost > 0)
-                for (int i = 0; i < vdev::stats().lostCount.load() && ! near; ++i)
-                    near = std::abs ((vdev::stats().lostTimes[(size_t) i] - rec.outputStart.load()) * fs - (double) at) < 2.0 * fs;
-            if (! near) ++unexplained;
+            bool isNear = false;   // not "near": a macro in windows.h
+            for (int i = 0; i < gaps && ! isNear; ++i) isNear = std::llabs (rec.gapEvents[(size_t) i].first - at) < (int64_t) fs;
+            if (! isNear && lost > 0)
+                for (int i = 0; i < vdev::stats().lostCount.load() && ! isNear; ++i)
+                    isNear = std::abs ((vdev::stats().lostTimes[(size_t) i] - rec.outputStart.load()) * fs - (double) at) < 2.0 * fs;
+            if (! isNear) ++unexplained;
         }
         pr ("cable: clicks " + juce::String ((int) clickAt.size()) + " (unexplained " + juce::String (unexplained) + "), test-machine stalls: cable gaps "
             + juce::String (gaps) + ", lost microphone packets " + juce::String (lost));
