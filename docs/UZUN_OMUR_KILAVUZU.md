@@ -49,7 +49,7 @@ Get-FileHash C:\MicVST\MicVST.exe
    Ses biçimi: MicVST akışı ve iç işlem 32 bit kayan nokta; Windows aygıt biçimi: giriş 32 bit PCM, 48000 Hz, 2 kanal | çıkış 24 bit PCM, 48000 Hz, 2 kanal
    ```
    Farklıysa Windows bir aygıtın biçimini değiştirmiştir. MicVST farklı biçimlerde de çalışıyor (44,1 ↔ 48 kHz dönüşümünde seviye farkı 0,01 dB'den az ölçüldü). Yine de test edilen düzene dönmek için: Ses Denetim Masası → Kayıt → **CABLE Output** → Özellikler → Gelişmiş → **24 bit, 48000 Hz**. Aynısını Kayıttan Yürütme → **CABLE Input** için de yap.
-3. **Sustur ve bildirim sesi (1 dk).** **F9**'a bas: "kapanma" sesini duymalısın. Tekrar bas: "açılma" sesini duymalısın. Susturulmuşken mikrofon ölçeri hareket etmeye devam eder, bu normal.
+3. **Sustur ve bildirim sesi (1 dk).** **Sustur kısayoluna** bas (varsayılan F9; Ayarlar'da değiştirdiysen kendininkine): "kapanma" sesini duymalısın. Tekrar bas: "açılma" sesini duymalısın. Susturulmuşken mikrofon ölçeri hareket etmeye devam eder, bu normal.
 4. **30 saniyelik kayıt (3 dk).**
    - Ayarlar → Kayıt: **WAV 24 bit, 48 kHz** (varsayılan).
    - **● Kayıt**'a bas, 30 saniye normal konuş, **■**'e bas.
@@ -76,7 +76,8 @@ Bilmen iyi olur (ölçüldü):
 - **Bir eklenti eksik olsa da MicVST açılır.** Ayarlarda olup bilgisayarda bulunamayan eklentiyle açılış test edildi.
 - **Mikrofon USB'den çıkıp aynı adla geri gelirse MicVST kendiliğinden yeniden bağlanır.** Başka bir mikrofona ya da hoparlöre asla geçmez.
 - **Kayıt sürerken MicVST zorla kapanırsa** (elektrik, Görev Yöneticisi), kayıt kapanmadan önceki son 1 saniyeye kadar açılabilir. Testte 65,5 s'lik kaydın 64,8 s'si açıldı.
-- **Ayar dosyası güvenle yazılır.** Test makinesinde 1000 açılışın 200'ünde MicVST ayar yazarken zorla öldürülüyor. Bu testin sonucu teslim raporunda.
+- **Ayar dosyası güvenle yazılır.** Test makinesinde MicVST 1000 kez açılıp kapatıldı, bunun 200'ünde açılırken zorla öldürüldü: ayar dosyası bir kez bile bozulmadı, hiçbir ayar kaybolmadı. Arkada en çok birkaç küçük `*_temp*.xml` / `*.TMP` dosyası kalabiliyor; zararsız, silebilirsin.
+- **MicVST "yanıt vermiyor" olursa:** 10 saniye bekle. Geçmezse Görev Yöneticisi'nden kapat ve yeniden aç. Zorla kapatmak ayarları bozmuyor (yukarıda ölçüldü). Bir kayıt sürüyorsa, kapanmadan önceki son 1 saniyeye kadar açılır. Testte eski bir sürümle iki kez oldu, dil ya da tema değiştirip kapatırken (raporda bulgu #13).
 
 ---
 
@@ -94,7 +95,7 @@ Bilmen iyi olur (ölçüldü):
   - Ya da Pro-Q 4'ü "Zero latency" / "Natural phase" moduna al.
   - Bugünkü zincirinle bu satırlar ara sıra çıkıyor. 60 dakikalık testte kabloda duyulur hiçbir olay ölçülmedi; hız en çok 0,26 cent değişti.
 - **Kapanışta "MicVST çöktü" kaydı:**
-  - Zincirde Clear varken MicVST kapanırken Windows olay günlüğüne bu kayıt düşebiliyor (10 kapanışın 8'inde ölçüldü).
+  - Zincirde Clear varken MicVST kapanırken Windows olay günlüğüne bu kayıt düşebiliyor (10 kapanışın 8'inde ölçüldü). Tepsiden hazır ayar seçip Clear'ı zincirden çıkarınca da bir kez düştü; MicVST çalışmaya devam etti.
   - Ayarlar ve kayıtlar bundan etkilenmiyor (ölçüldü). Görmezden gelebilirsin.
   - Sorun Clear'ın kapanışında; Clear güncellendiğinde kendiliğinden düzelebilir.
 
@@ -111,6 +112,6 @@ Bilmen iyi olur (ölçüldü):
 ## 6. Hızlı özet
 
 - Yedekle: exe + SHA, `config.xml`, `Sesler`, hazır ayar dosyaları, arşiv zip'i. En az iki yere.
-- Güncellemeden sonra ve ayda bir: durum satırı, Ses biçimi satırı, F9, 30 s kayıt, Discord.
+- Güncellemeden sonra ve ayda bir: durum satırı, Ses biçimi satırı, Sustur kısayolu, 30 s kayıt, Discord.
 - Bozulursa: kapat → `config.xml`'i geri koy → gerekirse önceki exe → kontrol.
 - Kabloyu varsayılan çıkış yapma. Kendi zincirini hazır ayar olarak sakla.
