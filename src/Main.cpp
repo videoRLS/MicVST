@@ -97,15 +97,16 @@ private:
 // the desktop back (user report: GTA 5) - Windows resizes the windows itself, and the window's
 // content could stay behind: a white, unpainted strip at the bottom / right until the user dragged
 // the edge. What dragging did is done here: the window is resized by 1 px and back,
-//   - 1 s and 3 s after any change of the screens: resolution, refresh rate, scale, monitors
-//     (JUCE reports only some of these, so the screens are also compared once a second), and
-//   - when the native window and its content disagree in size for 2 s in a row (whatever caused
-//     it), never while a mouse button is down (the user dragging), and at most once per size pair.
+//   - at once, 0.5 s and 2 s after any change of the screens: resolution, refresh rate, scale,
+//     monitors (JUCE reports only some of these, so the screens are also compared 4 times a
+//     second; the later two catch Windows still moving the windows around), and
+//   - when the native window and its content disagree in size for 0.5 s (whatever caused it),
+//     never while a mouse button is down (the user dragging), and at most once per size pair.
 // UI only; nothing is saved by it (the bounds end where they were).
 struct WindowResync final : private juce::Timer
 {
-    explicit WindowResync (juce::ResizableWindow& w) : window (w) { screens = screensNow(); startTimer (1000); }
-    void displaysChanged() { pending = 2; nextAt = juce::Time::getMillisecondCounter() + 1000; }
+    explicit WindowResync (juce::ResizableWindow& w) : window (w) { screens = screensNow(); startTimer (250); }
+    void displaysChanged() { pending = 3; nextAt = juce::Time::getMillisecondCounter(); }   // at the next tick
 
 private:
     static juce::String screensNow()
@@ -135,8 +136,8 @@ private:
 
         if (pending > 0 && (int) (now - nextAt) >= 0)
         {
+            nextAt = now + (pending == 3 ? 500u : 1500u);   // then 0.5 s and 2 s after the change
             --pending;
-            nextAt = now + 2000;
             nudge();
             return;
         }
