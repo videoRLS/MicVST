@@ -46,7 +46,10 @@ def wav_checks(path, frames, check, out):
     check(data is not None and block > 0 and data[1] == frames * block, f"WAV: data chunk = {frames} frames x {block} bytes")
     if riff == b"RF64":
         check(riff_size == 0xFFFFFFFF and names[0] == "ds64" and data is not None and data[2] == 0xFFFFFFFF
-              and ds64 and ds64["riff"] == size - 8 and ds64["data"] == data[1] and ds64["samples"] == frames,
+              and ds64 and ds64["riff"] == size - 8 and ds64["data"] == data[1]
+              # sampleCount is the 64-bit length of the fact chunk, which PCM does not need (EBU 3306, as in WAV):
+              # 0 is right when there is no fact chunk
+              and (ds64["samples"] == frames or (ds64["samples"] == 0 and b"fact" not in [c[0] for c in chunks])),
               f"RF64 (EBU Tech 3306): size fields 0xFFFFFFFF, ds64 first: RIFF {ds64 and ds64['riff']} (file - 8 = {size - 8}), "
               f"data {ds64 and ds64['data']}, samples {ds64 and ds64['samples']}")
     else:
