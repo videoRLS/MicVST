@@ -5,3 +5,4 @@ _local/
 
 # Python byte code (engine-test analysis)
 __pycache__/
+build-asan/
