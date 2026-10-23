@@ -257,12 +257,26 @@ int main (int argc, char** argv)
 
     juce::UnitTestRunner runner;
     runner.setAssertOnFailure (false);
-    if (argc > 1)   // MicVSTTests <name> [<name> ...]: only these tests
+    if (argc > 1 && juce::String (argv[1]) == "--list")   // MicVSTTests --list: one test name per line
+    {
+        for (auto* t : juce::UnitTest::getAllTests())
+            juce::Logger::writeToLog (t->getName());
+        juce::Logger::setCurrentLogger (nullptr);
+        return 0;
+    }
+    if (argc > 1)   // MicVSTTests <name> [<name> ...]: only these tests ("Prefix*": every test whose name starts so)
     {
         juce::Array<juce::UnitTest*> chosen;
         for (auto* t : juce::UnitTest::getAllTests())
             for (int i = 1; i < argc; ++i)
-                if (t->getName() == juce::String (argv[i])) chosen.add (t);
+            {
+                const juce::String a (argv[i]);
+                if (t->getName() == a || (a.endsWithChar ('*') && t->getName().startsWith (a.dropLastCharacters (1))))
+                {
+                    chosen.add (t);
+                    break;
+                }
+            }
         runner.runTests (chosen);
     }
     else
