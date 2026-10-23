@@ -173,9 +173,10 @@ namespace
 {
    #if JUCE_WINDOWS
     // MicVST's own little output for the sounds: waveOut on Windows' default output (WAVE_MAPPER),
-    // 48 kHz 16-bit stereo, 5 blocks of 20 ms, fed by CueMixer from a thread of its own. The device
-    // starts only once all blocks are queued (paused while they are written): with 4 x 10 ms and an
-    // immediate start, a sleeping onboard output (Realtek speakers) crackled on its first sound. Opened when a
+    // 48 kHz 16-bit stereo in blocks of 10 ms, fed by CueMixer from a thread of its own. A device that
+    // was just opened gets 100 ms queued before it starts (paused while they are written): with only
+    // 40 ms and an immediate start, a sleeping onboard output (Realtek speakers) crackled on its first
+    // sound (user report). Once running, 40 ms stay queued: a new sound starts at most ~40 ms later. Opened when a
     // sound starts, closed 2 s after the last one ended - nothing is open while silent, and the next
     // sound goes to whatever the default output is then. If the device cannot be opened (another
     // program holds it exclusively, it is unplugged ...), that one sound is played with PlaySound
@@ -183,7 +184,7 @@ namespace
     // out while playing) it is closed; the sound still playing is dropped, the next one reopens.
     struct WindowsBackend final : CuePlayer::Backend, private juce::Thread
     {
-        static constexpr int blockFrames = 960, numBlocks = 5;
+        static constexpr int blockFrames = 480, numBlocks = 10, steadyBlocks = 4;
         static constexpr juce::uint32 idleCloseMs = 2000, stallMs = 1000;
 
         WindowsBackend() : juce::Thread ("MicVST cue sounds") { doneEvent = CreateEventW (nullptr, FALSE, FALSE, nullptr); }
@@ -245,25 +246,32 @@ namespace
                 juce::uint32 silentSince = 0, lastDone = micvst::msCounter();
                 while (! threadShouldExit())
                 {
+                    int inFlight = 0;
+                    for (auto& h : headers)
+                    {
+                        if ((h.dwFlags & WHDR_DONE) != 0) { h.dwFlags &= ~(DWORD) WHDR_DONE; lastDone = micvst::msCounter(); }
+                        if ((h.dwFlags & WHDR_INQUEUE) != 0) ++inFlight;
+                    }
+                    const int target = started ? steadyBlocks : numBlocks;   // 100 ms before the start, then 40 ms
                     bool wrote = false, broken = false;
                     for (auto& h : headers)
-                        if ((h.dwFlags & WHDR_DONE) != 0 || (h.dwFlags & WHDR_INQUEUE) == 0)
+                    {
+                        if (inFlight >= target) break;
+                        if ((h.dwFlags & WHDR_INQUEUE) != 0) continue;
+                        bool idleNow;
                         {
-                            bool idleNow;
-                            {
-                                const std::lock_guard<std::mutex> g (lock);
-                                mixer.render (reinterpret_cast<int16_t*> (h.lpData), blockFrames);
-                                idleNow = mixer.idle();
-                            }
-                            h.dwFlags &= ~(DWORD) WHDR_DONE;
-                            if (waveOutWrite (out, &h, sizeof (WAVEHDR)) != MMSYSERR_NOERROR) { broken = true; break; }
-                            wrote = true;
-                            const auto now = micvst::msCounter();
-                            lastDone = now;
-                            if (! idleNow) silentSince = 0;
-                            else if (silentSince == 0) silentSince = now == 0 ? 1 : now;
+                            const std::lock_guard<std::mutex> g (lock);
+                            mixer.render (reinterpret_cast<int16_t*> (h.lpData), blockFrames);
+                            idleNow = mixer.idle();
                         }
-                    if (! started && ! broken) { waveOutRestart (out); started = true; }   // every block is queued now
+                        if (waveOutWrite (out, &h, sizeof (WAVEHDR)) != MMSYSERR_NOERROR) { broken = true; break; }
+                        ++inFlight;
+                        wrote = true;
+                        const auto now = micvst::msCounter();
+                        if (! idleNow) silentSince = 0;
+                        else if (silentSince == 0) silentSince = now == 0 ? 1 : now;
+                    }
+                    if (! started && ! broken) { waveOutRestart (out); started = true; lastDone = micvst::msCounter(); }
                     const auto now = micvst::msCounter();
                     if (broken || now - lastDone > stallMs)   // device gone or stuck: give up what plays now
                     {
