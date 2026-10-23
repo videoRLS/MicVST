@@ -11,9 +11,9 @@ PC saati bilerek 3 saat geride. Aşağıdaki saatler **PC saatidir** (gerçek = 
 | Süreç | Exe | Başlangıç → son görülme | Süre | Nasıl bitti |
 |---|---|---|---|---|
 | 10672 | `C:\MicVST\MicVST.exe` (tur #2 yapımı) | 22 Eki 18:53 → 23 Eki 01:43 | ~6 sa 55 dk | U5'te bilerek öldürüldü |
-| 15024 | aynı | 01:49 → 02:25 | 36 dk | **Askı olayı** 02:25:59 (aşağıda) |
+| 15024 | aynı | 01:49 → 02:25 | 36 dk | Askı kaydı 02:25:59 – Görev Yöneticisi ile kapatma izi (bulgu #13) |
 | 15672 | `yeni\MicVST.exe` (titreme düzeltmesi) | 02:26 → 02:43+ | | kullanıcı kapattı, olay yok |
-| 15596 | `C:\MicVST\MicVST.exe` | 02:51:58 → 02:52:31 | 33 s | **Askı olayı** 02:52:31 |
+| 15596 | `C:\MicVST\MicVST.exe` | 02:51:58 → 02:52:31 | 33 s | Askı kaydı 02:52:31 – aynı (bulgu #13) |
 | 8732, 11184, … | `yeni2\MicVST.exe` | 02:52 → 03:05 | | bilerek yapılan kapanış denemeleri (Clear çıkış olayı, bulgu #6) |
 | **15868** | `yeni2\MicVST.exe` | **03:05:41 → 15:04:38 (izleme sonu), hâlâ çalışıyor** | **≥ 11 sa 59 dk kesintisiz** | – |
 
@@ -49,8 +49,8 @@ PC saati bilerek 3 saat geride. Aşağıdaki saatler **PC saatidir** (gerçek = 
 | PC saati | Olay | Süreç / exe | Açıklama |
 |---|---|---|---|
 | 02:04:43 | Application Error 1000, 0xc0000005, modül bilinmiyor | 15024, eski exe | Kullanıcı tepsiden hazır ayar seçti (02:04:42 "zincir değişti") → eski zincirdeki Clear kapatılırken. **MicVST çalışmaya devam etti** (log ve izleme sonraki 20 dk boyunca normal, pencere yanıt veriyor). Bulgu #6 ile aynı imza |
-| 02:25:59 | **Application Hang 1002** ("Top level window is idle") | 15024, eski exe | Son log satırı 97 s önce: dil → zh. Bulgu #13 |
-| 02:52:31 | **Application Hang 1002** | 15596, eski exe | Açılıştan 33 s sonra; son log satırı 16 s önce: dil → en. Bulgu #13 |
+| 02:25:59 | Application Hang 1002 ("Top level window is idle") | 15024, eski exe | Son log satırı 97 s önce: dil → zh. Bulgu #13: Görev Yöneticisi ile kapatmanın izi (yeniden üretildi) |
+| 02:52:31 | Application Hang 1002 | 15596, eski exe | Açılıştan 33 s sonra; son log satırı 16 s önce: dil → en. Bulgu #13 (aynı) |
 | 03:00–03:05 | Application Error 1000 × 10 | yeni2 (çıkış değişikliği denemesi) | Bilerek yapılan kapanış denemeleri, Clear (bulgu #6) |
 
 03:05:41'den sonra (son süreç, ~12 sa): **olay 0**.
@@ -63,4 +63,4 @@ oturumuna dokunmamak için). Süreç çalışıyordu (15:04 örneği). Yerine U1
 ## Sonuç
 
 R4 (bu teslimde ≈ 20 sa; 72 sa – 7 gün ATLANDI, süre): son süreç ~12 sa kesintisiz, bellek / tutamaç sabit, öncelik Normal, pencere hep yanıt verdi,
-ses yolunda kesinti satırı 0. İki askı olayı eski exe ile, kullanıcının elle yaptığı dil / tema / kapanış denemeleri sırasında (bulgu #13).
+ses yolunda kesinti satırı 0. İki askı kaydı eski exe ile, kullanıcının elle yaptığı denemeler sırasında. Sonradan açıklandı (bulgu #13): MicVST'yi Görev Yöneticisi → Görevi sonlandır ile kapatmak tam bu kaydı üretiyor (23 Ekim 17:52:35'te son exe ile yeniden üretildi); tepsiden Kapat ile 4 kapanışta askı 0.

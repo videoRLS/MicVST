@@ -77,7 +77,7 @@ Bilmen iyi olur (ölçüldü):
 - **Mikrofon USB'den çıkıp aynı adla geri gelirse MicVST kendiliğinden yeniden bağlanır.** Başka bir mikrofona ya da hoparlöre asla geçmez.
 - **Kayıt sürerken MicVST zorla kapanırsa** (elektrik, Görev Yöneticisi), kayıt kapanmadan önceki son 1 saniyeye kadar açılabilir. Testte 65,5 s'lik kaydın 64,8 s'si açıldı.
 - **Ayar dosyası güvenle yazılır.** Test makinesinde MicVST 1000 kez açılıp kapatıldı, bunun 200'ünde açılırken zorla öldürüldü: ayar dosyası bir kez bile bozulmadı, hiçbir ayar kaybolmadı. Arkada en çok birkaç küçük `*_temp*.xml` / `*.TMP` dosyası kalabiliyor; zararsız, silebilirsin.
-- **MicVST "yanıt vermiyor" olursa:** 10 saniye bekle. Geçmezse Görev Yöneticisi'nden kapat ve yeniden aç. Zorla kapatmak ayarları bozmuyor (yukarıda ölçüldü). Bir kayıt sürüyorsa, kapanmadan önceki son 1 saniyeye kadar açılır. Testte eski bir sürümle iki kez oldu, dil ya da tema değiştirip kapatırken (raporda bulgu #13).
+- **MicVST'yi kapatmak için tepsideki simgeye sağ tıkla → Kapat.** Pencerenin X'i MicVST'yi kapatmaz, tepsiye gizler. Görev Yöneticisi'nden "Görevi sonlandır" dersen MicVST zorla kapatılır ve Windows olay günlüğüne "MicVST yanıt vermiyordu" diye yazar. Bu bir arıza değil, testte bu yolla yeniden üretildi. Ayarlar da bozulmaz: zorla kapatma yukarıda ölçüldü.
 
 ---
 
