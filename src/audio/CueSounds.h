@@ -2,6 +2,8 @@
 #include <juce_audio_formats/juce_audio_formats.h>
 #include <functional>
 #include <map>
+#include <vector>
+#include <cstdint>
 
 // "Bildirim sesleri": a short sound when the microphone is muted / unmuted (Sustur - the button,
 // the shortcut keys and the tray all go through AudioEngine::setMuted, which plays it in the same
@@ -11,6 +13,14 @@
 // Sounds: 16 built in (resources/sounds, FLAC in the exe) and every suitable file in the user's
 // folder (%APPDATA%\MicVST\Sesler): WAV, FLAC, MP3, AIFF, OGG, at most 10 s - listed by themselves,
 // no code change needed. Default: Ahşap (açılma / kapanma).
+//
+// Level (1.2.3): every sound - built in or the user's own - is measured when it is prepared and
+// brought to the same loudness, so the volume slider means the same for all of them: 100 % =
+// fullScaleLufs, its peaks never above peakCeilingDb (a very spiky file stays a little quieter
+// rather than going over). Default volume 40 % (-8 dB). The user's file is never changed.
+// Playback (Windows): MicVST mixes the sounds itself (CueMixer -> waveOut on the default output,
+// opened while a sound plays): a new sound fades the one still playing out in 10 ms instead of
+// cutting it - fast mute / unmute makes no click.
 struct CueSound
 {
     juce::String id;          // "builtin:01_ahsap_ac" or "file:<file name>"
@@ -23,13 +33,13 @@ struct CueSettings
 {
     bool enabled = true;
     juce::String onId = defaultOnId(), offId = defaultOffId();
-    int volume = 80;          // percent of the sound's own level
+    int volume = 40;          // percent of the levelled sound (100 % = CuePlayer::fullScaleLufs)
 
     static juce::String defaultOnId()  { return "builtin:01_ahsap_ac"; }
     static juce::String defaultOffId() { return "builtin:01_ahsap_kapat"; }
-    bool isDefault() const { return enabled && onId == defaultOnId() && offId == defaultOffId() && volume == 80; }
+    bool isDefault() const { return enabled && onId == defaultOnId() && offId == defaultOffId() && volume == 40; }
 
-    // config.xml: "1|builtin:01_ahsap_ac|builtin:01_ahsap_kapat|80"; anything unreadable -> default
+    // config.xml: "1|builtin:01_ahsap_ac|builtin:01_ahsap_kapat|40"; anything unreadable -> default
     juce::String encode() const;
     static CueSettings decode (const juce::String&);
     bool operator== (const CueSettings& o) const { return encode() == o.encode(); }
@@ -57,6 +67,26 @@ private:
     int skipped = 0;
     juce::AudioFormatManager& formats();
     std::unique_ptr<juce::AudioFormatManager> fm;
+};
+
+// The sounds playing now, mixed: start() fades whatever still plays out over fadeFrames (raised
+// cosine) while the new sound begins - no step in the output however fast it is called. Not
+// thread-safe by itself (the Windows backend locks around it). Sounds: 16-bit stereo WAVs from
+// CuePlayer::makeWav at CuePlayer::outputRate.
+class CueMixer
+{
+public:
+    static constexpr int fadeFrames = 480;                 // 10 ms at 48 kHz
+    void start (const juce::MemoryBlock& wav);
+    void stop();                                           // fades everything out
+    // interleaved stereo 16-bit; always fills all frames (silence when idle)
+    void render (int16_t* out, int frames);
+    bool idle() const { return voices.empty(); }
+    int voiceCount() const { return (int) voices.size(); }
+
+private:
+    struct Voice { std::vector<float> l, r; size_t pos = 0; int fade = -1; };   // fade: frames left, -1 = none
+    std::vector<Voice> voices;
 };
 
 class CuePlayer
@@ -91,6 +121,13 @@ public:
 
     // a 16-bit PCM WAV in memory, at the sound's rate, scaled by volume (0..100 %)
     static juce::MemoryBlock makeWav (const juce::AudioBuffer<float>&, double rate, int volumePercent);
+
+    // the level every sound is brought to (100 %): loudness of 100 ms blocks (ITU-R BS.1770
+    // K-weighting and gating; short sounds are judged by their loud part), peaks at most -3 dBFS
+    static constexpr double outputRate = 48000.0, fullScaleLufs = -15.5, peakCeilingDb = -3.0;
+    static double loudness (const juce::AudioBuffer<float>&);                    // at outputRate, LUFS
+    // the sound at outputRate, at fullScaleLufs (or lower: the peak ceiling), 1 ms in / 5 ms out
+    static juce::AudioBuffer<float> levelled (const juce::AudioBuffer<float>&, double rate);
 
     int playCount() const { return plays; }
     juce::String lastProblem() const { return problem; }

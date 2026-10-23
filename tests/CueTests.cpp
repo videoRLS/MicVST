@@ -45,6 +45,20 @@ struct CueTest : juce::UnitTest
         return s;
     }
 
+    // what the player hands to Windows at the default volume
+    static juce::MemoryBlock wavOf (const juce::AudioBuffer<float>& b, double rate, int volume = 40)
+    {
+        return CuePlayer::makeWav (CuePlayer::levelled (b, rate), CuePlayer::outputRate, volume);
+    }
+
+    // the largest step between neighbouring samples (a cut sound shows up as a step)
+    static int maxStep (const std::vector<int16_t>& s, int from, int to)
+    {
+        int m = 0;
+        for (int i = juce::jmax (2, from); i < to && i < (int) s.size(); ++i) m = juce::jmax (m, std::abs ((int) s[(size_t) i] - (int) s[(size_t) i - 2]));
+        return m;
+    }
+
     void runTest() override
     {
         const auto dir = juce::File::getSpecialLocation (juce::File::tempDirectory).getChildFile ("micvst-cue-test");
@@ -81,7 +95,7 @@ struct CueTest : juce::UnitTest
         beginTest ("settings: default Ahşap, config.xml text, unreadable -> default");
         {
             CueSettings d;
-            expect (d.enabled && d.onId == "builtin:01_ahsap_ac" && d.offId == "builtin:01_ahsap_kapat" && d.volume == 80 && d.isDefault());
+            expect (d.enabled && d.onId == "builtin:01_ahsap_ac" && d.offId == "builtin:01_ahsap_kapat" && d.volume == 40 && d.isDefault());
             CueSettings s; s.enabled = false; s.onId = "file:Benim sesim.wav"; s.offId = "builtin:05_kristal_kapat"; s.volume = 35;
             expect (CueSettings::decode (s.encode()) == s);
             expect (CueSettings::decode ("") == d);
@@ -151,8 +165,8 @@ struct CueTest : juce::UnitTest
             expectEquals (played.size(), 2);
             CueLibrary lib; juce::AudioBuffer<float> on, off; double r = 0;
             lib.load (CueSettings::defaultOnId(), on, r); lib.load (CueSettings::defaultOffId(), off, r);
-            expect (played[0] == CuePlayer::makeWav (on, r, 80), "unmute plays Ahşap açılma");
-            expect (played[1] == CuePlayer::makeWav (off, r, 80), "mute plays Ahşap kapanma");
+            expect (played[0] == wavOf (on, r), "unmute plays Ahşap açılma");
+            expect (played[1] == wavOf (off, r), "mute plays Ahşap kapanma");
             expect (p.describe (true).startsWith (juce::String::fromUTF8 ("Ahşap")));
 
             auto s = CueSettings{}; s.enabled = false; p.setSettings (s);
@@ -162,13 +176,13 @@ struct CueTest : juce::UnitTest
             s.enabled = true; s.onId = "builtin:05_kristal_ac"; s.offId = "file:yeni.wav"; p.setSettings (s);
             p.play (false); p.play (true);
             CueLibrary l2; l2.setUserFolder (dir); juce::AudioBuffer<float> k, y; l2.load ("builtin:05_kristal_ac", k, r); double ry = 0; l2.load ("file:yeni.wav", y, ry);
-            expect (played[2] == CuePlayer::makeWav (k, r, 80), "chosen built-in");
-            expect (played[3] == CuePlayer::makeWav (y, ry, 80), "chosen own file");
+            expect (played[2] == wavOf (k, r), "chosen built-in");
+            expect (played[3] == wavOf (y, ry), "chosen own file");
 
             dir.getChildFile ("yeni.wav").deleteFile();          // the chosen file is gone
             p.setSettings (s);
             p.play (true);
-            expect (played[4] == CuePlayer::makeWav (off, 48000.0, 80), "missing file: the default kapanma");
+            expect (played[4] == wavOf (off, 48000.0), "missing file: the default kapanma");
 
             // Windows' default output is the cable: nothing, ever (the other side would hear it)
             juce::Array<juce::MemoryBlock> played2; int stops2 = 0;
@@ -192,6 +206,74 @@ struct CueTest : juce::UnitTest
             expectEquals (played.size(), 1000);
             expect (each < 1.0, "per play " + juce::String (each, 3) + " ms");
             logMessage ("play(): " + juce::String (each * 1000.0, 1) + " us per call (nothing decoded or allocated there; the sounds are prepared when chosen)");
+        }
+
+        beginTest ("level: every built-in sound and any own file at the same loudness, peaks under the ceiling");
+        {
+            CueLibrary lib; lib.setUserFolder (dir);
+            double lo = 0.0, hi = -100.0;
+            for (auto& s : lib.list())
+            {
+                juce::AudioBuffer<float> b; double rate = 0;
+                if (! s.builtIn || ! lib.load (s.id, b, rate)) continue;
+                const auto lv = CuePlayer::levelled (b, rate);
+                const double l = CuePlayer::loudness (lv);
+                const double pk = juce::Decibels::gainToDecibels (juce::jmax (lv.getMagnitude (0, 0, lv.getNumSamples()), lv.getMagnitude (1, 0, lv.getNumSamples())));
+                expect (pk <= CuePlayer::peakCeilingDb + 0.01, s.id + " peak " + juce::String (pk, 2));
+                lo = juce::jmin (lo, l); hi = juce::jmax (hi, l);
+                logMessage (s.id + ": " + juce::String (l, 2) + " LUFS, peak " + juce::String (pk, 2) + " dBFS at 100 %");
+            }
+            expect (hi - lo < 0.5 && std::abs (hi - CuePlayer::fullScaleLufs) < 0.1, "built-ins " + juce::String (lo, 2) + " .. " + juce::String (hi, 2));
+
+            // own files: a sine at 0 dBFS, one at -40 dBFS, one at 44.1 kHz - all come out the same
+            for (auto [amp, rate] : { std::pair<double, double> { 1.0, 48000.0 }, { 0.01, 48000.0 }, { 0.3, 44100.0 } })
+            {
+                juce::AudioBuffer<float> b (2, (int) (0.5 * rate));
+                for (int i = 0; i < b.getNumSamples(); ++i)
+                    for (int c = 0; c < 2; ++c) b.setSample (c, i, (float) (amp * std::sin (2.0 * juce::MathConstants<double>::pi * 1000.0 * i / rate)));
+                const auto lv = CuePlayer::levelled (b, rate);
+                const double l = CuePlayer::loudness (lv);
+                expect (std::abs (l - CuePlayer::fullScaleLufs) < 0.15, juce::String (amp) + " @ " + juce::String (rate) + ": " + juce::String (l, 2));
+                expect (std::abs (lv.getNumSamples() - 24000) <= 2, "at 48 kHz: " + juce::String (lv.getNumSamples()));
+                int crossings = 0;
+                for (int i = 1; i < lv.getNumSamples(); ++i) if ((lv.getSample (0, i - 1) < 0.0f) != (lv.getSample (0, i) < 0.0f)) ++crossings;
+                expect (std::abs (crossings - 1000) <= 4, "still 1 kHz: " + juce::String (crossings) + " crossings in 0.5 s");
+            }
+            // a spiky file: held under the ceiling, quieter rather than over
+            juce::AudioBuffer<float> sp (2, 24000); sp.clear();
+            for (int i = 0; i < 24000; i += 4800) { sp.setSample (0, i + 100, 0.9f); sp.setSample (1, i + 100, 0.9f); }
+            const auto lsp = CuePlayer::levelled (sp, 48000.0);
+            expect (lsp.getMagnitude (0, 0, 24000) <= juce::Decibels::decibelsToGain (CuePlayer::peakCeilingDb) + 1.0e-4f);
+        }
+
+        beginTest ("mixer: fast mute / unmute (10 per second, 1 s) makes no step bigger than the sounds' own");
+        {
+            CueLibrary lib; juce::AudioBuffer<float> a, b; double r = 0;
+            lib.load (CueSettings::defaultOnId(), a, r); lib.load (CueSettings::defaultOffId(), b, r);
+            const auto wa = CuePlayer::makeWav (CuePlayer::levelled (a, r), CuePlayer::outputRate, 100);
+            const auto wb = CuePlayer::makeWav (CuePlayer::levelled (b, r), CuePlayer::outputRate, 100);
+            int rate = 0, ch = 0;
+            const int own = juce::jmax (maxStep (pcm (wa, rate, ch), 0, 1 << 30), maxStep (pcm (wb, rate, ch), 0, 1 << 30));
+
+            CueMixer m;
+            std::vector<int16_t> outBuf;
+            std::vector<int16_t> block (480 * 2);
+            for (int k = 0; k < 10; ++k)
+            {
+                m.start ((k & 1) ? wb : wa);
+                for (int j = 0; j < 10; ++j) { m.render (block.data(), 480); outBuf.insert (outBuf.end(), block.begin(), block.end()); }
+            }
+            while (! m.idle()) { m.render (block.data(), 480); outBuf.insert (outBuf.end(), block.begin(), block.end()); }
+            const int mixed = maxStep (outBuf, 0, 1 << 30);
+            expect (mixed <= own + 64, "mixed " + juce::String (mixed) + ", the sounds themselves " + juce::String (own));
+
+            // the old way for comparison: cut at 100 ms
+            const auto pa = pcm (wa, rate, ch);
+            int cut = 0;
+            for (int i = 4800; i < 4800 + 48; ++i) cut = juce::jmax (cut, std::abs ((int) pa[(size_t) i * 2]));
+            logMessage ("largest step: sounds " + juce::String (own) + ", mixed fast " + juce::String (mixed)
+                        + "; cutting Ahşap at 100 ms (PlaySound) would step " + juce::String (cut));
+            expect (m.idle() && m.voiceCount() == 0);
         }
 
         dir.deleteRecursively();

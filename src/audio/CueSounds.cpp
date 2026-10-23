@@ -3,6 +3,12 @@
 #include "Text.h"
 #include <MicVSTSounds.h>
 #include "audio/MsCounter.h"
+#include <algorithm>
+#include <array>
+#include <atomic>
+#include <cmath>
+#include <cstring>
+#include <mutex>
 
 #if JUCE_WINDOWS
  #ifndef NOMINMAX
@@ -166,16 +172,125 @@ bool CueLibrary::load (const juce::String& id, juce::AudioBuffer<float>& out, do
 namespace
 {
    #if JUCE_WINDOWS
-    // PlaySound: asynchronous, from memory, on Windows' default output; a new sound stops the one
-    // still playing (fast mute / unmute never piles up). Nothing is opened while silent.
-    struct WindowsBackend final : CuePlayer::Backend
+    // MicVST's own little output for the sounds: waveOut on Windows' default output (WAVE_MAPPER),
+    // 48 kHz 16-bit stereo, 4 blocks of 10 ms, fed by CueMixer from a thread of its own. Opened when a
+    // sound starts, closed 2 s after the last one ended - nothing is open while silent. If the device
+    // cannot be opened, PlaySound plays the sound as before (then a fast new sound cuts the old one).
+    struct WindowsBackend final : CuePlayer::Backend, private juce::Thread
     {
+        static constexpr int blockFrames = 480, numBlocks = 4;
+        static constexpr juce::uint32 idleCloseMs = 2000;
+
+        WindowsBackend() : juce::Thread ("MicVST cue sounds") { doneEvent = CreateEventW (nullptr, FALSE, FALSE, nullptr); }
+        ~WindowsBackend() override
+        {
+            signalThreadShouldExit();
+            wake.signal();
+            if (doneEvent != nullptr) SetEvent (doneEvent);
+            stopThread (2000);
+            PlaySoundW (nullptr, nullptr, 0);
+            if (doneEvent != nullptr) CloseHandle (doneEvent);
+        }
+
         bool play (const juce::MemoryBlock& wav) override
         {
-            return PlaySoundW ((LPCWSTR) wav.getData(), nullptr, SND_MEMORY | SND_ASYNC | SND_NODEFAULT) != FALSE;
+            if (! deviceFailed)
+            {
+                {
+                    const std::lock_guard<std::mutex> g (lock);
+                    mixer.start (wav);
+                }
+                if (! isThreadRunning()) startThread (juce::Thread::Priority::high);
+                wake.signal();
+                return true;
+            }
+            fallback = wav;   // PlaySound reads these bytes while it plays: kept until the next sound
+            return PlaySoundW ((LPCWSTR) fallback.getData(), nullptr, SND_MEMORY | SND_ASYNC | SND_NODEFAULT) != FALSE;
         }
-        void stop() override { PlaySoundW (nullptr, nullptr, 0); }
+        void stop() override
+        {
+            { const std::lock_guard<std::mutex> g (lock); mixer.stop(); }
+            if (deviceFailed) PlaySoundW (nullptr, nullptr, 0);
+        }
         juce::String defaultOutputName() override { return devfmt::windowsDefaultOutputName(); }
+
+    private:
+        void run() override
+        {
+            while (! threadShouldExit())
+            {
+                bool any = false;
+                { const std::lock_guard<std::mutex> g (lock); any = ! mixer.idle(); }
+                if (! any) { wake.wait (-1); continue; }
+                if (! open())
+                {
+                    deviceFailed = true;   // from now on PlaySound; the sound asked for now is lost (logged by the caller's next play)
+                    const std::lock_guard<std::mutex> g (lock);
+                    mixer = CueMixer{};
+                    continue;
+                }
+                juce::uint32 silentSince = 0;
+                while (! threadShouldExit())
+                {
+                    bool wrote = false;
+                    for (auto& h : headers)
+                        if ((h.dwFlags & WHDR_DONE) != 0 || (h.dwFlags & WHDR_INQUEUE) == 0)
+                        {
+                            bool idleNow;
+                            {
+                                const std::lock_guard<std::mutex> g (lock);
+                                mixer.render (reinterpret_cast<int16_t*> (h.lpData), blockFrames);
+                                idleNow = mixer.idle();
+                            }
+                            h.dwFlags &= ~(DWORD) WHDR_DONE;
+                            waveOutWrite (out, &h, sizeof (WAVEHDR));
+                            wrote = true;
+                            const auto now = micvst::msCounter();
+                            if (! idleNow) silentSince = 0;
+                            else if (silentSince == 0) silentSince = now == 0 ? 1 : now;
+                        }
+                    if (silentSince != 0 && micvst::msCounter() - silentSince > idleCloseMs) break;
+                    if (! wrote) WaitForSingleObject (doneEvent, 20);
+                }
+                close();
+            }
+            close();
+        }
+
+        bool open()
+        {
+            WAVEFORMATEX f {};
+            f.wFormatTag = WAVE_FORMAT_PCM; f.nChannels = 2; f.nSamplesPerSec = (DWORD) CuePlayer::outputRate;
+            f.wBitsPerSample = 16; f.nBlockAlign = 4; f.nAvgBytesPerSec = f.nSamplesPerSec * 4;
+            if (waveOutOpen (&out, WAVE_MAPPER, &f, (DWORD_PTR) doneEvent, 0, CALLBACK_EVENT) != MMSYSERR_NOERROR) { out = nullptr; return false; }
+            for (int i = 0; i < numBlocks; ++i)
+            {
+                auto& h = headers[(size_t) i];
+                h = {};
+                h.lpData = reinterpret_cast<LPSTR> (data[(size_t) i].data());
+                h.dwBufferLength = (DWORD) (blockFrames * 4);
+                waveOutPrepareHeader (out, &h, sizeof (WAVEHDR));
+            }
+            return true;
+        }
+        void close()
+        {
+            if (out == nullptr) return;
+            waveOutReset (out);
+            for (auto& h : headers) waveOutUnprepareHeader (out, &h, sizeof (WAVEHDR));
+            waveOutClose (out);
+            out = nullptr;
+        }
+
+        std::mutex lock;
+        CueMixer mixer;
+        juce::WaitableEvent wake;
+        HANDLE doneEvent = nullptr;
+        HWAVEOUT out = nullptr;
+        std::array<WAVEHDR, numBlocks> headers {};
+        std::array<std::array<int16_t, blockFrames * 2>, numBlocks> data {};
+        std::atomic<bool> deviceFailed { false };
+        juce::MemoryBlock fallback;
     };
    #endif
 
@@ -235,7 +350,7 @@ bool CuePlayer::prepare (const juce::String& id, juce::MemoryBlock& out, juce::S
 {
     juce::AudioBuffer<float> buf; double rate = 0.0;
     if (! lib.load (id, buf, rate)) return false;
-    out = makeWav (buf, rate, settings.volume);
+    out = makeWav (levelled (buf, rate), outputRate, settings.volume);
     name.clear();
     for (auto& s : lib.list()) if (s.id == id) name = s.name;
     return true;
@@ -297,4 +412,143 @@ void CuePlayer::preview (const juce::String& id)
 juce::String CuePlayer::describe (bool muted) const
 {
     return muted ? offName : onName;
+}
+
+//==============================================================================
+void CueMixer::start (const juce::MemoryBlock& wav)
+{
+    for (auto& v : voices)
+        if (v.fade < 0) v.fade = fadeFrames;
+    const auto* p = static_cast<const uint8_t*> (wav.getData());
+    if (wav.getSize() < 44) return;
+    const uint32_t bytes = juce::jmin ((uint32_t) (wav.getSize() - 44),
+                                       (uint32_t) (p[40] | (p[41] << 8) | (p[42] << 16) | ((uint32_t) p[43] << 24)));
+    const size_t n = bytes / 4;
+    if (n == 0) return;
+    Voice v;
+    v.l.resize (n); v.r.resize (n);
+    const auto* s = reinterpret_cast<const int16_t*> (p + 44);
+    for (size_t i = 0; i < n; ++i) { v.l[i] = (float) s[2 * i]; v.r[i] = (float) s[2 * i + 1]; }
+    voices.push_back (std::move (v));
+}
+
+void CueMixer::stop()
+{
+    for (auto& v : voices)
+        if (v.fade < 0) v.fade = fadeFrames;
+}
+
+void CueMixer::render (int16_t* out, int frames)
+{
+    for (int i = 0; i < frames; ++i)
+    {
+        double l = 0.0, r = 0.0;
+        for (auto& v : voices)
+        {
+            if (v.pos >= v.l.size() || v.fade == 0) continue;
+            double g = 1.0;
+            if (v.fade > 0)
+            {
+                g = 0.5 - 0.5 * std::cos (juce::MathConstants<double>::pi * (double) v.fade / (double) fadeFrames);
+                --v.fade;
+            }
+            l += g * v.l[v.pos]; r += g * v.r[v.pos];
+            ++v.pos;
+        }
+        out[2 * i]     = (int16_t) juce::jlimit (-32768.0, 32767.0, std::floor (l + 0.5));
+        out[2 * i + 1] = (int16_t) juce::jlimit (-32768.0, 32767.0, std::floor (r + 0.5));
+    }
+    voices.erase (std::remove_if (voices.begin(), voices.end(), [] (const Voice& v) { return v.pos >= v.l.size() || v.fade == 0; }),
+                  voices.end());
+}
+
+//==============================================================================
+double CuePlayer::loudness (const juce::AudioBuffer<float>& b)
+{
+    // ITU-R BS.1770 K-weighting at 48 kHz (both stages), blocks of 100 ms every 25 ms, absolute
+    // gate -70 LUFS, relative gate -10 dB; a sound shorter than a block is one block
+    const int n = b.getNumSamples(), chans = juce::jmin (2, b.getNumChannels());
+    if (n <= 0 || chans <= 0) return -200.0;
+    std::vector<std::vector<double>> y ((size_t) chans, std::vector<double> ((size_t) n));
+    for (int c = 0; c < chans; ++c)
+    {
+        double s1x1 = 0, s1x2 = 0, s1y1 = 0, s1y2 = 0, s2x1 = 0, s2x2 = 0, s2y1 = 0, s2y2 = 0;
+        for (int i = 0; i < n; ++i)
+        {
+            const double x = b.getSample (c, i);
+            const double a = 1.53512485958697 * x - 2.69169618940638 * s1x1 + 1.19839281085285 * s1x2
+                             + 1.69065929318241 * s1y1 - 0.73248077421585 * s1y2;
+            s1x2 = s1x1; s1x1 = x; s1y2 = s1y1; s1y1 = a;
+            const double o = a - 2.0 * s2x1 + s2x2 + 1.99004745483398 * s2y1 - 0.99007225036621 * s2y2;
+            s2x2 = s2x1; s2x1 = a; s2y2 = s2y1; s2y1 = o;
+            y[(size_t) c][(size_t) i] = o;
+        }
+    }
+    const int block = juce::jmin (n, (int) (0.1 * outputRate)), hop = juce::jmax (1, (int) (0.025 * outputRate));
+    std::vector<double> z;
+    for (int s = 0; s + block <= n; s += hop)
+    {
+        double sum = 0.0;
+        for (int c = 0; c < chans; ++c)
+        {
+            double e = 0.0;
+            for (int i = s; i < s + block; ++i) e += y[(size_t) c][(size_t) i] * y[(size_t) c][(size_t) i];
+            sum += e / block;
+        }
+        z.push_back (sum);
+        if (block == n) break;
+    }
+    const auto lufs = [] (double v) { return -0.691 + 10.0 * std::log10 (juce::jmax (v, 1.0e-30)); };
+    double mean = 0.0; int k = 0;
+    for (auto v : z) if (lufs (v) > -70.0) { mean += v; ++k; }
+    if (k == 0) return -200.0;
+    const double rel = lufs (mean / k) - 10.0;
+    double m2 = 0.0; int k2 = 0;
+    for (auto v : z) if (lufs (v) > -70.0 && lufs (v) > rel) { m2 += v; ++k2; }
+    return k2 == 0 ? -200.0 : lufs (m2 / k2);
+}
+
+juce::AudioBuffer<float> CuePlayer::levelled (const juce::AudioBuffer<float>& src, double rate)
+{
+    const int chans = juce::jmin (2, juce::jmax (1, src.getNumChannels()));
+    juce::AudioBuffer<float> b;
+    if (std::abs (rate - outputRate) < 0.5 || rate <= 0.0)
+    {
+        b.setSize (2, src.getNumSamples());
+        for (int c = 0; c < 2; ++c) b.copyFrom (c, 0, src, juce::jmin (c, chans - 1), 0, src.getNumSamples());
+    }
+    else
+    {
+        const double ratio = rate / outputRate;   // input samples per output sample
+        const int outN = (int) std::ceil (src.getNumSamples() / ratio);
+        const int pad = 256;
+        b.setSize (2, outN);
+        for (int c = 0; c < 2; ++c)
+        {
+            std::vector<float> in ((size_t) src.getNumSamples() + (size_t) pad * 2 + (size_t) (outN * ratio) + 8, 0.0f);
+            std::memcpy (in.data(), src.getReadPointer (juce::jmin (c, chans - 1)), sizeof (float) * (size_t) src.getNumSamples());
+            juce::WindowedSincInterpolator interp;
+            const int lat = (int) std::round (interp.getBaseLatency() / ratio);   // base latency is in input samples
+            std::vector<float> tmp ((size_t) outN + (size_t) lat + 8);
+            interp.process (ratio, in.data(), tmp.data(), (int) tmp.size());
+            std::memcpy (b.getWritePointer (c), tmp.data() + juce::jmin (lat, (int) tmp.size() - outN), sizeof (float) * (size_t) outN);
+        }
+    }
+    const int n = b.getNumSamples();
+    if (n == 0) return b;
+    const double l = loudness (b);
+    const float peak = juce::jmax (b.getMagnitude (0, 0, n), b.getMagnitude (1, 0, n));
+    double gainDb = l > -150.0 ? fullScaleLufs - l : 0.0;
+    if (peak > 0.0f)
+        gainDb = juce::jmin (gainDb, peakCeilingDb - 20.0 * std::log10 ((double) peak));
+    b.applyGain ((float) juce::Decibels::decibelsToGain (gainDb, -200.0));
+    // the ends: 1 ms in, 5 ms out (a file that starts or stops mid-wave would click)
+    const int in = juce::jmin (n / 4, (int) (0.001 * outputRate)), outF = juce::jmin (n / 4, (int) (0.005 * outputRate));
+    for (int c = 0; c < 2; ++c)
+    {
+        auto* d = b.getWritePointer (c);
+        for (int i = 0; i < in; ++i)   d[i] *= (float) (0.5 - 0.5 * std::cos (juce::MathConstants<double>::pi * (i + 0.5) / in));
+        for (int i = 0; i < outF; ++i) d[n - 1 - i] *= (float) (0.5 - 0.5 * std::cos (juce::MathConstants<double>::pi * (i + 0.5) / outF));
+    }
+    return b;
 }

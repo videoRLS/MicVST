@@ -4,6 +4,21 @@ All notable changes to MicVST are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] - dal kararlilik/bildirim-sesi (deneme)
+
+- Bildirim sesleri: fast mute / unmute no longer clicks. The sounds are no longer played with
+  Windows' PlaySound (a new sound cut the old one mid-wave: up to -13 dBFS steps at 10 per second);
+  MicVST mixes them itself on the default output (waveOut, 48 kHz, 4 x 10 ms, open only while a
+  sound plays + 2 s) and a new sound fades the old one out in 10 ms. If the device cannot be
+  opened, PlaySound as before.
+- Bildirim sesleri: every sound - built in or the user's own file - is brought to the same
+  loudness when prepared (100 ms blocks, BS.1770 K-weighting and gating): 100 % = -15.5 LUFS,
+  peaks at most -3 dBFS (a spiky file stays quieter instead of going over); other sample rates
+  are converted to 48 kHz. Default volume 40 % (was 80 %): about 4 dB quieter than before.
+  The user's files are not changed. Unit tests: built-ins within 0.25 dB, own files at 0 dBFS /
+  -40 dBFS / 44.1 kHz all at -15.5 LUFS, 10 mute / unmute per second: no step larger than the
+  sounds' own.
+
 ## [1.2.2] - Unreleased
 
 - Kayıt (recording): the "● Kayıt" button (and the tray menu) records what goes to the cable into

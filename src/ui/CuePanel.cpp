@@ -60,7 +60,7 @@ CuePanel::CuePanel (AudioEngine& e) : engine (e)
     addAndMakeVisible (volume);
 
     defaultBtn.setButtonText (tr ("Varsayılana dön"));
-    defaultBtn.setTooltip (tr ("Ahşap açılma ve Ahşap kapanma sesleri, ses düzeyi %80"));
+    defaultBtn.setTooltip (tr ("Ahşap açılma ve Ahşap kapanma sesleri, ses düzeyi %40"));
     defaultBtn.onClick = [this] { apply (CueSettings{}); };
     folderBtn.setButtonText (tr ("Ses klasörünü aç"));
     folderBtn.onClick = [this]
