@@ -1,0 +1,17 @@
+# MicVST engine test (1.2.2) - cues
+## Bildirim sesleri: Sustur in the real engine (997 Hz -20 dBFS, virtual devices)
+  PASS no sound at start-up
+  PASS one sound per real change (40 changes, 40 sounds; repeats silent): 40
+    from the mute call to the sound handed to Windows: at most 0.015 ms
+  PASS the sound starts with the mute itself (< 5 ms; it is the same call)
+  PASS mute -> kapanma, unmute -> aÃ§Ä±lma, in order
+    cable during the 40 changes: clicks 0
+  PASS Sustur on the cable: no clicks (15 ms fades as before)
+  PASS switched off: mute / unmute silent
+  PASS the mute itself still works
+  PASS Windows' default output = the cable: no sound (the other side would hear it)
+  PASS settings saved and read back (restart): 0|builtin:03_damla_ac|builtin:07_yanki_kapat|55
+  PASS the default writes nothing (older config.xml stay as they are)
+
+cues: all checks passed
+-- exit code 0, 17.3 s, peak working set 31 MB

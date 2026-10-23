@@ -1,0 +1,20 @@
+# MicVST engine test (1.2.2) - edits
+## Chain edits during playback (997 Hz -6 dBFS; one edit per second)
+  underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift 2.6 ppm, shown latency 55.3 ms, cpu 0 %
+| Edit | Clicks within the following second (cable timeline, incl. latency) | Gap (ms) |
+|---|---:|---:|
+| bypass gain on | 0 | 14.2 |
+| bypass gain off | 0 | 14.2 |
+| add invert | 0 | 14.4 |
+| remove invert | 0 | 14.3 |
+| add delay 240 smp | 0 | 24.5 |
+| bypass delay on | 0 | 24.6 |
+| bypass delay off | 0 | 24.6 |
+| move delay to front | 0 | 24.6 |
+| add mono->stereo | 0 | 24.7 |
+| add stereo->mono | 0 | 24.7 |
+| remove stereo->mono | 0 | 24.7 |
+| remove gain | 0 | 24.5 |
+| remove all | 0 | 24.5 |
+total click events in the whole run: 0 (in edit windows: 0)
+-- exit code 0, 21.4 s, peak working set 33 MB

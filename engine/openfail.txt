@@ -1,0 +1,14 @@
+# MicVST engine test (1.2.2) - openfail
+  cable listed but cannot be opened, 30 s: open attempts 6, log lines 14, device-change callbacks (MicVST saves config.xml on each) 7, device open now: no
+      1 x ''VCable' listede ama açılamıyor (başka bir progr...'
+      1 x 'Cihaz yeniden bağlandı, açılıyor: VCable...'
+      6 x 'Kurulum: giriş 'VMic' 48000 Hz, tampon 480 | çık...'
+      6 x 'Ses biçimi: MicVST akışı ve iç işlem 32 bit kaya...'
+  cable can be opened again: open after 5.9 s; underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -0.0 ppm, shown latency 55.4 ms, cpu 0 %
+  microphone listed but cannot be opened, 30 s: open attempts 6, log lines 14, device-change callbacks (MicVST saves config.xml on each) 8, device open now: no
+      1 x ''VMic' listede ama açılamıyor (başka bir program...'
+      1 x 'Cihaz yeniden bağlandı, açılıyor: VMic...'
+      6 x 'Kurulum: giriş (yok) [Device in use (exclusive m...'
+      6 x 'Ses biçimi: MicVST akışı ve iç işlem 32 bit kaya...'
+  microphone can be opened again: open after 5.9 s; underruns 1, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 15 ms, drift -0.0 ppm, shown latency 60.3 ms, cpu 0 %
+-- exit code 0, 80.3 s, peak working set 42 MB

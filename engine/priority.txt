@@ -1,0 +1,37 @@
+# MicVST engine test (1.2.2) - priority
+## Process priority option (4 logical CPUs, Windows 11)
+start: BELOW_NORMAL_PRIORITY_CLASS
+
+### 1. Each choice applied through AudioEngine::setProcessPriority, read back with GetPriorityClass
+  PASS Yüksek -> Windows reports HIGH_PRIORITY_CLASS, the setting holds 2
+  PASS Normalin Üstünde -> Windows reports ABOVE_NORMAL_PRIORITY_CLASS, the setting holds 1
+  PASS Normal -> Windows reports NORMAL_PRIORITY_CLASS, the setting holds 0
+  PASS Yüksek -> Windows reports HIGH_PRIORITY_CLASS, the setting holds 2
+  PASS Normal -> Windows reports NORMAL_PRIORITY_CLASS, the setting holds 0
+  PASS config.xml round trip (Normalin Ustunde) and applied at start: ABOVE_NORMAL_PRIORITY_CLASS
+  PASS older config.xml without the setting -> NORMAL_PRIORITY_CLASS
+  PASS below normal set from outside -> shown as another level (-1)
+
+### 2. Under full CPU load: another program with 4 busy threads (normal priority) + a wake-up probe; MicVST plays 997 Hz -6 dBFS through Otomatik Kazanc + a plug-in with 30 % load; MicVST's window thread runs a 10 ms timer; with and without a busy non-audio MicVST thread (a heavy plug-in window: 8 ms busy / 8 ms idle). 40 s per row.
+| MicVST priority | busy MicVST window thread | audio: clicks / silent gaps / MicVST events | THD+N (median, 43 ms windows) | MicVST timer lateness p99 / max (ms) | busy thread work done | other program: throughput | other program: wake-up lateness p99 / max (ms) |
+|---|---|---|---:|---:|---:|---:|---:|
+| (MicVST not running) | - | - | - | - | - | 675499 /s | 13.43 ms / 25.24 ms |
+| Normal | no | 0 / 0 / 0 | -104.9 dB | 10.01 / 13.80 | - | 619733 /s (91.7 % of alone) | 14.04 ms / 28.51 ms |
+  PASS Normal: audio continuous under full CPU load (clicks 0, gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0)
+| Normalin Üstünde | no | 0 / 0 / 0 | -104.1 dB | 3.01 / 4.01 | - | 619728 /s (91.7 % of alone) | 13.91 ms / 28.43 ms |
+  PASS Normalin Üstünde: audio continuous under full CPU load (clicks 0, gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0)
+| Yüksek | no | 0 / 0 / 0 | -104.8 dB | 3.00 / 4.00 | - | 619579 /s (91.7 % of alone) | 13.88 ms / 20.27 ms |
+  PASS Yüksek: audio continuous under full CPU load (clicks 0, gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0)
+| Normal | yes | 0 / 0 / 0 | -102.4 dB | 12.33 / 15.57 | 8384117 | 566250 /s (83.8 % of alone) | 15.99 ms / 31.06 ms |
+  PASS Normal + busy window thread: audio continuous under full CPU load (clicks 0, gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0)
+| Normalin Üstünde | yes | 0 / 0 / 0 | -96.5 dB | 3.01 / 4.51 | 12817557 | 536492 /s (79.4 % of alone) | 16.18 ms / 35.24 ms |
+  PASS Normalin Üstünde + busy window thread: audio continuous under full CPU load (clicks 0, gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0)
+| Yüksek | yes | 0 / 0 / 0 | -96.8 dB | 3.01 / 3.53 | 12812782 | 536514 /s (79.4 % of alone) | 17.65 ms / 34.62 ms |
+  PASS Yüksek + busy window thread: audio continuous under full CPU load (clicks 0, gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0)
+
+### 3. Switching Normal -> Normalin Ustunde -> Yuksek -> ... every second while audio plays (30 s)
+  PASS 30 switches applied and read back correctly (0 wrong)
+  PASS no click, gap or MicVST event while switching (clicks 0, gaps 0, underruns 0, input skips 0, queue overflows 0, invalid blocks 0, graph-busy blocks 0, mic xruns 0), THD+N -107.5 dB
+
+priority test: 0 failed
+-- exit code 0, 302.4 s, peak working set 42 MB

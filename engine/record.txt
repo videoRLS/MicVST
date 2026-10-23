@@ -1,0 +1,36 @@
+# MicVST engine test (1.2.2) - record
+## KayÄ±t (recording) in the engine: 997 Hz -20 dBFS, chain Kazanc -6 dB, virtual microphone and cable
+  PASS recording starts
+  PASS the engine says it is recording
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -2.8 ppm, shown latency 55.4 ms, cpu 0 %
+cable without recording: clicks 0, THD+N -86.1 dB, level -26.00 dB; with recording (start and stop inside): clicks 0, THD+N -97.3 dB, level -26.00 dB
+process CPU: without 0.26 %, with recording 0.91 % of one core; memory 26 -> 35 MB; shown latency 55.4 / 55.4 ms
+file: MicVST_2026-10-22_20-21-03.wav, 12.000 s (shown while running 12.00 s, wall 12.01 s), verified yes, dropped 0
+  PASS the cable has no clicks, with or without a recording (start and stop included)
+    cable THD+N without recording: median -86.1 dB, 90th percentile -81.7 dB; with: median -97.3 dB
+  PASS the cable's quality and level do not get worse while recording
+  PASS no underruns or dropped blocks on the cable while recording
+  PASS the latency does not change while recording
+  PASS the recording is whole and verified
+  PASS the file is as long as the recording ran
+  PASS WAV 32-bit float, 48000 Hz, 2 channels
+file content: level -26.000 dB (expected -26.000), worst THD+N -149.3 dB, clicks 0, gaps 0, L = R yes
+  PASS the file has the processed level (-26 dBFS)
+  PASS the file is clean (THD+N < -120 dB: float, no conversion)
+  PASS no clicks or gaps in the file
+  PASS both channels as the cable gets them (mono microphone: L = R)
+30 recordings started and stopped during audio (wav:16|48000|2, wav:24|48000|2, wav:32|48000|2, wav:32f|48000|1, flac:16:5|48000|2, flac:24:8|44100|2, mp3:cbr320|48000|2, mp3:cbr128|44100|1, mp3:v0|48000|2, mp3:v4|48000|2): 30 verified; cable clicks 0; memory 35 -> 41 MB
+  PASS 30 start / stop cycles in every format: every file whole and verified
+  PASS no clicks on the cable from starting and stopping
+  PASS memory stays (no leak per recording)
+  PASS 31 files, none overwritten
+mp3:cbr320|44100|2 (converted from 48 kHz while recording): process CPU 2.14 % of one core (without recording 0.26 %), verified yes
+  PASS mp3:cbr320|44100|2: verified, nothing dropped
+flac:24:8|44100|2 (converted from 48 kHz while recording): process CPU 2.34 % of one core (without recording 0.26 %), verified yes
+  PASS flac:24:8|44100|2: verified, nothing dropped
+config.xml: recordFormat="mp3:v2|44100|1" recordFolder="C:\Users\RUNNER~1\AppData\Local\Temp\micvst-enginetest-record\Kayıtlarım"
+  PASS KayÄ±t settings saved with the state and read back the same (restart)
+    underruns 0, trims 0, ring drops 0, mic xruns 0 (lost packets 0), skips 0, queue overflows 0, device gaps 0, safety 10 ms, drift -1.5 ppm, shown latency 55.4 ms, cpu 0 %
+
+record: all checks passed
+-- exit code 0, 58.5 s, peak working set 58 MB
