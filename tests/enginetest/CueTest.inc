@@ -86,6 +86,27 @@ namespace cuetest
             e.getCues().setSettings (CueSettings{});
             check (fromValueTree (toValueTree (e.captureState())).cueSounds.isEmpty(), "the default writes nothing (older config.xml stay as they are)");
         }
+       #if JUCE_WINDOWS
+        {
+            // the real Windows backend (MicVST's own mixer on waveOut; PlaySound only if no device opens):
+            // 200 plays 5 ms apart - far faster than anyone presses - then the player is destroyed.
+            // No crash, no hang; whether this machine has an output device is only logged.
+            const double t0 = juce::Time::getMillisecondCounterHiRes();
+            juce::String problem;
+            {
+                CuePlayer p;
+                p.cableName = [] { return juce::String(); };
+                p.setSettings (CueSettings{});
+                for (int i = 0; i < 200; ++i) { p.play ((i & 1) != 0); juce::Thread::sleep (5); }
+                juce::Thread::sleep (300);
+                problem = p.lastProblem();
+            }
+            const double beyond = juce::Time::getMillisecondCounterHiRes() - t0 - 200 * 5 - 300;
+            pr ("  real backend: " + (problem.isEmpty() ? juce::String ("no problem reported") : "reported: " + problem));
+            check (beyond < 3000.0, "the real Windows backend: 200 plays 5 ms apart and shut-down without a hang ("
+                                    + juce::String (beyond, 0) + " ms beyond the waits)");
+        }
+       #endif
         pr ("");
         pr (failures == 0 ? "cues: all checks passed" : "cues: " + juce::String (failures) + " failures");
     }
