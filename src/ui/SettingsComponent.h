@@ -37,8 +37,9 @@ public:
     ViewState getViewState() const;
     void setViewState (ViewState);
 
+    void refreshFps();   // Arayüz akıcılığı: the list of the engine drawing now (after a GPU / CPU switch)
+
 private:
-    void refreshFps();               // Arayüz akıcılığı: the list of the engine drawing now
     void timerCallback() override;   // keeps "start with Windows" in step with the registry
     void scrollTo (int section);
     void updateNav();   // the section button of what is shown is lit
