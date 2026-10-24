@@ -311,6 +311,26 @@ Ayarlar → Görünüm ve başlangıç → "Arayüz akıcılığı".
 - **1.2.2 ses motorunun ölçülmüş özellikleri:** `docs/TEST_RAPORU_WIN11_1.2.2.md`. 1.2.3 için yeniden
   ölçülmedi (tam tur yok).
 
+### 4.8 Hazır ayarlar (24 Ekim, baştan yeniden)
+
+- **15 amaç, erkek ve kadın için aynı:** Doğal ve Dengeli, Podcast / Sohbet, Oyun / Canlı Yayın, Toplantı / Ders,
+  Radyo Spikeri, Haber Sunucusu, Seslendirme / Belgesel (kadın: Anlatıcı), Sesli Kitap, Sıcak ve Dolgun, Net ve
+  Parlak, Yumuşak ve Pürüzsüz, Yakın Mikrofon, Gürültülü Ortam, Kulaklık / Dizüstü Mikrofonu, Şarkı / Vokal.
+- **Kod:** `src/state/Presets.cpp` `build()` – her ses için ortak bir taban (`presets::Voicing`), her amaç küçük
+  farklar. Zincir aynı 15 eleman, aynı sıra (geçiş kayarak).
+- **Ölçüm:** `MicVSTPresetLab` (tests/PresetLab.cpp – gerçek efektlerle çevrimdışı işler; `factory`, `tweak`,
+  `personal <spec.txt>`) + `tools/preset_lab.py` (LUFS, gerçek tepe, ton dengesi, s sesleri, aralardaki gürültü,
+  kelime başları, dinamik). Hepsi −20 LUFS, gerçek tepe ≤ −2,4 dBTP.
+- **Bulunan eski hata:** Otomatik Kazanç sonrası oda gürültüsünün tepeleri −44…−53 dBFS; eski kapı eşikleri
+  (−50…−58, 4 dB altında kapanır) hiç kapanmıyordu. Yeni eşikler −44…−47 (Gürültülü Ortam −40).
+- **Kişisel 5–14:** kullanıcının kaydı ölçülerek hazırlandı, dosya olarak verildi (programda yok). Ses: erkek,
+  F0 ~133 Hz, QuadCast; 1,6 kHz genizlik ve 2,5 kHz sertlik (+5–6 dB), 6–8 kHz parlak (+7–8 dB, s sesleri
+  6,6–6,9 kHz), 0,8–1 kHz oyuk; ham −32,7 LUFS, gürültü −66,7 dBFS.
+- **Doğrulama:** Linux'ta tüm birim testleri geçti; `MicVSTEngineTest effects` 0 hata (30 preset ses çalarken
+  geçiş: 29 kayarak, tık 0, geçersiz blok 0). Uzun ses setinde: 30 preset −20,0…−20,4 LUFS, gerçek tepe ≤ −1,9 dBTP.
+  Windows'ta yalnızca exe derlendi ([hizli], deneme 19); Windows test turu yok.
+- **Kullanıcı dinleme doğrulaması bekleniyor** (deneme 19).
+
 ---
 
 ## 5. Deneme exe'leri (bu oturumda verilenler)
