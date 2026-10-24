@@ -97,6 +97,19 @@ namespace rendertest
              + std::abs ((int) a.getBlue() - (int) b.getBlue());
     }
 
+    // the marker's colour as the screen shows it: the same hue, its brightness possibly scaled (a CI
+    // runner's display showed every colour at 81 %) - so compared by direction and brightness ratio
+    inline bool sameColour (juce::Colour seen, juce::Colour ref)
+    {
+        const double a[] { (double) seen.getRed(), (double) seen.getGreen(), (double) seen.getBlue() };
+        const double b[] { (double) ref.getRed(), (double) ref.getGreen(), (double) ref.getBlue() };
+        double dot = 0.0, na = 0.0, nb = 0.0;
+        for (int i = 0; i < 3; ++i) { dot += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; }
+        if (na < 1.0 || nb < 1.0) return false;
+        const double ratio = std::sqrt (na / nb);
+        return dot / std::sqrt (na * nb) > 0.985 && ratio > 0.55 && ratio < 1.25;
+    }
+
     inline double nowMs() { return juce::Time::getMillisecondCounterHiRes(); }
 
     struct Sample { double t; juce::Colour marker; std::vector<juce::Colour> probes; };
@@ -203,7 +216,7 @@ namespace rendertest
                 {
                     Grabber g (pw, ph);
                     g.grab (origin.x, origin.y);
-                    r.markerOkBefore = distance (g.mean (markerPx), oldColour) < 60;
+                    r.markerOkBefore = sameColour (g.mean (markerPx), oldColour);
                     for (auto& p : probesPx) before.push_back (g.mean (p));
                 }
 
@@ -244,7 +257,7 @@ namespace rendertest
                     Grabber g (pw, ph);
                     g.grab (origin.x, origin.y);
                     for (auto& p : probesPx) after.push_back (g.mean (p));
-                    r.newColourStable = distance (g.mean (markerPx), newColour) < 60;
+                    r.newColourStable = sameColour (g.mean (markerPx), newColour);
                 }
 
                 bool sawNew = false;
@@ -255,7 +268,7 @@ namespace rendertest
                     if (s.t < ts) continue;   // before the switch call
                     // (the spectrum and meters move; the marker and the still probes do not)
                     ++r.captures;
-                    const bool isOld = distance (s.marker, oldColour) < 60, isNew = distance (s.marker, newColour) < 60;
+                    const bool isOld = sameColour (s.marker, oldColour), isNew = sameColour (s.marker, newColour);
                     if (isNew && ! sawNew) { sawNew = true; r.newColourAtMs = s.t - ts; }
                     if (isOld && s.t > te) r.lastOldColourMs = s.t - te;
                     if (isOld && sawNew) ++r.alternations;

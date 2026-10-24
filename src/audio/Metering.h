@@ -18,6 +18,10 @@ LevelReading computeLevel (const juce::AudioBuffer<float>& buffer);
 // tells whether the range it copied was overwritten meanwhile.
 class SampleTap
 {
+    // no hidden lock on the audio thread on any platform MicVST is built for
+    static_assert (std::atomic<float>::is_always_lock_free, "SampleTap needs lock-free float atomics");
+    static_assert (std::atomic<uint64_t>::is_always_lock_free, "SampleTap needs a lock-free 64-bit counter");
+
 public:
     static constexpr int capacity = 1 << 15;          // frames per channel (0.68 s at 48 kHz, 0.17 s at 192 kHz)
     static constexpr int maxBlock = 1 << 13;          // the largest block the writer may be in the middle of
