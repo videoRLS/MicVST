@@ -184,6 +184,8 @@ public:
         // Arayüz çizimi (Otomatik / Yalnızca ekran kartı / Yalnızca işlemci): decided once per start,
         // logged, fixed until MicVST closes
         micvst::render::startSession (micvst::render::fromId (loadState().uiRenderer));
+        micvst::render::setFps (loadState().uiFps.getIntValue());
+        micvst::render::setMetersVisible (loadState().hideMeters != "1");
 
         const bool silent = commandLine.contains ("--tray");
 
@@ -342,6 +344,8 @@ private:
         s.theme = micvst::theme::currentId;
         s.language = micvst::currentLanguage();
         s.uiRenderer = micvst::render::toId (micvst::render::current());
+        s.uiFps = micvst::render::savedFps() > 0 ? juce::String (micvst::render::savedFps()) : juce::String();
+        s.hideMeters = micvst::render::metersVisible() ? juce::String() : juce::String ("1");
         if (hotkeys != nullptr)
         {
             s.hotkeyMute = GlobalHotkeys::encode (hotkeys->get (GlobalHotkeys::mute));
@@ -463,6 +467,7 @@ private:
                 cb.showFolderMenu = [safe] (juce::Component* target)
                     { if (safe != nullptr && safe->content != nullptr) safe->content->getPluginList().showFolderMenu (target); };
                 cb.showHowTo = [safe] { if (safe != nullptr && safe->content != nullptr) safe->content->showHowTo(); };
+                cb.persist = [safe] { juce::MessageManager::callAsync ([safe] { if (safe != nullptr && safe->onThemeApplied) safe->onThemeApplied(); }); };
                 cb.chooseRenderer = [safe] (const juce::String& id)
                     { juce::MessageManager::callAsync ([safe, id] { if (safe != nullptr) safe->applyRenderer (id); }); };
                 cb.setHotkey = setHotkey;

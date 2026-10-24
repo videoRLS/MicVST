@@ -67,7 +67,8 @@ SettingsComponent::SettingsComponent (AudioEngine& e, GlobalHotkeys* keys, Callb
     languageLabel.setText (tr ("Dil"), juce::dontSendNotification);
     themeLabel.setText (tr ("Tema"), juce::dontSendNotification);
     renderLabel.setText (tr ("Arayüz çizimi"), juce::dontSendNotification);
-    for (auto* l : { &languageLabel, &themeLabel, &renderLabel })
+    fpsLabel.setText (tr ("Arayüz akıcılığı"), juce::dontSendNotification);
+    for (auto* l : { &languageLabel, &themeLabel, &renderLabel, &fpsLabel })
     {
         l->setColour (juce::Label::textColourId, micvst::theme::textDim);
         page.addAndMakeVisible (l);
@@ -133,6 +134,30 @@ SettingsComponent::SettingsComponent (AudioEngine& e, GlobalHotkeys* keys, Callb
     renderInfo.setColour (juce::Label::textColourId, micvst::theme::textDim);
     renderInfo.setFont (juce::FontOptions (13.0f));
     page.addAndMakeVisible (renderInfo);
+
+    // Arayüz akıcılığı (level meters' FPS) and the meters on / off: drawing only, never the sound
+    for (int f : micvst::render::fpsChoices())
+        fpsBox.addItem (f == 30 ? tr ("30 FPS (varsayılan)") : juce::String (f) + " FPS", f);
+    fpsBox.setSelectedId (micvst::render::fps(), juce::dontSendNotification);
+    fpsBox.setTooltip (tr ("Ses seviyesi göstergelerinin saniyede kaç kez çizileceği. Yalnızca görüntüyü etkiler; ses işleme, "
+                           "gecikme ve ses kalitesi değişmez. Düşük değer biraz daha az işlemci kullanır, göstergeler daha "
+                           "kademeli hareket eder. Ekran kartıyla çizerken 60 ve 30 seçilebilir."));
+    fpsBox.onChange = [this]
+    {
+        micvst::render::setFps (fpsBox.getSelectedId());
+        if (cb.persist) cb.persist();
+    };
+    page.addAndMakeVisible (fpsBox);
+    metersToggle.setButtonText (tr ("Ses seviyesi göstergelerini göster"));
+    metersToggle.setTooltip (tr ("Konuşunca hareket eden giriş ve çıkış göstergelerini gösterir ya da gizler. Yalnızca görüntüyü "
+                                 "etkiler; ses işleme, gecikme ve ses kalitesi değişmez."));
+    metersToggle.setToggleState (micvst::render::metersVisible(), juce::dontSendNotification);
+    metersToggle.onClick = [this]
+    {
+        micvst::render::setMetersVisible (metersToggle.getToggleState());
+        if (cb.persist) cb.persist();
+    };
+    page.addAndMakeVisible (metersToggle);
 
     autostartToggle.setButtonText (tr ("Windows açılışında başlat"));
     autostartToggle.setTooltip (tr ("Windows açılınca MicVST'yi pencere açmadan, simge olarak başlatır"));
@@ -300,7 +325,8 @@ void SettingsComponent::resized()
     {
         const int lw = juce::jmax (90, juce::roundToInt (juce::jmax (juce::GlyphArrangement::getStringWidth (languageLabel.getFont(), languageLabel.getText()),
                                                                      juce::GlyphArrangement::getStringWidth (themeLabel.getFont(), themeLabel.getText()),
-                                                                     juce::GlyphArrangement::getStringWidth (renderLabel.getFont(), renderLabel.getText()))) + 16);
+                                                                     juce::GlyphArrangement::getStringWidth (renderLabel.getFont(), renderLabel.getText()),
+                                                                     juce::GlyphArrangement::getStringWidth (fpsLabel.getFont(), fpsLabel.getText()))) + 16);
         languageLabel.setBounds (pad, y, lw, 30);
         languageBox.setBounds (pad + lw, y, juce::jmin (260, w - lw), 30);
         y += 36;
@@ -313,6 +339,10 @@ void SettingsComponent::resized()
         renderInfo.setBounds (pad + lw, y, w - lw, 36);
         renderInfo.setJustificationType (juce::Justification::topLeft);
         y += 40;
+        fpsLabel.setBounds (pad, y, lw, 30);
+        fpsBox.setBounds (pad + lw, y, juce::jmin (260, w - lw), 30);
+        y += 38;
+        line (metersToggle, 26);
         line (autostartToggle, 26);
     }
 

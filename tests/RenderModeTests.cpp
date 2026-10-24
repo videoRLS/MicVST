@@ -42,6 +42,34 @@ struct RenderModeTest : juce::UnitTest
             setMode (Mode::cpuOnly);
             expect (! describeNow().contains ("\n"));
         }
+
+        beginTest ("FPS: 60 / 30 / 20 / 10 with the processor, 60 / 30 with the graphics card, default 30");
+        {
+            startSession (Mode::cpuOnly);
+            expect (fpsChoices() == juce::Array<int> { 60, 30, 20, 10 });
+            expectEquals (fps(), 30);
+            for (int f : { 60, 20, 10 }) { setFps (f); expectEquals (fps(), f); expectEquals (savedFps(), f); }
+            setFps (30);
+            expectEquals (savedFps(), 0, "the default writes nothing");
+            setFps (10);
+            startSession (Mode::gpuOnly);
+            expect (fpsChoices() == juce::Array<int> { 60, 30 });
+            expectEquals (fps(), 30, "10 is not offered with the graphics card: 30");
+            setFps (60);
+            expectEquals (fps(), 60);
+            setFps (0);
+            expectEquals (fps(), 30);
+            startSession (Mode::automatic);
+            expectEquals (fps(), 30, "automatic starts at 30 whatever it picked");
+        }
+
+        beginTest ("level meters: shown by default, hidden on request");
+        {
+            expect (metersVisible());
+            setMetersVisible (false);
+            expect (! metersVisible());
+            setMetersVisible (true);
+        }
     }
 };
 

@@ -14,6 +14,11 @@ project follows [Semantic Versioning](https://semver.org/).
   found. Processor only: GDI (immune to the shifted picture after full-screen games such as GTA 5).
   A new choice is saved (config.xml uiRenderer; automatic writes nothing) and used from the next
   start; logged ("Arayüz çizimi: ..."). Interface only: the audio engine is not touched.
+- Ayarlar > Görünüm ve başlangıç > "Arayüz akıcılığı": the level meters' redraws per second - 60 / 30 /
+  20 / 10 FPS with the processor, 60 / 30 with the graphics card; default 30 (also whatever Otomatik
+  picks); applied at once. "Ses seviyesi göstergelerini göster": the input / output meters shown or
+  hidden (hidden: neither drawn nor updated, the status line stays). Saved (uiFps, hideMeters;
+  defaults write nothing). Drawing only: the audio engine measures and processes exactly the same.
 - Bildirim sesleri: fast mute / unmute no longer clicks. The sounds are no longer played with
   Windows' PlaySound (a new sound cut the old one mid-wave: up to -13 dBFS steps at 10 per second);
   MicVST mixes them itself on the default output (waveOut, 48 kHz, 10 ms blocks; a device just

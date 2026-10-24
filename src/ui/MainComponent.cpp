@@ -1,4 +1,5 @@
 #include "ui/MainComponent.h"
+#include "ui/RenderMode.h"
 #include "ui/HotkeyDialog.h"
 #include "ui/DarkTitleBar.h"
 #include "ui/Theme.h"
@@ -340,7 +341,7 @@ MainComponent::MainComponent (AudioEngine& e) : engine (e)
     updateActionButtons();
 
     setSize (640, 600);
-    startTimerHz (30);
+    startTimerHz (micvst::render::fps());   // Ayarlar > Arayüz akıcılığı (drawing only)
 }
 
 MainComponent::~MainComponent()
@@ -389,6 +390,20 @@ void MainComponent::showRecordingResult (const Recorder::Result& r, const juce::
 
 void MainComponent::timerCallback()
 {
+    // Ayarlar > Arayüz akıcılığı / Ses seviyesi göstergeleri, applied at once - the drawing only:
+    // the engine measures and processes the same whether the meters are shown or not
+    if (const int hz = micvst::render::fps(); getTimerInterval() != 1000 / hz) startTimerHz (hz);
+    if (micvst::render::metersVisible() != inMeter.isVisible())
+    {
+        for (auto* c : std::initializer_list<juce::Component*> { &inMeter, &outMeter, &inLabel, &outLabel, &inValue, &outValue })
+            c->setVisible (micvst::render::metersVisible());
+        resized();
+        repaint();
+    }
+    engine.testTick();
+    updateActionButtons();
+    if (! inMeter.isVisible()) return;
+
     const auto in = engine.inputLevel(), out = engine.outputLevel();
     inMeter.setLevel (in);
     outMeter.setLevel (out);
@@ -402,9 +417,6 @@ void MainComponent::timerCallback()
     };
     show (inValue, inHeld, in.peak);
     show (outValue, outHeld, out.peak);
-
-    engine.testTick();
-    updateActionButtons();
 }
 
 void MainComponent::setHotkeys (GlobalHotkeys* keys)
@@ -536,9 +548,14 @@ void MainComponent::resized()
             meter.setBounds (row.withSizeKeepingCentre (row.getWidth(), 12));
             c.removeFromTop (6);
         };
-        meterRow (inLabel, inMeter, inValue);
-        meterRow (outLabel, outMeter, outValue);
-        devicePanel->getStatusLabel().setBounds (c.removeFromTop (20).withTrimmedLeft (-4));
+        if (inMeter.isVisible())
+        {
+            meterRow (inLabel, inMeter, inValue);
+            meterRow (outLabel, outMeter, outValue);
+            devicePanel->getStatusLabel().setBounds (c.removeFromTop (20).withTrimmedLeft (-4));
+        }
+        else   // the meters hidden: only the status line, in the middle of the card
+            devicePanel->getStatusLabel().setBounds (c.withSizeKeepingCentre (c.getWidth(), 20).withTrimmedLeft (-4));
         r.removeFromTop (12);
     }
 

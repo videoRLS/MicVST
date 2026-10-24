@@ -20,6 +20,7 @@ public:
         std::function<void (juce::Component* target)> showFolderMenu;
         std::function<void()> showHowTo;
         HotkeyDialog::Setter setHotkey;
+        std::function<void()> persist;   // an appearance setting changed: save
     };
     SettingsComponent (AudioEngine&, GlobalHotkeys*, Callbacks);
     ~SettingsComponent() override;
@@ -56,8 +57,9 @@ private:
     juce::Label cueHeading;
     std::unique_ptr<HotkeyDialog> hotkeys;
     juce::Label noHotkeys;
-    juce::Label languageLabel, themeLabel, renderLabel, renderInfo;
-    juce::ComboBox languageBox, themeBox, renderBox;
+    juce::Label languageLabel, themeLabel, renderLabel, renderInfo, fpsLabel;
+    juce::ComboBox languageBox, themeBox, renderBox, fpsBox;
+    juce::ToggleButton metersToggle;
     juce::ToggleButton autostartToggle;
     juce::TextButton foldersBtn;
     juce::Label foldersHint;

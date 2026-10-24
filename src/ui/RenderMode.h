@@ -30,4 +30,18 @@ namespace micvst::render
     juce::String problem();                       // "Yalnızca ekran kartı" without a usable card
     void attach (juce::Component& window);        // a window was shown: this session's engine
     juce::String describeNow();                   // for the settings: what draws now (and what waits)
+    int sessionEngine();                          // 0 / 1 for this start
+
+    // "Arayüz akıcılığı": how often the level meters are redrawn - 60 / 30 / 20 / 10 FPS with the
+    // processor, 60 / 30 with the graphics card; default 30 (also whatever Otomatik picks). Applied
+    // at once; only the drawing - the audio path never reads it.
+    juce::Array<int> fpsChoices();                // for this start's engine
+    int fps();                                    // the one in use (an unavailable saved value: 30)
+    int savedFps();                               // 0 = default
+    void setFps (int);                            // 0 or a value from fpsChoices()
+
+    // "Ses seviyesi göstergeleri": the input / output meters shown or hidden (default shown). Hidden,
+    // they are neither drawn nor updated; the audio engine measures and processes exactly the same.
+    bool metersVisible();
+    void setMetersVisible (bool);
 }

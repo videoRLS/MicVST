@@ -85,7 +85,9 @@ namespace
     juce::String engineName (int e) { return e == 1 ? tr ("ekran kartı") : tr ("işlemci"); }
 
     Mode saved = Mode::automatic, session = Mode::automatic;
-    int sessionEngine = -1;
+    int sessionEngine_ = -1;
+    int fpsSaved = 0;
+    bool meters = true;
 }
 
 bool gpuUsable()
@@ -97,10 +99,10 @@ bool gpuUsable()
 void startSession (Mode m)
 {
     saved = session = m;
-    sessionEngine = chooseEngine (m, gpuUsable());
+    sessionEngine_ = chooseEngine (m, gpuUsable());
     const auto why = problem();
-    juce::Logger::writeToLog (tr ("Arayüz çizimi") + ": " + engineName (sessionEngine)
-                              + (m == Mode::automatic && sessionEngine == 0 ? " (" + tr ("kullanılabilir ekran kartı yok") + ")" : juce::String())
+    juce::Logger::writeToLog (tr ("Arayüz çizimi") + ": " + engineName (sessionEngine_)
+                              + (m == Mode::automatic && sessionEngine_ == 0 ? " (" + tr ("kullanılabilir ekran kartı yok") + ")" : juce::String())
                               + (why.isNotEmpty() ? " - " + why : juce::String()));
 }
 
@@ -116,18 +118,30 @@ juce::String problem()
 
 void attach (juce::Component& window)
 {
-    if (sessionEngine < 0) startSession (saved);
+    if (sessionEngine_ < 0) startSession (saved);
     if (auto* peer = window.getPeer())
-        if (peer->getCurrentRenderingEngine() != sessionEngine)
-            peer->setCurrentRenderingEngine (sessionEngine);
+        if (peer->getCurrentRenderingEngine() != sessionEngine_)
+            peer->setCurrentRenderingEngine (sessionEngine_);
 }
 
 juce::String describeNow()
 {
-    const int engine = sessionEngine >= 0 ? sessionEngine : chooseEngine (session, gpuUsable());
+    const int engine = sessionEngine_ >= 0 ? sessionEngine_ : chooseEngine (session, gpuUsable());
     juce::String t = tr ("Şu an: ") + engineName (engine);
     if (session == Mode::automatic && engine == 0) t << " (" << tr ("kullanılabilir ekran kartı yok") << ")";
     if (saved != session) t << "\n" << tr ("Değişiklik MicVST yeniden başlatılınca uygulanır.");
     return t;
 }
+int sessionEngine()   { if (sessionEngine_ < 0) startSession (saved); return sessionEngine_; }
+
+juce::Array<int> fpsChoices()
+{
+    return sessionEngine() == 1 ? juce::Array<int> { 60, 30 } : juce::Array<int> { 60, 30, 20, 10 };
+}
+
+int fps()                     { return fpsChoices().contains (fpsSaved) ? fpsSaved : 30; }
+int savedFps()                { return fpsSaved; }
+void setFps (int f)           { fpsSaved = f == 30 ? 0 : f; }
+bool metersVisible()          { return meters; }
+void setMetersVisible (bool v) { meters = v; }
 }
