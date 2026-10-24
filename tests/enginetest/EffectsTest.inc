@@ -53,10 +53,120 @@ namespace fxtest
 
     int hiccups() { return vdev::recorder().deviceGaps.load() + (int) vdev::stats().lostPackets.load(); }
 
+    // Hazır ayarlar while audio plays ("effects presets": only these)
+    void presetSections()
+    {
+        auto& cfg = vdev::config();
+        pr ("");
+        pr ("## Hazir ayarlar: switching while audio plays (997 Hz -20 dBFS; all thirty, one per second, then a user preset and back; same elements glide, others swap the chain)");
+        {
+            sineConfig (997.0, 0.1, cfg.micRate);
+            const auto& f = presets::factoryPresets();
+            int morphs = 0, rebuilds = 0, sameShapeSwitches = 0;
+            uint64_t invalid = 0;
+            juce::String steps;
+            std::vector<double> levels;   // output level 1.2 s after each switch (1 s window)
+            {
+                EngineRun run (480, 28.0);
+                auto& e = *run.engine;
+                pump (1.0);
+                juce::StringArray shapeBefore;
+                for (auto& en : e.getChain().entries()) shapeBefore.add (en.fileOrId);
+                for (auto& p : f)
+                {
+                    // presets with the same elements glide, the others swap the chain (only the
+                    // elements each uses)
+                    juce::StringArray shape;
+                    for (auto& el : p.elements) shape.add (el.fileOrId);
+                    if (shape == shapeBefore) ++sameShapeSwitches;
+                    shapeBefore = shape;
+                    const auto r = e.applyPreset (p.name, p.elements);
+                    (r.morphed ? morphs : rebuilds)++;
+                    pump (1.0);
+                }
+                // a user preset (other elements: Kazanc, a test plug-in with its state) and back
+                juce::Array<PluginEntryState> user;
+                {
+                    PluginEntryState g; g.fileOrId = PluginChain::gainId;
+                    BuiltInGainProcessor gp; gp.setGainDb (-3.0f); gp.getStateInformation (g.state); user.add (g);
+                    PluginEntryState t; t.fileOrId = "TestGain"; double v = 0.8; t.state.append (&v, sizeof (v)); user.add (t);
+                }
+                e.getKnownPlugins().addType (testDesc ("TestGain", 0.8));
+                const auto r1 = e.applyPreset ("Kendi", user);
+                (r1.morphed ? morphs : rebuilds)++;
+                pump (1.5);
+                e.undoPreset();
+                pump (1.5);
+                invalid = invalidBlocks (e);
+                pr ("    " + diagLine (e));
+            }
+            const int clk = clicksIn (0.1, 997.0);
+            const int h = hiccups();
+            pr ("switches: " + juce::String (morphs) + " settings glides (same elements), " + juce::String (rebuilds)
+                + " chain swaps; clicks " + juce::String (clk) + ", invalid blocks " + juce::String ((int) invalid)
+                + (h > 0 ? ", device hiccups " + juce::String (h) : juce::String()));
+            pr ("same elements as the chain before: " + juce::String (sameShapeSwitches) + " of " + juce::String ((int) f.size()));
+            check (morphs == sameShapeSwitches, "factory presets with the same elements switch by gliding the settings");
+            check (invalid == 0, "preset switching: invalid blocks");
+            check (clk == 0 || h > 0, "preset switching: clicks");
+        }
+
+        pr ("");
+        pr ("## Hazir ayar: a user preset with a plug-in state and every built-in effect, through the file into a new engine");
+        {
+            sineConfig (997.0, 0.1, cfg.micRate);
+            std::mt19937 rng (21);
+            std::uniform_real_distribution<float> u (0.0f, 1.0f);
+            const auto folder = juce::File::getSpecialLocation (juce::File::tempDirectory).getNonexistentChildFile ("micvst_presets_et", "");
+            juce::Array<PluginEntryState> chain;
+            {
+                EngineRun run (480, 2.0);
+                run.add (testDesc ("TestGain", 0.37));
+                for (auto& info : builtin::effects())
+                {
+                    run.engine->getChain().addBuiltInEffect (info.id);
+                    if (auto* fx = run.engine->getChain().getBuiltInEffect ((int) run.engine->getChain().entries().size() - 1))
+                        for (auto* q : fx->getEffectParameters()) q->setValueNotifyingHost (u (rng));
+                }
+                { const AudioEngine::ChainEdit ce (*run.engine); run.engine->rebuildGraph(); }
+                pump (0.5);
+                chain = run.engine->captureChain();
+            }
+            juce::String err;
+            const bool saved = presets::saveUserPreset (juce::String::fromUTF8 ("Sesim ğüşiöç"), chain, err, folder);
+            const auto list = presets::loadUserPresets (folder);
+            bool same = false;
+            juce::StringArray missing;
+            if (list.size() == 1)
+            {
+                EngineRun run (480, 2.0);
+                run.engine->getKnownPlugins().addType (testDesc ("TestGain", 0.37));   // installed (as after the plug-in scan)
+                const auto r = run.engine->applyPreset (list[0].name, list[0].elements);
+                missing = r.missing;
+                pump (0.5);
+                const auto back = run.engine->captureChain();
+                same = back.size() == chain.size();
+                for (int i = 0; same && i < chain.size(); ++i)
+                    same = back[i].fileOrId == chain[i].fileOrId && back[i].state == chain[i].state && back[i].bypassed == chain[i].bypassed;
+            }
+            folder.deleteRecursively();
+            pr ("elements " + juce::String (chain.size()) + "; saved " + juce::String (saved ? "yes" : "NO " + err) + "; loaded into a new engine: every state byte-identical "
+                + juce::String (same ? "yes" : "NO") + "; missing plug-ins " + juce::String (missing.size()));
+            check (saved && same && missing.isEmpty(), "user preset round trip");
+        }
+
+    }
+
     void run()
     {
         auto& cfg = vdev::config();
         const double fs = cfg.cableRate;
+        if (only == "presets")
+        {
+            presetSections();
+            pr ("effects: " + juce::String (failures) + " failures");
+            return;
+        }
 
         pr ("## Every built-in effect alone in the real engine (997 Hz, -20 dBFS, buffer 480, added while audio runs)");
         pr ("| Effect | Gain L / R | THD+N L | Clicks | Gaps | Invalid blocks | Reported latency | Shown latency added |");
@@ -327,103 +437,7 @@ namespace fxtest
                    "save/restore");
         }
 
-        pr ("");
-        pr ("## Hazir ayarlar: switching while audio plays (997 Hz -20 dBFS; all thirty, one per second, then a user preset and back; same elements glide, others swap the chain)");
-        {
-            sineConfig (997.0, 0.1, cfg.micRate);
-            const auto& f = presets::factoryPresets();
-            int morphs = 0, rebuilds = 0, sameShapeSwitches = 0;
-            uint64_t invalid = 0;
-            juce::String steps;
-            std::vector<double> levels;   // output level 1.2 s after each switch (1 s window)
-            {
-                EngineRun run (480, 28.0);
-                auto& e = *run.engine;
-                pump (1.0);
-                juce::StringArray shapeBefore;
-                for (auto& en : e.getChain().entries()) shapeBefore.add (en.fileOrId);
-                for (auto& p : f)
-                {
-                    // presets with the same elements glide, the others swap the chain (only the
-                    // elements each uses)
-                    juce::StringArray shape;
-                    for (auto& el : p.elements) shape.add (el.fileOrId);
-                    if (shape == shapeBefore) ++sameShapeSwitches;
-                    shapeBefore = shape;
-                    const auto r = e.applyPreset (p.name, p.elements);
-                    (r.morphed ? morphs : rebuilds)++;
-                    pump (1.0);
-                }
-                // a user preset (other elements: Kazanc, a test plug-in with its state) and back
-                juce::Array<PluginEntryState> user;
-                {
-                    PluginEntryState g; g.fileOrId = PluginChain::gainId;
-                    BuiltInGainProcessor gp; gp.setGainDb (-3.0f); gp.getStateInformation (g.state); user.add (g);
-                    PluginEntryState t; t.fileOrId = "TestGain"; double v = 0.8; t.state.append (&v, sizeof (v)); user.add (t);
-                }
-                e.getKnownPlugins().addType (testDesc ("TestGain", 0.8));
-                const auto r1 = e.applyPreset ("Kendi", user);
-                (r1.morphed ? morphs : rebuilds)++;
-                pump (1.5);
-                e.undoPreset();
-                pump (1.5);
-                invalid = invalidBlocks (e);
-                pr ("    " + diagLine (e));
-            }
-            const int clk = clicksIn (0.1, 997.0);
-            const int h = hiccups();
-            pr ("switches: " + juce::String (morphs) + " settings glides (same elements), " + juce::String (rebuilds)
-                + " chain swaps; clicks " + juce::String (clk) + ", invalid blocks " + juce::String ((int) invalid)
-                + (h > 0 ? ", device hiccups " + juce::String (h) : juce::String()));
-            pr ("same elements as the chain before: " + juce::String (sameShapeSwitches) + " of " + juce::String ((int) f.size()));
-            check (morphs == sameShapeSwitches, "factory presets with the same elements switch by gliding the settings");
-            check (invalid == 0, "preset switching: invalid blocks");
-            check (clk == 0 || h > 0, "preset switching: clicks");
-        }
-
-        pr ("");
-        pr ("## Hazir ayar: a user preset with a plug-in state and every built-in effect, through the file into a new engine");
-        {
-            sineConfig (997.0, 0.1, cfg.micRate);
-            std::mt19937 rng (21);
-            std::uniform_real_distribution<float> u (0.0f, 1.0f);
-            const auto folder = juce::File::getSpecialLocation (juce::File::tempDirectory).getNonexistentChildFile ("micvst_presets_et", "");
-            juce::Array<PluginEntryState> chain;
-            {
-                EngineRun run (480, 2.0);
-                run.add (testDesc ("TestGain", 0.37));
-                for (auto& info : builtin::effects())
-                {
-                    run.engine->getChain().addBuiltInEffect (info.id);
-                    if (auto* fx = run.engine->getChain().getBuiltInEffect ((int) run.engine->getChain().entries().size() - 1))
-                        for (auto* q : fx->getEffectParameters()) q->setValueNotifyingHost (u (rng));
-                }
-                { const AudioEngine::ChainEdit ce (*run.engine); run.engine->rebuildGraph(); }
-                pump (0.5);
-                chain = run.engine->captureChain();
-            }
-            juce::String err;
-            const bool saved = presets::saveUserPreset (juce::String::fromUTF8 ("Sesim ğüşiöç"), chain, err, folder);
-            const auto list = presets::loadUserPresets (folder);
-            bool same = false;
-            juce::StringArray missing;
-            if (list.size() == 1)
-            {
-                EngineRun run (480, 2.0);
-                run.engine->getKnownPlugins().addType (testDesc ("TestGain", 0.37));   // installed (as after the plug-in scan)
-                const auto r = run.engine->applyPreset (list[0].name, list[0].elements);
-                missing = r.missing;
-                pump (0.5);
-                const auto back = run.engine->captureChain();
-                same = back.size() == chain.size();
-                for (int i = 0; same && i < chain.size(); ++i)
-                    same = back[i].fileOrId == chain[i].fileOrId && back[i].state == chain[i].state && back[i].bypassed == chain[i].bypassed;
-            }
-            folder.deleteRecursively();
-            pr ("elements " + juce::String (chain.size()) + "; saved " + juce::String (saved ? "yes" : "NO " + err) + "; loaded into a new engine: every state byte-identical "
-                + juce::String (same ? "yes" : "NO") + "; missing plug-ins " + juce::String (missing.size()));
-            check (saved && same && missing.isEmpty(), "user preset round trip");
-        }
+        presetSections();
 
         pr ("");
         pr ("## Sustur, Ham ses (A/B), Deneme kaydi while audio plays (997 Hz -20 dBFS; chain: Kazanc -6 dB, Ses Gecikmesi 50 ms)");

@@ -337,7 +337,9 @@ Ayarlar → Görünüm ve başlangıç → "Arayüz akıcılığı".
   0 hata (30 preset ses çalarken geçiş: 29 kayarak, tık 0, geçersiz blok 0). Uzun ses setinde: 30 preset
   −20,0…−20,4 LUFS, gerçek tepe ≤ −1,9 dBTP. Windows'ta yalnızca exe derlendi ([hizli]); Windows test turu yok.
 - **Sadeleştirilmiş zincirler (deneme 20):** 30 preset −19,9…−20,1 LUFS, gerçek tepe ≤ −2,2 dBTP (Sesli Kitap ≤ −4,2);
-  Presets birim testleri geçti (yalnızca kullanılan eleman, tarif sırası, yankı yalnızca şarkıda).
+  Presets birim testleri geçti (yalnızca kullanılan eleman, tarif sırası, yankı yalnızca şarkıda);
+  `MicVSTEngineTest effects presets` (yeni filtre): 30 geçişin 30'u zincir değişimi, tık 0, geçersiz blok 0 (Linux;
+  ikinci koşuda 1 tık = 1 sanal cihaz takılması). Windows'ta yalnızca exe ([hizli], deneme 20).
 - **Kullanıcı dinleme doğrulaması bekleniyor.**
 
 ---
