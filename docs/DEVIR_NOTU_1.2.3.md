@@ -70,7 +70,8 @@ nelerin doğrulanmadığını tek yerde toplar. Doğrulama sözcükleri bilerek 
 Exe'yi kendisi deneyip yönlendirmek istiyor.
 
 **Bilgisayarı** (`docs/kanit_win11/test_edilen_surumler.md`, 22 Ekim envanteri):
-- **Sistem:** Windows 10 Pro 22H2 (19045.7725), AMD Ryzen 7 5700X, 32 GB.
+- **Sistem:** Windows 11 (kullanıcının 24 Ekim beyanı), AMD Ryzen 7 5700X, 32 GB. 22 Ekim envanteri
+  yapı 19045.7725 (Windows 10 22H2 numarası) okumuştu; kesin sürüm/yapı için `winver` sonucu bekleniyor.
 - **Ekran kartı:** modeli belgelerde kayıtlı değil (envanterde yalnızca NVIDIA HD Audio var).
 - **Ses donanımı:** HyperX QuadCast 2 S (USB, 48 kHz / 32 bit), VB-Audio Virtual Cable 3.3.1.7
   (24 bit / 48 kHz), Realtek HD hoparlör, kulaklık.
