@@ -356,7 +356,7 @@ Dosya: `C:\MicVST\test\deneme14\MicVST.exe` ve sohbet eki. Ayrıca
   göstergelerini göster" exe'de var.
 - **Birim testleri (Linux, `11ff813` kaynağı):** 24 Ekim'de güncel kodla yeniden derlendi.
   - "Render mode" grubu geçti.
-  - Tüm grupların sonucu: §10'a bakın.
+  - Tüm gruplar: 24 Ekim 05:00'te yeniden çalışıyordu (uzun Recorder testleri). O ana kadar 227 bölüm başladı, **FAIL 0**. Tamamlanma sonucu bu nota yazılmadı; yeni oturum `MicVSTTests` ile kendisi doğrulamalı.
   - Not: 24 Ekim 04:05 civarındaki ilk "geçti" sonucu eski test ikilisiyle alınmıştı (derleme bir hata
     yüzünden yarıda kalmıştı). Bu not yazılırken yeniden derlenip çalıştırıldı.
 
