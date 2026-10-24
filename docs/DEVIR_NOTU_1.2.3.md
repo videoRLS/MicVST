@@ -317,7 +317,14 @@ Ayarlar → Görünüm ve başlangıç → "Arayüz akıcılığı".
   Radyo Spikeri, Haber Sunucusu, Seslendirme / Belgesel (kadın: Anlatıcı), Sesli Kitap, Sıcak ve Dolgun, Net ve
   Parlak, Yumuşak ve Pürüzsüz, Yakın Mikrofon, Gürültülü Ortam, Kulaklık / Dizüstü Mikrofonu, Şarkı / Vokal.
 - **Kod:** `src/state/Presets.cpp` `build()` – her ses için ortak bir taban (`presets::Voicing`), her amaç küçük
-  farklar. Zincir aynı 15 eleman, aynı sıra (geçiş kayarak).
+  farklar. **Her presette yalnızca kullandığı elemanlar** (kullanıcı isteği, 24 Ekim öğleden sonra): 10–15 eleman,
+  sıra hep aynı. Oda Yankısı yalnızca Şarkı / Vokal'de; Saturasyon yalnızca Podcast, Radyo, Seslendirme, Sıcak
+  ve Dolgun (bant), Kulaklık / Dizüstü, Şarkı (tüp). Sesli Kitap limiteri −3 dBTP (ACX). Hep var: Low-Cut,
+  Otomatik Kazanç, Kapı, Kompresör, De-esser, Kazanç, Limiter.
+- **Bedeli:** eleman listesi farklı iki preset arasında geçişte zincir yeniden kurulur: kısa sönme, Otomatik
+  Kazanç sıfırdan başlar (kullanıcının sesinde ilk anda ~6 dB düşük, ~2,5 s'de oturuyor – lab `fresh` ölçümü).
+  Aynı elemanlı presetler arasında kayarak geçer. Düzeltme seçeneği (motor tarafı, kullanıcıya soruldu): geçişte
+  ortak elemanları ve Otomatik Kazanç'ın öğrendiği seviyeyi korumak.
 - **Ölçüm:** `MicVSTPresetLab` (tests/PresetLab.cpp – gerçek efektlerle çevrimdışı işler; `factory`, `tweak`,
   `personal <spec.txt>`) + `tools/preset_lab.py` (LUFS, gerçek tepe, ton dengesi, s sesleri, aralardaki gürültü,
   kelime başları, dinamik). Hepsi −20 LUFS, gerçek tepe ≤ −2,4 dBTP.
@@ -326,10 +333,12 @@ Ayarlar → Görünüm ve başlangıç → "Arayüz akıcılığı".
 - **Kişisel 5–14:** kullanıcının kaydı ölçülerek hazırlandı, dosya olarak verildi (programda yok). Ses: erkek,
   F0 ~133 Hz, QuadCast; 1,6 kHz genizlik ve 2,5 kHz sertlik (+5–6 dB), 6–8 kHz parlak (+7–8 dB, s sesleri
   6,6–6,9 kHz), 0,8–1 kHz oyuk; ham −32,7 LUFS, gürültü −66,7 dBFS.
-- **Doğrulama:** Linux'ta tüm birim testleri geçti; `MicVSTEngineTest effects` 0 hata (30 preset ses çalarken
-  geçiş: 29 kayarak, tık 0, geçersiz blok 0). Uzun ses setinde: 30 preset −20,0…−20,4 LUFS, gerçek tepe ≤ −1,9 dBTP.
-  Windows'ta yalnızca exe derlendi ([hizli], deneme 19); Windows test turu yok.
-- **Kullanıcı dinleme doğrulaması bekleniyor** (deneme 19).
+- **Doğrulama (deneme 19, hepsi 15 eleman iken):** Linux'ta tüm birim testleri geçti; `MicVSTEngineTest effects`
+  0 hata (30 preset ses çalarken geçiş: 29 kayarak, tık 0, geçersiz blok 0). Uzun ses setinde: 30 preset
+  −20,0…−20,4 LUFS, gerçek tepe ≤ −1,9 dBTP. Windows'ta yalnızca exe derlendi ([hizli]); Windows test turu yok.
+- **Sadeleştirilmiş zincirler (deneme 20):** 30 preset −19,9…−20,1 LUFS, gerçek tepe ≤ −2,2 dBTP (Sesli Kitap ≤ −4,2);
+  Presets birim testleri geçti (yalnızca kullanılan eleman, tarif sırası, yankı yalnızca şarkıda).
+- **Kullanıcı dinleme doğrulaması bekleniyor.**
 
 ---
 

@@ -12,8 +12,20 @@ project follows [Semantic Versioning](https://semver.org/).
   Dolgun, Net ve Parlak, Yumuşak ve Pürüzsüz, Yakın Mikrofon, Gürültülü Ortam, Kulaklık / Dizüstü
   Mikrofonu, Şarkı / Vokal. Removed as doubles of others: Dengeli Profesyonel (-> Doğal ve
   Dengeli), Kristal Netlik (-> Net ve Parlak), Sinema Sesi, Film Diyaloğu, Derin ve Sıcak, ASMR /
-  Fısıltı; new: Yakın Mikrofon, Gürültülü Ortam, Kulaklık / Dizüstü Mikrofonu. Same elements in
-  the same order as before (switching glides). Measured with the real effects on real and
+  Fısıltı; new: Yakın Mikrofon, Gürültülü Ortam, Kulaklık / Dizüstü Mikrofonu.
+  Each preset has only the elements it uses (user request; before, all thirty had all fifteen,
+  unused ones at zero - Oda Yankısı at 0 % mix in 28 of them): 10 to 15 elements, always in the
+  same order. Oda Yankısı only in Şarkı / Vokal (a live voice into a call, stream or recording
+  stays dry: a room makes words less clear and tiring, and is added in post when wanted);
+  Sıcak Saturasyon only where a colour is the purpose (Podcast, Radyo, Seslendirme, Sıcak ve
+  Dolgun: tape; Kulaklık / Dizüstü, Şarkı: tube) - not in Doğal, Haber, Oyun, Toplantı, Sesli
+  Kitap, Net ve Parlak, Yumuşak, Yakın, Gürültülü; an EQ element only where it moves something
+  (e.g. no Hava in Toplantı - call apps send no air - nor in Gürültülü Ortam, where it would lift
+  the hiss). Always there: Low-Cut, Otomatik Kazanç, Kompresör, De-esser, Kazanç, Çıkış
+  Limiteri (and the gate in all). Sesli Kitap: limiter at -3 dBTP (audiobook platforms, e.g.
+  ACX: peaks <= -3 dB, -23 to -18 dB RMS). Presets with the same elements switch by gliding;
+  others swap the chain with a short fade (as a user preset always did) - Otomatik Kazanç then
+  finds the level again within about a second. Measured with the real effects on real and
   synthetic men's and women's speech and on a real recording (tests/PresetLab.cpp,
   tools/preset_lab.py), and tuned to it:
   - all thirty equally loud, -20 LUFS (was about -25; Kompresör makeup + Kazanç), true peaks

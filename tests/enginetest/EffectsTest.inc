@@ -328,11 +328,11 @@ namespace fxtest
         }
 
         pr ("");
-        pr ("## Hazir ayarlar: switching while audio plays (997 Hz -20 dBFS; all thirty, one per second, then a user preset and back)");
+        pr ("## Hazir ayarlar: switching while audio plays (997 Hz -20 dBFS; all thirty, one per second, then a user preset and back; same elements glide, others swap the chain)");
         {
             sineConfig (997.0, 0.1, cfg.micRate);
             const auto& f = presets::factoryPresets();
-            int morphs = 0, rebuilds = 0;
+            int morphs = 0, rebuilds = 0, sameShapeSwitches = 0;
             uint64_t invalid = 0;
             juce::String steps;
             std::vector<double> levels;   // output level 1.2 s after each switch (1 s window)
@@ -340,8 +340,16 @@ namespace fxtest
                 EngineRun run (480, 28.0);
                 auto& e = *run.engine;
                 pump (1.0);
+                juce::StringArray shapeBefore;
+                for (auto& en : e.getChain().entries()) shapeBefore.add (en.fileOrId);
                 for (auto& p : f)
                 {
+                    // presets with the same elements glide, the others swap the chain (only the
+                    // elements each uses)
+                    juce::StringArray shape;
+                    for (auto& el : p.elements) shape.add (el.fileOrId);
+                    if (shape == shapeBefore) ++sameShapeSwitches;
+                    shapeBefore = shape;
                     const auto r = e.applyPreset (p.name, p.elements);
                     (r.morphed ? morphs : rebuilds)++;
                     pump (1.0);
@@ -367,7 +375,8 @@ namespace fxtest
             pr ("switches: " + juce::String (morphs) + " settings glides (same elements), " + juce::String (rebuilds)
                 + " chain swaps; clicks " + juce::String (clk) + ", invalid blocks " + juce::String ((int) invalid)
                 + (h > 0 ? ", device hiccups " + juce::String (h) : juce::String()));
-            check (morphs >= (int) f.size() - 1, "factory presets switch by gliding the settings");
+            pr ("same elements as the chain before: " + juce::String (sameShapeSwitches) + " of " + juce::String ((int) f.size()));
+            check (morphs == sameShapeSwitches, "factory presets with the same elements switch by gliding the settings");
             check (invalid == 0, "preset switching: invalid blocks");
             check (clk == 0 || h > 0, "preset switching: clicks");
         }

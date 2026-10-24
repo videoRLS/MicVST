@@ -63,8 +63,9 @@ namespace
         return p;
     }
 
-    // the chain on the input played twice; the second pass comes back
-    juce::AudioBuffer<float> render (const juce::Array<PluginEntryState>& chain, const juce::AudioBuffer<float>& in)
+    // the chain on the input played twice; the second pass comes back (passes = 1: the first, as
+    // right after a chain swap - nothing learnt yet)
+    juce::AudioBuffer<float> render (const juce::Array<PluginEntryState>& chain, const juce::AudioBuffer<float>& in, int passes = 2)
     {
         std::vector<std::unique_ptr<juce::AudioProcessor>> procs;
         int latency = 0;
@@ -75,7 +76,7 @@ namespace
         juce::AudioBuffer<float> blk (2, block);
         juce::MidiBuffer midi;
         // pass 1 (learning) + pass 2 (kept), plus the chain's latency so the kept part lines up
-        const int total = 2 * n + latency;
+        const int total = passes * n + latency;
         for (int pos = 0; pos < total; pos += block)
         {
             const int len = juce::jmin (block, total - pos);
@@ -84,13 +85,13 @@ namespace
                 for (int i = 0; i < len; ++i)
                 {
                     const int s = pos + i;
-                    blk.setSample (c, i, s < 2 * n ? in.getSample (c, s % n) : 0.0f);
+                    blk.setSample (c, i, s < passes * n ? in.getSample (c, s % n) : 0.0f);
                 }
             for (auto& p : procs) p->processBlock (blk, midi);
             for (int c = 0; c < 2; ++c)
                 for (int i = 0; i < len; ++i)
                 {
-                    const int s = pos + i - n - latency;
+                    const int s = pos + i - (passes - 1) * n - latency;
                     if (s >= 0 && s < n) out.setSample (c, s, blk.getSample (c, i));
                 }
         }
@@ -120,7 +121,7 @@ namespace
                      { "compThr", &v.compThr }, { "compRatio", &v.compRatio }, { "compAtk", &v.compAtk }, { "compRel", &v.compRel },
                      { "compKnee", &v.compKnee }, { "compMix", &v.compMix }, { "compMakeup", &v.compMakeup },
                      { "deessHz", &v.deessHz }, { "deessThr", &v.deessThr }, { "deessRange", &v.deessRange },
-                     { "satDrive", &v.satDrive }, { "satMix", &v.satMix }, { "roomSize", &v.roomSize }, { "roomMix", &v.roomMix },
+                     { "satDrive", &v.satDrive }, { "satMix", &v.satMix }, { "roomSize", &v.roomSize }, { "roomDamping", &v.roomDamping }, { "roomMix", &v.roomMix },
                      { "trimDb", &v.trimDb }, { "ceiling", &v.ceiling } };
         };
         juce::StringArray lines;
@@ -177,6 +178,17 @@ int main (int argc, char** argv)
             juce::AudioBuffer<float> b (2, (int) r.x.size());
             for (int i = 0; i < b.getNumSamples(); ++i) { b.setSample (0, i, r.x[(size_t) i]); b.setSample (1, i, r.x[(size_t) i]); }
             writeWav (dir.getChildFile (juce::String (s.name) + ".wav"), b);
+        }
+        return 0;
+    }
+    // chains: every factory preset's elements, in order (ids without "builtin:")
+    if (cmd == "chains")
+    {
+        for (auto& p : presets::factoryPresets())
+        {
+            juce::StringArray ids;
+            for (auto& e : p.elements) ids.add (e.fileOrId.fromFirstOccurrenceOf ("builtin:", false, false));
+            std::printf ("%s\t%d\t%s\n", p.name.toRawUTF8(), ids.size(), ids.joinIntoString (" ").toRawUTF8());
         }
         return 0;
     }
@@ -243,6 +255,13 @@ int main (int argc, char** argv)
             if (! found) { std::printf ("no %s\n", spec.toRawUTF8()); return 6; }
         }
         writeWav (cwd.getChildFile (argv[3]), render (chain, readWav (cwd.getChildFile (argv[2]))));
+        return 0;
+    }
+    // fresh <in.wav> <out.wav> <factory index>: one pass from a new chain (as after a chain swap)
+    if (cmd == "fresh" && argc > 4)
+    {
+        const auto& p = presets::factoryPresets()[(size_t) juce::String (argv[4]).getIntValue()];
+        writeWav (cwd.getChildFile (argv[3]), render (p.elements, readWav (cwd.getChildFile (argv[2])), 1));
         return 0;
     }
     if (cmd == "file" && argc > 4)

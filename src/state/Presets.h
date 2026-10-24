@@ -10,9 +10,10 @@
 //    (the same fifteen purposes: everyday, podcast, streaming, meetings, radio, news, narration,
 //    audiobook, warm, bright, smooth, close microphone, noisy room, headset / laptop microphone,
 //    singing), for the great majority of adult men's and women's voices. Built-in effects only, so
-//    they work for everyone; built in code (factoryPresets(), from a Voicing each). All thirty have
-//    the same elements in the same order - switching between them only moves parameters (each
-//    glides in 50 ms), the chain is not rebuilt.
+//    they work for everyone; built in code (factoryPresets(), from a Voicing each). Each has only
+//    the elements it uses (a room only for singing, saturation only where a colour is the purpose),
+//    always in the same order. Two presets with the same elements switch by moving parameters
+//    (each glides in 50 ms); others swap the chain (a short fade, as for a user preset).
 //  * User presets: one file per preset in %APPDATA%\MicVST\presets (*.micvstpreset, XML), written
 //    through a temporary file (a crash never leaves half a preset). Names may contain any letters
 //    (Turkish too); the file name is derived from the name, the name itself is kept inside the file.
@@ -29,12 +30,14 @@ namespace presets
     };
 
     // The recipe of the factory presets (and of any chain made the same way, e.g. personal presets
-    // given as files): always the same fifteen elements in the same order, so switching between two
-    // such chains glides - nothing is rebuilt:
+    // given as files). The elements always come in this order, and an element is put in only when
+    // it does something (an EQ gain of 0, a saturation or a room with no mix, a gate with no range:
+    // left out):
     //   Low-Cut -> Yakınlık -> Çamur Temizleyici -> Parametrik EQ (kutu, genizlik, sertlik, cızırtı) ->
     //   Gövde -> Netlik -> Hava -> Otomatik Kazanç -> Gürültü Kapısı -> Kompresör -> De-esser ->
     //   Sıcak Saturasyon -> Oda Yankısı -> Kazanç -> Çıkış Limiteri
-    // The defaults change nothing but the Low-Cut, Otomatik Kazanç and a limiter at -1 dBTP.
+    // Always there: Low-Cut, Otomatik Kazanç, Kompresör, Kazanç and Çıkış Limiteri. Two presets with
+    // the same elements switch by gliding their settings; others swap the chain (a short fade).
     struct Voicing
     {
         float lowCut = 80.0f;                                   // Hz, 24 dB/octave
@@ -52,7 +55,7 @@ namespace presets
               compMakeup = 0.0f;
         float deessHz = 6000.0f, deessThr = -15.0f, deessRange = 0.0f;
         int satType = 0; float satDrive = 0.0f, satMix = 0.0f;  // 0 tube, 1 tape
-        float roomSize = 30.0f, roomMix = 0.0f;
+        float roomSize = 30.0f, roomDamping = 45.0f, roomMix = 0.0f;
         float trimDb = 0.0f;                                    // Kazanç: the loudness match
         float ceiling = -1.0f;                                  // Çıkış Limiteri, dBTP
     };

@@ -61,7 +61,7 @@ struct PresetTest : juce::UnitTest
 
     void runTest() override
     {
-        beginTest ("factory presets: 15 + 15, built-in only, same elements in the same order, every state valid");
+        beginTest ("factory presets: 15 + 15, built-in only, only the elements each uses, in the recipe's order, every state valid");
         {
             const auto& f = presets::factoryPresets();
             expectEquals ((int) f.size(), 30);
@@ -79,35 +79,52 @@ struct PresetTest : juce::UnitTest
             for (const char* n : { "Erkek Sesi - Radyo Spikeri", "Kadın Sesi - Şarkı / Vokal", "Erkek Sesi - Doğal ve Dengeli",
                                   "Kadın Sesi - Seslendirme / Anlatıcı", "Erkek Sesi - Kulaklık / Dizüstü Mikrofonu" })
                 expect (presets::findFactory (juce::String::fromUTF8 (n)) != nullptr, juce::String::fromUTF8 (n));
+
+            const juce::StringArray recipe { "builtin:lowcut", "builtin:proximity", "builtin:mud", "builtin:parameq", "builtin:body",
+                                             "builtin:presence", "builtin:air", "builtin:autogain", "builtin:gate", "builtin:compressor",
+                                             "builtin:deesser", "builtin:saturation", "builtin:reverb", "builtin:gain", "builtin:limiter" };
+            const juce::StringArray always { "builtin:lowcut", "builtin:autogain", "builtin:compressor", "builtin:deesser",
+                                             "builtin:gain", "builtin:limiter" };
+            auto paramOf = [] (const PluginEntryState& e, const char* param)
+            {
+                auto fx = builtin::create (e.fileOrId);
+                fx->setStateInformation (e.state.getData(), (int) e.state.getSize());
+                return fx->getParam (param);
+            };
             for (auto& p : f)
             {
                 expect (p.factory);
-                expectEquals (p.elements.size(), f[0].elements.size());
+                juce::StringArray ids;
+                int lastAt = -1;
                 for (int i = 0; i < p.elements.size(); ++i)
                 {
                     const auto& e = p.elements.getReference (i);
+                    ids.add (e.fileOrId);
                     expect (e.fileOrId.startsWith ("builtin:"), p.name + ": not built-in: " + e.fileOrId);
-                    expect (e.fileOrId == f[0].elements[i].fileOrId, p.name + ": element " + juce::String (i) + " differs");
+                    const int at = recipe.indexOf (e.fileOrId);
+                    expect (at > lastAt, p.name + ": " + e.fileOrId + " out of the recipe's order (or twice)");
+                    lastAt = at;
                     expect (! e.bypassed);
                     expect (e.state.getSize() > 0);
                     if (auto fx = builtin::create (e.fileOrId))
                     {
                         auto xml = juce::AudioProcessor::getXmlFromBinary (e.state.getData(), (int) e.state.getSize());
                         expect (xml != nullptr && fx->applyStateXml (*xml), p.name + ": state of " + e.fileOrId);
+                        // nothing in the chain that does nothing
+                        for (auto* q : { "gain", "mix" })
+                            if (fx->findParameter (q) != nullptr && e.fileOrId != "builtin:limiter" && e.fileOrId != "builtin:compressor")
+                                expect (std::abs (fx->getParam (q)) > 0.01f, p.name + ": " + e.fileOrId + " does nothing");
                     }
                 }
-                // Otomatik Kazanç once, before the gate and the compressor; the limiter last
-                int autos = 0, autoAt = -1, gateAt = -1, compAt = -1;
-                for (int i = 0; i < p.elements.size(); ++i)
-                {
-                    const auto& id = p.elements.getReference (i).fileOrId;
-                    if (id == "builtin:autogain") { ++autos; autoAt = i; }
-                    if (id == "builtin:gate") gateAt = i;
-                    if (id == "builtin:compressor") compAt = i;
-                }
-                expectEquals (autos, 1);
-                expect (autoAt >= 0 && autoAt < gateAt && gateAt < compAt, p.name + ": order");
+                for (auto& id : always)
+                    expect (ids.contains (id), p.name + ": no " + id);
                 expect (p.elements.getLast().fileOrId == "builtin:limiter", p.name + ": limiter last");
+                // a room only for singing; no speech preset has one
+                const bool singing = p.shortName == juce::String::fromUTF8 ("Şarkı / Vokal");
+                expect (ids.contains ("builtin:reverb") == singing, p.name + ": room");
+                // audiobooks: peaks at most -3 dB
+                if (p.shortName == juce::String::fromUTF8 ("Sesli Kitap"))
+                    expectLessOrEqual (paramOf (p.elements.getLast(), "ceiling"), -3.0f);
             }
         }
 
