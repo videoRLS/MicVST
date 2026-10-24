@@ -83,6 +83,9 @@ BuiltInEffectEditor::BuiltInEffectEditor (BuiltInEffect& e)
 BuiltInEffectEditor::~BuiltInEffectEditor()
 {
     rows.clear();   // attachments before the controls they watch (each Row owns both)
+    // the host's job in JUCE: tell the processor its editor is gone. Without it the effect kept a
+    // dangling "active editor", and opening it again gave an empty window (user report).
+    effect.editorBeingDeleted (this);
 }
 
 void BuiltInEffectEditor::paint (juce::Graphics& g)

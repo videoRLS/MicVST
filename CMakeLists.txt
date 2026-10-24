@@ -174,6 +174,7 @@ target_sources(MicVSTTests PRIVATE
     tests/CounterWrapTests.cpp
     tests/CueTests.cpp
     tests/RenderModeTests.cpp
+    tests/BuiltInEditorTests.cpp
     src/ui/RenderMode.cpp
     src/ui/DarkTitleBar.cpp
     src/audio/PluginChain.cpp

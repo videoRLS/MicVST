@@ -15,8 +15,11 @@ project follows [Semantic Versioning](https://semver.org/).
   Choosing Yalnızca ekran kartı / Yalnızca işlemci applies at once (each window gets a new native
   window, its engine set before the first paint); choosing Otomatik is saved (config.xml uiRenderer;
   automatic writes nothing) and decided at the next start; logged ("Arayüz çizimi: ..."). Interface only: the audio engine is not touched.
-- Effects: a second click on an effect whose window is already open (built-in or VST3) showed a
-  new, empty window - JUCE allows one editor per processor. The open window is brought forward.
+- Built-in effects: opened, closed and opened again, the window was empty (user report). The
+  editor did not tell its effect it was gone (JUCE leaves that to the host), so the effect kept a
+  dangling editor and refused a new one. Now it does; unit test "Built-in effect editors" opens,
+  closes and reopens every built-in effect. Also: a click on an effect whose window is already
+  open brings that window forward instead of a second one.
 - Ayarlar > Görünüm ve başlangıç > "Arayüz akıcılığı": the level meters' redraws per second - 60 / 30 /
   20 / 10 FPS with the processor, 60 / 30 with the graphics card; default 30 (also whatever Otomatik
   picks); applied at once. "Ses seviyesi göstergelerini göster": the input / output meters shown or
