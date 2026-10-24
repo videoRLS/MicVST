@@ -175,6 +175,7 @@ target_sources(MicVSTTests PRIVATE
     tests/CueTests.cpp
     tests/RenderModeTests.cpp
     src/ui/RenderMode.cpp
+    src/ui/DarkTitleBar.cpp
     src/audio/PluginChain.cpp
     src/ui/GlobalHotkeys.cpp
 )

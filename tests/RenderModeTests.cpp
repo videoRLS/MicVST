@@ -32,12 +32,17 @@ struct RenderModeTest : juce::UnitTest
             }
         }
 
-        beginTest ("a new choice waits for the next start");
+        beginTest ("GPU / CPU only apply at once, Otomatik waits for the next start");
         {
             startSession (Mode::cpuOnly);
             expect (! describeNow().contains ("\n"));
             setMode (Mode::gpuOnly);
-            expect (current() == Mode::gpuOnly);
+            expect (current() == Mode::gpuOnly && sessionEngine() == 1, "at once");
+            expect (! describeNow().contains ("\n"));
+            setMode (Mode::cpuOnly);
+            expect (sessionEngine() == 0, "back at once");
+            setMode (Mode::automatic);
+            expect (current() == Mode::automatic && sessionEngine() == 0, "Otomatik: decided at the next start");
             expect (describeNow().contains ("\n"), "the settings say it is used from the next start");
             setMode (Mode::cpuOnly);
             expect (! describeNow().contains ("\n"));

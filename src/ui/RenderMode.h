@@ -11,8 +11,10 @@
 //     guard - otherwise the processor (GDI).
 //   Yalnızca ekran kartı: Direct2D; without a usable card the user is told, no fallback (as asked).
 //   Yalnızca işlemci: GDI.
-// A new choice in the settings is saved and used from the next start. The engine is set when a
-// window is shown, before its first paint (ComponentPeer::setCurrentRenderingEngine).
+// Choosing Yalnızca ekran kartı / Yalnızca işlemci in the settings applies at once: each window gets a
+// new native window with the engine set before its first paint. Choosing Otomatik is saved and
+// decided at the next start. The engine is set before a window's first paint
+// (ComponentPeer::setCurrentRenderingEngine).
 namespace micvst::render
 {
     enum class Mode { automatic, gpuOnly, cpuOnly };
@@ -25,7 +27,7 @@ namespace micvst::render
 
     void startSession (Mode);                     // once at start: decides this session's engine
     Mode current();                               // the saved choice (may wait for the next start)
-    void setMode (Mode);                          // saved; used from the next start
+    void setMode (Mode);                          // saved; GPU / CPU only at once, Otomatik at the next start
     bool gpuUsable();                             // checked once per start, cached
     juce::String problem();                       // "Yalnızca ekran kartı" without a usable card
     void attach (juce::Component& window);        // a window was shown: this session's engine

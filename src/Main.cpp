@@ -496,7 +496,7 @@ private:
         }
         void applyRenderer (const juce::String& id)
         {
-            micvst::render::setMode (micvst::render::fromId (id));   // used from the next start
+            micvst::render::setMode (micvst::render::fromId (id));   // GPU / CPU only at once, Otomatik at the next start
             if (onThemeApplied) onThemeApplied();   // saved with the other appearance settings
         }
         void applyTheme (const juce::String& id)

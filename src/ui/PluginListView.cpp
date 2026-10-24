@@ -738,6 +738,21 @@ void PluginListView::openEditor (int row)
     auto* proc = node->getProcessor();
     if (proc == nullptr || ! proc->hasEditor()) return;
 
+    // already open (a second click on the same effect): bring its window forward. JUCE allows one
+    // editor per processor - asking for another returned nothing, and the new window stayed empty.
+    if (auto* active = proc->getActiveEditor())
+    {
+        for (auto* w : editorWindows)
+            if (w->getContentComponent() == active)
+            {
+                if (w->isMinimised()) w->setMinimised (false);
+                w->setVisible (true);
+                w->toFront (true);
+                return;
+            }
+        return;   // shown somewhere else (no second, empty window)
+    }
+
     juce::MemoryBlock stateAtOpen;
     proc->getStateInformation (stateAtOpen);
     auto* w = new EditorWindow (proc->getName(),

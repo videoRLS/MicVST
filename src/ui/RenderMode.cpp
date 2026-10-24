@@ -1,5 +1,7 @@
 #include "ui/RenderMode.h"
 #include "Text.h"
+#include "ui/DarkTitleBar.h"
+#include "ui/Theme.h"
 
 #if JUCE_WINDOWS
  #ifndef NOMINMAX
@@ -86,6 +88,7 @@ namespace
 
     Mode saved = Mode::automatic, session = Mode::automatic;
     int sessionEngine_ = -1;
+    juce::Array<juce::Component::SafePointer<juce::Component>> windows;   // MicVST's own, once shown
     int fpsSaved = 0;
     bool meters = true;
 }
@@ -107,7 +110,33 @@ void startSession (Mode m)
 }
 
 Mode current()        { return saved; }
-void setMode (Mode m) { saved = m; }
+// Yalnızca ekran kartı / Yalnızca işlemci: at once. Each of MicVST's windows gets a new native
+// window (peer) whose engine is set before its first paint - switching the engine of a window that
+// had already drawn left its old Direct2D picture behind. Otomatik: saved, decided at the next start.
+void setMode (Mode m)
+{
+    saved = m;
+    if (m == Mode::automatic || m == session) return;
+    startSession (m);
+    for (int i = windows.size(); --i >= 0;)
+    {
+        auto* w = windows.getReference (i).getComponent();
+        if (w == nullptr) { windows.remove (i); continue; }
+        auto* old = w->getPeer();
+        if (old == nullptr) continue;
+        const auto flags = old->getStyleFlags();
+        w->removeFromDesktop();
+        w->addToDesktop (flags);
+        if (auto* peer = w->getPeer())
+            if (peer->getCurrentRenderingEngine() != sessionEngine_)
+                peer->setCurrentRenderingEngine (sessionEngine_);
+        if (w->isVisible())
+        {
+            micvst::useDarkTitleBar (*w, micvst::theme::dark);
+            w->repaint();
+        }
+    }
+}
 
 juce::String problem()
 {
@@ -119,6 +148,9 @@ juce::String problem()
 void attach (juce::Component& window)
 {
     if (sessionEngine_ < 0) startSession (saved);
+    bool known = false;
+    for (auto& w : windows) if (w == &window) known = true;
+    if (! known) windows.add (&window);
     if (auto* peer = window.getPeer())
         if (peer->getCurrentRenderingEngine() != sessionEngine_)
             peer->setCurrentRenderingEngine (sessionEngine_);

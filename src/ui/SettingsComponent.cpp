@@ -120,7 +120,7 @@ SettingsComponent::SettingsComponent (AudioEngine& e, GlobalHotkeys* keys, Callb
         renderBox.setSelectedId (m == micvst::render::Mode::gpuOnly ? 2 : m == micvst::render::Mode::cpuOnly ? 3 : 1, juce::dontSendNotification);
     }
     renderBox.setTooltip (tr ("Yalnızca pencerelerin nasıl çizildiğini değiştirir; ses işleme, ses kalitesi ve gecikme değişmez. "
-                              "Seçim MicVST her açıldığında bir kez uygulanır ve kapanana kadar değişmez. "
+                              "Yalnızca ekran kartı ve Yalnızca işlemci anında uygulanır; Otomatik her açılışta bir kez karar verir ve kapanana kadar değişmez. "
                               "Otomatik: ekran kartı kullanılabiliyorsa onu, değilse işlemciyi kullanır. "
                               "Ekran kartıyla çizerken tam ekran oyunlardan sonra pencerede beyaz alan kalabilir; kenarı çekmek düzeltir, "
                               "kalıcı çözüm Yalnızca işlemci. Yalnızca işlemci: her durumda kararlı, pencere açıkken biraz daha fazla işlemci kullanır."));

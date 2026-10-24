@@ -12,8 +12,11 @@ project follows [Semantic Versioning](https://semver.org/).
   hardware device with Direct2D support (not the Basic Render Driver) can be created - checked in an
   SEH guard - else GDI. Graphics card only: Direct2D, the user is told when no usable card was
   found. Processor only: GDI (immune to the shifted picture after full-screen games such as GTA 5).
-  A new choice is saved (config.xml uiRenderer; automatic writes nothing) and used from the next
-  start; logged ("Arayüz çizimi: ..."). Interface only: the audio engine is not touched.
+  Choosing Yalnızca ekran kartı / Yalnızca işlemci applies at once (each window gets a new native
+  window, its engine set before the first paint); choosing Otomatik is saved (config.xml uiRenderer;
+  automatic writes nothing) and decided at the next start; logged ("Arayüz çizimi: ..."). Interface only: the audio engine is not touched.
+- Effects: a second click on an effect whose window is already open (built-in or VST3) showed a
+  new, empty window - JUCE allows one editor per processor. The open window is brought forward.
 - Ayarlar > Görünüm ve başlangıç > "Arayüz akıcılığı": the level meters' redraws per second - 60 / 30 /
   20 / 10 FPS with the processor, 60 / 30 with the graphics card; default 30 (also whatever Otomatik
   picks); applied at once. "Ses seviyesi göstergelerini göster": the input / output meters shown or
