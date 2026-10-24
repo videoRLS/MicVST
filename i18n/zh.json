@@ -444,7 +444,7 @@
  "Sol kanal iki kanala": "左声道送到两侧",
  "Spektrum Analizörü": "频谱分析仪",
  "Spektrum ve ses seviyesi göstergelerinin saniyede kaç kez çizileceği; her kare ekranın yenilenmesine denk gelir. Hareketin hızı her değerde aynıdır, yalnızca ne sıklıkta gösterildiği değişir. Yalnızca görüntüyü etkiler; ses işleme, gecikme ve ses kalitesi değişmez. Düşük değer daha az işlemci kullanır. İşlemciyle 60, 30, 20 ve 10; ekran kartıyla 60 ve 30 seçilebilir. Varsayılan: 30.": "频谱和电平表每秒绘制的次数；每一帧都与屏幕刷新对齐。无论选择哪个值，动画速度都相同，只改变显示的频率。仅影响显示；音频处理、延迟和音质不变。数值越低越省处理器。使用处理器时可选 60、30、20 和 10；使用显卡时可选 60 和 30。默认：30。",
- "Spektrum: gri giriş (mikrofon, zincirden önce), renkli çıkış (kabloya giden). Yatay 20 Hz - 20 kHz, ses ve müzik düz görünsün diye oktav başına 4,5 dB eğimli (Pro-Q gibi). Yalnızca görüntü: ses işleme değişmez.": "频谱：灰色为输入（麦克风，效果链之前），彩色为输出（送往虚拟线缆的声音）。横轴 20 Hz - 20 kHz，按每倍频程 4.5 dB 倾斜，使语音和音乐看起来平直（与 Pro-Q 相同）。仅为显示：音频处理不受影响。",
+ "Spektrum: gri eğri giriş (mikrofon, zincirden önce), renkli eğri çıkış (kabloya giden ses). Yatay eksen 20 Hz - 20 kHz; konuşma ve müzik dengeli görünsün diye eğri 1 kHz çevresinde oktav başına 4,5 dB eğimle gösterilir. Yalnızca görüntü: ses işleme değişmez.": "频谱：灰色曲线为输入（麦克风，效果链之前），彩色曲线为输出（送往虚拟线缆的声音）。横轴 20 Hz - 20 kHz；曲线以 1 kHz 为中心按每倍频程 4.5 dB 倾斜显示，使语音和音乐看起来均衡。仅为显示：音频处理不受影响。",
  "Spektrumu ve ses seviyesi göstergelerini göster": "显示频谱和电平表",
  "Stereo": "立体声",
  "Stereo (değişmez)": "立体声（不变）",

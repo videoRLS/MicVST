@@ -266,9 +266,9 @@ MainComponent::MainComponent (AudioEngine& e) : engine (e)
     addChildComponent (meters);
     spectrum.setVisible (micvst::render::metersVisible());
     meters.setVisible (micvst::render::metersVisible());
-    spectrum.setTooltip (tr ("Spektrum: gri giriş (mikrofon, zincirden önce), renkli çıkış (kabloya giden). "
-                             "Yatay 20 Hz - 20 kHz, ses ve müzik düz görünsün diye oktav başına 4,5 dB eğimli (Pro-Q gibi). "
-                             "Yalnızca görüntü: ses işleme değişmez."));
+    spectrum.setTooltip (tr ("Spektrum: gri eğri giriş (mikrofon, zincirden önce), renkli eğri çıkış (kabloya giden ses). "
+                             "Yatay eksen 20 Hz - 20 kHz; konuşma ve müzik dengeli görünsün diye eğri 1 kHz çevresinde "
+                             "oktav başına 4,5 dB eğimle gösterilir. Yalnızca görüntü: ses işleme değişmez."));
     vblank = juce::VBlankAttachment (this, [this] (double t) { onVBlank (t); });
 
     devicePanel = std::make_unique<DevicePanel> (engine, true);

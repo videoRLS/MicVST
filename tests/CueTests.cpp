@@ -14,10 +14,12 @@ struct CueTest : juce::UnitTest
     struct FakeBackend final : CuePlayer::Backend
     {
         juce::Array<juce::MemoryBlock>* played; int* stops; juce::String output;
+        bool ready = false; juce::String avoid; int readyCalls = 0;
         FakeBackend (juce::Array<juce::MemoryBlock>* p, int* s, juce::String o) : played (p), stops (s), output (std::move (o)) {}
         bool play (const juce::MemoryBlock& w) override { played->add (w); return true; }
         void stop() override { ++*stops; }
         juce::String defaultOutputName() override { return output; }
+        void keepReady (bool on, const juce::String& a) override { ready = on; avoid = a; ++readyCalls; }
     };
 
     static void writeWav (const juce::File& f, double seconds, double rate = 48000.0, int ch = 2, double freq = 440.0)
@@ -192,6 +194,27 @@ struct CueTest : juce::UnitTest
             q.play (true); q.play (false); q.preview (CueSettings::defaultOnId());
             expectEquals (played2.size(), 0);
             expect (q.lastProblem().isNotEmpty());
+        }
+
+        beginTest ("the output is kept ready (no sleeping speaker crackling on the next sound) only while switched on, never on the cable");
+        {
+            juce::Array<juce::MemoryBlock> played; int stops = 0;
+            CuePlayer p;
+            juce::String cable ("CABLE Input (VB-Audio Virtual Cable)");
+            p.cableName = [&] { return cable; };
+            auto fake = std::make_unique<FakeBackend> (&played, &stops, "Hoparlör (Realtek(R) Audio)");
+            auto* f = fake.get();
+            p.setBackend (std::move (fake));
+            expect (f->ready && f->avoid == cable, "switched on (default): kept ready, the cable avoided");
+            auto s = CueSettings{}; s.enabled = false; p.setSettings (s);
+            expect (! f->ready, "switched off: not kept open");
+            s.enabled = true; p.setSettings (s);
+            expect (f->ready);
+            cable = "CABLE-A Input (VB-Audio Cable A)";   // another cable chosen in MicVST
+            p.refreshOutput();
+            expect (f->avoid == cable, "the new cable is avoided");
+            p.play (true);
+            expect (f->ready && f->avoid == cable && played.size() == 1);
         }
 
         beginTest ("player: play returns at once (the sound starts with the mute itself)");

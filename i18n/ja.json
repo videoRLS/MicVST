@@ -444,7 +444,7 @@
  "Sol kanal iki kanala": "左チャンネルを両方へ",
  "Spektrum Analizörü": "スペクトラムアナライザー",
  "Spektrum ve ses seviyesi göstergelerinin saniyede kaç kez çizileceği; her kare ekranın yenilenmesine denk gelir. Hareketin hızı her değerde aynıdır, yalnızca ne sıklıkta gösterildiği değişir. Yalnızca görüntüyü etkiler; ses işleme, gecikme ve ses kalitesi değişmez. Düşük değer daha az işlemci kullanır. İşlemciyle 60, 30, 20 ve 10; ekran kartıyla 60 ve 30 seçilebilir. Varsayılan: 30.": "スペクトラムとレベルメーターを 1 秒間に何回描画するか。各フレームは画面の更新に合わせて描かれます。動きの速さはどの値でも同じで、表示の頻度だけが変わります。表示のみに影響し、音声処理・遅延・音質は変わりません。低い値ほどプロセッサーの使用が少なくなります。プロセッサーでは 60、30、20、10、グラフィックカードでは 60 と 30 を選べます。既定値：30。",
- "Spektrum: gri giriş (mikrofon, zincirden önce), renkli çıkış (kabloya giden). Yatay 20 Hz - 20 kHz, ses ve müzik düz görünsün diye oktav başına 4,5 dB eğimli (Pro-Q gibi). Yalnızca görüntü: ses işleme değişmez.": "スペクトラム：グレーは入力（マイク、チェーンの前）、色付きは出力（ケーブルへ送られる音）。横軸 20 Hz - 20 kHz、音声や音楽が平らに見えるようオクターブあたり 4.5 dB 傾けています（Pro-Q と同様）。表示のみ：音声処理は変わりません。",
+ "Spektrum: gri eğri giriş (mikrofon, zincirden önce), renkli eğri çıkış (kabloya giden ses). Yatay eksen 20 Hz - 20 kHz; konuşma ve müzik dengeli görünsün diye eğri 1 kHz çevresinde oktav başına 4,5 dB eğimle gösterilir. Yalnızca görüntü: ses işleme değişmez.": "スペクトラム：グレーの曲線は入力（マイク、チェーンの前）、色付きの曲線は出力（ケーブルへ送られる音）。横軸 20 Hz - 20 kHz。音声や音楽がバランスよく見えるよう、曲線は 1 kHz を中心にオクターブあたり 4.5 dB 傾けて表示しています。表示のみ：音声処理は変わりません。",
  "Spektrumu ve ses seviyesi göstergelerini göster": "スペクトラムとレベルメーターを表示",
  "Stereo": "ステレオ",
  "Stereo (değişmez)": "ステレオ（変更なし）",

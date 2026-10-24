@@ -444,7 +444,7 @@
  "Sol kanal iki kanala",
  "Spektrum Analizörü",
  "Spektrum ve ses seviyesi göstergelerinin saniyede kaç kez çizileceği; her kare ekranın yenilenmesine denk gelir. Hareketin hızı her değerde aynıdır, yalnızca ne sıklıkta gösterildiği değişir. Yalnızca görüntüyü etkiler; ses işleme, gecikme ve ses kalitesi değişmez. Düşük değer daha az işlemci kullanır. İşlemciyle 60, 30, 20 ve 10; ekran kartıyla 60 ve 30 seçilebilir. Varsayılan: 30.",
- "Spektrum: gri giriş (mikrofon, zincirden önce), renkli çıkış (kabloya giden). Yatay 20 Hz - 20 kHz, ses ve müzik düz görünsün diye oktav başına 4,5 dB eğimli (Pro-Q gibi). Yalnızca görüntü: ses işleme değişmez.",
+ "Spektrum: gri eğri giriş (mikrofon, zincirden önce), renkli eğri çıkış (kabloya giden ses). Yatay eksen 20 Hz - 20 kHz; konuşma ve müzik dengeli görünsün diye eğri 1 kHz çevresinde oktav başına 4,5 dB eğimle gösterilir. Yalnızca görüntü: ses işleme değişmez.",
  "Spektrumu ve ses seviyesi göstergelerini göster",
  "Stereo",
  "Stereo (değişmez)",

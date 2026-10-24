@@ -6,9 +6,9 @@
 // opaque, keep their still parts (screen, grid, labels, frame) in cached images rebuilt only on a
 // size, scale, theme or drawing-engine change, and draw only the moving parts per frame.
 
-// Spectrum in the level card, after FabFilter Pro-Q's analyser: logarithmic 20 Hz - 20 kHz, the
-// input (before the chain, muted grey) under the output (what goes to the cable, the theme's
-// accent), with Pro-Q's 4.5 dB/octave display tilt around 1 kHz so speech and music look level.
+// Spectrum in the level card: logarithmic 20 Hz - 20 kHz, the input (before the chain, muted grey)
+// under the output (what goes to the cable, the theme's accent), drawn with a 4.5 dB/octave tilt
+// around 1 kHz so speech and music look balanced.
 class SpectrumView final : public juce::Component, public juce::SettableTooltipClient
 {
 public:

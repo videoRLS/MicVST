@@ -227,6 +227,7 @@ void AudioEngine::openDevices (const juce::String& input, const juce::String& ou
 {
     wantedInput = input;
     wantedOutput = output;
+    cues.refreshOutput();   // Bildirim sesleri: their output is never kept open on this cable
 
     // Names VERBATIM, also empty: an empty output deliberately means "no output" ("none").
     // If the low-latency mode (IAudioClient3) refuses a device that IS present, it is retried in

@@ -6,8 +6,18 @@ project follows [Semantic Versioning](https://semver.org/).
 
 ## [1.2.3] - 2026-10-23
 
-- Main window: a spectrum in the level card, after FabFilter Pro-Q's analyser - logarithmic
-  20 Hz - 20 kHz, the input (microphone, before the chain, grey) under the output (what goes to the
+- Bildirim sesleri: the speakers (onboard Realtek) crackled again on the first sound after a pause
+  (user report, deneme 17). The sounds' output was closed 2 s after each sound; the onboard output
+  then went to sleep and the next sound woke it - the wake-up crackle fell on the start of the
+  sound, whatever was queued. Now, while the sounds are switched on, their output stays open and
+  plays silence between sounds (never on the cable; checked every second, another default output
+  -> reopened there; device gone or the PC asleep -> reopened, retried after 2, 4 ... 30 s). The
+  device never sleeps, and every sound - the first one included - starts with the same short
+  delay as before (40 ms queued), so the sync with Sustur stays. Switched off: as before (open only
+  while a sound plays + 2 s). Unit test: kept ready only while switched on, the cable avoided, a
+  newly chosen cable avoided at once.
+- The spectrum's tooltip describes it in MicVST's own words (no other product named).
+- Main window: a spectrum in the level card - logarithmic 20 Hz - 20 kHz, the input (microphone, before the chain, grey) under the output (what goes to the
   cable, the theme's accent), 4.5 dB/octave display tilt around 1 kHz, a sixth-octave peak per
   point, rise 35 ms / fall 280 ms. The input / output level meters moved under the chain and became
   vertical: left and right each, peak and RMS bars (green, yellow towards -6 dB, red at full scale),

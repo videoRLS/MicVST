@@ -174,18 +174,21 @@ namespace
    #if JUCE_WINDOWS
     // MicVST's own little output for the sounds: waveOut on Windows' default output (WAVE_MAPPER),
     // 48 kHz 16-bit stereo in blocks of 10 ms, fed by CueMixer from a thread of its own. A device that
-    // was just opened gets 100 ms queued before it starts (paused while they are written): with only
-    // 40 ms and an immediate start, a sleeping onboard output (Realtek speakers) crackled on its first
-    // sound (user report). Once running, 40 ms stay queued: a new sound starts at most ~40 ms later. Opened when a
-    // sound starts, closed 2 s after the last one ended - nothing is open while silent, and the next
-    // sound goes to whatever the default output is then. If the device cannot be opened (another
-    // program holds it exclusively, it is unplugged ...), that one sound is played with PlaySound
-    // and the next sound tries the device again. If the device stops taking blocks for 1 s (pulled
-    // out while playing) it is closed; the sound still playing is dropped, the next one reopens.
+    // was just opened gets 100 ms queued before it starts (paused while they are written); once
+    // running, 40 ms stay queued: a new sound starts at most ~40 ms later.
+    // While the sounds are switched on (keepReady) the output stays open, playing silence between
+    // sounds: closed 2 s after each sound, an onboard output (Realtek speakers) went to sleep and
+    // crackled when the next sound woke it (user report, also with the 100 ms queue). Every second the
+    // default output is checked: another one -> reopened there; the cable -> closed (never into the
+    // cable). Switched off: opened when a sound starts, closed 2 s after the last one.
+    // If the device cannot be opened (another program holds it exclusively, nothing plugged in ...),
+    // a sound is played with PlaySound and the next sound tries the device again; keeping it open is
+    // retried after 2, 4, 8 ... at most 30 s. If the device stops taking blocks for 1 s (pulled out,
+    // sleep) it is closed; the sound still playing is dropped, then it is reopened.
     struct WindowsBackend final : CuePlayer::Backend, private juce::Thread
     {
         static constexpr int blockFrames = 480, numBlocks = 10, steadyBlocks = 4;
-        static constexpr juce::uint32 idleCloseMs = 2000, stallMs = 1000;
+        static constexpr juce::uint32 idleCloseMs = 2000, stallMs = 1000, checkDefaultMs = 1000, maxRetryMs = 30000;
 
         WindowsBackend() : juce::Thread ("MicVST cue sounds") { doneEvent = CreateEventW (nullptr, FALSE, FALSE, nullptr); }
         ~WindowsBackend() override
@@ -215,17 +218,59 @@ namespace
             PlaySoundW (nullptr, nullptr, 0);
         }
         juce::String defaultOutputName() override { return devfmt::windowsDefaultOutputName(); }
+        void keepReady (bool on, const juce::String& avoidOutput) override
+        {
+            {
+                const std::lock_guard<std::mutex> g (lock);
+                if (on == keepOpen && avoidOutput == avoid) return;
+                keepOpen = on;
+                avoid = avoidOutput;
+                retryAt = 0;
+            }
+            if (on && ! isThreadRunning()) startThread (juce::Thread::Priority::high);
+            wake.signal();
+        }
 
     private:
+        // keep open now? (switched on, the default output is not the cable, not waiting for a retry)
+        bool wantOpen (juce::String& defaultNow)
+        {
+            bool on;
+            juce::String avoidNow;
+            juce::uint32 retry;
+            { const std::lock_guard<std::mutex> g (lock); on = keepOpen; avoidNow = avoid; retry = retryAt; }
+            if (! on || (retry != 0 && (juce::int32) (micvst::msCounter() - retry) < 0)) return false;
+            defaultNow = devfmt::windowsDefaultOutputName();
+            return defaultNow.isNotEmpty() && defaultNow != avoidNow;
+        }
+
         void run() override
         {
+            int failures = 0;
             while (! threadShouldExit())
             {
                 bool any = false;
                 { const std::lock_guard<std::mutex> g (lock); any = ! mixer.idle(); }
-                if (! any) { wake.wait (-1); continue; }
+                juce::String device;
+                const bool warm = ! any && wantOpen (device);
+                if (! any && ! warm)
+                {
+                    bool on;
+                    { const std::lock_guard<std::mutex> g (lock); on = keepOpen; }
+                    wake.wait (on ? (int) checkDefaultMs : -1);   // switched on: look again in a second
+                    continue;
+                }
+                if (device.isEmpty()) device = devfmt::windowsDefaultOutputName();
                 if (! open())
                 {
+                    ++failures;
+                    {
+                        const std::lock_guard<std::mutex> g (lock);
+                        const auto wait = (juce::uint32) juce::jmin<juce::int64> (maxRetryMs, (juce::int64) 1000 << juce::jmin (5, failures));
+                        const auto due = micvst::msCounter() + wait;
+                        retryAt = due == 0 ? 1 : due;
+                    }
+                    if (! any) continue;   // keeping it open failed: retried later
                     {
                         const std::lock_guard<std::mutex> g (lock);
                         mixer = CueMixer{};
@@ -242,8 +287,10 @@ namespace
                     continue;   // the next sound tries the device again
                 }
                 failureLogged = false;
+                failures = 0;
+                { const std::lock_guard<std::mutex> g (lock); retryAt = 0; }
                 bool started = false;
-                juce::uint32 silentSince = 0, lastDone = micvst::msCounter();
+                juce::uint32 silentSince = 0, lastDone = micvst::msCounter(), checkedAt = micvst::msCounter();
                 while (! threadShouldExit())
                 {
                     int inFlight = 0;
@@ -278,7 +325,16 @@ namespace
                         { const std::lock_guard<std::mutex> g (lock); mixer = CueMixer{}; }
                         break;
                     }
-                    if (silentSince != 0 && now - silentSince > idleCloseMs) break;
+                    bool on;
+                    juce::String avoidNow;
+                    { const std::lock_guard<std::mutex> g (lock); on = keepOpen; avoidNow = avoid; }
+                    if (now - checkedAt >= checkDefaultMs)   // another default output, or the cable: not here any more
+                    {
+                        checkedAt = now;
+                        const auto d = devfmt::windowsDefaultOutputName();
+                        if (d != device || (d.isNotEmpty() && d == avoidNow)) break;
+                    }
+                    if (! on && silentSince != 0 && now - silentSince > idleCloseMs) break;
                     if (! wrote) WaitForSingleObject (doneEvent, 20);
                 }
                 close();
@@ -321,6 +377,9 @@ namespace
         std::array<WAVEHDR, numBlocks> headers {};
         std::array<std::array<int16_t, blockFrames * 2>, numBlocks> data {};
         bool failureLogged = false;   // the cue thread only
+        bool keepOpen = false;        // under lock (keepReady)
+        juce::String avoid;           // under lock: the cable's name
+        juce::uint32 retryAt = 0;     // under lock: keeping it open is retried after this (0: now)
     };
    #endif
 
@@ -347,11 +406,17 @@ CuePlayer::~CuePlayer()
     if (backend != nullptr) backend->stop();   // PlaySound must not read our memory after this
 }
 
+void CuePlayer::refreshOutput()
+{
+    if (backend != nullptr) backend->keepReady (settings.enabled, cableName ? cableName() : juce::String());
+}
+
 void CuePlayer::setBackend (std::unique_ptr<Backend> b)
 {
     if (backend != nullptr) backend->stop();
     backend = std::move (b);
     defaultCheckedAt = 0;
+    if (backend != nullptr) backend->keepReady (settings.enabled, cableName ? cableName() : juce::String());
 }
 
 juce::MemoryBlock CuePlayer::makeWav (const juce::AudioBuffer<float>& buf, double rate, int volumePercent)
@@ -408,6 +473,7 @@ void CuePlayer::setSettings (const CueSettings& s)
     // a sound that is gone (file deleted, renamed) plays the default instead
     if (! prepare (settings.onId, onWav, onName))   prepare (CueSettings::defaultOnId(), onWav, onName);
     if (! prepare (settings.offId, offWav, offName)) prepare (CueSettings::defaultOffId(), offWav, offName);
+    if (backend != nullptr) backend->keepReady (settings.enabled, cableName ? cableName() : juce::String());
 }
 
 bool CuePlayer::outputIsCable()
@@ -427,6 +493,7 @@ bool CuePlayer::outputIsCable()
 void CuePlayer::play (bool muted)
 {
     if (! settings.enabled || backend == nullptr) return;
+    backend->keepReady (true, cableName ? cableName() : juce::String());   // (the cable may have changed)
     if (outputIsCable())
     {
         problem = tr ("Bildirim sesi çalınmadı: Windows'un varsayılan çıkışı sanal kablo (karşı taraf duyardı)");

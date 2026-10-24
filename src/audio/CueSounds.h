@@ -116,8 +116,14 @@ public:
         virtual bool play (const juce::MemoryBlock& wav) = 0;
         virtual void stop() = 0;
         virtual juce::String defaultOutputName() = 0;
+        // Keep the output open (playing silence) while the sounds are switched on, so it never goes
+        // to sleep between sounds: a sleeping onboard output (Realtek speakers) crackled when it woke
+        // up with a sound, and every sound now starts with the same short delay, the first one
+        // included. Never on 'avoid' (the cable). Default: nothing to keep.
+        virtual void keepReady (bool /*on*/, const juce::String& /*avoid*/) {}
     };
     void setBackend (std::unique_ptr<Backend>);
+    void refreshOutput();   // the cable changed (cableName): the sounds' output is never kept open there
 
     // a 16-bit PCM WAV in memory, at the sound's rate, scaled by volume (0..100 %)
     static juce::MemoryBlock makeWav (const juce::AudioBuffer<float>&, double rate, int volumePercent);
