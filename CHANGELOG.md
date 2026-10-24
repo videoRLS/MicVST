@@ -21,6 +21,8 @@ project follows [Semantic Versioning](https://semver.org/).
   wait-free, allocated once, atomics; the block itself is not changed - unit tests: bit-exact, a
   reader racing the writer never gets torn data). AudioEngine.cpp, the chain, the bridge, the
   recorder and the sound are unchanged; AudioEngine.h only gained two read-only accessors.
+  Fixed (deneme 16, user report): switched off and on again in the settings, the spectrum stayed
+  empty (the meters worked) - the reset emptied the curves and nothing re-created them; unit test.
 - Arayüz çizimi: switching from Yalnızca ekran kartı to Yalnızca işlemci flickered and left a ghost
   of the old picture (user report, deneme 14). Direct2D shows its picture through a
   DirectComposition visual on top of the window; JUCE only released it, and Windows kept showing

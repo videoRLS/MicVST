@@ -289,6 +289,38 @@ struct VisualiserTest : juce::UnitTest
             expect (feed.settled());
         }
 
+        beginTest ("Switched off and on again in the settings (reset): the spectrum moves again (user report, deneme 16)");
+        {
+            SampleTap in, out;
+            micvst::viz::Feed feed;
+            feed.setPoints (200);
+            int64_t ph = 0, ph2 = 0;
+            double t = 0.0;
+            auto run = [&] (int frames)
+            {
+                for (int f = 0; f < frames; ++f)
+                {
+                    t += 1.0 / 30;
+                    writeSine (in, 48000.0, 1000.0, 0.5f, 1600, ph);
+                    writeSine (out, 48000.0, 1000.0, 0.5f, 1600, ph2);
+                    feed.update (in, out, 48000.0, t);
+                }
+            };
+            run (30);
+            const int p = nearestPoint (feed, 1000.0);
+            expect (feed.spectrum (micvst::viz::Feed::output)[(size_t) p] > -12.0f, "before");
+            for (int k = 0; k < 3; ++k)
+            {
+                feed.reset();     // hidden ...
+                run (30);         // ... and shown again
+                expect (feed.spectrum (micvst::viz::Feed::input).size() == 200 && feed.spectrum (micvst::viz::Feed::output).size() == 200,
+                        "the spectrum has its points again");
+                expect (feed.spectrum (micvst::viz::Feed::output).size() == 200 && feed.spectrum (micvst::viz::Feed::output)[(size_t) p] > -12.0f,
+                        "after switching off and on " + juce::String (k + 1) + " time(s): the spectrum shows the sine again");
+                expect (feed.level (micvst::viz::Feed::output, 0).peakDb > -7.0f, "the meters too");
+            }
+        }
+
         beginTest ("Cost per drawn frame (analysis of input + output, 300 points)");
         {
             SampleTap in, out;

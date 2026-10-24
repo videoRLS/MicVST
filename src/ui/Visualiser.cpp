@@ -149,8 +149,11 @@ void Feed::update (const SampleTap& in, const SampleTap& out, double sampleRate,
     const double dt = lastTime < 0.0 ? 0.0 : juce::jlimit (0.0, 0.25, timeSec - lastTime);
     lastTime = timeSec;
 
+    // (re)prepared for a new rate or width - and after reset() (spectrum switched off and on in the
+    // settings), which empties the curves: before, they stayed empty and the spectrum never came back
     if (sampleRate > 0.0 && points >= 2
-        && (! juce::exactlyEqual (sampleRate, rate) || ! analyserState.isPrepared() || analyserState.numPoints() != points))
+        && (! juce::exactlyEqual (sampleRate, rate) || ! analyserState.isPrepared() || analyserState.numPoints() != points
+            || side[input].shown.size() != (size_t) points || side[output].shown.size() != (size_t) points))
     {
         rate = sampleRate;
         analyserState.prepare (rate, points);
