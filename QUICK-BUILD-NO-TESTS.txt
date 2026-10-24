@@ -1,0 +1,1 @@
+UI build: MicVST.exe and the UI drawing test only (render/), no other tests
