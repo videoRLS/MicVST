@@ -6,6 +6,15 @@ project follows [Semantic Versioning](https://semver.org/).
 
 ## [1.2.3] - 2026-10-23
 
+- Arayüz çizimi: switching from Yalnızca ekran kartı to Yalnızca işlemci flickered and left a ghost
+  of the old picture (user report, deneme 14). Direct2D shows its picture through a
+  DirectComposition visual on top of the window; JUCE only released it, and Windows kept showing
+  Direct2D's last frame for a while, over or alternating with the new GDI picture. JUCE patch 7
+  (cmake/PatchJuce.cmake, window drawing only): the visual is taken off the window at once
+  (SetRoot (nullptr), Commit, WaitForCommitCompletion) whenever a Direct2D context goes away, and for
+  a switch to GDI the new picture is painted first, into the window's own surface still covered by
+  the visual, before Direct2D is removed. Test: MicVSTSnapshot --render (CI tag [arayuz]) switches
+  the real main window on the desktop and captures the screen every ~2 ms (ghost, flicker, flash).
 - Ayarlar > Görünüm ve başlangıç > "Arayüz çizimi": Otomatik (default), Yalnızca ekran kartı,
   Yalnızca işlemci. Otomatik is decided once at every start and fixed until MicVST closes. Automatic: Direct2D when a Direct3D 11
   hardware device with Direct2D support (not the Basic Render Driver) can be created - checked in an
