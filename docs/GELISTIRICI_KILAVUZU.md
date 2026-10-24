@@ -10,7 +10,7 @@ Kullanıcı kılavuzu ayrı: `docs/UZUN_OMUR_KILAVUZU.md`. Test sonuçları: `do
 
 - GitHub: `videoRLS/MicVST`. Teslim edilen sürümler:
   - **1.2.2**: dal `kararlilik/oncelik` (exe commit `baf4efd`)
-  - **1.2.3**: dal `kararlilik/bildirim-sesi` (1.2.2 + bildirim sesi düzeltmesi)
+  - **1.2.3**: dal `kararlilik/bildirim-sesi` (bildirim sesi, Arayüz çizimi GPU/CPU, Arayüz akıcılığı FPS, ölçer göster/gizle, dahili efekt penceresi düzeltmesi). **Henüz teslim edilmedi, tam turu yok.** Güncel durum ve doğrulama: `docs/DEVIR_NOTU_1.2.3.md`
   - `main`'e bu çalışmada dokunulmadı.
 - İnternetsiz kopya: arşiv paketi `MicVST_<sürüm>_arsiv.zip`. İçinde MicVST kaynağı, MicVST yamaları
   uygulanmış JUCE 9.0.4 kaynağı, exe ve SHA-256'sı ve belgeler var. Paketin içindeki `OKU.md` internetsiz
@@ -108,6 +108,7 @@ Sonuçları almak: `git fetch origin ci-sonuclari/<dal>`. Exe de `MicVST.exe` ol
 | 12 | Zorla kapatılınca `*_temp*.xml` / `*.TMP` dosyaları kalabiliyor | Öneri: açılışta eski geçici dosyaları sil |
 | 13 | Görev Yöneticisi ile kapatınca Windows "yanıt vermiyordu" yazıyor | Ürün hatası değil (pencere tepsiye gizlenir) |
 | 14 | 1.2.2'de hızlı aç-kapada kulaklıkta bildirim sesi tıkı | 1.2.3'te düzeltildi (`CueMixer`) |
+| – | Direct2D (ekran kartı) çiziminde GTA 5 gibi tam ekran oyundan sonra pencerede beyaz şerit | Çözüm yok; "Yalnızca işlemci" (GDI) kalıcı yol. Bkz. `docs/DEVIR_NOTU_1.2.3.md` §4.2 |
 
 ## 7. Claude ile geliştirirken
 
