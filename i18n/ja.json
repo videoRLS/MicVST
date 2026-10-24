@@ -414,7 +414,7 @@
  "Ses kapatıldı (sustur)": "ミュートしました",
  "Ses klasörünü aç": "サウンドフォルダーを開く",
  "Ses seviyesi göstergelerini göster": "レベルメーターを表示",
- "Ses seviyesi göstergelerinin saniyede kaç kez çizileceği. Yalnızca görüntüyü etkiler; ses işleme, gecikme ve ses kalitesi değişmez. Düşük değer biraz daha az işlemci kullanır, göstergeler daha kademeli hareket eder. Ekran kartıyla çizerken 60 ve 30 seçilebilir.": "レベルメーターを 1 秒間に何回描画するか。表示だけに影響し、音声処理、遅延、音質は変わりません。低い値はプロセッサの使用が少し減り、メーターの動きが粗くなります。グラフィックカードで描画している場合は 60 と 30 を選べます。",
+ "Ses seviyesi göstergelerinin saniyede kaç kez çizileceği. Yalnızca görüntüyü etkiler; ses işleme, gecikme ve ses kalitesi değişmez. Düşük değer biraz daha az işlemci kullanır, göstergeler daha kademeli hareket eder. İşlemciyle 60, 30, 20 ve 10; ekran kartıyla 60 ve 30 seçilebilir. Varsayılan: 30.": "レベルメーターを 1 秒間に何回描画するか。表示だけに影響し、音声処理、遅延、音質は変わりません。低い値はプロセッサの使用が少し減り、メーターの動きが粗くなります。プロセッサでは 60、30、20、10、グラフィックカードでは 60 と 30 を選べます。既定値: 30。",
  "Ses çalışmıyor: önce mikrofon ve kablo açık olmalı": "音声が動作していません: まずマイクとケーブルを有効にしてください",
  "Ses, kulaklık, kısayollar, dil, tema, VST3 klasörleri": "サウンド、ヘッドホン、ショートカット、言語、テーマ、VST3 フォルダー",
  "Ses: durdu (cihaz bağlı değil mi?)": "音声: 停止中（デバイスが接続されていない？）",

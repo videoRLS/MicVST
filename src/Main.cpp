@@ -250,6 +250,7 @@ public:
             if (lookAndFeel != nullptr) lookAndFeel->refresh();
             persistState();
         };
+        mainWindow->onPersist = [this] { persistState(); };   // drawing settings: saved, nothing redrawn
         mainWindow->setVisible (! silent);   // Autostart (--tray): unsichtbar, nur Tray
 
         tray = std::make_unique<TrayIcon>();
@@ -416,6 +417,7 @@ private:
         }
         std::function<void()> onHide;
         std::function<void()> onThemeApplied;   // the app: LookAndFeel refresh + save
+        std::function<void()> onPersist;        // the app: save only (FPS, meters, drawing engine)
         void closeButtonPressed() override { setVisible (false); if (onHide) onHide(); }
         void visibilityChanged() override
         {
@@ -467,7 +469,7 @@ private:
                 cb.showFolderMenu = [safe] (juce::Component* target)
                     { if (safe != nullptr && safe->content != nullptr) safe->content->getPluginList().showFolderMenu (target); };
                 cb.showHowTo = [safe] { if (safe != nullptr && safe->content != nullptr) safe->content->showHowTo(); };
-                cb.persist = [safe] { juce::MessageManager::callAsync ([safe] { if (safe != nullptr && safe->onThemeApplied) safe->onThemeApplied(); }); };
+                cb.persist = [safe] { juce::MessageManager::callAsync ([safe] { if (safe != nullptr && safe->onPersist) safe->onPersist(); }); };
                 cb.chooseRenderer = [safe] (const juce::String& id)
                     { juce::MessageManager::callAsync ([safe, id] { if (safe != nullptr) safe->applyRenderer (id); }); };
                 cb.setHotkey = setHotkey;
@@ -496,8 +498,12 @@ private:
         }
         void applyRenderer (const juce::String& id)
         {
-            micvst::render::setMode (micvst::render::fromId (id));   // GPU / CPU only at once, Otomatik at the next start
-            if (onThemeApplied) onThemeApplied();   // saved with the other appearance settings
+            // GPU / CPU only at once in the same windows, Otomatik at the next start. Nothing rebuilt.
+            micvst::render::setMode (micvst::render::fromId (id));
+            if (settingsWindow != nullptr)
+                if (auto* sc = dynamic_cast<SettingsComponent*> (settingsWindow->getContentComponent()))
+                    sc->refreshFps();   // that engine's FPS list, at once
+            if (onPersist) onPersist();
         }
         void applyTheme (const juce::String& id)
         {

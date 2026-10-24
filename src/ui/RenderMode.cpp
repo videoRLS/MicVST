@@ -110,9 +110,10 @@ void startSession (Mode m)
 }
 
 Mode current()        { return saved; }
-// Yalnızca ekran kartı / Yalnızca işlemci: at once. Each of MicVST's windows gets a new native
-// window (peer) whose engine is set before its first paint - switching the engine of a window that
-// had already drawn left its old Direct2D picture behind. Otomatik: saved, decided at the next start.
+// Yalnızca ekran kartı / Yalnızca işlemci: at once, in the same window - nothing is rebuilt or
+// re-created (that blinked, like a theme change). Only the drawing engine of each of MicVST's windows
+// is swapped, then the whole window - frame and content - is drawn again in one pass, so no part of the
+// previous engine's picture can stay behind. Otomatik: saved, decided at the next start.
 void setMode (Mode m)
 {
     saved = m;
@@ -122,19 +123,14 @@ void setMode (Mode m)
     {
         auto* w = windows.getReference (i).getComponent();
         if (w == nullptr) { windows.remove (i); continue; }
-        auto* old = w->getPeer();
-        if (old == nullptr) continue;
-        const auto flags = old->getStyleFlags();
-        w->removeFromDesktop();
-        w->addToDesktop (flags);
-        if (auto* peer = w->getPeer())
-            if (peer->getCurrentRenderingEngine() != sessionEngine_)
-                peer->setCurrentRenderingEngine (sessionEngine_);
-        if (w->isVisible())
-        {
-            micvst::useDarkTitleBar (*w, micvst::theme::dark);
-            w->repaint();
-        }
+        auto* peer = w->getPeer();
+        if (peer == nullptr || peer->getCurrentRenderingEngine() == sessionEngine_) continue;
+        peer->setCurrentRenderingEngine (sessionEngine_);
+        w->repaint();
+       #if JUCE_WINDOWS
+        if (auto* hwnd = (HWND) peer->getNativeHandle())
+            RedrawWindow (hwnd, nullptr, nullptr, RDW_INVALIDATE | RDW_FRAME | RDW_ALLCHILDREN | RDW_UPDATENOW);
+       #endif
     }
 }
 

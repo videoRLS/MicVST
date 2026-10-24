@@ -48,7 +48,7 @@ struct RenderModeTest : juce::UnitTest
             expect (! describeNow().contains ("\n"));
         }
 
-        beginTest ("FPS: 60 / 30 / 20 / 10 with the processor, 60 / 30 with the graphics card, default 30");
+        beginTest ("FPS: 60 / 30 / 20 / 10 with the processor, 60 / 30 with the graphics card, default 30, list follows a switch");
         {
             startSession (Mode::cpuOnly);
             expect (fpsChoices() == juce::Array<int> { 60, 30, 20, 10 });
@@ -64,6 +64,16 @@ struct RenderModeTest : juce::UnitTest
             expectEquals (fps(), 60);
             setFps (0);
             expectEquals (fps(), 30);
+            setFps (20);
+            setMode (Mode::cpuOnly);
+            expect (fpsChoices() == juce::Array<int> { 60, 30, 20, 10 }, "switching to the processor: its list at once");
+            expectEquals (fps(), 20, "and the value applies at once");
+            setMode (Mode::gpuOnly);
+            expect (fpsChoices() == juce::Array<int> { 60, 30 }, "and back");
+            expectEquals (fps(), 30, "20 is not offered with the graphics card: 30");
+            setMode (Mode::cpuOnly);
+            expectEquals (fps(), 20, "the processor's choice comes back");
+            setFps (0);
             startSession (Mode::automatic);
             expectEquals (fps(), 30, "automatic starts at 30 whatever it picked");
         }

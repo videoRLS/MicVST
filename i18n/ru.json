@@ -414,7 +414,7 @@
  "Ses kapatıldı (sustur)": "Звук выключен (без звука)",
  "Ses klasörünü aç": "Открыть папку звуков",
  "Ses seviyesi göstergelerini göster": "Показывать индикаторы уровня",
- "Ses seviyesi göstergelerinin saniyede kaç kez çizileceği. Yalnızca görüntüyü etkiler; ses işleme, gecikme ve ses kalitesi değişmez. Düşük değer biraz daha az işlemci kullanır, göstergeler daha kademeli hareket eder. Ekran kartıyla çizerken 60 ve 30 seçilebilir.": "Сколько раз в секунду рисуются индикаторы уровня. Влияет только на изображение; обработка звука, задержка и качество звука не меняются. Меньшее значение немного меньше нагружает процессор, индикаторы двигаются более крупными шагами. При отрисовке видеокартой можно выбрать 60 и 30.",
+ "Ses seviyesi göstergelerinin saniyede kaç kez çizileceği. Yalnızca görüntüyü etkiler; ses işleme, gecikme ve ses kalitesi değişmez. Düşük değer biraz daha az işlemci kullanır, göstergeler daha kademeli hareket eder. İşlemciyle 60, 30, 20 ve 10; ekran kartıyla 60 ve 30 seçilebilir. Varsayılan: 30.": "Сколько раз в секунду рисуются индикаторы уровня. Влияет только на изображение; обработка звука, задержка и качество звука не меняются. Меньшее значение немного меньше нагружает процессор, индикаторы двигаются более крупными шагами. С процессором можно выбрать 60, 30, 20 и 10, с видеокартой — 60 и 30. По умолчанию: 30.",
  "Ses çalışmıyor: önce mikrofon ve kablo açık olmalı": "Звук не работает: сначала должны быть включены микрофон и кабель",
  "Ses, kulaklık, kısayollar, dil, tema, VST3 klasörleri": "Звук, наушники, горячие клавиши, язык, тема, папки VST3",
  "Ses: durdu (cihaz bağlı değil mi?)": "Звук: остановлен (устройство не подключено?)",

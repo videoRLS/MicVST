@@ -414,7 +414,7 @@
  "Ses kapatıldı (sustur)": "Ton aus (stumm)",
  "Ses klasörünü aç": "Klangordner öffnen",
  "Ses seviyesi göstergelerini göster": "Pegelanzeigen anzeigen",
- "Ses seviyesi göstergelerinin saniyede kaç kez çizileceği. Yalnızca görüntüyü etkiler; ses işleme, gecikme ve ses kalitesi değişmez. Düşük değer biraz daha az işlemci kullanır, göstergeler daha kademeli hareket eder. Ekran kartıyla çizerken 60 ve 30 seçilebilir.": "Wie oft pro Sekunde die Pegelanzeigen gezeichnet werden. Betrifft nur die Anzeige; Audioverarbeitung, Latenz und Klangqualität bleiben gleich. Ein niedrigerer Wert braucht etwas weniger Prozessorleistung, die Anzeigen bewegen sich gröber. Mit der Grafikkarte sind 60 und 30 wählbar.",
+ "Ses seviyesi göstergelerinin saniyede kaç kez çizileceği. Yalnızca görüntüyü etkiler; ses işleme, gecikme ve ses kalitesi değişmez. Düşük değer biraz daha az işlemci kullanır, göstergeler daha kademeli hareket eder. İşlemciyle 60, 30, 20 ve 10; ekran kartıyla 60 ve 30 seçilebilir. Varsayılan: 30.": "Wie oft pro Sekunde die Pegelanzeigen gezeichnet werden. Betrifft nur die Anzeige; Audioverarbeitung, Latenz und Klangqualität bleiben gleich. Ein niedrigerer Wert braucht etwas weniger Prozessorleistung, die Anzeigen bewegen sich gröber. Mit dem Prozessor sind 60, 30, 20 und 10 wählbar, mit der Grafikkarte 60 und 30. Standard: 30.",
  "Ses çalışmıyor: önce mikrofon ve kablo açık olmalı": "Audio läuft nicht: Mikrofon und Kabel müssen zuerst aktiv sein",
  "Ses, kulaklık, kısayollar, dil, tema, VST3 klasörleri": "Ton, Kopfhörer, Tastenkürzel, Sprache, Design, VST3-Ordner",
  "Ses: durdu (cihaz bağlı değil mi?)": "Ton: angehalten (Gerät nicht verbunden?)",

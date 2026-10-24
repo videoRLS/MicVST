@@ -4,17 +4,16 @@
 // "Arayüz çizimi": how MicVST's own windows (main window, settings) are drawn. Interface only -
 // nothing here touches the audio engine, its threads, the sound or its timing.
 //
-// Decided once per start and fixed until MicVST closes - never switched while running (a switch
-// while a window is open left the old Direct2D picture behind, shifted: two button rows):
+// Otomatik is decided once per start and fixed until MicVST closes:
 //   Otomatik (default): the graphics card (Direct2D) if a Direct3D 11 hardware device with Direct2D
 //     support (not Windows' Basic Render Driver) can be created - checked at every start, in an SEH
 //     guard - otherwise the processor (GDI).
 //   Yalnızca ekran kartı: Direct2D; without a usable card the user is told, no fallback (as asked).
 //   Yalnızca işlemci: GDI.
-// Choosing Yalnızca ekran kartı / Yalnızca işlemci in the settings applies at once: each window gets a
-// new native window with the engine set before its first paint. Choosing Otomatik is saved and
-// decided at the next start. The engine is set before a window's first paint
-// (ComponentPeer::setCurrentRenderingEngine).
+// Choosing Yalnızca ekran kartı / Yalnızca işlemci in the settings applies at once, in the same
+// windows (only the engine is swapped and everything redrawn - no rebuild, no blink). Choosing
+// Otomatik is saved and decided at the next start. At start the engine is set before a window's
+// first paint (ComponentPeer::setCurrentRenderingEngine).
 namespace micvst::render
 {
     enum class Mode { automatic, gpuOnly, cpuOnly };
@@ -35,8 +34,10 @@ namespace micvst::render
     int sessionEngine();                          // 0 / 1 for this start
 
     // "Arayüz akıcılığı": how often the level meters are redrawn - 60 / 30 / 20 / 10 FPS with the
-    // processor, 60 / 30 with the graphics card; default 30 (also whatever Otomatik picks). Applied
-    // at once; only the drawing - the audio path never reads it.
+    // processor, 60 / 30 with the graphics card; default 30 in both (also whatever Otomatik picks).
+    // The list follows the engine at once; the value applies at once; only the drawing - the audio
+    // path never reads it. A saved value the engine does not offer gives 30 (and comes back if the
+    // engine offering it is chosen again).
     juce::Array<int> fpsChoices();                // for this start's engine
     int fps();                                    // the one in use (an unavailable saved value: 30)
     int savedFps();                               // 0 = default

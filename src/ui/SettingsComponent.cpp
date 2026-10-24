@@ -136,15 +136,13 @@ SettingsComponent::SettingsComponent (AudioEngine& e, GlobalHotkeys* keys, Callb
     page.addAndMakeVisible (renderInfo);
 
     // Arayüz akıcılığı (level meters' FPS) and the meters on / off: drawing only, never the sound
-    for (int f : micvst::render::fpsChoices())
-        fpsBox.addItem (f == 30 ? tr ("30 FPS (varsayılan)") : juce::String (f) + " FPS", f);
-    fpsBox.setSelectedId (micvst::render::fps(), juce::dontSendNotification);
+    refreshFps();
     fpsBox.setTooltip (tr ("Ses seviyesi göstergelerinin saniyede kaç kez çizileceği. Yalnızca görüntüyü etkiler; ses işleme, "
                            "gecikme ve ses kalitesi değişmez. Düşük değer biraz daha az işlemci kullanır, göstergeler daha "
-                           "kademeli hareket eder. Ekran kartıyla çizerken 60 ve 30 seçilebilir."));
+                           "kademeli hareket eder. İşlemciyle 60, 30, 20 ve 10; ekran kartıyla 60 ve 30 seçilebilir. Varsayılan: 30."));
     fpsBox.onChange = [this]
     {
-        micvst::render::setFps (fpsBox.getSelectedId());
+        micvst::render::setFps (fpsBox.getSelectedId());   // the meters' timer takes it on its next tick
         if (cb.persist) cb.persist();
     };
     page.addAndMakeVisible (fpsBox);
@@ -196,10 +194,27 @@ SettingsComponent::SettingsComponent (AudioEngine& e, GlobalHotkeys* keys, Callb
 
 SettingsComponent::~SettingsComponent() { stopTimer(); }
 
+// The FPS list of the engine drawing now (GPU / CPU only switch it at once), the value in use selected.
+void SettingsComponent::refreshFps()
+{
+    const auto choices = micvst::render::fpsChoices();
+    bool same = fpsBox.getNumItems() == choices.size();
+    for (int i = 0; same && i < choices.size(); ++i) same = fpsBox.getItemId (i) == choices[i];
+    if (! same)
+    {
+        fpsBox.clear (juce::dontSendNotification);
+        for (int f : choices)
+            fpsBox.addItem (f == 30 ? tr ("30 FPS (varsayılan)") : juce::String (f) + " FPS", f);
+    }
+    if (fpsBox.getSelectedId() != micvst::render::fps())
+        fpsBox.setSelectedId (micvst::render::fps(), juce::dontSendNotification);
+}
+
 void SettingsComponent::timerCallback()
 {
     updateNav();
     autostartToggle.setToggleState (AutostartRegistry::isEnabled(), juce::dontSendNotification);
+    refreshFps();
     {
         const auto p = micvst::render::problem();
         const auto t = p.isNotEmpty() ? p : micvst::render::describeNow();

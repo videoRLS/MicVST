@@ -414,7 +414,7 @@
  "Ses kapatıldı (sustur)": "已静音",
  "Ses klasörünü aç": "打开声音文件夹",
  "Ses seviyesi göstergelerini göster": "显示电平表",
- "Ses seviyesi göstergelerinin saniyede kaç kez çizileceği. Yalnızca görüntüyü etkiler; ses işleme, gecikme ve ses kalitesi değişmez. Düşük değer biraz daha az işlemci kullanır, göstergeler daha kademeli hareket eder. Ekran kartıyla çizerken 60 ve 30 seçilebilir.": "电平表每秒绘制的次数。只影响画面；音频处理、延迟和音质不变。数值越低处理器占用略少，电平表移动更跳跃。使用显卡绘制时可选 60 和 30。",
+ "Ses seviyesi göstergelerinin saniyede kaç kez çizileceği. Yalnızca görüntüyü etkiler; ses işleme, gecikme ve ses kalitesi değişmez. Düşük değer biraz daha az işlemci kullanır, göstergeler daha kademeli hareket eder. İşlemciyle 60, 30, 20 ve 10; ekran kartıyla 60 ve 30 seçilebilir. Varsayılan: 30.": "电平表每秒绘制的次数。只影响画面；音频处理、延迟和音质不变。数值越低处理器占用略少，电平表移动更跳跃。使用处理器时可选 60、30、20 和 10；使用显卡时可选 60 和 30。默认：30。",
  "Ses çalışmıyor: önce mikrofon ve kablo açık olmalı": "音频未运行：请先打开麦克风和线缆",
  "Ses, kulaklık, kısayollar, dil, tema, VST3 klasörleri": "声音、耳机、快捷键、语言、主题、VST3 文件夹",
  "Ses: durdu (cihaz bağlı değil mi?)": "音频：已停止（设备未连接？）",

@@ -414,7 +414,7 @@
  "Ses kapatıldı (sustur)": "Sonido desactivado (silencio)",
  "Ses klasörünü aç": "Abrir carpeta de sonidos",
  "Ses seviyesi göstergelerini göster": "Mostrar los medidores de nivel",
- "Ses seviyesi göstergelerinin saniyede kaç kez çizileceği. Yalnızca görüntüyü etkiler; ses işleme, gecikme ve ses kalitesi değişmez. Düşük değer biraz daha az işlemci kullanır, göstergeler daha kademeli hareket eder. Ekran kartıyla çizerken 60 ve 30 seçilebilir.": "Cuántas veces por segundo se dibujan los medidores de nivel. Solo afecta a la imagen; el procesamiento de audio, la latencia y la calidad del sonido no cambian. Un valor más bajo usa algo menos de procesador; los medidores se mueven a saltos más grandes. Con la tarjeta gráfica se pueden elegir 60 y 30.",
+ "Ses seviyesi göstergelerinin saniyede kaç kez çizileceği. Yalnızca görüntüyü etkiler; ses işleme, gecikme ve ses kalitesi değişmez. Düşük değer biraz daha az işlemci kullanır, göstergeler daha kademeli hareket eder. İşlemciyle 60, 30, 20 ve 10; ekran kartıyla 60 ve 30 seçilebilir. Varsayılan: 30.": "Cuántas veces por segundo se dibujan los medidores de nivel. Solo afecta a la imagen; el procesamiento de audio, la latencia y la calidad del sonido no cambian. Un valor más bajo usa algo menos de procesador; los medidores se mueven a saltos más grandes. Con el procesador se pueden elegir 60, 30, 20 y 10; con la tarjeta gráfica, 60 y 30. Predeterminado: 30.",
  "Ses çalışmıyor: önce mikrofon ve kablo açık olmalı": "El audio no funciona: primero deben estar activos el micrófono y el cable",
  "Ses, kulaklık, kısayollar, dil, tema, VST3 klasörleri": "Sonido, auriculares, atajos, idioma, tema, carpetas VST3",
  "Ses: durdu (cihaz bağlı değil mi?)": "Audio: detenido (¿dispositivo no conectado?)",

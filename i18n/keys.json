@@ -414,7 +414,7 @@
  "Ses kapatıldı (sustur)",
  "Ses klasörünü aç",
  "Ses seviyesi göstergelerini göster",
- "Ses seviyesi göstergelerinin saniyede kaç kez çizileceği. Yalnızca görüntüyü etkiler; ses işleme, gecikme ve ses kalitesi değişmez. Düşük değer biraz daha az işlemci kullanır, göstergeler daha kademeli hareket eder. Ekran kartıyla çizerken 60 ve 30 seçilebilir.",
+ "Ses seviyesi göstergelerinin saniyede kaç kez çizileceği. Yalnızca görüntüyü etkiler; ses işleme, gecikme ve ses kalitesi değişmez. Düşük değer biraz daha az işlemci kullanır, göstergeler daha kademeli hareket eder. İşlemciyle 60, 30, 20 ve 10; ekran kartıyla 60 ve 30 seçilebilir. Varsayılan: 30.",
  "Ses çalışmıyor: önce mikrofon ve kablo açık olmalı",
  "Ses, kulaklık, kısayollar, dil, tema, VST3 klasörleri",
  "Ses: durdu (cihaz bağlı değil mi?)",

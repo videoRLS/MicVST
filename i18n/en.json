@@ -414,7 +414,7 @@
  "Ses kapatıldı (sustur)": "Audio off (muted)",
  "Ses klasörünü aç": "Open sound folder",
  "Ses seviyesi göstergelerini göster": "Show the level meters",
- "Ses seviyesi göstergelerinin saniyede kaç kez çizileceği. Yalnızca görüntüyü etkiler; ses işleme, gecikme ve ses kalitesi değişmez. Düşük değer biraz daha az işlemci kullanır, göstergeler daha kademeli hareket eder. Ekran kartıyla çizerken 60 ve 30 seçilebilir.": "How many times per second the level meters are drawn. Affects only the display; audio processing, latency and sound quality stay the same. A lower value uses a little less processor, the meters move in coarser steps. With the graphics card, 60 and 30 can be chosen.",
+ "Ses seviyesi göstergelerinin saniyede kaç kez çizileceği. Yalnızca görüntüyü etkiler; ses işleme, gecikme ve ses kalitesi değişmez. Düşük değer biraz daha az işlemci kullanır, göstergeler daha kademeli hareket eder. İşlemciyle 60, 30, 20 ve 10; ekran kartıyla 60 ve 30 seçilebilir. Varsayılan: 30.": "How many times per second the level meters are drawn. Affects only the display; audio processing, latency and sound quality stay the same. A lower value uses a little less processor, the meters move in coarser steps. With the processor 60, 30, 20 and 10 can be chosen; with the graphics card 60 and 30. Default: 30.",
  "Ses çalışmıyor: önce mikrofon ve kablo açık olmalı": "Audio is not running: the microphone and the cable must be on first",
  "Ses, kulaklık, kısayollar, dil, tema, VST3 klasörleri": "Sound, headphones, shortcuts, language, theme, VST3 folders",
  "Ses: durdu (cihaz bağlı değil mi?)": "Audio: stopped (device not connected?)",

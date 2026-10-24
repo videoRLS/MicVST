@@ -7,13 +7,14 @@ project follows [Semantic Versioning](https://semver.org/).
 ## [1.2.3] - 2026-10-23
 
 - Ayarlar > Görünüm ve başlangıç > "Arayüz çizimi": Otomatik (default), Yalnızca ekran kartı,
-  Yalnızca işlemci. Decided once at every start and fixed until MicVST closes (switching while a
-  window was open left the old Direct2D picture behind). Automatic: Direct2D when a Direct3D 11
+  Yalnızca işlemci. Otomatik is decided once at every start and fixed until MicVST closes. Automatic: Direct2D when a Direct3D 11
   hardware device with Direct2D support (not the Basic Render Driver) can be created - checked in an
   SEH guard - else GDI. Graphics card only: Direct2D, the user is told when no usable card was
   found. Processor only: GDI (immune to the shifted picture after full-screen games such as GTA 5).
-  Choosing Yalnızca ekran kartı / Yalnızca işlemci applies at once (each window gets a new native
-  window, its engine set before the first paint); choosing Otomatik is saved (config.xml uiRenderer;
+  Choosing Yalnızca ekran kartı / Yalnızca işlemci applies at once in the same windows: only the
+  drawing engine is swapped and the whole window (frame included) redrawn in one pass - no rebuild,
+  no re-created window, no blink (deneme 13 re-created the windows: it blinked like a theme change);
+  choosing Otomatik is saved (config.xml uiRenderer;
   automatic writes nothing) and decided at the next start; logged ("Arayüz çizimi: ..."). Interface only: the audio engine is not touched.
 - Built-in effects: opened, closed and opened again, the window was empty (user report). The
   editor did not tell its effect it was gone (JUCE leaves that to the host), so the effect kept a
@@ -21,8 +22,10 @@ project follows [Semantic Versioning](https://semver.org/).
   closes and reopens every built-in effect. Also: a click on an effect whose window is already
   open brings that window forward instead of a second one.
 - Ayarlar > Görünüm ve başlangıç > "Arayüz akıcılığı": the level meters' redraws per second - 60 / 30 /
-  20 / 10 FPS with the processor, 60 / 30 with the graphics card; default 30 (also whatever Otomatik
-  picks); applied at once. "Ses seviyesi göstergelerini göster": the input / output meters shown or
+  20 / 10 FPS with the processor, 60 / 30 with the graphics card; default 30 in both (also whatever
+  Otomatik picks); applied at once. The list follows a GPU / CPU only switch at once. Changing FPS,
+  the meters or the drawing engine only saves the setting - it no longer refreshes the look (that
+  redraw was the blink). "Ses seviyesi göstergelerini göster": the input / output meters shown or
   hidden (hidden: neither drawn nor updated, the status line stays). Saved (uiFps, hideMeters;
   defaults write nothing). Drawing only: the audio engine measures and processes exactly the same.
 - Bildirim sesleri: fast mute / unmute no longer clicks. The sounds are no longer played with
