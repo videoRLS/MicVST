@@ -3,6 +3,7 @@
 #include "audio/BuiltInEffects.h"
 #include "audio/BuiltInGain.h"
 #include "Text.h"
+#include <functional>
 
 namespace presets
 {
@@ -47,114 +48,229 @@ namespace
         return e;
     }
 
-    // The factory presets, for average adult Turkish voices, not for one particular voice: every
-    // move is broad (low Q) and moderate, so it suits the great majority of voices and microphones
-    // (USB and condenser microphones at 5-20 cm).
-    //  Men (fundamental about 85-155 Hz): boom below 100 Hz, close-microphone build-up around 150 Hz,
-    //  mud around 300 Hz, a boxy 500 Hz, a nasal 1 kHz, a hard edge around 3 kHz.
-    //  Women (fundamental about 165-255 Hz): everything about a third to a half octave higher - low
-    //  cut 90-115 Hz, body around 200-230 Hz, mud 350 Hz, box 600 Hz, nasal 1.2 kHz, edge 3.5 kHz,
-    //  presence 5 kHz, sibilants higher (de-esser 6.5-7 kHz).
-    //  Turkish sibilants (s, ş, ç, z) are frequent: every preset de-esses relative to the voice.
-    // Every preset has the same elements in the same order (switching between them glides):
-    //   Low-Cut -> Yakınlık -> Çamur Temizleyici -> Parametrik EQ (kutu, genizlik, sertlik) -> Gövde ->
-    //   Netlik -> Hava -> Otomatik Kazanç -> Gürültü Kapısı -> Kompresör -> De-esser -> Sıcak Saturasyon
-    //   -> Oda Yankısı -> Kazanç -> Çıkış Limiteri
-    // Otomatik Kazanç comes before the dynamics: the gate, the compressor, the de-esser and the
-    // saturation then see the same level (speech peaks about -20 dBFS) for every microphone and voice,
-    // so one threshold fits everyone. The gate is gentle (it turns room noise down by 6-18 dB, never
-    // cuts it off; off in the singing and ASMR presets - sustained notes and whispers), the compressor
-    // moderate (1.8:1 to 4:1, soft knee). The room is open only in the singing presets. The last
-    // Kazanç matches the loudness of all thirty (measured on synthetic men's and women's speech), so
-    // switching does not jump in level; the limiter keeps every true peak below -1 dBTP.
-    struct V
-    {
-        float lowCut, proxDb, proxHz, mudDb, mudHz, boxHz, boxDb, nasalHz, nasalDb, hardHz, hardDb,
-              bodyDb, bodyHz, presDb, presHz, airDb, airHz, deessHz, deessThr, deessRange;
-        int satType; float satDrive, satMix, roomSize, roomMix;
-        float gateThr, gateRange, compThr, compRatio, compAtk, compRel, trimDb;
-    };
-
-    std::vector<Setting> chainFor (const V& v)
+    std::vector<Setting> chainFor (const Voicing& v)
     {
         return {
             { "builtin:lowcut",    { { "freq", v.lowCut }, { "slope", 1.0f } } },
             { "builtin:proximity", { { "gain", v.proxDb }, { "freq", v.proxHz } } },
-            { "builtin:mud",       { { "gain", v.mudDb }, { "freq", v.mudHz }, { "q", 1.0f } } },
-            { "builtin:parameq",   { { "b1type", 0.0f }, { "b1freq", v.boxHz },   { "b1gain", v.boxDb },   { "b1q", 1.4f },
-                                     { "b2type", 0.0f }, { "b2freq", v.nasalHz }, { "b2gain", v.nasalDb }, { "b2q", 1.8f },
-                                     { "b3type", 0.0f }, { "b3freq", v.hardHz },  { "b3gain", v.hardDb },  { "b3q", 1.8f },
-                                     { "b4type", 0.0f }, { "b4freq", 8000.0f },   { "b4gain", 0.0f },      { "b4q", 1.0f } } },
+            { "builtin:mud",       { { "gain", v.mudDb }, { "freq", v.mudHz }, { "q", v.mudQ } } },
+            { "builtin:parameq",   { { "b1type", 0.0f }, { "b1freq", v.boxHz },   { "b1gain", v.boxDb },   { "b1q", v.boxQ },
+                                     { "b2type", 0.0f }, { "b2freq", v.nasalHz }, { "b2gain", v.nasalDb }, { "b2q", v.nasalQ },
+                                     { "b3type", 0.0f }, { "b3freq", v.hardHz },  { "b3gain", v.hardDb },  { "b3q", v.hardQ },
+                                     { "b4type", 0.0f }, { "b4freq", v.fizzHz },  { "b4gain", v.fizzDb },  { "b4q", v.fizzQ } } },
             { "builtin:body",      { { "gain", v.bodyDb }, { "freq", v.bodyHz } } },
-            { "builtin:presence",  { { "gain", v.presDb }, { "freq", v.presHz }, { "q", 1.0f } } },
+            { "builtin:presence",  { { "gain", v.presDb }, { "freq", v.presHz }, { "q", v.presQ } } },
             { "builtin:air",       { { "gain", v.airDb }, { "freq", v.airHz } } },
             { "builtin:autogain",  {} },
-            { "builtin:gate",      { { "threshold", v.gateThr }, { "range", v.gateRange }, { "attack", 2.0f }, { "hold", 150.0f },
-                                     { "release", 250.0f }, { "detecthp", 100.0f } } },
+            { "builtin:gate",      { { "threshold", v.gateThr }, { "range", v.gateRange }, { "attack", 2.0f }, { "hold", v.gateHold },
+                                     { "release", v.gateRelease }, { "detecthp", 100.0f } } },
             { "builtin:compressor",{ { "threshold", v.compThr }, { "ratio", v.compRatio }, { "attack", v.compAtk }, { "release", v.compRel },
-                                     { "knee", 6.0f }, { "makeup", 0.0f }, { "mix", 100.0f } } },
+                                     { "knee", v.compKnee }, { "makeup", v.compMakeup }, { "mix", v.compMix } } },
             { "builtin:deesser",   { { "freq", v.deessHz }, { "threshold", v.deessThr }, { "range", v.deessRange }, { "mode", 0.0f }, { "detect", 0.0f } } },
             { "builtin:saturation",{ { "type", (float) v.satType }, { "drive", v.satDrive }, { "mix", v.satMix } } },
             { "builtin:reverb",    { { "size", v.roomSize }, { "damping", 45.0f }, { "width", 100.0f }, { "mix", v.roomMix } } },
             { "builtin:gain",      { { "gain", v.trimDb } } },
-            { "builtin:limiter",   { { "ceiling", -1.0f }, { "input", 0.0f }, { "release", 80.0f } } },
+            { "builtin:limiter",   { { "ceiling", v.ceiling }, { "input", 0.0f }, { "release", 80.0f } } },
         };
     }
 
+    // ---------------------------------------------------------------------------------------------
+    // The factory presets (1.2.3): fifteen purposes, each for men's and for women's voices.
+    //
+    // Aim of every one: natural, full ("tok"), clear, balanced, smooth - and not tiring after hours.
+    // So no move is narrow or large: they suit the great majority of adult voices and of USB /
+    // condenser microphones at 5-20 cm, not one particular voice. What differs from voice to voice
+    // is left to the adaptive elements: Otomatik Kazanç brings every voice to the same level first,
+    // so the gate, the compressor and the de-esser (relative: it reacts to the highs against the
+    // voice itself) work alike for quiet and loud microphones.
+    //
+    //  Men (fundamental ~85-155 Hz): low cut 65-100 Hz (deep voices keep their fundamental), close-
+    //  microphone build-up ~150 Hz, body ~115-130 Hz, mud ~300 Hz, box ~500 Hz, nose ~1 kHz, hard
+    //  edge ~3 kHz, presence 3.5-4.5 kHz, sibilants ~5.5-6.5 kHz, fizz ~7.5 kHz, air 10-11 kHz.
+    //  Women (fundamental ~165-255 Hz): a third to half an octave higher - low cut 85-120 Hz, build-
+    //  up ~200 Hz, body ~200-220 Hz, mud ~350 Hz, box ~600 Hz, nose ~1.2 kHz, edge ~3.5 kHz,
+    //  presence 4.5-5 kHz, sibilants ~6.5-7.5 kHz, fizz ~9 kHz, air 12 kHz.
+    //  Turkish has many sibilants (s, ş, ç, z): every preset de-esses.
+    //
+    // Measured with MicVSTPresetLab (tests/PresetLab.cpp, tools/preset_lab.py) on real and
+    // synthetic men's and women's speech: all thirty equally loud (-20 LUFS on their voices), true
+    // peaks at -2.4 dBTP or lower, word onsets intact, sibilants down (the de-esser's relative
+    // threshold -12: sibilants only, the vowels' air stays as the EQ sets it).
+    // The gate: after Otomatik Kazanç the peaks of room noise sit at about -44 to -53 dBFS, so the
+    // thresholds are -44 to -47 dBFS (Gürültülü Ortam -40); the gate closes 4 dB lower. On a quiet
+    // microphone the noise between sentences ends lower than it came in although the compressor
+    // lifts it; a noisier room is what Gürültülü Ortam is for.
     std::vector<Preset> build()
     {
-        struct Def { const char* group; const char* name; V v; };
         static const char* const men = TRK ("Erkek Sesi Ayarları");
         static const char* const women = TRK ("Kadın Sesi Ayarları");
-        //                                                   LC   prox       mud        kutu       genizlik    sertlik     gövde      netlik     hava         de-esser        sat         oda     kapı       kompresör              trim
-        const std::vector<Def> defs {
-            { men,   TRK ("Dengeli Profesyonel"),    { 80, -1.5, 150, 3.0, 300,  500, -1.5, 1000, -1.0, 3000, -1.5,  1.0, 130,  2.5, 4500,  2.0, 11000,  5500, -14, 6,  0, 3, 50,  30,  0,  -55,  8,  -28, 2.5f,  8, 150,  4.5f } },
-            { men,   TRK ("Podcast / Sohbet"),       { 80,  1.0, 130, 2.5, 300,  500, -1.5, 1000, -1.0, 3000, -2.0,  2.0, 125,  1.5, 4000,  0.5, 12000,  5500, -14, 7,  1, 3, 40,  30,  0,  -55, 10,  -30, 3.0f,  5, 120,  6.2f } },
-            { men,   TRK ("Radyo Spikeri"),          { 75,  1.5, 120, 3.0, 300,  500, -2.0, 1000, -1.5, 3000, -1.0,  3.0, 115,  3.0, 4000,  2.5, 11000,  5500, -15, 8,  1, 8, 80,  30,  0,  -52, 12,  -32, 4.0f,  3,  80,  8.7f } },
-            { men,   TRK ("Haber Sunucusu"),         { 85, -1.0, 150, 3.0, 300,  500, -2.0, 1000, -1.0, 3000, -1.0,  1.5, 125,  3.0, 4300,  1.5, 11000,  5500, -15, 8,  0, 3, 40,  30,  0,  -53, 12,  -29, 3.0f,  6, 120,  5.6f } },
-            { men,   TRK ("Seslendirme / Belgesel"), { 70,  0.5, 130, 3.0, 300,  500, -2.0, 1000, -1.0, 3000, -3.0,  2.0, 120,  1.0, 4200,  1.5, 12000,  5500, -16, 9,  1, 5, 60,  30,  0,  -55, 10,  -30, 3.0f, 10, 150,  5.8f } },
-            { men,   TRK ("Sesli Kitap"),            { 70,  0.5, 130, 2.5, 300,  500, -1.5, 1000, -1.0, 3000, -2.5,  2.0, 120,  0.5, 4200,  1.0, 12000,  5500, -16, 9,  1, 3, 50,  30,  0,  -57,  8,  -30, 2.0f, 15, 200,  4.2f } },
-            { men,   TRK ("Sinema Sesi"),            { 70,  1.0, 120, 3.5, 300,  500, -2.0, 1000, -1.0, 3000, -2.0,  2.5, 120,  2.0, 4200,  4.0, 12000,  5500, -15, 8,  1, 6, 70,  30,  0,  -56,  8,  -30, 3.5f, 15, 200,  6.0f } },
-            { men,   TRK ("Film Diyaloğu"),          { 70,  0.0, 130, 2.0, 300,  500, -1.0, 1000, -0.5, 3000, -1.0,  1.0, 125,  1.0, 4200,  1.0, 12000,  5500, -16, 6,  0, 2, 30,  30,  0,  -58,  6,  -26, 1.8f, 20, 250,  2.1f } },
-            { men,   TRK ("Kristal Netlik"),         { 90, -3.0, 160, 4.0, 320,  500, -2.0, 1000,  0.0, 3000, -1.0,  0.0, 130,  4.0, 4800,  5.0,  9000,  5500, -14, 8,  0, 0,  0,  30,  0,  -54, 10,  -28, 2.5f,  8, 150,  5.0f } },
-            { men,   TRK ("Yumuşak ve Pürüzsüz"),    { 75, -1.0, 150, 2.5, 300,  500, -1.0, 1000, -1.5, 3000, -3.0,  1.5, 130,  0.0, 4200, -1.5, 11000,  5000, -16, 9,  0, 3, 50,  30,  0,  -58,  6,  -30, 2.0f, 20, 250,  3.9f } },
-            { men,   TRK ("Derin ve Sıcak"),         { 70,  2.0, 130, 2.0, 300,  500, -1.5, 1000, -1.0, 3000, -2.0,  3.0, 120,  1.0, 4200, -0.5, 12000,  5500, -15, 7,  1, 7, 70,  30,  0,  -56,  8,  -30, 3.0f, 10, 150,  5.4f } },
-            { men,   TRK ("Şarkı / Vokal"),          { 90, -1.5, 150, 3.0, 300,  500, -1.5, 1000, -1.0, 3000, -2.0,  1.0, 140,  2.5, 4500,  4.0, 12000,  5500, -15, 8,  0, 5, 60,  45, 18,  -80,  0,  -26, 3.0f, 10, 150,  3.9f } },
-            { men,   TRK ("Oyun / Canlı Yayın"),     { 95, -2.5, 160, 4.0, 320,  500, -2.0, 1000, -1.5, 3000, -1.0,  0.5, 140,  4.0, 4600,  3.0, 10000,  5500, -14, 8,  0, 4, 50,  30,  0,  -50, 18,  -30, 4.0f,  5, 100,  7.1f } },
-            { men,   TRK ("Toplantı / Ders"),        {110, -3.0, 160, 3.5, 320,  500, -2.0, 1000, -1.0, 3000, -1.0,  0.0, 130,  3.5, 4500,  1.0, 10000,  5500, -14, 8,  0, 0,  0,  30,  0,  -50, 15,  -30, 3.0f,  5, 120,  6.5f } },
-            { men,   TRK ("ASMR / Fısıltı"),         { 60,  2.0, 130, 1.5, 300,  500, -1.0, 1000, -0.5, 3000, -2.0,  2.0, 120,  0.0, 4200,  3.0, 12000,  5500, -18, 10, 0, 0,  0,  30,  0,  -80,  0,  -36, 2.5f, 10, 200,  8.0f } },
 
-            { women, TRK ("Dengeli Profesyonel"),    {100, -1.0, 200, 2.5, 350,  600, -1.5, 1200, -1.0, 3500, -1.5,  1.0, 220,  2.0, 5000,  2.5, 12000,  6500, -14, 7,  0, 2, 40,  30,  0,  -55,  8,  -28, 2.5f,  8, 150,  3.9f } },
-            { women, TRK ("Podcast / Sohbet"),       {100,  0.5, 190, 2.0, 350,  600, -1.0, 1200, -1.0, 3500, -2.0,  2.0, 210,  1.0, 4800,  1.0, 12000,  6500, -14, 8,  1, 2, 40,  30,  0,  -55, 10,  -30, 3.0f,  5, 120,  5.3f } },
-            { women, TRK ("Radyo Spikeri"),          { 95,  1.0, 180, 2.5, 350,  600, -2.0, 1200, -1.5, 3500, -1.5,  3.0, 195,  3.0, 4600,  2.5, 12000,  6500, -15, 9,  1, 6, 70,  30,  0,  -52, 12,  -32, 4.0f,  3,  80,  7.6f } },
-            { women, TRK ("Haber Sunucusu"),         {105, -0.5, 200, 2.5, 350,  600, -2.0, 1200, -1.0, 3500, -1.0,  1.5, 215,  2.5, 4900,  2.0, 12000,  6500, -15, 8,  0, 2, 40,  30,  0,  -53, 12,  -29, 3.0f,  6, 120,  4.9f } },
-            { women, TRK ("Seslendirme / Anlatıcı"), { 90,  0.0, 190, 2.5, 350,  600, -1.5, 1200, -1.5, 3500, -3.0,  2.5, 210,  0.5, 4500,  1.5, 12500,  6500, -16, 9,  1, 4, 50,  30,  0,  -55, 10,  -30, 3.0f, 10, 150,  4.9f } },
-            { women, TRK ("Sesli Kitap"),            { 90,  0.0, 190, 2.0, 350,  600, -1.0, 1200, -1.5, 3500, -2.5,  2.0, 210,  0.5, 4600,  1.0, 12500,  6500, -16, 9,  1, 3, 40,  30,  0,  -57,  8,  -30, 2.0f, 15, 200,  3.2f } },
-            { women, TRK ("Sinema Sesi"),            { 90,  0.0, 180, 3.0, 350,  600, -2.0, 1200, -1.0, 3500, -2.0,  2.0, 205,  1.0, 5000,  4.0, 13000,  6500, -15, 8,  1, 5, 60,  30,  0,  -56,  8,  -30, 3.5f, 15, 200,  5.3f } },
-            { women, TRK ("Film Diyaloğu"),          { 90,  0.0, 190, 1.5, 350,  600, -1.0, 1200, -0.5, 3500, -1.0,  1.0, 210,  1.0, 4800,  1.0, 12500,  6500, -16, 6,  0, 2, 30,  30,  0,  -58,  6,  -26, 1.8f, 20, 250,  1.3f } },
-            { women, TRK ("Kristal Netlik"),         {110, -2.5, 220, 3.5, 380,  600, -2.0, 1200,  0.0, 3500, -1.0,  0.0, 220,  3.0, 5400,  5.0, 11000,  6500, -14, 9,  0, 0,  0,  30,  0,  -54, 10,  -28, 2.5f,  8, 150,  4.4f } },
-            { women, TRK ("Yumuşak ve Pürüzsüz"),    {100, -0.5, 200, 2.0, 350,  600, -1.0, 1200, -1.5, 3500, -3.0,  1.5, 220,  0.0, 4800, -1.0, 12000,  6000, -16, 10, 0, 2, 40,  30,  0,  -58,  6,  -30, 2.0f, 20, 250,  3.2f } },
-            { women, TRK ("Sıcak ve Dolgun"),        { 90,  1.5, 180, 1.5, 350,  600, -1.5, 1200, -1.0, 3500, -2.0,  3.0, 200,  0.5, 4800,  0.0, 12000,  6500, -15, 8,  1, 6, 60,  30,  0,  -56,  8,  -30, 3.0f, 10, 150,  4.5f } },
-            { women, TRK ("Şarkı / Vokal"),          {110, -1.5, 200, 2.5, 350,  600, -1.5, 1200, -1.0, 3500, -2.0,  0.5, 230,  2.0, 5200,  4.5, 12500,  7000, -15, 9,  0, 4, 50,  45, 20,  -80,  0,  -26, 3.0f, 10, 150,  3.2f } },
-            { women, TRK ("Oyun / Canlı Yayın"),     {120, -3.0, 230, 3.0, 380,  600, -2.0, 1200, -1.5, 3500, -1.0, -0.5, 230,  4.5, 4600,  2.5, 10000,  6500, -14, 9,  0, 3, 40,  30,  0,  -50, 18,  -30, 4.0f,  5, 100,  6.4f } },
-            { women, TRK ("Toplantı / Ders"),        {120, -2.5, 230, 3.0, 380,  600, -2.0, 1200, -1.0, 3500, -1.0,  0.0, 220,  3.0, 5000,  1.0, 11000,  6500, -14, 9,  0, 0,  0,  30,  0,  -50, 15,  -30, 3.0f,  5, 120,  5.9f } },
-            { women, TRK ("ASMR / Fısıltı"),         { 80,  1.5, 190, 1.0, 350,  600, -1.0, 1200, -0.5, 3500, -2.0,  2.0, 210,  0.0, 4800,  3.0, 13000,  7000, -18, 10, 0, 0,  0,  30,  0,  -80,  0,  -36, 2.5f, 10, 200,  7.2f } },
+        // the common starting point: "Doğal ve Dengeli"
+        auto base = [] (bool woman)
+        {
+            Voicing v;
+            v.lowCut  = woman ? 100.0f : 75.0f;
+            v.proxDb  = -1.0f;  v.proxHz  = woman ? 200.0f : 150.0f;
+            v.mudDb   = 2.0f;   v.mudHz   = woman ? 350.0f : 300.0f;  v.mudQ = 1.0f;
+            v.boxDb   = -1.5f;  v.boxHz   = woman ? 600.0f : 500.0f;
+            v.nasalDb = -0.5f;  v.nasalHz = woman ? 1200.0f : 1000.0f;
+            v.hardDb  = -1.0f;  v.hardHz  = woman ? 3500.0f : 3000.0f;
+            v.fizzDb  = 0.0f;   v.fizzHz  = woman ? 9000.0f : 7500.0f;
+            v.bodyDb  = 1.0f;   v.bodyHz  = woman ? 210.0f : 125.0f;
+            v.presDb  = 1.5f;   v.presHz  = woman ? 4800.0f : 4000.0f; v.presQ = 1.0f;
+            v.airDb   = 1.5f;   v.airHz   = woman ? 12000.0f : 11000.0f;
+            v.gateThr = -46.0f; v.gateRange = 10.0f; v.gateHold = 200.0f; v.gateRelease = 300.0f;
+            v.compThr = -26.0f; v.compRatio = 2.0f; v.compAtk = 15.0f; v.compRel = 180.0f; v.compKnee = 8.0f;
+            v.compMix = 100.0f; v.compMakeup = 4.0f;
+            v.deessHz = woman ? 6800.0f : 5800.0f; v.deessThr = -12.0f; v.deessRange = 8.0f;
+            v.satType = 0; v.satDrive = 2.0f; v.satMix = 30.0f;
+            v.roomSize = 30.0f; v.roomMix = 0.0f;
+            v.ceiling = -1.0f;
+            return v;
+        };
+
+        struct Def
+        {
+            const char* name;
+            std::function<void (Voicing&, bool woman)> tune;
+            float trimMen, trimWomen;           // Kazanç: the loudness match (-20 LUFS on the voices measured)
+            const char* womenName = nullptr;    // when the women's preset is called differently
+        };
+        const std::vector<Def> defs {
+            // everyday, safe on any microphone: a little cleaner, a little fuller, a little clearer
+            { TRK ("Doğal ve Dengeli"), [] (Voicing&, bool) {}, 3.4f, 2.9f },
+
+            // close and warm, like two people talking: more body, softer top, gentle density
+            { TRK ("Podcast / Sohbet"), [] (Voicing& v, bool w)
+              { v.proxDb = 0.0f; v.bodyDb = w ? 1.5f : 2.0f; v.mudDb = 2.5f; v.boxDb = -2.0f; v.hardDb = -1.5f; v.fizzDb = -1.0f;
+                v.presDb = 1.0f; v.airDb = 1.0f; v.compThr = -28.0f; v.compRatio = 2.5f; v.compAtk = 12.0f; v.compRel = 150.0f;
+                v.gateRange = 12.0f; v.satType = 1; v.satDrive = 3.0f; v.satMix = 40.0f; }, 4.7f, 4.4f },
+
+            // games, Discord, streams: present over game sound, robust against keyboard / fan
+            { TRK ("Oyun / Canlı Yayın"), [] (Voicing& v, bool w)
+              { v.lowCut = w ? 110.0f : 90.0f; v.proxDb = -2.0f; v.mudDb = 2.5f; v.nasalDb = -1.0f; v.bodyDb = 0.5f;
+                v.presDb = 2.5f; v.presHz = w ? 4800.0f : 4200.0f; v.airDb = 2.0f;
+                v.gateThr = -44.0f; v.gateRange = 14.0f; v.gateHold = 150.0f; v.gateRelease = 220.0f;
+                v.compThr = -30.0f; v.compRatio = 3.0f; v.compAtk = 6.0f; v.compRel = 110.0f; v.compKnee = 6.0f; }, 6.7f, 6.1f },
+
+            // meetings, lessons: words first - lean low end, the speech band forward, light dynamics
+            { TRK ("Toplantı / Ders"), [] (Voicing& v, bool w)
+              { v.lowCut = w ? 120.0f : 100.0f; v.proxDb = -3.0f; v.mudDb = 3.0f; v.boxDb = -2.0f; v.hardDb = -0.5f;
+                v.bodyDb = 0.0f; v.presDb = 1.5f; v.presHz = w ? 4000.0f : 3500.0f; v.presQ = 0.8f; v.airDb = 0.5f;
+                v.gateThr = -44.0f; v.gateRange = 14.0f; v.gateHold = 150.0f; v.gateRelease = 220.0f;
+                v.compThr = -28.0f; v.compRatio = 2.5f; v.compAtk = 8.0f; v.compRel = 140.0f;
+                v.satMix = 0.0f; v.satDrive = 0.0f; }, 5.3f, 4.6f },
+
+            // radio presenter: big, dense, polished - more low end and air, firmer compression, tape
+            { TRK ("Radyo Spikeri"), [] (Voicing& v, bool w)
+              { v.lowCut = w ? 95.0f : 70.0f; v.proxDb = w ? 0.0f : 1.0f; v.proxHz = w ? 180.0f : 120.0f;
+                v.bodyDb = w ? 1.5f : 2.5f; v.bodyHz = w ? 200.0f : 115.0f; v.mudDb = 3.0f; v.boxDb = -2.0f; v.nasalDb = -1.5f;
+                v.fizzDb = -1.0f; v.presDb = 2.5f; v.airDb = 2.5f;
+                v.gateThr = -45.0f; v.gateRange = 14.0f;
+                v.compThr = -32.0f; v.compRatio = 3.5f; v.compAtk = 5.0f; v.compRel = 90.0f; v.compKnee = 6.0f;
+                v.satType = 1; v.satDrive = 5.0f; v.satMix = 60.0f; }, 8.2f, 7.8f },
+
+            // news, corporate: neutral, firm, very clear - nothing coloured
+            { TRK ("Haber Sunucusu"), [] (Voicing& v, bool w)
+              { v.lowCut = w ? 105.0f : 85.0f; v.bodyDb = 1.5f; v.mudDb = 2.5f; v.boxDb = -2.0f; v.nasalDb = -1.0f;
+                v.presDb = 2.0f; v.presHz = w ? 4900.0f : 4300.0f;
+                v.gateThr = -45.0f; v.gateRange = 12.0f;
+                v.compThr = -29.0f; v.compRatio = 3.0f; v.compAtk = 8.0f; v.compRel = 120.0f; v.compKnee = 6.0f;
+                v.satDrive = 2.0f; v.satMix = 25.0f; }, 5.8f, 5.4f },
+
+            // narration, documentary: deep, calm, controlled, the edge taken off
+            { TRK ("Seslendirme / Belgesel"), [] (Voicing& v, bool w)
+              { v.lowCut = w ? 85.0f : 65.0f; v.proxDb = w ? 0.0f : 0.5f; v.proxHz = w ? 190.0f : 130.0f;
+                v.bodyDb = w ? 1.5f : 2.5f; v.bodyHz = w ? 200.0f : 115.0f; v.mudDb = 3.0f; v.boxDb = -2.0f; v.hardDb = -2.0f;
+                v.fizzDb = -1.5f; v.presDb = 1.0f;
+                v.gateRange = 12.0f;
+                v.compThr = -30.0f; v.compRatio = 3.0f; v.compAtk = 15.0f; v.compRel = 180.0f;
+                v.deessThr = -13.0f; v.satType = 1; v.satDrive = 4.0f; v.satMix = 50.0f; }, 5.9f, 5.7f,
+              TRK ("Seslendirme / Anlatıcı") },
+
+            // audiobooks, long listening: the gentlest top end, slow soft dynamics, unhurried gate
+            { TRK ("Sesli Kitap"), [] (Voicing& v, bool w)
+              { v.lowCut = w ? 90.0f : 70.0f; v.proxDb = 0.0f; v.bodyDb = 1.5f; v.mudDb = 2.5f; v.hardDb = -2.0f;
+                v.fizzDb = -2.0f; v.presDb = 0.5f; v.airDb = 0.5f;
+                v.gateThr = -47.0f; v.gateHold = 250.0f; v.gateRelease = 400.0f;
+                v.compThr = -28.0f; v.compRatio = 2.0f; v.compAtk = 20.0f; v.compRel = 250.0f; v.compKnee = 10.0f;
+                v.deessThr = -13.0f; }, 3.9f, 3.6f },
+
+            // thin, light or bright voices: body and warmth added, the top softened, tape colour
+            { TRK ("Sıcak ve Dolgun"), [] (Voicing& v, bool w)
+              { v.proxDb = w ? 0.5f : 1.0f; v.bodyDb = w ? 3.0f : 3.5f; v.bodyHz = w ? 200.0f : 120.0f; v.mudDb = 1.5f; v.boxDb = -1.0f;
+                v.hardDb = -2.0f; v.fizzDb = -1.5f; v.presDb = 0.5f; v.airDb = 0.0f;
+                v.compThr = -28.0f; v.compRatio = 2.5f; v.compAtk = 12.0f; v.compRel = 160.0f;
+                v.satType = 1; v.satDrive = 5.0f; v.satMix = 60.0f; }, 4.5f, 4.3f },
+
+            // dull, muffled voices or dark microphones: less low-mid, more presence and air
+            { TRK ("Net ve Parlak"), [] (Voicing& v, bool w)
+              { v.lowCut = w ? 105.0f : 85.0f; v.proxDb = -2.5f; v.bodyDb = 0.0f; v.mudDb = 3.5f; v.boxDb = -2.0f;
+                v.hardDb = 0.0f; v.presDb = 3.5f; v.presHz = w ? 5000.0f : 4500.0f; v.airDb = 3.5f; v.airHz = w ? 11000.0f : 10000.0f;
+                v.gateThr = -44.0f; v.gateRange = 12.0f;
+                v.compThr = -28.0f; v.compRatio = 2.5f; v.compAtk = 10.0f; v.compRel = 140.0f;
+                v.deessThr = -11.0f; v.satDrive = 0.0f; v.satMix = 0.0f; }, 5.0f, 4.4f },
+
+            // sharp, edgy, hissing voices: the hard edge and the fizz taken down, de-esser earlier
+            { TRK ("Yumuşak ve Pürüzsüz"), [] (Voicing& v, bool)
+              { v.bodyDb = 1.5f; v.boxDb = -1.0f; v.nasalDb = -1.0f; v.hardDb = -3.0f; v.fizzDb = -2.5f;
+                v.presDb = 0.0f; v.airDb = -1.0f;
+                v.gateThr = -47.0f; v.gateRelease = 350.0f;
+                v.compThr = -28.0f; v.compRatio = 2.0f; v.compAtk = 20.0f; v.compRel = 250.0f; v.compKnee = 10.0f;
+                v.deessThr = -15.0f; v.deessRange = 9.0f; v.satDrive = 3.0f; v.satMix = 40.0f; }, 4.0f, 3.6f },
+
+            // talking right into the microphone: the boom and the box of the proximity effect removed
+            { TRK ("Yakın Mikrofon"), [] (Voicing& v, bool w)
+              { v.lowCut = w ? 105.0f : 85.0f; v.proxDb = -4.5f; v.proxHz = w ? 230.0f : 170.0f;
+                v.mudDb = 4.0f; v.mudHz = w ? 380.0f : 300.0f; v.mudQ = 1.2f; v.boxDb = -2.5f;
+                v.bodyDb = 0.0f; v.presDb = 1.0f; v.gateThr = -45.0f;
+                v.compThr = -28.0f; v.compRatio = 2.5f; v.compAtk = 12.0f; v.compRel = 150.0f;
+                v.satMix = 0.0f; v.satDrive = 0.0f; }, 5.1f, 4.7f },
+
+            // fan, keyboard, street: a firm but natural gate, hiss band down, light compression
+            // (compression lifts the noise between words; here the gate takes it far down)
+            { TRK ("Gürültülü Ortam"), [] (Voicing& v, bool w)
+              { v.lowCut = w ? 120.0f : 100.0f; v.proxDb = -2.0f; v.mudDb = 2.5f; v.fizzDb = -2.0f; v.bodyDb = 0.5f;
+                v.presDb = 2.0f; v.airDb = 0.0f;
+                v.gateThr = -40.0f; v.gateRange = 20.0f; v.gateHold = 150.0f; v.gateRelease = 200.0f;
+                v.compThr = -26.0f; v.compRatio = 2.0f; v.compAtk = 10.0f; v.compRel = 150.0f;
+                v.satMix = 0.0f; v.satDrive = 0.0f; }, 3.8f, 3.1f },
+
+            // headsets, laptop microphones: thin, honky and harsh - body back, nose and edge down
+            { TRK ("Kulaklık / Dizüstü Mikrofonu"), [] (Voicing& v, bool w)
+              { v.lowCut = w ? 120.0f : 100.0f; v.proxDb = w ? 1.0f : 1.5f; v.proxHz = w ? 200.0f : 150.0f;
+                v.bodyDb = w ? 2.0f : 3.0f; v.mudDb = 1.0f; v.boxDb = -1.0f; v.nasalDb = -2.0f; v.nasalHz = w ? 1400.0f : 1200.0f;
+                v.hardDb = -3.0f; v.fizzDb = -2.0f; v.presDb = 1.0f; v.airDb = 0.0f;
+                v.gateThr = -44.0f; v.gateRange = 14.0f;
+                v.compThr = -28.0f; v.compRatio = 3.0f; v.compAtk = 10.0f; v.compRel = 140.0f;
+                v.satDrive = 3.0f; v.satMix = 40.0f; }, 5.1f, 4.7f },
+
+            // singing: no gate (sustained notes, breaths), more air, a small room
+            { TRK ("Şarkı / Vokal"), [] (Voicing& v, bool w)
+              { v.lowCut = w ? 110.0f : 90.0f; v.proxDb = -1.5f; v.mudDb = 2.5f; v.hardDb = -1.5f; v.bodyDb = 1.0f;
+                v.presDb = 2.0f; v.airDb = 3.0f;
+                v.gateThr = -47.0f; v.gateRange = 8.0f; v.gateHold = 300.0f; v.gateRelease = 500.0f;
+                v.compThr = -26.0f; v.compRatio = 3.0f; v.compAtk = 10.0f; v.compRel = 150.0f;
+                v.deessThr = -11.0f; v.satDrive = 3.0f; v.satMix = 40.0f; v.roomSize = 45.0f; v.roomMix = 14.0f; }, 4.7f, 4.0f },
         };
 
         std::vector<Preset> out;
-        for (auto& d : defs)
-        {
-            Preset p;
-            p.group = u8 (d.group);
-            p.shortName = u8 (d.name);
-            p.name = u8 (d.group == men ? prefixMen : prefixWomen) + p.shortName;   // stored (config.xml): Turkish
-            p.factory = true;
-            for (auto& s : chainFor (d.v)) p.elements.add (effectEntry (s));
-            out.push_back (std::move (p));
-        }
+        for (const bool woman : { false, true })
+            for (auto& d : defs)
+            {
+                Voicing v = base (woman);
+                d.tune (v, woman);
+                v.trimDb = woman ? d.trimWomen : d.trimMen;
+                Preset p;
+                p.group = u8 (woman ? women : men);
+                p.shortName = u8 (woman && d.womenName != nullptr ? d.womenName : d.name);
+                p.name = u8 (woman ? prefixWomen : prefixMen) + p.shortName;   // stored (config.xml): Turkish
+                p.factory = true;
+                p.elements = buildChain (v);
+                out.push_back (std::move (p));
+            }
         return out;
     }
-
 
     juce::String sanitize (const juce::String& name)
     {
@@ -165,6 +281,13 @@ namespace
         f = f.trim();
         return f.isEmpty() ? juce::String ("preset") : f.substring (0, maxNameLength);
     }
+}
+
+juce::Array<PluginEntryState> buildChain (const Voicing& v)
+{
+    juce::Array<PluginEntryState> out;
+    for (auto& s : chainFor (v)) out.add (effectEntry (s));
+    return out;
 }
 
 const std::vector<Preset>& factoryPresets()

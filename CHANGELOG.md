@@ -6,6 +6,33 @@ project follows [Semantic Versioning](https://semver.org/).
 
 ## [1.2.3] - 2026-10-23
 
+- Hazır ayarlar redesigned (user request): the same fifteen purposes for men's and for women's
+  voices - Doğal ve Dengeli, Podcast / Sohbet, Oyun / Canlı Yayın, Toplantı / Ders, Radyo Spikeri,
+  Haber Sunucusu, Seslendirme / Belgesel (women: Seslendirme / Anlatıcı), Sesli Kitap, Sıcak ve
+  Dolgun, Net ve Parlak, Yumuşak ve Pürüzsüz, Yakın Mikrofon, Gürültülü Ortam, Kulaklık / Dizüstü
+  Mikrofonu, Şarkı / Vokal. Removed as doubles of others: Dengeli Profesyonel (-> Doğal ve
+  Dengeli), Kristal Netlik (-> Net ve Parlak), Sinema Sesi, Film Diyaloğu, Derin ve Sıcak, ASMR /
+  Fısıltı; new: Yakın Mikrofon, Gürültülü Ortam, Kulaklık / Dizüstü Mikrofonu. Same elements in
+  the same order as before (switching glides). Measured with the real effects on real and
+  synthetic men's and women's speech and on a real recording (tests/PresetLab.cpp,
+  tools/preset_lab.py), and tuned to it:
+  - all thirty equally loud, -20 LUFS (was about -25; Kompresör makeup + Kazanç), true peaks
+    -2.4 dBTP or lower;
+  - the gate now really works: after Otomatik Kazanç the room noise's peaks sit at about -44 to
+    -53 dBFS, the old thresholds (-50 to -58 dBFS, closing 4 dB lower) never closed, and the
+    compressor lifted the noise between sentences by 1-3 dB. Now -46 dBFS (Gürültülü Ortam -40,
+    20 dB): on a quiet microphone the noise in pauses ends 6-7 dB lower than it came in, on a
+    noisier one (noise about 40 dB under the speech peaks) about as it came in (Net ve Parlak and
+    Şarkı / Vokal up to 5 dB more there), with Gürültülü Ortam 15-16 dB lower; word onsets kept;
+  - the de-esser threshold (relative) -12 instead of -14 to -18: it reacts to sibilants only and no
+    longer dulls the vowels too (vowel air was taken down by the release after each sibilant);
+    sibilants 1-6 dB down, the vowels' air as the EQ sets it;
+  - Parametrik EQ band 4 is used (a broad cut of the fizz around 7.5 kHz / 9 kHz where wanted).
+  Translations: 5 new names in 10 languages, 6 removed.
+- Hazır ayar laboratuvarı (not part of MicVST): MicVSTPresetLab renders preset chains offline with
+  the real effects (factory, one preset with changed settings, presets from a text file - e.g.
+  one user's own presets given as .micvstpreset files); tools/preset_lab.py measures loudness,
+  true peak, tonal balance, sibilance, noise in pauses, word onsets and dynamics.
 - Bildirim sesleri: the speakers (onboard Realtek) crackled again on the first sound after a pause
   (user report, deneme 17). The sounds' output was closed 2 s after each sound; the onboard output
   then went to sleep and the next sound woke it - the wake-up crackle fell on the start of the

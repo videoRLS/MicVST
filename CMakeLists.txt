@@ -199,6 +199,21 @@ target_link_libraries(MicVSTTests PRIVATE
     juce::juce_recommended_warning_flags
 )
 
+# --- Preset lab (not shipped): renders hazır ayar chains offline with the real built-in effects ---
+juce_add_console_app(MicVSTPresetLab PRODUCT_NAME "MicVSTPresetLab")
+target_sources(MicVSTPresetLab PRIVATE tests/PresetLab.cpp)
+target_include_directories(MicVSTPresetLab PRIVATE tests)
+target_compile_definitions(MicVSTPresetLab PRIVATE JUCE_USE_CURL=0 JUCE_WEB_BROWSER=0)
+target_link_libraries(MicVSTPresetLab PRIVATE
+    MicVSTCore
+    juce::juce_core
+    juce::juce_audio_basics
+    juce::juce_audio_formats
+    juce::juce_gui_basics
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_warning_flags
+)
+
 # --- Measurements: old vs. new audio path (simulation) + real-thread scheduling on Windows ---
 juce_add_console_app(MicVSTStress PRODUCT_NAME "MicVSTStress")
 target_sources(MicVSTStress PRIVATE tests/StressMain.cpp)

@@ -76,7 +76,8 @@ struct PresetTest : juce::UnitTest
             }
             expectEquals (menCount, 15);
             expectEquals (womenCount, 15);
-            for (const char* n : { "Erkek Sesi - Radyo Spikeri", "Kadın Sesi - Şarkı / Vokal", "Erkek Sesi - Dengeli Profesyonel" })
+            for (const char* n : { "Erkek Sesi - Radyo Spikeri", "Kadın Sesi - Şarkı / Vokal", "Erkek Sesi - Doğal ve Dengeli",
+                                  "Kadın Sesi - Seslendirme / Anlatıcı", "Erkek Sesi - Kulaklık / Dizüstü Mikrofonu" })
                 expect (presets::findFactory (juce::String::fromUTF8 (n)) != nullptr, juce::String::fromUTF8 (n));
             for (auto& p : f)
             {
@@ -209,11 +210,11 @@ struct PresetTest : juce::UnitTest
         {
             expect (presets::nameProblem ("   ").isNotEmpty());
             expect (presets::nameProblem (juce::String::repeatedString ("x", 61)).isNotEmpty());
-            expect (presets::nameProblem (juce::String::fromUTF8 ("erkek sesi - dengeli profesyonel")).isNotEmpty());
+            expect (presets::nameProblem (juce::String::fromUTF8 ("erkek sesi - doğal ve dengeli")).isNotEmpty());
             expect (presets::nameProblem ("Benim ayarım").isEmpty());
             TempFolder t;
             juce::String err;
-            expect (! presets::saveUserPreset ("Erkek Sesi - Sinema Sesi", sampleChain (1, 4), err, t.dir));
+            expect (! presets::saveUserPreset (juce::String::fromUTF8 ("Kadın Sesi - Gürültülü Ortam"), sampleChain (1, 4), err, t.dir));
             expect (err.isNotEmpty());
         }
 
