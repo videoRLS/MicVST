@@ -135,20 +135,22 @@ SettingsComponent::SettingsComponent (AudioEngine& e, GlobalHotkeys* keys, Callb
     renderInfo.setFont (juce::FontOptions (13.0f));
     page.addAndMakeVisible (renderInfo);
 
-    // Arayüz akıcılığı (level meters' FPS) and the meters on / off: drawing only, never the sound
+    // Arayüz akıcılığı (spectrum and meters FPS) and both on / off: drawing only, never the sound
     refreshFps();
-    fpsBox.setTooltip (tr ("Ses seviyesi göstergelerinin saniyede kaç kez çizileceği. Yalnızca görüntüyü etkiler; ses işleme, "
-                           "gecikme ve ses kalitesi değişmez. Düşük değer biraz daha az işlemci kullanır, göstergeler daha "
-                           "kademeli hareket eder. İşlemciyle 60, 30, 20 ve 10; ekran kartıyla 60 ve 30 seçilebilir. Varsayılan: 30."));
+    fpsBox.setTooltip (tr ("Spektrum ve ses seviyesi göstergelerinin saniyede kaç kez çizileceği; her kare ekranın yenilenmesine "
+                           "denk gelir. Hareketin hızı her değerde aynıdır, yalnızca ne sıklıkta gösterildiği değişir. Yalnızca "
+                           "görüntüyü etkiler; ses işleme, gecikme ve ses kalitesi değişmez. Düşük değer daha az işlemci kullanır. "
+                           "İşlemciyle 60, 30, 20 ve 10; ekran kartıyla 60 ve 30 seçilebilir. Varsayılan: 30."));
     fpsBox.onChange = [this]
     {
-        micvst::render::setFps (fpsBox.getSelectedId());   // the meters' timer takes it on its next tick
+        micvst::render::setFps (fpsBox.getSelectedId());   // the next drawn frame follows it
         if (cb.persist) cb.persist();
     };
     page.addAndMakeVisible (fpsBox);
-    metersToggle.setButtonText (tr ("Ses seviyesi göstergelerini göster"));
-    metersToggle.setTooltip (tr ("Konuşunca hareket eden giriş ve çıkış göstergelerini gösterir ya da gizler. Yalnızca görüntüyü "
-                                 "etkiler; ses işleme, gecikme ve ses kalitesi değişmez."));
+    metersToggle.setButtonText (tr ("Spektrumu ve ses seviyesi göstergelerini göster"));
+    metersToggle.setTooltip (tr ("Ana penceredeki spektrumu ve giriş / çıkış göstergelerini gösterir ya da gizler. Gizliyken "
+                                 "hiçbir şey hesaplanmaz ve çizilmez. Yalnızca görüntüyü etkiler; ses işleme, gecikme ve ses "
+                                 "kalitesi değişmez."));
     metersToggle.setToggleState (micvst::render::metersVisible(), juce::dontSendNotification);
     metersToggle.onClick = [this]
     {

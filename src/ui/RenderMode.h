@@ -33,7 +33,8 @@ namespace micvst::render
     juce::String describeNow();                   // for the settings: what draws now (and what waits)
     int sessionEngine();                          // 0 / 1 for this start
 
-    // "Arayüz akıcılığı": how often the level meters are redrawn - 60 / 30 / 20 / 10 FPS with the
+    // "Arayüz akıcılığı": how often the spectrum and level meters are redrawn (on the screen's
+    // refresh; their motion runs in real time, the same at every value) - 60 / 30 / 20 / 10 FPS with the
     // processor, 60 / 30 with the graphics card; default 30 in both (also whatever Otomatik picks).
     // The list follows the engine at once; the value applies at once; only the drawing - the audio
     // path never reads it. A saved value the engine does not offer gives 30 (and comes back if the
@@ -43,8 +44,9 @@ namespace micvst::render
     int savedFps();                               // 0 = default
     void setFps (int);                            // 0 or a value from fpsChoices()
 
-    // "Ses seviyesi göstergeleri": the input / output meters shown or hidden (default shown). Hidden,
-    // they are neither drawn nor updated; the audio engine measures and processes exactly the same.
+    // "Spektrumu ve ses seviyesi göstergelerini göster": the spectrum and the input / output meters
+    // shown or hidden (default shown). Hidden, nothing is analysed or drawn; the audio engine
+    // measures and processes exactly the same.
     bool metersVisible();
     void setMetersVisible (bool);
 }

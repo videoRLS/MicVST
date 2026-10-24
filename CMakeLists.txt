@@ -130,6 +130,8 @@ target_sources(MicVST PRIVATE
     src/ui/HotkeyDialog.cpp
     src/ui/SettingsComponent.cpp
     src/ui/RenderMode.cpp
+    src/ui/Visualiser.cpp
+    src/ui/VisualiserViews.cpp
     src/ui/RecordingPanel.cpp
     src/ui/CuePanel.cpp
     src/state/AutostartRegistry.cpp
@@ -173,9 +175,12 @@ target_sources(MicVSTTests PRIVATE
     tests/RecorderSweepTests.cpp
     tests/CounterWrapTests.cpp
     tests/CueTests.cpp
+    tests/VisualiserTests.cpp
     tests/RenderModeTests.cpp
     tests/BuiltInEditorTests.cpp
     src/ui/RenderMode.cpp
+    src/ui/Visualiser.cpp
+    src/ui/VisualiserViews.cpp
     src/ui/DarkTitleBar.cpp
     src/audio/PluginChain.cpp
     src/ui/GlobalHotkeys.cpp
@@ -226,6 +231,8 @@ target_sources(MicVSTSnapshot PRIVATE
     src/ui/HotkeyDialog.cpp
     src/ui/SettingsComponent.cpp
     src/ui/RenderMode.cpp
+    src/ui/Visualiser.cpp
+    src/ui/VisualiserViews.cpp
     src/ui/RecordingPanel.cpp
     src/ui/CuePanel.cpp
     src/state/AutostartRegistry.cpp

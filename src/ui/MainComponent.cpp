@@ -260,23 +260,16 @@ std::unique_ptr<juce::Component> MainComponent::createHowToContent() { return st
 
 MainComponent::MainComponent (AudioEngine& e) : engine (e)
 {
-    // --- the level card: meters with their peak values, the status line; the big mute button ---
-    addAndMakeVisible (inMeter);
-    addAndMakeVisible (outMeter);
-    inLabel.setText (tr ("Giriş"), juce::dontSendNotification);
-    outLabel.setText (tr ("Çıkış"), juce::dontSendNotification);
-    for (auto* l : { &inLabel, &outLabel, &inValue, &outValue })
-    {
-        l->setFont (juce::Font (juce::FontOptions (12.5f)));
-        addAndMakeVisible (l);
-    }
-    inLabel.setColour (juce::Label::textColourId, micvst::theme::textDim);
-    outLabel.setColour (juce::Label::textColourId, micvst::theme::textDim);
-    for (auto* l : { &inValue, &outValue })
-    {
-        l->setJustificationType (juce::Justification::centredRight);
-        l->setColour (juce::Label::textColourId, micvst::theme::textBright);
-    }
+    // --- the level card: the spectrum and the status line; the big mute button. The input / output
+    //     level meters (vertical) are under the chain. Both are drawn on the screen's refresh. ---
+    addChildComponent (spectrum);
+    addChildComponent (meters);
+    spectrum.setVisible (micvst::render::metersVisible());
+    meters.setVisible (micvst::render::metersVisible());
+    spectrum.setTooltip (tr ("Spektrum: gri giriş (mikrofon, zincirden önce), renkli çıkış (kabloya giden). "
+                             "Yatay 20 Hz - 20 kHz, ses ve müzik düz görünsün diye oktav başına 4,5 dB eğimli (Pro-Q gibi). "
+                             "Yalnızca görüntü: ses işleme değişmez."));
+    vblank = juce::VBlankAttachment (this, [this] (double t) { onVBlank (t); });
 
     devicePanel = std::make_unique<DevicePanel> (engine, true);
     addAndMakeVisible (*devicePanel);
@@ -340,7 +333,7 @@ MainComponent::MainComponent (AudioEngine& e) : engine (e)
     updateCableHint();
     updateActionButtons();
 
-    setSize (640, 600);
+    setSize (640, 780);
     startTimerHz (micvst::render::fps());   // Ayarlar > Arayüz akıcılığı (drawing only)
 }
 
@@ -393,30 +386,57 @@ void MainComponent::timerCallback()
     // Ayarlar > Arayüz akıcılığı / Ses seviyesi göstergeleri, applied at once - the drawing only:
     // the engine measures and processes the same whether the meters are shown or not
     if (const int hz = micvst::render::fps(); getTimerInterval() != 1000 / hz) startTimerHz (hz);
-    if (micvst::render::metersVisible() != inMeter.isVisible())
+    if (micvst::render::metersVisible() != spectrum.isVisible())
     {
-        for (auto* c : std::initializer_list<juce::Component*> { &inMeter, &outMeter, &inLabel, &outLabel, &inValue, &outValue })
-            c->setVisible (micvst::render::metersVisible());
+        spectrum.setVisible (micvst::render::metersVisible());
+        meters.setVisible (micvst::render::metersVisible());
+        feed.reset();
+        visualsIdle = false;
         resized();
         repaint();
     }
     engine.testTick();
     updateActionButtons();
-    if (! inMeter.isVisible()) return;
+}
 
-    const auto in = engine.inputLevel(), out = engine.outputLevel();
-    inMeter.setLevel (in);
-    outMeter.setLevel (out);
-    // the shown peak values fall slowly (readable), rise at once
-    auto show = [] (juce::Label& l, float& held, float peak)
+bool MainComponent::visualsShown() const
+{
+    return spectrum.isVisible() && isShowing();
+}
+
+// On every refresh of the screen the window is on (60, 144 Hz ...): a frame when one is due at the
+// FPS of Ayarlar > Arayüz akıcılığı. Frames land on refreshes - evenly at 60 / 30 FPS on a 60 Hz
+// screen - and the motion follows the real time that passed (micvst::viz), so an uneven frame is
+// never a jump. Hidden or minimised: nothing is analysed or drawn.
+void MainComponent::onVBlank (double timeSec)
+{
+    if (lastVBlank > 0.0)
+        vblankInterval = 0.9 * vblankInterval + 0.1 * juce::jlimit (0.002, 0.05, timeSec - lastVBlank);
+    lastVBlank = timeSec;
+    if (! visualsShown())
     {
-        const float db = peak > 1.0e-6f ? juce::Decibels::gainToDecibels (peak) : -120.0f;
-        held = db > held ? db : juce::jmax (db, held - 0.5f);
-        const auto t = held <= -60.0f ? juce::String (juce::CharPointer_UTF8 ("\xe2\x80\x94")) : micvst::trNumber (held, 0) + " dB";
-        if (l.getText() != t) l.setText (t, juce::dontSendNotification);
-    };
-    show (inValue, inHeld, in.peak);
-    show (outValue, outHeld, out.peak);
+        nextFrameAt = 0.0;
+        return;
+    }
+    const double period = 1.0 / juce::jmax (1, micvst::render::fps());
+    if (timeSec < nextFrameAt - 0.5 * vblankInterval) return;
+    nextFrameAt = timeSec - nextFrameAt > period ? timeSec + period : nextFrameAt + period;
+    updateVisuals (timeSec);
+}
+
+void MainComponent::updateVisuals (double timeSec)
+{
+    feed.setPoints (spectrum.pointsWanted());
+    feed.update (engine.inputTap(), engine.outputTap(), engine.getProcessingSampleRate(), timeSec);
+    // nothing moving (no sound, everything down): one last frame, then no redraws until sound returns
+    const bool idle = feed.settled();
+    if (idle && visualsIdle) return;
+    visualsIdle = idle;
+    spectrum.repaint();
+    meters.repaint();
+    if (lastFrameAt > 0.0) visualStats.longestGapMs = juce::jmax (visualStats.longestGapMs, (timeSec - lastFrameAt) * 1000.0);
+    lastFrameAt = timeSec;
+    ++visualStats.frames;
 }
 
 void MainComponent::setHotkeys (GlobalHotkeys* keys)
@@ -530,33 +550,36 @@ void MainComponent::resized()
         r.removeFromBottom (12);
     }
 
-    // level card + mute button
+    const bool visuals = spectrum.isVisible();
+
+    // level card (spectrum + status line) + mute button
     {
-        auto top = r.removeFromTop (88);
+        // with the spectrum the card grows with the window (158 px at the default size, at most 260)
+        auto top = r.removeFromTop (visuals ? juce::jlimit (158, 260, getHeight() / 5) : 88);
         muteBtn.setBounds (top.removeFromRight (100));
         top.removeFromRight (12);
         levelCard = top;
-        auto c = top.reduced (12, 10);
-        auto textW = [] (const juce::Label& l) { return juce::roundToInt (juce::GlyphArrangement::getStringWidth (l.getFont(), l.getText()) + 0.5f); };
-        const int labelW = juce::jlimit (40, 96, juce::jmax (textW (inLabel), textW (outLabel)) + 8);
-        auto meterRow = [&] (juce::Label& label, LevelMeterComponent& meter, juce::Label& value)
+        if (visuals)
         {
-            auto row = c.removeFromTop (18);
-            label.setBounds (row.removeFromLeft (labelW));
-            value.setBounds (row.removeFromRight (56));
-            row.removeFromRight (6);
-            meter.setBounds (row.withSizeKeepingCentre (row.getWidth(), 12));
-            c.removeFromTop (6);
-        };
-        if (inMeter.isVisible())
-        {
-            meterRow (inLabel, inMeter, inValue);
-            meterRow (outLabel, outMeter, outValue);
-            devicePanel->getStatusLabel().setBounds (c.removeFromTop (20).withTrimmedLeft (-4));
+            auto c = top.reduced (8, 8);
+            auto status = c.removeFromBottom (20);
+            c.removeFromBottom (4);
+            spectrum.setBounds (c);
+            devicePanel->getStatusLabel().setBounds (status.withTrimmedLeft (-2));
         }
-        else   // the meters hidden: only the status line, in the middle of the card
+        else   // spectrum and meters hidden: only the status line, in the middle of the card
+        {
+            auto c = top.reduced (12, 10);
             devicePanel->getStatusLabel().setBounds (c.withSizeKeepingCentre (c.getWidth(), 20).withTrimmedLeft (-4));
+        }
         r.removeFromTop (12);
+    }
+
+    // input / output level meters at the bottom of the chain area
+    if (visuals)
+    {
+        meters.setBounds (r.removeFromBottom (LevelMetersView::preferredHeight));
+        r.removeFromBottom (10);
     }
 
     // devices
@@ -591,6 +614,7 @@ void MuteButton::paintButton (juce::Graphics& g, bool highlighted, bool down)
 {
     auto b = getLocalBounds().toFloat().reduced (0.5f);
     const auto fill = muted ? micvst::theme::error : micvst::theme::surface;
+    const float dy = juce::jmax (0.0f, (b.getHeight() - 87.0f) * 0.5f);   // the content in the middle of a taller button
     g.setColour (down ? fill.darker (0.15f) : highlighted ? fill.brighter (0.08f) : fill);
     g.fillRoundedRectangle (b, 10.0f);
     g.setColour (muted ? micvst::theme::error : micvst::theme::outline);
@@ -598,7 +622,7 @@ void MuteButton::paintButton (juce::Graphics& g, bool highlighted, bool down)
 
     const auto ink = muted ? juce::Colours::white : micvst::theme::textBright;
     // microphone icon
-    const float cx = b.getCentreX(), top = b.getY() + 14.0f;
+    const float cx = b.getCentreX(), top = b.getY() + 14.0f + dy;
     juce::Path p;
     p.addRoundedRectangle (cx - 5.5f, top, 11.0f, 19.0f, 5.5f);
     g.setColour (ink);
@@ -615,11 +639,11 @@ void MuteButton::paintButton (juce::Graphics& g, bool highlighted, bool down)
     g.strokePath (arc, juce::PathStrokeType (1.8f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 
     g.setFont (juce::Font (juce::FontOptions (14.0f, juce::Font::bold)));
-    g.drawFittedText (muted ? tr ("Sesi aç") : tr ("Sustur"), b.toNearestInt().withTrimmedTop (44).withHeight (20), juce::Justification::centred, 1);
+    g.drawFittedText (muted ? tr ("Sesi aç") : tr ("Sustur"), b.toNearestInt().withTrimmedTop (44 + (int) dy).withHeight (20), juce::Justification::centred, 1);
     if (keyText.isNotEmpty())
     {
         g.setColour (muted ? juce::Colours::white.withAlpha (0.8f) : micvst::theme::textDim);
         g.setFont (juce::Font (juce::FontOptions (11.5f)));
-        g.drawFittedText (keyText, b.toNearestInt().withTrimmedTop (64).withHeight (16), juce::Justification::centred, 1);
+        g.drawFittedText (keyText, b.toNearestInt().withTrimmedTop (64 + (int) dy).withHeight (16), juce::Justification::centred, 1);
     }
 }

@@ -1,7 +1,7 @@
 #pragma once
 #include <juce_audio_utils/juce_audio_utils.h>
 #include "audio/AudioEngine.h"
-#include "ui/LevelMeterComponent.h"
+#include "ui/VisualiserViews.h"
 #include "ui/PluginListView.h"
 #include "ui/DevicePanel.h"
 #include "state/AutostartRegistry.h"
@@ -44,16 +44,31 @@ public:
     PluginListView& getPluginList() { return *pluginList; }
     std::function<void()> onShowSettings;   // set by the window
     void toggleRecording();                 // Kayıt button (also the tray menu)
+    // Spectrum and level meters: one analysed and drawn frame at this time (seconds, monotonic).
+    // Called on the screen's refresh (VBlankAttachment) at the FPS of Ayarlar > Arayüz akıcılığı;
+    // public for the UI snapshots, which have no screen.
+    void updateVisuals (double timeSec);
+    // drawn frames and the longest pause between two of them (the UI drawing test)
+    struct VisualStats { int frames = 0; double longestGapMs = 0.0; };
+    VisualStats getVisualStats() const { return visualStats; }
+    void resetVisualStats()            { visualStats = {}; lastFrameAt = 0.0; }
 
 private:
     void timerCallback() override;
+    void onVBlank (double timeSec);
+    bool visualsShown() const;
     void updateCableHint();   // zeigt den VB-Cable-Hinweis, wenn kein virtuelles Kabel installiert ist
     void updateActionButtons();
 
     AudioEngine& engine;
-    LevelMeterComponent inMeter, outMeter;
-    juce::Label inLabel, outLabel, inValue, outValue;
-    float inHeld = -120.0f, outHeld = -120.0f;
+    micvst::viz::Feed feed;                  // input / output spectrum and levels (interface only)
+    SpectrumView spectrum { feed };
+    LevelMetersView meters { feed };
+    juce::VBlankAttachment vblank;
+    double nextFrameAt = 0.0, lastVBlank = 0.0, vblankInterval = 1.0 / 60.0;
+    bool visualsIdle = false;
+    VisualStats visualStats;
+    double lastFrameAt = 0.0;
     juce::Rectangle<int> levelCard;
     MuteButton muteBtn;
     std::unique_ptr<DevicePanel> devicePanel;

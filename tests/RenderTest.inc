@@ -16,6 +16,8 @@
   #define NOMINMAX
  #endif
  #include <windows.h>
+ #include <psapi.h>
+ #pragma comment (lib, "psapi.lib")
 #endif
 
 namespace rendertest
@@ -123,6 +125,8 @@ namespace rendertest
         auto pump = [] (int ms) { juce::MessageManager::getInstance()->runDispatchLoopUntil (ms); };
         dir.createDirectory();
 
+        auto stage = [] (const char* what) { std::printf ("render test: %s\n", what); std::fflush (stdout); };
+        stage ("start");
         micvst::render::startSession (micvst::render::Mode::gpuOnly);
         Window win;
         auto* mc = new MainComponent (engine);
@@ -131,10 +135,12 @@ namespace rendertest
         Marker marker;
         mc->addAndMakeVisible (marker);
         marker.setBounds (8, 8, 44, 44);
+        stage ("window built");
         win.setVisible (true);
         micvst::render::attach (win);
         win.toFront (true);
         pump (1500);
+        stage ("window shown");
 
         auto* hwnd = (HWND) win.getPeer()->getNativeHandle();
         SetWindowPos (hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);   // nothing may cover it on the runner
@@ -172,6 +178,7 @@ namespace rendertest
            << "|---|---|---|---|---|---|---|---|---|---|---|\n";
         juce::String csv ("cycle,direction,t_ms,marker_r,marker_g,marker_b\n");
 
+        stage ("measuring");
         const juce::Colour colours[] { juce::Colours::red, juce::Colour (0xff1e5bff), juce::Colour (0xff00c853), juce::Colour (0xffffb000) };
         int failures = 0, total = 0;
         bool d2dWorks = true;
@@ -246,6 +253,7 @@ namespace rendertest
                     csv << cycle << "," << r.direction << "," << juce::String (s.t, 1) << ","
                         << (int) s.marker.getRed() << "," << (int) s.marker.getGreen() << "," << (int) s.marker.getBlue() << "\n";
                     if (s.t < ts) continue;   // before the switch call
+                    // (the spectrum and meters move; the marker and the still probes do not)
                     ++r.captures;
                     const bool isOld = distance (s.marker, oldColour) < 60, isNew = distance (s.marker, newColour) < 60;
                     if (isNew && ! sawNew) { sawNew = true; r.newColourAtMs = s.t - ts; }
@@ -270,6 +278,71 @@ namespace rendertest
         md << "\nEngines: 0 = processor (GDI), 1 = graphics card (Direct2D).\n"
            << "\n**Switches: " << total << ", failures: " << failures << "**"
            << (d2dWorks ? "" : " - Direct2D drew nothing before a switch on this machine: the GPU side is not tested here (ENGELLENDİ)") << "\n";
+
+        // --- the spectrum and meters moving: frames, pauses, processor time, per engine and FPS ---
+        stage ("animation");
+        marker.setVisible (false);
+        auto processCpuMs = []
+        {
+            FILETIME c, e, k, u;
+            GetProcessTimes (GetCurrentProcess(), &c, &e, &k, &u);
+            auto ms = [] (FILETIME f) { return (double) (((uint64_t) f.dwHighDateTime << 32) | f.dwLowDateTime) / 10000.0; };
+            return ms (k) + ms (u);
+        };
+        auto measure = [&] (int ms, double& cpuPercent)
+        {
+            const double c0 = processCpuMs(), w0 = nowMs();
+            pump (ms);
+            cpuPercent = 100.0 * (processCpuMs() - c0) / (nowMs() - w0);
+        };
+        auto resources = [&]
+        {
+            PROCESS_MEMORY_COUNTERS_EX pm {};
+            GetProcessMemoryInfo (GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*) &pm, sizeof (pm));
+            DWORD handles = 0;
+            GetProcessHandleCount (GetCurrentProcess(), &handles);
+            return juce::String ((double) pm.PrivateUsage / (1024.0 * 1024.0), 1) + " MB private, "
+                 + juce::String ((int) GetGuiResources (GetCurrentProcess(), GR_GDIOBJECTS)) + " GDI, "
+                 + juce::String ((int) GetGuiResources (GetCurrentProcess(), GR_USEROBJECTS)) + " USER, "
+                 + juce::String ((int) handles) + " handles";
+        };
+        const auto before = resources();
+        md << "\n# Spectrum and level meters moving (engine running on test devices, synthetic speech)\n\n"
+           << "Each row 5 s. Frames/s: drawn frames of the spectrum and meters (they are paced on the screen's refresh). "
+           << "CPU: the whole test process (audio engine, both views, everything) in % of one core; 'hidden' = the same "
+           << "with the spectrum and meters switched off, so the difference is what they cost. On a CI runner the "
+           << "graphics card is Windows' software rasteriser (WARP): the GPU rows are not representative of a real card.\n\n"
+           << "| engine | FPS setting | frames/s | longest pause ms | CPU % | CPU % hidden | difference |\n|---|---|---|---|---|---|---|\n";
+        for (int eng = 0; eng < 2; ++eng)
+        {
+            micvst::render::setMode (eng == 0 ? micvst::render::Mode::cpuOnly : micvst::render::Mode::gpuOnly);
+            pump (800);
+            micvst::render::setMetersVisible (false);
+            pump (800);
+            double hidden = 0.0;
+            measure (5000, hidden);
+            micvst::render::setMetersVisible (true);
+            for (int fps : micvst::render::fpsChoices())
+            {
+                micvst::render::setFps (fps);
+                pump (1000);
+                mc->resetVisualStats();
+                double cpu = 0.0;
+                const double w0 = nowMs();
+                measure (5000, cpu);
+                const auto st = mc->getVisualStats();
+                const double fpsGot = st.frames * 1000.0 / (nowMs() - w0);
+                md << "| " << (eng == 0 ? "processor (GDI)" : "graphics card (Direct2D)") << " | " << fps << " | "
+                   << juce::String (fpsGot, 1) << " | " << juce::String (st.longestGapMs, 1) << " | "
+                   << juce::String (cpu, 1) << " | " << juce::String (hidden, 1) << " | " << juce::String (cpu - hidden, 1) << " |\n";
+                // pass: at least 90 % of the frames (a CI machine is shared), no pause longer than 3 frames
+                if (fpsGot < 0.9 * fps || st.longestGapMs > 3000.0 / fps) ++failures;
+            }
+        }
+        micvst::render::setFps (0);
+        pump (500);
+        md << "\nResources before: " << before << "; after: " << resources() << "\n"
+           << "\n**Total failures (switches + animation): " << failures << "**\n";
         dir.getChildFile ("render-switch.md").replaceWithText (md);
         dir.getChildFile ("render-switch.csv").replaceWithText (csv);
         std::printf ("%s\n", md.toRawUTF8());

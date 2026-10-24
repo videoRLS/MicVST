@@ -127,12 +127,6 @@ int main (int argc, char** argv)
     auto pump = [] (int ms) { juce::MessageManager::getInstance()->runDispatchLoopUntil (ms); };
 
     AudioEngine engine;
-    if (renderTest)   // the engine stays idle: a still window, only the marker changes
-    {
-        const int code = rendertest::run (dir, engine, argc > 3 ? juce::String (argv[3]).getIntValue() : 10);
-        juce::LookAndFeel::setDefaultLookAndFeel (nullptr);
-        return code;
-    }
     MicVSTState st;
     st.inputDevice = juce::String::fromUTF8 ("Mikrofon (HyperX QuadCast 2 S)");
     st.outputDevice = "CABLE Input (VB-Audio Virtual Cable)";
@@ -140,10 +134,29 @@ int main (int argc, char** argv)
     engine.applyState (st);
     pump (2500);
 
+    if (renderTest)   // the main window as in MicVST.exe: the engine running on the test devices
+    {
+        const int code = rendertest::run (dir, engine, argc > 3 ? juce::String (argv[3]).getIntValue() : 10);
+        juce::LookAndFeel::setDefaultLookAndFeel (nullptr);
+        return code;
+    }
+
+    // the main window with its spectrum and level meters moving: frames driven here (no screen refresh)
+    auto snapLive = [&] (MainComponent& m, int w, int h, const juce::File& out)
+    {
+        m.setSize (w, h);
+        for (int i = 0; i < 90; ++i)
+        {
+            pump (16);
+            m.updateVisuals (juce::Time::getMillisecondCounterHiRes() / 1000.0);
+        }
+        snap (m, w, h, out);
+    };
+
     {
         MainComponent mc (engine);
         pump (700);
-        snap (mc, 640, 600, dir.getChildFile ("1_main_empty.png"));
+        snapLive (mc, 640, 780, dir.getChildFile ("1_main_empty.png"));
 
         engine.getChain().addMonoToStereo();
         engine.getChain().addStereoToMono();
@@ -154,8 +167,8 @@ int main (int argc, char** argv)
         engine.rebuildGraph();
         if (engine.onScanFinished) engine.onScanFinished();   // list view rebuilds its rows
         pump (800);
-        snap (mc, 640, 600, dir.getChildFile ("2_main_chain.png"));
-        snap (mc, 760, 640, dir.getChildFile ("3_main_large.png"));
+        snapLive (mc, 640, 780, dir.getChildFile ("2_main_chain.png"));
+        snapLive (mc, 860, 900, dir.getChildFile ("3_main_large.png"));
 
         if (engine.onScanProgress) engine.onScanProgress (12, 34, "FabFilter Pro-Q 4");
         for (auto* c : mc.getChildren())

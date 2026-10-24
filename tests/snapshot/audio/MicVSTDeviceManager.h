@@ -8,6 +8,7 @@
 #include <cmath>
 #include <thread>
 #include <vector>
+#include "SpeechSynth.h"
 
 namespace snapshotdevices
 {
@@ -41,6 +42,18 @@ namespace snapshotdevices
             thread = std::thread ([this]
             {
                 std::vector<float> a ((size_t) block), b ((size_t) block);
+                // the "microphone": synthetic speech (spectrum and meters in the pictures look real)
+                static const std::vector<float> voice = []
+                {
+                    speech::Params p;
+                    p.fs = 48000.0;
+                    p.peakDb = -20.0;
+                    p.noiseDb = -72.0;
+                    p.phrasePauseScale = 0.3;
+                    auto x = speech::generate (12.0, p).x;
+                    for (auto& v : x) v *= 0.5f;   // (the synthesis has rare peaks above full scale)
+                    return x;
+                }();
                 auto next = std::chrono::steady_clock::now();
                 int64_t n = 0;
                 while (running)
@@ -50,7 +63,7 @@ namespace snapshotdevices
                     if (input)
                     {
                         for (int i = 0; i < block; ++i, ++n)
-                            a[(size_t) i] = b[(size_t) i] = (float) (0.3 * std::sin (0.13 * (double) n));
+                            a[(size_t) i] = b[(size_t) i] = voice[(size_t) (n % (int64_t) voice.size())];
                         const float* ins[] = { a.data(), b.data() };
                         callback->audioDeviceIOCallbackWithContext (ins, 2, nullptr, 0, block, {});
                     }

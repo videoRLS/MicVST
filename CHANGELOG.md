@@ -6,6 +6,21 @@ project follows [Semantic Versioning](https://semver.org/).
 
 ## [1.2.3] - 2026-10-23
 
+- Main window: a spectrum in the level card, after FabFilter Pro-Q's analyser - logarithmic
+  20 Hz - 20 kHz, the input (microphone, before the chain, grey) under the output (what goes to the
+  cable, the theme's accent), 4.5 dB/octave display tilt around 1 kHz, a sixth-octave peak per
+  point, rise 35 ms / fall 280 ms. The input / output level meters moved under the chain and became
+  vertical: left and right each, peak and RMS bars (green, yellow towards -6 dB, red at full scale),
+  the peak held 1.5 s, a clip light (3 s) and the held peak / RMS in dB. Both are analysed in fixed
+  steps of audio time (1/60 s) and move in real time, so the picture is the same at 60, 30, 20 or
+  10 FPS (unit test); frames are paced on the screen's refresh (VBlankAttachment) at the FPS of
+  Arayüz akıcılığı; still parts are cached images; nothing is analysed or drawn while hidden or
+  minimised, and with no sound, once everything is down, nothing is redrawn. The card grows with
+  the window. "Spektrumu ve ses seviyesi göstergelerini göster" switches both. Data: the two level
+  meters (Metering.h) now also copy each block they measure into a read-only ring (SampleTap:
+  wait-free, allocated once, atomics; the block itself is not changed - unit tests: bit-exact, a
+  reader racing the writer never gets torn data). AudioEngine.cpp, the chain, the bridge, the
+  recorder and the sound are unchanged; AudioEngine.h only gained two read-only accessors.
 - Arayüz çizimi: switching from Yalnızca ekran kartı to Yalnızca işlemci flickered and left a ghost
   of the old picture (user report, deneme 14). Direct2D shows its picture through a
   DirectComposition visual on top of the window; JUCE only released it, and Windows kept showing

@@ -189,6 +189,10 @@ public:
 
     LevelReading inputLevel()  const { return inputMeter.read(); }
     LevelReading outputLevel() const { return outputMeter.read(); }
+    // the interface's spectrum and level meters: read-only copies of what the two meters see
+    // (input: the microphone; output: what goes to the cable, after Sustur) - see SampleTap
+    const SampleTap& inputTap()  const { return inputMeter.tap(); }
+    const SampleTap& outputTap() const { return outputMeter.tap(); }
 
     void rebuildGraph();
 
