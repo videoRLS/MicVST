@@ -13,6 +13,9 @@
 #include "ui/PluginPicker.h"
 #include "ui/Theme.h"
 #include "Text.h"
+#include "ui/RenderMode.h"
+#include <thread>
+#include "RenderTest.inc"
 
 using micvst::tr;
 
@@ -110,7 +113,10 @@ static int viewFailures = 0;
 
 int main (int argc, char** argv)
 {
-    const juce::File dir = juce::File::getCurrentWorkingDirectory().getChildFile (argc > 1 ? argv[1] : "ui");
+    // MicVSTSnapshot --render <folder> [cycles]: the GPU / CPU switch on the real desktop (RenderTest.inc)
+    const bool renderTest = argc > 1 && juce::String (argv[1]) == "--render";
+    const juce::File dir = juce::File::getCurrentWorkingDirectory().getChildFile (renderTest ? (argc > 2 ? argv[2] : "render")
+                                                                                             : (argc > 1 ? argv[1] : "ui"));
     dir.createDirectory();
     juce::ScopedJuceInitialiser_GUI gui;
     SnapApp app;
@@ -121,6 +127,12 @@ int main (int argc, char** argv)
     auto pump = [] (int ms) { juce::MessageManager::getInstance()->runDispatchLoopUntil (ms); };
 
     AudioEngine engine;
+    if (renderTest)   // the engine stays idle: a still window, only the marker changes
+    {
+        const int code = rendertest::run (dir, engine, argc > 3 ? juce::String (argv[3]).getIntValue() : 10);
+        juce::LookAndFeel::setDefaultLookAndFeel (nullptr);
+        return code;
+    }
     MicVSTState st;
     st.inputDevice = juce::String::fromUTF8 ("Mikrofon (HyperX QuadCast 2 S)");
     st.outputDevice = "CABLE Input (VB-Audio Virtual Cable)";

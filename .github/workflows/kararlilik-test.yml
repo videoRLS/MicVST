@@ -60,9 +60,12 @@ jobs:
     if: ${{ !contains(github.event.head_commit.message, '[kaynak]') && !contains(github.event.head_commit.message, '[birim]') }}
     runs-on: windows-latest
     # "[hizli]" in the commit message: build and publish MicVST.exe only, no tests (for a quick
-    # listening test by the user; the full run follows with a normal commit)
+    # listening test by the user; the full run follows with a normal commit).
+    # "[arayuz]": like [hizli] plus the UI drawing test on the real desktop (GPU / CPU switch,
+    # animation cost), published to ci-sonuclari/<branch>-arayuz.
     env:
-      QUICK: ${{ contains(github.event.head_commit.message, '[hizli]') }}
+      QUICK: ${{ contains(github.event.head_commit.message, '[hizli]') || contains(github.event.head_commit.message, '[arayuz]') }}
+      UI: ${{ contains(github.event.head_commit.message, '[arayuz]') }}
     steps:
       - uses: actions/checkout@v7
 
@@ -75,7 +78,17 @@ jobs:
           if (Test-Path tests/SnapshotMain.cpp) { $targets += " MicVSTSnapshot" }
           if (Test-Path tests/EngineTestMain.cpp) { $targets += " MicVSTEngineTest" }
           if ($env:QUICK -eq 'true') { $targets = "MicVST"; New-Item -ItemType Directory -Force results | Out-Null; "quick build: MicVST.exe only, no tests" | Set-Content results/QUICK-BUILD-NO-TESTS.txt }
+          if ($env:UI -eq 'true') { $targets = "MicVST MicVSTSnapshot"; "UI build: MicVST.exe and the UI drawing test only (render/), no other tests" | Set-Content results/QUICK-BUILD-NO-TESTS.txt }
           ./tools/ci-build.ps1 -Source . -Build build -Targets $targets -Out results
+
+      - name: UI drawing on the real desktop - GPU / CPU switch (ghost, flicker, flash), animation cost
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && (env.UI == 'true' || env.QUICK != 'true') && hashFiles('tests/RenderTest.inc') != '' }}
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force results/render | Out-Null
+          ./build/MicVSTSnapshot_artefacts/Release/MicVSTSnapshot.exe --render results/render 10 2>&1 | Tee-Object -FilePath results/render/stdout.txt
+          "exit code: $LASTEXITCODE" | Add-Content results/render/stdout.txt
 
       - name: Unit tests
         if: ${{ !cancelled() && steps.build.outcome == 'success' && env.QUICK != 'true' }}
@@ -175,4 +188,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # quick builds publish next to the full results, never over them
-        run: ./tools/ci-publish.ps1 -Dir results -Branch "ci-sonuclari/${{ github.ref_name }}$(if ($env:QUICK -eq 'true') { '-hizli' })" -Message "MicVST ${{ github.ref_name }}"
+        run: ./tools/ci-publish.ps1 -Dir results -Branch "ci-sonuclari/${{ github.ref_name }}$(if ($env:UI -eq 'true') { '-arayuz' } elseif ($env:QUICK -eq 'true') { '-hizli' })" -Message "MicVST ${{ github.ref_name }}"
