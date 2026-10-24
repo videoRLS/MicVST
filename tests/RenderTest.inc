@@ -10,6 +10,10 @@
 //   flash   = neither colour in the marker, or a still part of the window (bottom bar, device row)
 //             different from both the picture before and the picture after the switch
 // Every switch direction is repeated; results go to <folder>/render-switch.md (+ .csv).
+// Before that, the first switch as a user makes it (render-first.md + PNGs): the main window and the
+// Settings window open, "Yalnızca işlemci" chosen in the Arayüz çizimi list - the first GPU -> CPU
+// switch of these windows, then again - with the whole of both windows captured, so a white or
+// foreign area anywhere (not only at the marker) is found and saved as a picture.
 // Windows only (elsewhere it says so and returns 0).
 #if JUCE_WINDOWS
  #ifndef NOMINMAX
@@ -19,6 +23,7 @@
  #include <psapi.h>
  #pragma comment (lib, "psapi.lib")
 #endif
+#include "ui/DarkTitleBar.h"
 
 namespace rendertest
 {
@@ -112,6 +117,294 @@ namespace rendertest
 
     inline double nowMs() { return juce::Time::getMillisecondCounterHiRes(); }
 
+    // ---------------------------------------------------------------------------------------------
+    // The first switch as a user makes it: both windows, the list's popup, whole-screen captures.
+    struct ScreenFrame { double t = 0.0; std::vector<uint32_t> px; };
+
+    inline int pxDistance (uint32_t a, uint32_t b)
+    {
+        return std::abs ((int) ((a >> 16) & 0xff) - (int) ((b >> 16) & 0xff)) + std::abs ((int) ((a >> 8) & 0xff) - (int) ((b >> 8) & 0xff))
+             + std::abs ((int) (a & 0xff) - (int) (b & 0xff));
+    }
+    inline int luma (uint32_t p) { return (int) ((((p >> 16) & 0xff) * 299 + ((p >> 8) & 0xff) * 587 + (p & 0xff) * 114) / 1000); }
+
+    inline juce::Image toImage (const std::vector<uint32_t>& px, int w, int h, const std::vector<uint8_t>* mark = nullptr)
+    {
+        juce::Image img (juce::Image::RGB, w, h, false);
+        juce::Image::BitmapData bd (img, juce::Image::BitmapData::writeOnly);
+        for (int y = 0; y < h; ++y)
+            for (int x = 0; x < w; ++x)
+            {
+                const size_t i = (size_t) y * (size_t) w + (size_t) x;
+                const auto p = px[i];
+                auto c = juce::Colour ((juce::uint8) ((p >> 16) & 0xff), (juce::uint8) ((p >> 8) & 0xff), (juce::uint8) (p & 0xff));
+                if (mark != nullptr)
+                    c = (*mark)[i] == 2 ? juce::Colour (0xffff00ff) : (*mark)[i] == 1 ? juce::Colour (0xff00e5ff) : c.withMultipliedBrightness (0.45f);
+                bd.setPixelColour (x, y, c);
+            }
+        return img;
+    }
+    inline void savePng (const juce::Image& img, const juce::File& f)
+    {
+        f.deleteFile();
+        juce::FileOutputStream os (f);
+        juce::PNGImageFormat png;
+        png.writeImageToStream (img, os);
+    }
+    inline juce::ComboBox* findRenderList (juce::Component& c)
+    {
+        if (auto* cb = dynamic_cast<juce::ComboBox*> (&c))
+            for (int i = 0; i < cb->getNumItems(); ++i)
+                if (cb->getItemText (i) == juce::String::fromUTF8 ("Yalnızca işlemci") || cb->getItemText (i) == "CPU only")
+                    return cb;
+        for (auto* child : c.getChildren())
+            if (auto* found = findRenderList (*child))
+                return found;
+        return nullptr;
+    }
+
+    struct FirstSwitchResult
+    {
+        juce::String label;
+        int engineBefore = -1, engineAfter = -1;
+        int framesDuring = 0, anomalyFrames = 0, maxAnomaly = 0, maxBright = 0;
+        double firstAnomalyMs = -1.0, lastAnomalyMs = -1.0;
+        juce::Rectangle<int> worstBox;   // screen pixels
+        juce::String where;
+    };
+
+    inline int firstSwitchPhase (const juce::File& dir, AudioEngine& engine)
+    {
+        auto pump = [] (int ms) { juce::MessageManager::getInstance()->runDispatchLoopUntil (ms); };
+        auto stage = [] (const char* what) { std::printf ("render test (first switch): %s\n", what); std::fflush (stdout); };
+        stage ("start");
+        micvst::render::startSession (micvst::render::Mode::gpuOnly);
+
+        Window win;
+        win.setContentOwned (new MainComponent (engine), true);
+        win.centreWithSize (640, 760);
+        win.setTopLeftPosition (40, 40);
+        win.setVisible (true);
+        micvst::useDarkTitleBar (win, micvst::theme::dark);
+        micvst::render::attach (win);
+        win.toFront (true);
+        pump (1200);
+        win.setSize (660, 840);   // a size set while Direct2D draws (a restored or dragged size)
+        pump (800);
+
+        struct SettingsWin final : juce::DocumentWindow
+        {
+            SettingsWin() : juce::DocumentWindow ("Ayarlar", micvst::theme::background, juce::DocumentWindow::closeButton) { setUsingNativeTitleBar (true); }
+            void closeButtonPressed() override {}
+        };
+        GlobalHotkeys keys;
+        keys.set (GlobalHotkeys::mute, GlobalHotkeys::defaultFor (GlobalHotkeys::mute));
+        SettingsComponent* sc = nullptr;
+        SettingsComponent::Callbacks cb;
+        cb.setHotkey = [&] (GlobalHotkeys::Action a, const GlobalHotkeys::Binding& b) { keys.set (a, b); return true; };
+        cb.chooseRenderer = [&sc] (const juce::String& id)   // as MicVST (Main.cpp applyRenderer)
+        {
+            juce::MessageManager::callAsync ([&sc, id]
+            {
+                micvst::render::setMode (micvst::render::fromId (id));
+                if (sc != nullptr) sc->refreshFps();
+            });
+        };
+        SettingsWin swin;
+        sc = new SettingsComponent (engine, &keys, cb);
+        swin.setContentOwned (sc, true);
+        swin.setResizable (true, false);
+        swin.centreAroundComponent (&win, swin.getWidth(), swin.getHeight());
+        swin.setVisible (true);
+        micvst::useDarkTitleBar (swin, micvst::theme::dark);
+        micvst::render::attach (swin);
+        swin.toFront (true);
+        pump (1200);
+        stage ("windows shown");
+
+        auto* list = findRenderList (*sc);
+        if (list == nullptr)
+        {
+            dir.getChildFile ("render-first.md").replaceWithText ("# First switch\n\nArayüz çizimi list not found.\n");
+            return 1;
+        }
+        for (auto* p = list->getParentComponent(); p != nullptr; p = p->getParentComponent())
+            if (auto* vp = dynamic_cast<juce::Viewport*> (p))
+            {
+                vp->setViewPosition (0, juce::jmax (0, list->getY() - 120));
+                break;
+            }
+        pump (500);
+
+        // the area captured: both windows and room for the list's popup under them
+        const auto mainHwnd = (HWND) win.getPeer()->getNativeHandle();
+        const auto setHwnd = (HWND) swin.getPeer()->getNativeHandle();
+        SetWindowPos (mainHwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+        SetWindowPos (setHwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+        pump (300);
+        RECT rm {}, rs {};
+        GetWindowRect (mainHwnd, &rm);
+        GetWindowRect (setHwnd, &rs);
+        const int vx = GetSystemMetrics (SM_XVIRTUALSCREEN), vy = GetSystemMetrics (SM_YVIRTUALSCREEN);
+        const int vw = GetSystemMetrics (SM_CXVIRTUALSCREEN), vh = GetSystemMetrics (SM_CYVIRTUALSCREEN);
+        const int ax = juce::jmax (vx, (int) juce::jmin (rm.left, rs.left) - 8), ay = juce::jmax (vy, (int) juce::jmin (rm.top, rs.top) - 8);
+        const int ar = juce::jmin (vx + vw, (int) juce::jmax (rm.right, rs.right) + 8);
+        const int ab = juce::jmin (vy + vh, (int) juce::jmax (rm.bottom, rs.bottom) + 260);
+        const int aw = ar - ax, ah = ab - ay;
+        auto describe = [&] (juce::Rectangle<int> b)   // which window a box (screen pixels) lies in
+        {
+            juce::StringArray parts;
+            const juce::Rectangle<int> mainR ((int) rm.left, (int) rm.top, (int) (rm.right - rm.left), (int) (rm.bottom - rm.top));
+            const juce::Rectangle<int> setR ((int) rs.left, (int) rs.top, (int) (rs.right - rs.left), (int) (rs.bottom - rs.top));
+            if (setR.intersects (b)) parts.add ("Ayarlar penceresi (" + juce::String (b.getX() - setR.getX()) + "," + juce::String (b.getY() - setR.getY()) + " " + juce::String (b.getWidth()) + "x" + juce::String (b.getHeight()) + " pencereye göre)");
+            if (mainR.intersects (b) && ! setR.contains (b)) parts.add ("ana pencere (" + juce::String (b.getX() - mainR.getX()) + "," + juce::String (b.getY() - mainR.getY()) + " " + juce::String (b.getWidth()) + "x" + juce::String (b.getHeight()) + ")");
+            if (parts.isEmpty()) parts.add ("pencerelerin dışı (açılır liste?)");
+            return parts.joinIntoString (", ");
+        };
+
+        std::vector<FirstSwitchResult> results;
+        auto doSwitch = [&] (int toId, bool withPopup, const juce::String& label, const juce::String& fileTag)
+        {
+            FirstSwitchResult r;
+            r.label = label;
+            r.engineBefore = win.getPeer()->getCurrentRenderingEngine();
+            if (withPopup && list->isShowing())
+            {
+                list->showPopup();
+                pump (700);
+            }
+            std::vector<ScreenFrame> frames;
+            frames.reserve (400);
+            std::atomic<bool> stop { false };
+            const double t0 = nowMs();
+            std::thread capturer ([&]
+            {
+                Grabber g (aw, ah);
+                while (! stop.load())
+                {
+                    if (g.grab (ax, ay))
+                    {
+                        ScreenFrame f;
+                        f.t = nowMs() - t0;
+                        f.px.assign (g.bits, g.bits + (size_t) aw * (size_t) ah);
+                        frames.push_back (std::move (f));
+                    }
+                    Sleep (8);
+                }
+            });
+            pump (350);   // the picture before (the popup open), while the views move
+            const double ts = nowMs() - t0;
+            if (withPopup) juce::PopupMenu::dismissAllActiveMenus();
+            list->setSelectedId (toId);   // as a click in the popup: the list's onChange, Main's callAsync
+            pump (1300);
+            stop = true;
+            capturer.join();
+            r.engineAfter = win.getPeer()->getCurrentRenderingEngine();
+            if (frames.size() < 6) { r.where = "too few captures"; results.push_back (r); return; }
+
+            // references: the last frame before the action and the last one; what moves by itself
+            // (spectrum, meters, a caret) is left out: pixels that change within the frames before or
+            // within the last 500 ms
+            size_t lastBefore = 0;
+            for (size_t i = 0; i < frames.size(); ++i) if (frames[i].t < ts) lastBefore = i;
+            const auto& before = frames[lastBefore].px;
+            const auto& after = frames.back().px;
+            const size_t n = (size_t) aw * (size_t) ah;
+            std::vector<uint8_t> moving (n, 0);
+            for (size_t i = 0; i < frames.size(); ++i)
+            {
+                const bool pre = frames[i].t < ts, post = frames[i].t > frames.back().t - 500.0;
+                if (! pre && ! post) continue;
+                const auto& ref = pre ? before : after;
+                for (size_t k = 0; k < n; ++k)
+                    if (pxDistance (frames[i].px[k], ref[k]) > 40) moving[k] = 1;
+            }
+            size_t worst = 0;
+            std::vector<uint8_t> worstMark;
+            for (size_t i = 0; i < frames.size(); ++i)
+            {
+                const auto& f = frames[i];
+                if (f.t <= ts || f.t > frames.back().t - 500.0) continue;
+                ++r.framesDuring;
+                int anomalies = 0, bright = 0;
+                juce::Rectangle<int> box;
+                std::vector<uint8_t> mark (n, 0);
+                for (size_t k = 0; k < n; ++k)
+                {
+                    if (moving[k]) continue;
+                    if (pxDistance (f.px[k], before[k]) > 60 && pxDistance (f.px[k], after[k]) > 60)
+                    {
+                        ++anomalies;
+                        const bool isBright = luma (f.px[k]) > 170;
+                        if (isBright) ++bright;
+                        mark[k] = isBright ? 2 : 1;
+                        const juce::Rectangle<int> px1 ((int) (k % (size_t) aw) + ax, (int) (k / (size_t) aw) + ay, 1, 1);
+                        box = box.isEmpty() ? px1 : box.getUnion (px1);
+                    }
+                }
+                if (anomalies > 200)
+                {
+                    ++r.anomalyFrames;
+                    if (r.firstAnomalyMs < 0.0) r.firstAnomalyMs = f.t - ts;
+                    r.lastAnomalyMs = f.t - ts;
+                }
+                if (anomalies > r.maxAnomaly)
+                {
+                    r.maxAnomaly = anomalies;
+                    r.maxBright = juce::jmax (r.maxBright, bright);
+                    r.worstBox = box;
+                    worst = i;
+                    worstMark = std::move (mark);
+                }
+                r.maxBright = juce::jmax (r.maxBright, bright);
+            }
+            r.where = r.maxAnomaly > 200 ? describe (r.worstBox) : juce::String ("-");
+            savePng (toImage (before, aw, ah), dir.getChildFile ("first-" + fileTag + "-1-before.png"));
+            savePng (toImage (after, aw, ah), dir.getChildFile ("first-" + fileTag + "-4-after.png"));
+            if (r.maxAnomaly > 200)
+            {
+                savePng (toImage (frames[worst].px, aw, ah), dir.getChildFile ("first-" + fileTag + "-2-worst.png"));
+                savePng (toImage (frames[worst].px, aw, ah, &worstMark), dir.getChildFile ("first-" + fileTag + "-3-worst-marked.png"));
+            }
+            results.push_back (r);
+            pump (600);
+        };
+
+        stage ("measuring");
+        doSwitch (3, true,  "1. GPU -> CPU (the first; from the list's popup)", "a");
+        doSwitch (2, true,  "2. CPU -> GPU (from the popup)", "b");
+        doSwitch (3, true,  "3. GPU -> CPU (the second; from the popup)", "c");
+        doSwitch (2, false, "4. CPU -> GPU (without the popup)", "d");
+        doSwitch (3, false, "5. GPU -> CPU (without the popup)", "e");
+
+        juce::String md;
+        md << "# First GPU -> CPU switch as a user makes it (main window + Ayarlar, Arayüz çizimi list)\n\n"
+           << "Captured area " << aw << " x " << ah << " px at " << ax << "," << ay << " (both windows + 260 px under them for the popup), every ~10 ms. "
+           << "A pixel is foreign when it differs from both the picture before the choice and the final picture "
+           << "(by more than 60 in R+G+B) and is not one that moves by itself (spectrum, meters). Bright = foreign and "
+           << "lighter than 170/255 (white-ish; the theme is dark). Frames with more than 200 foreign pixels count.\n\n"
+           << "| switch | engine before -> after | frames | frames with foreign area | most foreign px | of them bright | first .. last ms | where (worst frame) |\n"
+           << "|---|---|---|---|---|---|---|---|\n";
+        int failures = 0;
+        for (auto& r : results)
+        {
+            md << "| " << r.label << " | " << r.engineBefore << " -> " << r.engineAfter << " | " << r.framesDuring << " | " << r.anomalyFrames
+               << " | " << r.maxAnomaly << " | " << r.maxBright << " | "
+               << (r.firstAnomalyMs >= 0 ? juce::String (r.firstAnomalyMs, 0) + " .. " + juce::String (r.lastAnomalyMs, 0) : juce::String ("-"))
+               << " | " << r.where << " |\n";
+            if (r.maxBright > 500) ++failures;
+        }
+        md << "\nPictures: first-<a..e>-1-before.png, -2-worst.png, -3-worst-marked.png (magenta = bright foreign, cyan = other foreign, the rest dimmed), -4-after.png.\n"
+           << "\n**First-switch failures (a white area of more than 500 px): " << failures << "**\n";
+        dir.getChildFile ("render-first.md").replaceWithText (md);
+        std::printf ("%s\n", md.toRawUTF8());
+
+        swin.setVisible (false);
+        win.setVisible (false);
+        pump (300);
+        return failures;
+    }
+
     struct Sample { double t; juce::Colour marker; std::vector<juce::Colour> probes; };
 
     struct SwitchResult
@@ -139,6 +432,7 @@ namespace rendertest
         dir.createDirectory();
 
         auto stage = [] (const char* what) { std::printf ("render test: %s\n", what); std::fflush (stdout); };
+        const int firstFailures = firstSwitchPhase (dir, engine);   // first: these are the process's first switches
         stage ("start");
         micvst::render::startSession (micvst::render::Mode::gpuOnly);
         Window win;
@@ -355,6 +649,7 @@ namespace rendertest
         micvst::render::setFps (0);
         pump (500);
         md << "\nResources before: " << before << "; after: " << resources() << "\n"
+           << "\nFirst switch with the Ayarlar window (render-first.md): " << firstFailures << " failures\n"
            << "\n**Total failures (switches + animation): " << failures << "**\n";
         dir.getChildFile ("render-switch.md").replaceWithText (md);
         dir.getChildFile ("render-switch.csv").replaceWithText (csv);
